@@ -1,7 +1,10 @@
-psychKG-pilot
+# psychKG-pilot
 
-Directory structure
+A minimal pipeline to extract structured psychological knowledge (constructs and measures) from PDF research articles using GROBID and OpenAI structured output parsing.
 
+## Directory Structure
+
+```
 psychKG-pilot/
 ├── grobid_batch_process.py
 ├── psychKG-IE.py
@@ -10,15 +13,13 @@ psychKG-pilot/
 │   ├── paper2.pdf
 │   ├── ...
 ├── output_tei/
+```
 
+
+## Setup
+
+```bash
 git clone https://github.com/sciknoworg/psychKG-pilot.git
 cd psychKG-pilot
-pip install requests
-
-1. 
-python grobid_batch_process.py
-
-
-
-
-Used the OpenAI o3 model
+pip install requests openai beautifulsoup4 pydantic
+```
