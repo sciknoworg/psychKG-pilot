@@ -1,0 +1,1301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Using cognitive psychology to understand GPT-3</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Marcel</forename><surname>Binz</surname></persName>
+							<email>marcel.binz@tue.mpg.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Biological Cybernetics</orgName>
+								<orgName type="institution">MPRG Computational Principles of Intelligence</orgName>
+								<address>
+									<postCode>72076</postCode>
+									<settlement>Tübingen</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><surname>Schulz</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Biological Cybernetics</orgName>
+								<orgName type="institution">MPRG Computational Principles of Intelligence</orgName>
+								<address>
+									<postCode>72076</postCode>
+									<settlement>Tübingen</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Using cognitive psychology to understand GPT-3</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:52+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>We study GPT-3, a recent large language model, using tools from cognitive psychology. More specifically, we assess GPT-3&apos;s decision-making, information search, deliberation, and causal reasoning abilities on a battery of canonical experiments from the literature. We find that much of GPT-3&apos;s behavior is impressive: it solves vignette-based tasks similarly or better than human subjects, is able to make decent decisions from descriptions, outperforms humans in a multi-armed bandit task, and shows signatures of model-based reinforcement learning. Yet we also find that small perturbations to vignette-based tasks can lead GPT-3 vastly astray, that it shows no signatures of directed exploration, and that it fails miserably in a causal reasoning task. These results enrich our understanding of current large language models and pave the way for future investigations using tools from cognitive psychology to study increasingly capable and opaque artificial agents.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>With the advent of increasingly capable artificial agents, comes the urgency to improve our understanding of how they learn and make decisions <ref type="bibr" target="#b0">1</ref> . Take as an example large language models <ref type="bibr" target="#b1">2</ref> . These models' abilities are, by many standards, impressive. They can generate text that human evaluators have difficulty distinguishing from text written by other humans <ref type="bibr" target="#b1">2</ref> , generate computer code <ref type="bibr" target="#b2">3</ref> , or converse with humans about a range of different topics <ref type="bibr" target="#b3">4</ref> . What is perhaps even more surprising, is that these models' abilities go beyond mere language generation: they can, for instance, also play chess at a reasonable level <ref type="bibr" target="#b4">5</ref> and solve university-level math problems <ref type="bibr" target="#b5">6</ref> . These observations have prompted some to argue that this new class of foundation models, which are models trained on broad data at scale and adapted to a wide range of downstream tasks, shows some form of general intelligence <ref type="bibr" target="#b6">7</ref> . Yet others have been more skeptical, pointing out that these models are still a far cry away from a human-level understanding of language and semantics <ref type="bibr" target="#b7">8</ref> . But how can we evaluate whether or not these models -at least in some situationslearn and think like people? One approach towards evaluating a model's human-likeness comes from cognitive psychology. Psychologists, after all, are experienced in trying to formally understand another notoriously impenetrable algorithm: the human mind.</p><p>In the present article, we investigate the Generative Pre-trained Transformer 3 model (or short: GPT-3) <ref type="bibr" target="#b1">2</ref> on several experiments taken from the cognitive psychology literature. Our analyses cover two types of experiments: vignette-based and task-based experiments. While vignette-based experiments involve a short and predefined description of a hypothetical scenario, task-based experiments are programmatically generated on a trail-by-trial basis. The selected tasks for both of these settings cover well-known areas of cognitive psychology: decision-making, information search, deliberation, and causal reasoning. We are primarily interested in whether GPT-3 can solve these tasks appropriately as well as how its behavior compares to human subjects. Our results show that GPT-3 can solve challenging vignette-based problems. Yet, we also highlight that these vignettes or similar texts might have been part of its training set. Moreover, we find that GPT-3's behavior strongly depends on how the vignettes are presented. Thus, we also subject GPT-3 to a battery of task-based problems. The results from these task-based assessments show that GPT-3 can make human-level decisions in both description-based and experience-based decision-making experiments, yet does not learn and explore in a human-like fashion. Furthermore, even though GPT-3 shows signatures of model-based reinforcement learning, it fails altogether in a causal reasoning task. Taken together, our results improve our understanding of current large language models, suggest ways in which they can be improved, and pave the way for future investigations using tools from cognitive psychology to study increasingly capable and opaque artificial agents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>GPT-3</head><p>GPT-3 is an auto-regressive language model 2 . It utilizes the transformer architecture <ref type="bibr" target="#b8">9</ref> -a deep learning model that heavily relies on the mechanism of self-attention-to produce human-like text. Just like recurrent neural networks, transformers are designed to process sequential data, such as natural language. However, unlike recurrent neural networks, transformers process the entire data all at once, with the attention mechanism providing context for any position in the input sequence. The model A B Linda is 31 years old, single, outspoken, and very bright. She majored in philosophy. As a student, she was deeply concerned with issues of discrimination and social justice, and also participated in anti-nuclear demonstrations.  itself is large, it has 175 billion parameters, and it was trained on a vast amount of text: hundreds of billions of words from the internet and books. GPT-3's architecture is similar to that of its predecessor, GPT-2 <ref type="bibr" target="#b9">10</ref> , but contains many more trainable parameters. Thus, GPT-3 can be thought of as an experiment in massively scaling up known algorithms <ref type="bibr" target="#b10">11</ref> . Larger models can capture more of the complexities of the data they were trained on and can transfer this knowledge to tasks that they have not been specifically trained for. Rather than being fine-tuned on a problem, these large language models can be given an instruction together with some examples of the task and identify what to do based on this alone. This is called "in-context learning" because the model picks up on patterns in its "context", for example, the string of words that the model is asked to complete. GPT-3 does incredibly well at in-context learning across a range of settings <ref type="bibr" target="#b11">12</ref> , sometimes even performing at a level comparable to the best fine-tuned models <ref type="bibr" target="#b1">2,</ref><ref type="bibr" target="#b12">13</ref> . Since GPT-3 is one of the biggest and most versatile large language models, it is a good candidate to be scrutinized using cognitive psychology.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A cognitive psychology view on GPT-3</head><p>We will subject GPT-3 to several tasks taken from the cognitive psychology literature. These tasks fall into four categories: 1. decision-making, 2. information search, 3. deliberation, and 4. causal reasoning. We will begin our investigations with several, classical vignette-based problems. For these vignette-based investigations, we confronted GPT-3 with text-based descriptions of hypothetical situations while collecting its responses. However, as we will point out, these vignettes have the problem that GPT-3 has likely experienced identical or similar such tasks in its training data. Moreover, we found that GPT-3's response can be tampered with just by marginally changing the vignettes and thereby creating adversarial situations. Thus, we also evaluated GPT-3's abilities in various task-based experiments. In these task-based investigations, we take canonical tasks from the literature and emulate their experimental structure as programmatically generated text to which GPT-3 responds on every experimental trial. We then use GPT-3's responses to analyze its behavior similar to how cognitive psychologists would analyze human behavior in the same tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>We used the public OpenAI API to run all our simulations <ref type="bibr" target="#b13">14</ref> . There are four GPT-3 models accessible through this API: "Ada", "Babbage", "Curie" and "Davinci" (sorted from the least to the most complex model). We focused our investigation on the most powerful of these models ("Davinci") unless otherwise noted. We furthermore set the temperature parameter to 0, leading to deterministic answers, and kept the default values for all other parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Vignette-based investigations</head><p>For the vignette-based investigations, we took canonical scenarios from the cognitive psychology literature, entered them as prompts into GPT-3, and recorded its answer. For each scenario, we report if GPT-3 responded correctly or not. Moreover, we classified each response as something a human could have said because it was either the correct response or a mistake commonly observed in human data. For cases where there were only two options, one correct and one that is normally chosen by human subjects, we added a third option that was neither correct nor plausibly chosen by people. The following subsections briefly summarize our main findings. We refer the reader to SI Appendix for a detailed description of the submitted prompts and GPT-3's corresponding answers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Decision-making: Heuristics and biases</head><p>We began our investigations of GPT-3's decision-making by prompting the canonical "Linda problem" <ref type="bibr" target="#b14">15</ref> (Linda, see <ref type="figure" target="#fig_1">Figure  1A</ref>). This problem has been known to assess the conjunction fallacy, a formal fallacy that occurs when it is assumed that specific conditions are more probable than a single general one. In the standard vignette, a hypothetical woman named Linda is described as "outspoken, bright, and politically active". Participants are then asked if it was more likely that Linda is a bank teller or that she is a bank teller and an active feminist. GPT-3, just like people, chose the second option, thereby falling for the conjunction fallacy.</p><p>Next, we prompted the so-called "cab problem" <ref type="bibr" target="#b15">16</ref> (Cab, see SI Appendix), in which participants commonly fail to take the base rate of different colors of taxis in a city into account when judging the probability of the color of a cab that was involved in an accident. Unlike people, GPT-3 did not fall for the base-rate fallacy, i.e. to ignore the base rates of different colors, but instead provided the (approximately) correct answer.</p><p>Finally, we asked GPT-3 to provide an answer to the "hospital problem" 17 (Hospital, see SI Appendix), in which participants are asked which of two hospitals, a smaller or a larger one, is more likely to report more days on which more than 60% of all born children were boys. While the correct answer would be the smaller hospital (due to the larger variance of smaller samples), GPT-3, just like people, thought that the probability was about equal.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Information search: Questions and hypothesis tests</head><p>First, we assessed if GPT-3 can adaptively change between constraint-seeking vs. hypothesis-scanning questions. Constraintseeking questions target a feature shared by multiple objects, such as "Is the person female?", whereas hypothesis-scanning questions target a single object, such as "Is the person Linda?". Crucially, which type of question is more informative depends on past observations. Ruggeri et al. <ref type="bibr" target="#b17">18</ref> manipulated the particular reasons for why a fictitious character named Toma was repeatedly late to school (Toma, see SI Appendix). While for one group he was frequently late because his bicycle had broken, for the other group he was late for various reasons with half of them being that he could not find various objects. While trying to find out why Toma is late to school again, the first group should ask the hypothesis-scanning question "Was he late because his bicycle broke?", whereas the second group should ask the constraint-seeking question "Was he late because he could not find something?". GPT-3 picked the appropriate question in each scenario.</p><p>Secondly, we confronted GPT-3 with a scenario originally presented by Baron et al. <ref type="bibr" target="#b18">19</ref> in which subjects need to choose an appropriate test to discriminate between two illnesses (Test, see SI Appendix). Empirically, participants tend to choose the wrong test, likely because they overvalue questions that have a high probability of a positive result given the most likely hypothesis. GPT-3, just like people, fell for the same congruence bias.</p><p>Finally, we presented Wason's well-known "Card Selection Task" 20 to GPT-3, explaining that the visible faces of four cards showed A, K, 4 and 7, and that the truth of the proposition "If a card shows a vowel on one face, then its opposite face shows an even number" needed to be tested (Wason, see SI Appendix). GPT-3 suggested to turn around A and 7, which is commonly accepted as the correct answer, even though most people turn around A and 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Deliberation: The Cognitive Reflection Test</head><p>We also tried to estimate GPT-3's tendency to override an incorrect fast response with answers derived by further deliberation. For this, we prompted the three items of the Cognitive Reflection Test 21 (CRT1-CRT3, see SI Appendix). One example item of this task is: "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?". While the initial response might be to say "100", 100 machines would just be as fast as 5 machines and thus also take 5 minutes. For all three items of the CRT, GPT-3 responded with the intuitive but incorrect answer, as has been observed in earlier work <ref type="bibr" target="#b21">22</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Causal reasoning: Blickets, interventions, and counterfactuals</head><p>We lastly assessed GPT-3's causal reasoning abilities. In a first test, we prompted GPT-3 with a version of the well-known "Blicket" experiment <ref type="bibr" target="#b22">23</ref> (Blicket, see SI Appendix). For this, blickets are introduced as objects that turn on a machine. Afterward, two objects are introduced. The first object turns on the machine on its own. The second machine does not turn on the machine on its own. Finally, both objects together turn on the machine. GPT-3, just like people, managed to correctly identify that the first but not the second object is a blicket.</p><p>In a second test, we asked GPT-3 to intervene in a scenario by removing the correct object to prevent an effect after having read about three different objects, one causing and two not causing the effect (in this case, an allergic reaction; Intervene, see SI Appendix). GPT-3 identified the correct object to be removed.</p><p>In the final test, we probed GPT-3's ability of mature causal reasoning <ref type="bibr" target="#b23">24</ref> (Mature, see SI Appendix). In this task, GPT-3 was told that there were four pills: A, B, C and D. While A and B individually could kill someone, C and D could not. GPT-3 successfully answered multiple questions about counterfactuals correctly, such as: "A man took pill B and pill C and he died. If he had not taken pill B, could he still have died?".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Problems with vignette-based investigations</head><p>Of the 12 vignette-based problems presented to GPT-3, it answered six correctly and all 12 in a way that could be described as human-like ( <ref type="figure" target="#fig_1">Figure 1B</ref>). Does this mean that GPT-3 could pass as a human in a cognitive psychology experiment? We believe that the answer, based on the vignette-based tasks alone, has to be "No.". Since many of the prompted scenarios were taken from famous psychological experiments, there is a chance that GPT-3 has encountered these scenarios or similar ones in its training set. Moreover, in additional investigations, we found that many of the vignettes could be slightly modified, i.e., made into adversarial vignettes, such that GPT-3 would give vastly different responses. In the cab problem, for example, it is clearly stated that 15% of the cabs are blue and 85% are green. Yet asking GPT-3 about the probability that a cab involved in an accident was black, it responded with "20%" (Black Cab, see SI Appendix). Simply changing the order of the options in Wason's card selection task from "A, K, 4, and 7" to "4, 7, A, and K" caused GPT-3 to suggest turning around "A" and "K" (Reverse Wason, see SI Appendix). Giving GPT-3 the first item of the CRT and stating that "The bat costs $1.00 more than the bat.", it still thought that the ball was $0.10 (Wrong CRT, see SI Appendix). Finally, when phrasing the mature causal reasoning problem as a "Blicket" problem in which machines could be turned on or off, GPT-3 answered some questions incorrectly while contradicting itself in its explanations (Immature Blicket, see SI Appendix). There have recently been other, much larger investigations using similar vignettes, whose results agree largely with our assessment <ref type="bibr" target="#b24">25</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task-based investigations</head><p>The results from the previous section indicate that GPT-3 can produce passable responses in some vignette-based tasks. It is, however, not possible to decide whether it is merely behaving like a parrot, repeating what it has seen in the training data, or whether it is reasoning successfully. We, therefore, next turned our lens of investigation to a more challenging setting and tested GPT-3 on actual, task-based experiments. In order to do so, we selected a set of four classical experiments that we believe to be representative of the cognitive psychology literature. For each of these, we programmatically generated a description that was entered as a prompt and -if there were multiple trials-updated the text with GPT-3's response and the received feedback.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Decision-making: Decisions from descriptions</head><p>How people make decisions from descriptions is one of the most well-studied areas of cognitive psychology, ranging from the early, seminal work of Kahneman &amp; Tversky <ref type="bibr" target="#b27">28</ref> to modern, large-scale investigations <ref type="bibr" target="#b25">26,</ref><ref type="bibr" target="#b26">27</ref> . In the decisions from descriptions paradigm, a decision-maker is asked to choose between one of two hypothetical gambles like the ones shown in <ref type="figure" target="#fig_3">Figure 2A</ref>. To test whether GPT-3 can reliably solve such problems, we presented the model with over 13, 000 problems taken from a recent benchmark data-set <ref type="bibr" target="#b25">26</ref> . <ref type="figure" target="#fig_3">Figure 2B</ref> shows the regret, which is defined as the difference between the expected outcome of the optimal option and that of the actually chosen option, obtained by different models in the GPT-3 family and compares their performance to human decisions. We found that only the largest of the GPT-3 models ("Davinci") was able to solve these problems above chance-level (t(29134) = −16.85, p =&lt; .001), whereas the three smaller models did not (all p &gt; 0.05). While the "Davinci" model did reasonably well, it did not reach human-level performance (t(29134) = −11.50, p &lt; .001).</p><p>However, given that GPT-3 was not too far away from human performance, it is reasonable to ask whether the model also exhibited human-like, cognitive biases. In their original work on prospect theory, Kahneman &amp; Tversky <ref type="bibr" target="#b16">17</ref> identified several biases of human decision-making by contrasting answers to multiple carefully selected problems pairs. We replicated the original analysis of Kahneman &amp; Tversky using choice probabilities of GPT-3 and found that GPT-3 showed three of the six biases identified by Kahneman &amp; Tversky. First, it displayed a framing effect, meaning that its preferences changed depending on whether a choice was presented in terms of gains or losses. GPT-3 was also subject to a certainty effect, meaning that it preferred guaranteed outcomes to risky ones even when they had slightly lower expected values. Finally, GPT-3 showed an overweighting bias and assigned higher importance to a difference between two small probabilities (e.g., 1% and 2%) than to the same differences between two larger probabilities (e.g., 41% and 42%). <ref type="figure" target="#fig_3">Figure 2C</ref> contains an analysis of these three biases and the three additional ones we did not find in GPT-3. For a detailed description of the conducted analysis, see SI Appendix.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Information search: Directed and Random Exploration</head><p>GPT-3 did well in the vignette-based information search tasks, so we were curious how it would fare in a more complex setting. The multi-armed bandit paradigm provides a suitable test-bed for this purpose. It extends the decisions from descriptions paradigm from the last section by adding two layers of complexity. First, the decision-maker is not provided with descriptions   <ref type="bibr" target="#b26">27</ref> . For a detailed description of this analysis, see SI Appendix.</p><p>for each option anymore but has to learn their value from noisy samples, i.e. from experience <ref type="bibr" target="#b28">29</ref> . Second, the interaction is not confined to a single choice but potentially involves repeated decisions about which option to sample. Together, these two modifications call for an important change in how a decision-maker must approach such problems. It is not enough to merely exploit currently available knowledge anymore, but also crucial to explore options that are unfamiliar and thereby gain information about their value. Previous research suggests that people solve this exploration-exploitation trade-off by applying a combination of two distinct strategies: directed and random exploration <ref type="bibr" target="#b29">30</ref> . Whereas directed exploration encourages the decision-maker to collect samples from previously unexplored options, random exploration strategies inject some form of stochasticity into the decision process <ref type="bibr" target="#b30">31,</ref><ref type="bibr" target="#b31">32</ref> . Wilson's horizon task is the canonical experiment to test whether a decision-maker applies the two aforementioned forms of exploration <ref type="bibr" target="#b29">30</ref> . It involves a series of two-armed bandit tasks, in each of which the decision-maker is provided with data from four forced-choice trials, followed by either one or six free-choice trials (referred to as the horizon). Forced-choice trials are used to control the amount of information available to the decision-maker. They either provide two observations for each option (equal information condition) or a single observation from one option and three from the other (unequal information condition). These two conditions make it possible to tease apart directed and random exploration by looking at the decision in the first free-choice trial. In the equal information condition, a choice is classified as random exploration if it corresponds to the option with the lower estimated mean. In the unequal information condition, a choice is classified as directed exploration if it corresponds to the option that was observed fewer times during the forced-choice trials. Note that short-horizon tasks do not benefit from making exploratory choices and, hence, we should expect the decision-maker to make fewer such choices in them.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5/19</head><p>A B You are going to a casino that owns two slot machines. You earn money each time you play on one of these machines.</p><p>You have received the following amount of dollars when playing in the past: -Machine F delivered 51 dollars.  Human data taken from Zaller et al. <ref type="bibr" target="#b32">33</ref> . C: Probability of selecting option "J" in the equal information condition for both GPT-3 and human subjects by horizon condition. D: Probability of selecting the more informative option in the unequal information condition for both GPT-3 and human subjects by horizon condition.</p><p>We presented a text-based version of the horizon task as illustrated in <ref type="figure" target="#fig_5">Figure 3A</ref> to GPT-3. <ref type="figure" target="#fig_5">Figure 3B</ref> compares the model's regret to the regret of human subjects. For short-horizon tasks, GPT-3's performance was indistinguishable from human performance (t(5566) = −0.043, p = .97). This result highlights that GPT-3 can not only make sensible decisions when presented with descriptions of options but is also able to integrate this information from noisy samples. The initial regret of GPT-3 in long-horizon tasks was significantly lower than the corresponding human regret (t(5550) = −4.07, p &lt; .001) and was only slightly above the one from short-horizon tasks. However, within each task people improved more than GPT-3 and reached a final regret that was slightly but not significantly lower than that of GPT-3 (t(5550) = −0.75, p = .23). Looking at the entire experiment, GPT-3 (M = 2.72, SD = 5.98) achieved a significantly lower regret than human subjects (M = 3.24, SD = 10.26), t(38878) = −5.03, p &lt; .001.</p><p>To investigate how GPT-3 managed the trade-off between exploration and exploitation, we fitted a separate logistic regression model for each information condition. We used the estimated reward difference, horizon, their interaction, and a bias term as independent variables for both models. The model for the equal information condition used an indicator for selecting option J in the first free-choice trial as the dependent variable, whereas the model for the unequal condition used an indicator for selecting the more informative option (i.e., the one that has been observed fewer times during the forced-choice trials). The results of this regression analysis are summarized visually in <ref type="figure" target="#fig_5">Figure 3C</ref> and D. If GPT-3 applied random exploration, we should observe a positive effect of estimated reward difference. If its random exploration was furthermore strategic, we should find more noisy decisions in long-horizon tasks of the equal information condition (reflected in a negative interaction effect of estimated reward difference and horizon). People show both of these effects <ref type="bibr" target="#b29">30</ref> . GPT-3 also displayed a significant effect of estimated reward difference (β = 0.18 ± 0.01, z = 14.48, p &lt; .001), suggesting that it used at least a rudimentary form of random exploration. However, we did not find a significant interaction effect between estimated reward difference and horizon (β = −0.02 ± 0.02, z = −1.47, p = .14), indicating that GPT-3 did not apply random exploration in a strategic way and simply ignored the information about the task horizon. If GPT-3 applied directed exploration, we should find a positive effect of horizon in the unequal information condition, indicating that more informative actions were sampled more frequently when the horizon was longer. While humans show such an effect <ref type="bibr" target="#b29">30</ref> , we did not find it in GPT-3 (β = −0.15 ± 0.27, z = −0.56, p = .58), which indicates that the model also did not employ directed exploration.</p><p>Lastly, we found that GPT-3 had a tendency to repeat previously observed options. For example, in the unequal information condition ( <ref type="figure" target="#fig_5">Figure 3D</ref>), GPT-3 showed a strong bias to select the option from which it had seen more samples, even when there was not reason to do so. We believe that this bias partially arose from how GPT-3 was trained: if the goal is to predict future words, and the agent has recently observed a certain phrase (in this case either "Option F" or "Option J"), it is likely that the same phrase will appear again in the near future. Interestingly, humans also show such a perseveration bias in many situations <ref type="bibr" target="#b33">34</ref> , but, in the case of the horizon task, it seems to be overruled by other processes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Deliberation: Model-based and model-free reinforcement learning</head><p>Many realistic sequential decision-making problems do not only require the decision-maker to keep track of reward probabilities, but also to learn how to navigate from state to state within an environment. Two modes of learning are plausible in such scenarios: model-free and model-based learning. Model-free learning -the more habitual mode of the two-stipulates that the decision-maker should adjust its strategy directly using the actually observed rewards. If something led to a good outcome, a model-free agent will do more of it; if it led to a bad outcome, a model-free agent will do less of it. Model-based learning -the more deliberate mode of the two-instead stipulates that the agent should explicitly learn the transition and reward probabilities of the environment and use them to update its strategy by reasoning about future outcomes.</p><p>These two modes of learning can be disentangled empirically in the two-step task paradigm <ref type="bibr" target="#b34">35</ref> . The two-step task involves a series of two-stage decision problems. There are two actions available from the initial state: taking a spaceship to planet X or to planet Y. Taking a spaceship transfers the agent to a second stage. The spaceship arrives with a probability of 0.7 to the selected planet, and with a probability of 0.3 to the other planet. After arriving at one of these planets, the agent encounters two local aliens with which it can trade. Trading with an alien can lead to receiving treasures or junk. The probabilities of receiving treasures are initialized randomly from a uniform distribution with a minimum of 0.25 and a maximum value of 0.75 for each alien. While these probabilities drift slowly over time to encourage learning, the first-stage transition probabilities remain fixed throughout the entire experiment. Model-free learning predicts that the probability of the selected first-stage action should increase upon receiving treasures in the second stage, regardless of whether the decision-maker experienced a rare or a common first-stage transition. Model-based learning, on the other hand, predicts that, upon encountering a rare transition and receiving treasures, the probability of the selected first-stage action should decrease. SI Appendix contains plots of simulated behavior for the two learning strategies. People tend to solve this task using a combination of model-free and model-based learning <ref type="bibr" target="#b34">[35]</ref><ref type="bibr" target="#b35">[36]</ref><ref type="bibr" target="#b36">[37]</ref> as shown in <ref type="figure" target="#fig_7">Figure 4A</ref>.</p><p>We tested how GPT-3 learns in the two-step task by providing it with prompts like the one shown in <ref type="figure" target="#fig_7">Figure 4B</ref>. We ran 200 simulations in total and measured the stay probability of the first-stage action for each combination of transition (rare or common) and reward (treasures or junk). Each simulation involved 20 repetitions of the two stages. <ref type="figure" target="#fig_7">Figure 4C</ref> visualizes our results. We observed that the probability of repeating the previous first-stage action decreased after finding treasures through a rare transition (t(1982) = −6.16, p &lt; .001). Meanwhile, the probability of repeating the same first-stage action increased after a rare and not rewarded action (t(1814) = 2.33, p = .01). These two findings suggest that GPT-3 relies on a deliberate model-based approach to solve the two-step task. Interestingly, this conclusion is at odds with our earlier simulations on the CRT, where GPT-3 consistently chose the intuitive but wrong over the more deliberate but correct answer. The contrast between  those two analyses suggests that the answer to whether GPT-3 engages in deliberate reasoning might be more nuanced than initially thought.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Causal reasoning: Interventions after passive observations</head><p>The analysis of the two-step task indicated that GPT-3 can learn a model of the environment and use this learned model to update its strategy. In our final test, we wanted to analyze whether GPT-3 can also use such a model to make more complex inferences, such as reasoning about cause and effect. From our earlier vignette-based investigations, we have already learned that GPT-3 can solve some causal reasoning problems, although these results depended heavily on how the problems were presented. Perhaps the most crucial insight of theories of causal reasoning is that there is a difference between merely observing variables and actively manipulating them. Take, for instance, the classical example of a barometer. Under normal circumstances, barometer measurements provide insights into the upcoming weather. However, if someone would manually set the scale of the barometer to a particular value, then it would become totally uninformative about the weather -a clear difference from the observational inference. Waldman &amp; Hagmayer <ref type="bibr" target="#b37">38</ref> devised an experiment to highlight that people are sensitive to the difference between seeing and doing. They first presented subjects with 20 observations of a three-variable system, and then provided additional information about the causal structure of the system. In the common-cause condition, they told participants that A causes both B and C (B ← A → C). In the causal-chain condition, they inverted the causal direction of A and B, such that B now causes A, which, as before, causes C (B → A → C). for which they either had actively intervened on the values of B or for which they merely had observed a particular value of B. Participants had to report for how many of these 20 new observations variable C would be active. Like in the barometer example, observing an active value of B in the common-cause condition enabled participants to make the inference that A was likely to be active as well, which, in turn, made it more likely that C was also active. In contrast, activating B by means of interventions did not allow for such an inference. Mathematically, the act of intervening can be formalized by Pearl's do() operator <ref type="bibr" target="#b38">39</ref> , which sets a variable to a particular value but deletes all arrows going into that variable from the causal graph. For the causal-chain condition one therefore would expect to find no differences between intervening and observing, as there was no arrow going into B that had to be deleted, and hence both inferences were identical. We probed GPT-3's ability to make causal inferences in this task using a cover story about substances found in different wine casks <ref type="bibr" target="#b39">40</ref> (see <ref type="figure">Figure 5A</ref>). When provided with the additional information about the common-cause structure, GPT-3 made interventional inferences that matched the normative prescription of causal inference as illustrated in <ref type="figure">Figure 5B</ref>. GPT-3 furthermore predicted an increase in the number of observations with C = 1 after observing B = 1, which was in line with both the normative theory and human judgments. However, when observing B = 0, GPT-3 did not reduce its prediction, which was neither the correct inference nor human-like. The causal-chain condition does not lead to a difference between observational and interventional inferences from a normative perspective. While human subjects show exactly this pattern <ref type="bibr" target="#b37">38</ref> , GPT-3 made identical predictions compared to the common-cause condition as illustrated in <ref type="figure">Figure 5C</ref>. This observation suggests that the model was not able to incorporate the additional information about the underlying causal structure into its inference process and therefore makes it likely that the results from the common-cause condition were purely accidental. Taken together, these results suggest that GPT-3 has difficulties with causal reasoning in tasks that go beyond a vignette-based characterization.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>In 1904, sixteen leading academics of the Prussian Academy of Sciences signed a statement indicating that a horse, named "Clever Hans", could solve mathematical problems at a human-like level. Back then, it took another scientist, Oskar Pfungst, years of systematic investigations to prove that the horse was merely reacting to the people who were watching him <ref type="bibr" target="#b40">41</ref> . With the advent of large-scale machine learning models, the risks of over-interpreting simple behaviors as intelligent runs rampant. The abilities of large language models, in particular the ability to solve tasks beyond language generation, are impressive at first glance. These models have, therefore, been called many things; some think they are sentient <ref type="bibr" target="#b41">42</ref> and that they show a form of general intelligence <ref type="bibr" target="#b6">7</ref> . Yet others believe that they are merely stochastic parrots <ref type="bibr" target="#b42">43</ref> or a linguistic one-trick pony <ref type="bibr" target="#b7">8</ref> . But how can we realistically gauge these models' abilities?</p><p>We have argued to approach this problem similar to how Oskar Pfungst approached his object of study: via systematic investigations and psychological experimentation. Using tools from cognitive psychology, we have subjected one particular large language model, GPT-3, to a series of investigations, probing its decision-making, information search, deliberation, and causal reasoning abilities. Our results have shown that GPT-3 can solve some vignette-based experiments similarly or better than human subjects. However, interpreting these results is difficult because many of these vignettes might have been part of its training set, and GPT-3's performance suffered greatly given only minor changes to the original vignettes. We, therefore, turned the lens of our investigations to task-based assessments of GPT-3's abilities. Therein, we found that GPT-3 made reasonable decisions for gambles provided as descriptions while also mirroring some human behavioral biases. GPT-3 also managed to solve a multi-armed bandit task well, where it performed better than human subjects; yet it only showed traces of random but not of directed exploration. In the canonical two-step decision-making task, GPT-3 showed signatures of model-based reinforcement learning. However, GPT-3 failed spectacularly in using an underlying causal structure for its inference, leading to responses that were neither correct nor human-like.</p><p>What do we make of GPT-3's performance in our tasks? We believe that GPT-3's performance contained both surprising and expected elements. We found it surprising that GPT-3 could solve many of the provided tasks reasonably well, that it performed well in gambles, a simple bandit task, and even showed signatures of model-based reinforcement learning. These findings could indicate that -at least in some instances-GPT-3 is not just a stochastic parrot and could pass as a valid subject for some of the experiments we have administered. Yet what was not surprising were some of GPT-3's failure cases. GPT-3 did not show any signatures of directed exploration. We believe that this is intuitive and can be explained by the differences in how humans and GPT-3 learn about the world. Whereas humans learn by connecting with other people, asking them questions, and actively engaging with their environments, large language models learn by being passively fed a lot of text and predicting what word comes next. GPT-3 also failed to learn about and use causal knowledge in a simple reasoning task. Causal reasoning is frequently seen as a pillar of intelligent behavior <ref type="bibr" target="#b43">44</ref> and has been difficult to master for artificial agents <ref type="bibr" target="#b44">45</ref> . We believe it makes sense that GTP-3 struggles to reason causally because acquiring knowledge about interventions from passive streams of data is hard to impossible <ref type="bibr" target="#b45">46</ref> . The upside of our findings is the recommendation that to create more intelligent agents researchers should not only scale up algorithms that are passively fed with data but instead let agents directly interact and engage with the world <ref type="bibr" target="#b46">47</ref> .</p><p>We are not the first to probe large-scale machine learning models' abilities. Indeed, recently there has been a push towards creating large benchmarks to assess the capability of foundation models <ref type="bibr" target="#b47">[48]</ref><ref type="bibr" target="#b48">[49]</ref><ref type="bibr" target="#b49">[50]</ref> . Large language models have also been studied using other methods from cognitive psychology, such as property induction <ref type="bibr" target="#b50">51</ref> , thinking-out-loud protocols <ref type="bibr" target="#b51">52</ref> , or learning causal over-hypotheses <ref type="bibr" target="#b52">53</ref> , where researchers have come to similar conclusions. Methods from cognitive psychology have also previously been applied to understand other deep learning models' behavior <ref type="bibr" target="#b53">54</ref> . Therefore, our current work can be seen as part of a larger scientific movement where methods from psychology are becoming increasingly more important to understand capable black-box algorithms' learning and decision-making processes <ref type="bibr" target="#b54">[55]</ref><ref type="bibr" target="#b55">[56]</ref><ref type="bibr" target="#b56">[57]</ref><ref type="bibr" target="#b57">[58]</ref> .</p><p>Although we consider the present work as a step towards a psychological understanding of foundation models, several shortcomings remain. First of all, as we have seen in our vignette-based assessment, GPT-3's responses often times crucially depend on how a prompt is presented. The same might hold for our task-based assessments, where it is conceivable that GPT-3's behavior could change if the generating program of the tasks was modified. Yet we have simply tried to show that -in principle-GPT-3 could solve some of these tasks and believe that our current results emphasize the differences between GPT-3 and humans well. Secondly, we have only focused on a rather small subset of cognitive tasks, where we have tried to cover informative ground about GPT-3's abilities. Futures investigations could focus on additional psychological domains such as category learning, problem-solving, or economic games, to name but a few. Finally, our current results run the risk of portraying GPT-3 as more intelligent than it actually is, simply because canonical tasks taken from the psychological literature might be too easy to solve. In that sense, showing that large language models can perform well in such tasks might tell us more about how solvable and perhaps overly simplistic some tasks are than about GPT-3 itself and point to the importance of using more complex paradigms to study both natural and artificial agents <ref type="bibr" target="#b58">59,</ref><ref type="bibr" target="#b59">60</ref> .</p><p>To summarize, we studied GPT-3, a recent large-scale language model, using tools from cognitive psychology. We assessed GPT-3's decision-making, information search, deliberation, and causal reasoning abilities, and found that it was able to solve most of the presented tasks at a decent level. Less than two years ago, the sheer fact that a general-purpose language model could give reasonable responses to our problems would have been a large surprise. From this perspective, our analysis highlights how far these models have come. Nevertheless, we also found that small perturbations to the provided prompts easily led GPT-3 astray and that it lacks important features of human cognition, such as directed exploration and causal reasoning. While it does not seems so far-fetched that even larger models could acquire more robust and sophisticated reasoning abilities, we ultimately believe that actively interacting with the world will be crucial for matching the full complexity of human cognition. Fortunately, many user already interact with GPT-3-like models, and this number is only increasing with new applications on the horizon. Future language models will likely be trained on this data, leading to a natural interaction loop between artificial and natural agents. <ref type="table" target="#tab_0">Vigettes  Tables 1, 2, 3, 4</ref> and 5 contain a detailed description of submitted prompts and GPT-3's corresponding answers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>SI Appendix</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Problem Prompt Response</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Linda</head><p>Linda is 31 years old, single, outspoken, and very bright. She majored in philosophy. As a student, she was deeply concerned with issues of discrimination and social justice, and also participated in anti-nuclear demonstrations. Q: Which option is the most probable? -Option 1: Linda is a bank teller.</p><p>-Option 2: Linda is a bank teller and is active in the feminist movement.</p><p>-Option 3: Linda is a member of the NRA.</p><p>A: Option 2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Cab</head><p>A cab was involved in a hit-and-run accident at night. Two cab companies, the Green and the Blue, operate in the city. You are given the following data: 85% of the cabs in the city are Green and 15% are Blue. A witness identified the cab as Blue. The court tested the reliability of the witness under the circumstances that existed on the night of the accident and concluded that the witness correctly identified each one of the two colors 80% of the time and failed 20% of the time. Q: What is the probability that the cab involved in the accident was Blue rather than Green?</p><p>A: The probability that the cab involved in the accident was Blue rather than Green is 0.4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Hospital</head><p>A certain town is served by two hospitals. In the larger hospital, about 45 babies are born each day, and in the smaller hospital, about 15 babies are born each day. As you know, about 50% of all babies are boys. The exact percentage of baby boys, however, varies from day to day. Sometimes it may be higher than 50%, sometimes lower. For a period of 1 year, each hospital recorded the days on which more than 60% of the babies born were boys. Q: Which hospital do you think recorded more such days? -Option 1: The larger hospital.</p><p>-Option 2: The smaller hospital.</p><p>-Option 3: About the same (i.e., within 5% of each other).</p><p>A: Option 3. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>14/19</head><p>Toma v2</p><p>In  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Problem Prompt Response</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CRT1</head><p>A bat and a ball cost 1.10intotal.T hebatcosts1.00 more than the ball. Q: How much does the ball cost?</p><p>A: The ball costs $0.10.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CRT2</head><p>Q: If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?</p><p>A: 100 machines would make 100 widgets in 100 minutes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CRT3</head><p>In a lake, there is a patch of lily pads. Every day, the patch doubles in size. Q: If it takes 48 days for the patch to cover the entire lake, how long would it take for the patch to cover half of the lake?</p><p>A: It would take 24 days for the patch to cover half of the lake. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Blickets</head><p>Blickets are objects that turn on a machine. I have two objects, A and B, and a machine. My goal is to find out if any or both of these objects are a blicket. When I put object A on the machine, the machine turned on. When I put object A and object B on the machine, the machine turned on. When I put object B on the machine, the machine did not turn on.  <ref type="table">Table 4</ref>. Prompts and answers for vignettes testing GPT-3's causal reasoning abilities. In cases for which there are more than one Q, questions were asked in succession.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Problem Prompt Response</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Black Cab</head><p>A cab was involved in a hit-and-run accident at night. Two cab companies, the Green and the Blue, operate in the city. You are given the following data: 85% of the cabs in the city are Green and 15% are Blue. A witness identified the cab as Blue. The court tested the reliability of the witness under the circumstances that existed on the night of the accident and concluded that the witness correctly identified each one of the two colors 80% of the time and failed 20% of the time. Q: What is the probability that the cab involved in the accident was black?</p><p>A: The probability that the cab involved in the accident was black is 0.2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Reverse Wason</head><p>You are shown a set of four cards placed on a table, each of which has a number on one side and a colored patch on the other side. The visible faces of the cards show 4, 7, A, and K. Q: Which cards must you turn over in order to test the truth of the proposition that if a card shows a vowel on one face, then its opposite face shows an even number?</p><p>A: The A and the K.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Wrong CRT</head><p>A bat and a ball cost 1.10intotal.T hebatcosts1.00 more than the bat. Q: How much does the ball cost?</p><p>A: The ball costs $0.10.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Immature Blicket</head><p>Imagine a box that makes a sound if certain objects are placed on it. When I put a red object on it, the box made a sound. When I put a green object on it, the box made a sound. When I put a blue object on it, the box did not make a sound. When I put a yellow object on it, the box did not make a sound. Q: I put a green and a yellow object on the box and it made a sound. Would it still have made a sound if I had not put the yellow object on it? Q: Would the box make a sound if I only put a green object on it?</p><p>Q: But if there are two objects on the box, a green and a yellow one, and I remove the yellow one, then there would only be a green object on it. Why does that not turn on the machine?</p><p>A: No, the box would not have made a sound if you had not put the yellow object on it. A: Yes, the box would make a sound if you only put a green object on it.</p><p>A: The box would not make a sound if there is only a green object on it. <ref type="table">Table 5</ref>. Prompts and answers for vignettes deliberately designed to confuse GPT-3. In cases for which there are more than one Q, questions were asked in succession.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Decisions from descriptions</head><p>Following Kahneman &amp; Tversky <ref type="bibr" target="#b27">28</ref> , we tested whether a cognitive bias is present by contrasting answers to two decisions from description problems. The full list of these problems can be found in <ref type="table">Table 6</ref>. <ref type="table">Table 7</ref> shows a list of used contrasts. For each contrast, we obtained the probability of selecting option F (setting GPT-3's temperature parameter to 1) and then computed the log-odds ratio between the choice probabilities of both questions. The order of presented options was counterbalanced. Positive log-odds ratios indicate that the given bias is present.</p><p>Problem Prompt p(F) </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>11</head><p>Imagine you are playing a game with two levels, but you have to make a choice about the second level before you know the outcome of the first. At the first level, there is a 75% chance that the game will end without you winning anything, and a 25% chance that you will advance to the second level. Q: What would you choose in the second level? -Option F: 80% chance of 4,000 dollars (20% chance of 0 dollars).</p><p>-Option J: 100% guarantee of 3,000 dollars. A: Option 0.66757223</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>12</head><p>Imagine we gave you 1,000 dollars right now to play a game. Q: Which option do you prefer? -Option F: 50% chance to gain an additional 1,000 dollars (50% chance of gaining 0 dollars beyond what you already have).</p><p>-Option J: 100% guarantee of gaining an additional 500 dollars.</p><p>A: Option 0.51510189</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>13</head><p>Imagine we gave you 2,000 dollars right now to play a game. Q: Which option do you prefer? -Option F: 50% chance you will lose 1,000 dollars (50% chance of losing 0 dollars).  <ref type="table">Table 6</ref>. Decision from description problems used for the contrast analysis from <ref type="figure" target="#fig_3">Figure 2C</ref>. The rightmost column displays GPT-3's choice probabilities.  <ref type="table">Table 7</ref>. List of contrasts used for the analysis of <ref type="figure" target="#fig_3">Figure 2C</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>18/19</head><p>Two-step task <ref type="figure" target="#fig_11">Figure 6</ref> contains simulated behavior of a model-free and model-based reinforcement learning algorithm. For a detailed description of these algorithms, see Daw et al. <ref type="bibr" target="#b34">35</ref> .</p><p>A </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Q:</head><label></label><figDesc>Which option is the most probable? -Option 1: Linda is a bank teller. -Option 2: Linda is a bank teller and is active in the feminist movement. -Option 3: Linda is a member of the NRA.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 .</head><label>1</label><figDesc>Vignette-based tasks. A: Example prompt of hypothetical scenario, in this case the famous Linda problem, as submitted to GPT-3. B: Results. While in 12 out 12 standard vignettes, GPT-3 either answers correctly or makes human-like mistakes, it makes mistakes that are not human-like when given the adversarial vignettes.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>option do you prefer? -Option F: 69.0 dollars with 1.0% chance, 26.0 dollars with 99.0% chance. -Option J: 2.0 dollars with 75.0% chance, 94.0 dollars with 25.0% chance.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 2 .</head><label>2</label><figDesc>Decisions from descriptions. A: Example prompt of a problem provided to GPT-3. B: Mean regret averaged over all 13,000 problems taken from Peterson et al. 26 . Lower regret means better performance. Error bars indicate the standard error of the mean. C: Log-odds ratios of different contrasts used to test for cognitive biases. Positive values indicate that the given bias is present in humans (circle) or GPT-3 (triangle). Human data adapted from Ruggeri et al.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>-Machine J delivered 39 dollars. -Machine J delivered 40 dollars. -Machine J delivered 26 dollars.Your goal is to maximize the sum of received dollars within six additional rounds. Q: Which machine do you choose?</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 3 .</head><label>3</label><figDesc>Horizon task. A: Example prompt for one trial as submitted to GPT-3. B: Mean regret for GPT-3 and human subjects by horizon condition. Lower regret means better performance. Error bars indicate the standard error of the mean.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>You will travel to foreign planets in search of treasures. When you visit a planet, you can choose an alien to trade with. The chance of getting treasures from these aliens changes over time. Your goal is to maximize the number of received treasures.Your previous space travels went as follows: -3 days ago, you boarded the spaceship to planet X, arrived at planet X, traded with alien D, and received treasures.-2 days ago, you boarded the spaceship to planet Y, arrived at planet X, traded with alien D, and received junk. -1 day ago, you boarded the spaceship to planet Y, arrived at planet Y, traded with alien K, and received junk. Q: Do you want to take the spaceship to planet X or planet Y? A: Planet X. You arrive at planet X. Q: Do you want to trade with alien D or F? A: Alien</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 4 .</head><label>4</label><figDesc>Two-step task. A: Human behavior in dependency of rewarded and unrewarded as well as common and rare transitions. Human data adapted from Daw et al.<ref type="bibr" target="#b34">35</ref> . B: Example prompt of one trial in the canonical two-step task as submitted to GPT-3. C: GPT-3's behavior in dependency of rewarded and unrewarded as well as common and rare transitions. Error bars indicate the standard error of the mean.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>19 ABFigure 5 .</head><label>195</label><figDesc>Finally, they asked their subjects to imagine 20 new observations8/You have previously observed the following chemical substances in different wine casks: -Cask 1: substance A was present, substance B was present, substance C was present. -Cask 2: substance A was present, substance B was present, substance C was present.[...] -Cask 20: substance A was absent, substance B was absent, substance C was absent.You have the following additional information from previous research: -Substance A likely causes the production of substance B.-Substance A likely causes the production of substance C.Imagine that you test 20 new casks in which you have manually added substance B.Q: How many of these new casks will contain substance C on average? A: [insert] casks.do(B = 1)do(B = 0) B = 1 B Causal reasoning. A: Example prompt for the causal reasoning task adapted from Waldman et al.<ref type="bibr" target="#b37">38</ref> . B: Simulation results comparing GPT-3's responses with people as well as the ideal agent in the common-cause condition. C: Simulation results comparing GPT-3's responses with people as well as the ideal agent in the causal-chain condition.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>1 Q:</head><label>1</label><figDesc>Which option do you prefer? -Option F: 33% chance at 2,500 dollars, a 66% chance at 2,400 dollars, and a 1% chance of option do you prefer? -Option F: 33% chance of 2,500 dollars (67% chance of 0 dollars). -Option J: 34% chance of 2,400 dollars (66% chance of 0 dollars). option do you prefer? -Option F: 80% chance of 4,000 dollars (20% chance of 0 dollars). -Option J: 100% guarantee of 3,000 dollars. option do you prefer? -Option F: 20% chance of 4,000 dollars (80% chance of 0 dollars). -Option J: 25% chance of 3,000 dollars (75% chance of 0 dollars). option do you prefer? -Option F: 45% chance of 6,000 dollars (55% chance of 0 dollars). -Option J: 90% chance of 3,000 dollars (10% chance of 0 dollars). option do you prefer? -Option F: 0.1% chance of 6,000 dollars (99.9% chance of 0 dollars). -Option J: 0.2% chance of 3,000 dollars (99.8% chance of 0 dollars). option do you prefer? -Option F: 80% chance of losing 4,000 dollars (20% chance of losing 0 dollars). -Option J: 100% guarantee of losing 3,000 dollars. option do you prefer? -Option F: 20% chance of losing 4,000 dollars (80% chance of losing 0 dollars). -Option J: 25% chance of losing 3,000 dollars (75% chance of losing 0 dollars). option do you prefer? -Option F: 45% chance of losing 6,000 dollars (55% chance of losing 0 dollars). -Option J: 90% chance of losing 3,000 dollars (10% chance of losing 0 dollars). option do you prefer? -Option F: 0.1% chance of losing 6,000 dollars (99.9% chance of losing 0 dollars). -Option J: 0.2% chance of losing 3,000 dollars (99.8% chance of losing 0 dollars).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head></head><label></label><figDesc>-Option J: 100% chance you will lose 500 dollars. option do you prefer? -Option F: 25% chance of 6,000 dollars (75% chance of 0 dollars). -Option J: 25% chance of 4,000 dollars (25% chance of 2,000 dollars, 50% chance of 0 dollars). option do you prefer? -Option F: 25% chance of losing 6,000 dollars (75% chance of losing nothing). -Option J: 25% chance of losing 4,000 dollars (25% chance of 2,000 dollars, 50% chance of 0 option do you prefer? -Option F: 0.1% chance at 5,000 dollars (99.9% chance of 0 dollars). -Option J: 100% guarantee of 5 dollars. option do you prefer? -Option F: 0.1% chance of losing 5,000 dollars (99.9% chance of losing nothing). -Option J: 100% guarantee of losing 5 dollars.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 6 .</head><label>6</label><figDesc>Model simulations on the two-step task. A: Model-free reinforcement learning algorithm. B: Model-based reinforcement learning algorithm.Figure adaptedfrom Daw et al.<ref type="bibr" target="#b34">35</ref> .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 .</head><label>1</label><figDesc>Prompts and answers for vignettes testing GPT-3's decision-making. Toma was late because he could not find his jacket. On the second day, Toma was late because his bicycle broke. On the third day, Toma was late because his bicycle broke. On the fourth day, Toma was late because he could not find his shoes. On the fifth day, Toma was late because he was watching TV. On the sixth day, Toma was late because he could not find his books. Today, on the seventh day, Toma was again late to school.</figDesc><table><row><cell>Problem Prompt</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head></head><label></label><figDesc>the last 8 days, Toma always arrived late to school. On the first day, Toma was late because he could not find his jacket. On the second day, Toma was late because his bicycle broke. On the third day, Toma was late because his bicycle broke. On the fourth day, Toma was late because he could not find his shoes. On the fifth day, Toma was late because his bicycle broke. On the sixth day, Toma was late because his bicycle broke. On the seventh day, Toma was late because he was watching TV. On the eighth day, Toma was late because his bicycle broke. Today, on the ninth day, Marcel was again late to school.</figDesc><table><row><cell></cell><cell></cell><cell>A: Option 2.</cell></row><row><cell></cell><cell>Q: Which of the following question would be better if wanted to find out why Toma was again late</cell><cell></cell></row><row><cell></cell><cell>to school.</cell><cell></cell></row><row><cell></cell><cell>-Option 1: Were you late because you could not find something?</cell><cell></cell></row><row><cell></cell><cell>-Option 2: Were you late because your bicycle was broken?</cell><cell></cell></row><row><cell>Test</cell><cell>A patient has a 0.8 probability of having Chamber-of-Commerce disease and a 0.2 probability of</cell><cell>A: Option 1.</cell></row><row><cell></cell><cell>Elk's disease. (He surely has one or the other.) A tetherscopic examination yields a positive result</cell><cell></cell></row><row><cell></cell><cell>in 90% of patients with Chamber-of-Commerce disease and in 20% of patients without it (including</cell><cell></cell></row><row><cell></cell><cell>those with some other disease). An intraocular smear yields a positive result in 90% of patients</cell><cell></cell></row><row><cell></cell><cell>with Elk's disease and in 10% of patients without it.</cell><cell></cell></row><row><cell></cell><cell>Q: Which test would you run on the patient?</cell><cell></cell></row><row><cell></cell><cell>-Option 1: A tetherscopic examination.</cell><cell></cell></row><row><cell></cell><cell>-Option 2: An intraocular smear.</cell><cell></cell></row><row><cell></cell><cell>-Option 3: Both are equally good.</cell><cell></cell></row><row><cell>Wason</cell><cell>You are shown a set of four cards placed on a table, each of which has a number on one side and a</cell><cell>A: The cards that must be</cell></row><row><cell></cell><cell>colored patch on the other side. The visible faces of the cards show A, K, 4, and 7.</cell><cell>turned over are the A and</cell></row><row><cell></cell><cell>Q: Which cards must you turn over in order to test the truth of the proposition that if a card shows a</cell><cell>the 7.</cell></row><row><cell></cell><cell>vowel on one face, then its opposite face shows an even number?</cell><cell></cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 2 .</head><label>2</label><figDesc>Prompts and answers for vignettes testing GPT-3's information search abilities.</figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table 3 .</head><label>3</label><figDesc>Prompts and answers for vignettes testing GPT-3's intuitive vs. reflective answers. Items are based on the Cognitive Reflection Test (CRT).</figDesc><table><row><cell>Problem Prompt</cell></row></table><note></note></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gunning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Xai-explainable artificial intelligence. Sci. Robotics</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page">7120</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Language models are few-shot learners</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="1877" to="1901" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Evaluating large language models trained on code</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Chen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2107.03374</idno>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Caire: An end-to-end empathetic chatbot</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="13622" to="13623" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Noever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ciolino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kalin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2008.04057</idno>
+		<title level="m">The chess transformer: Mastering play using generative language models</title>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">A neural network solves, explains, and generates university math problems by program synthesis and few-shot learning at human level</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Drori</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.15594</idno>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Gpt-3 and general intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Chalmers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Dly. Nous</title>
+		<imprint>
+			<date type="published" when="2020-07-30" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Gpt-3, bloviator: Openai&apos;s language generator has no idea what it&apos;s talking about</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Marcus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Davis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Technol. Rev</title>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Attention is all you need. Adv. neural information processing systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page">30</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Improving language understanding by generative pre-training</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Narasimhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<pubPlace>None</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">The bitter lesson. Incomplete Ideas (blog)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sutton</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">12</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2101.06804</idno>
+		<title level="m">What makes good in-context examples for gpt-3? arXiv preprint</title>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Can language models learn from explanations in context?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Lampinen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2204.02329</idno>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Api</forename><surname>Openai</surname></persName>
+		</author>
+		<ptr target="https://beta.openai.com/overview" />
+		<imprint>
+			<biblScope unit="page" from="2022" to="2028" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Extensional versus intuitive reasoning: The conjunction fallacy in probability judgment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tversky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kahneman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol. review</title>
+		<imprint>
+			<biblScope unit="volume">90</biblScope>
+			<biblScope unit="page">293</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Causal schemas in judgments under uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tversky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kahneman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Prog. social psychology</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="49" to="72" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Subjective probability: A judgment of representativeness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kahneman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tversky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cogn. psychology</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="430" to="454" />
+			<date type="published" when="1972" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">why is toma late to school again?&quot; preschoolers identify the most informative questions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ruggeri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">L</forename><surname>Sim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Xu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Dev. psychology</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page">1620</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Heuristics and biases in diagnostic reasoning: Ii. congruence, information, and certainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Baron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Beattie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Hershey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Organ. Behav. Hum. Decis. Process</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="88" to="110" />
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Reasoning about a rule</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Wason</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Q. journal experimental psychology</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="273" to="281" />
+			<date type="published" when="1968" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Cognitive reflection and decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Frederick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Econ. perspectives</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page" from="25" to="42" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Improving coherence and consistency in neural sequence models with dual-system, neuro-symbolic reasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Nye</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tessler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Lake</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. Neural Inf. Process. Syst</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="25192" to="25204" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">The blicket within: Preschoolers&apos; inferences about insides and causes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Sobel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Yoachim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gopnik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Meltzoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Blumenthal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Cogn. Dev</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="159" to="182" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Mature counterfactual reasoning in 4-and 5-year-olds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Nyhout</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Ganea</surname></persName>
+		</author>
+		<idno>11/19</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">183</biblScope>
+			<biblScope unit="page" from="57" to="66" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Beyond the imitation game: Quantifying and extrapolating the capabilities of language models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Srivastava</surname></persName>
+		</author>
+		<idno type="DOI">file://localhost/opt/grobid/grobid-home/tmp/10.48550/ARXIV.2206.04615</idno>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Using large-scale experiments and machine learning to discover theories of human decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Peterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Bourgin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Reichman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">372</biblScope>
+			<biblScope unit="page" from="1209" to="1214" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Replicating patterns of prospect theory for decision under risk</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ruggeri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="622" to="633" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Prospect theory: An analysis of decisions under risk</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kahneman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Econometrica</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page">278</biblScope>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Decisions from experience and the effect of rare events in risky choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Hertwig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Barron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">U</forename><surname>Weber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Erev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol. science</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="534" to="539" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Humans use directed and random exploration to solve the explore-exploit dilemma</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Geana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Ludvig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Exp. Psychol. Gen</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">2074</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Deconstructing the human algorithms for exploration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">173</biblScope>
+			<biblScope unit="page" from="34" to="42" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">The algorithmic architecture of exploration in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Curr. opinion neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page" from="7" to="14" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Information seeking on the horizons task does not predict anxious symptomatology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Zaller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zorowitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biol. Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">89</biblScope>
+			<biblScope unit="page" from="217" to="218" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Origin of perseveration in the trade-off between reward and complexity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">204</biblScope>
+			<biblScope unit="page">104394</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">States versus rewards: dissociable neural prediction error signals underlying model-based and model-free reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gläscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>O'doherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="page" from="585" to="595" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title level="m" type="main">Competition and cooperation between multiple reinforcement learning systems. Goal-directed decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kool</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Cushman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="153" to="178" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Seeing versus doing: two modes of accessing causal knowledge</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Hagmayer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Exp. Psychol. Learn. Mem. Cogn</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page">216</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pearl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Causality</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+			<publisher>Cambridge university press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Inferring interventional predictions from observational learning data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Meder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Hagmayer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Waldmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychon. Bull. &amp; Rev</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="75" to="80" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Pferd des Herrn von Osten: der kluge Hans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Pfungst</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Das</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Ein Beitrag zur experimentellen Tier-und Menschen-Psychologie</title>
+		<meeting><address><addrLine>Barth</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1907" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title level="m" type="main">Google engineer put on leave after saying ai chatbot has become sentient. The Guard</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Luscombe</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">On the dangers of stochastic parrots: Can language models be too big?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Bender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gebru</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcmillan-Major</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shmitchell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 ACM Conference on Fairness, Accountability, and Transparency</title>
+		<meeting>the 2021 ACM Conference on Fairness, Accountability, and Transparency</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="page" from="610" to="623" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Causality for machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Probabilistic and Causal Inference: The Works of Judea Pearl</title>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page" from="765" to="804" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+		<title level="m" type="main">Causal transformers perform below chance on recursive nested constructions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lakretz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Desbordes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hupkes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dehaene</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2110.07240</idno>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">unlike humans. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">Causal reasoning from meta-reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Dasgupta</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.08162</idno>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Environmental drivers of systematicity and generalization in a situated agent</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hill</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title level="m" type="main">On the opportunities and risks of foundation models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bommasani</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2108.07258</idno>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<monogr>
+		<title level="m" type="main">Large language models are zero-shot reasoners</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kojima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Reid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Matsuo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Iwasawa</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2205.11916</idno>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">Structured, flexible, and robust: benchmarking and improving large language models towards more human-like behavior in out-of-distribution reasoning tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Wong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Feng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2205.05718</idno>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Human-like property induction is a challenge for large language models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ransom</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Perfors</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kemp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PsyArXiv</title>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+		<title level="m" type="main">Thinking aloud: Dynamic context generation improves zero-shot reasoning performance of gpt-2</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Betz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Richardson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Voigt</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2103.13033</idno>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title level="m" type="main">Towards understanding how machines can learn causal overhypotheses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kosoy</surname></persName>
+		</author>
+		<idno type="DOI">file://localhost/opt/grobid/grobid-home/tmp/10.48550/ARXIV.2206.08353</idno>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Cognitive psychology for deep neural networks: A shape bias case study</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ritter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santoro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International conference on machine learning</title>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="2940" to="2949" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Lessons for artificial intelligence from the study of natural stupidity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Rich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Gureckis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Mach. Intell</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="174" to="180" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">Machine behaviour</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Rahwan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">568</biblScope>
+			<biblScope unit="page" from="477" to="486" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<monogr>
+		<title level="m" type="main">Computational psychiatry for computers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page">101772</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Large pre-trained language models contain human-like biases of what is right and wrong to do</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Schramowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Turan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Andersen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Rothkopf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kersting</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Mach. Intell</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="258" to="268" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">A neural network walks into a lab: towards using deep nets as models for human behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Peters</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2005.02181</idno>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Brändle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Binz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<title level="m">Exploration beyond bandits</title>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

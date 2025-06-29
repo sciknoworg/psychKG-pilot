@@ -1,0 +1,771 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main"></title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>model-free learning</term>
+					<term>model-based learning</term>
+					<term>two-stage Markov task</term>
+					<term>human decisionmaking</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>The two-stage Markov task, widely-used for measuring model-based relative to model-free learning in humans, has faced skepticism regarding its effectiveness. We suggest a modification to better distinguish the two learning approaches. Our revised task incorporates an additional phase for learning local contingencies, mirroring a strategy from machine learning for separating model-free from model-based algorithms. We evaluated the effectiveness of our revised task through simulations, employing modelfree and model-based strategies.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Reinforcement learning and psychology communities are interested in distinguishing between model-free (MF) and model-based (MB) learning <ref type="bibr" target="#b1">(Daw et al., 2011;</ref><ref type="bibr" target="#b22">Van Seijen et al., 2020)</ref>.</p><p>With decision making tasks, MB learning refers to methods that require a model for the transition probabilities of the environment, while MF learning methods do not need such a model <ref type="bibr" target="#b21">(Sutton and Barto, 2018)</ref>. <ref type="bibr" target="#b1">Daw et al. (2011)</ref> proposed a two-stage Markov task to evaluate individual's inclination for MF vs. MB learning. It has been widely used <ref type="bibr" target="#b0">(Cushman and Morris, 2015;</ref><ref type="bibr" target="#b2">Decker et al., 2016;</ref><ref type="bibr" target="#b3">Deserno et al., 2015;</ref><ref type="bibr">Doll et al., 2015a,b;</ref><ref type="bibr" target="#b7">Eppinger et al., 2013;</ref><ref type="bibr" target="#b11">Gillan et al., 2015;</ref><ref type="bibr" target="#b12">Kool et al., 2016</ref><ref type="bibr" target="#b13">Kool et al., , 2018</ref><ref type="bibr" target="#b14">Miller et al., 2017;</ref><ref type="bibr" target="#b15">Otto et al., 2013a</ref><ref type="bibr">Otto et al., ,b, 2015</ref><ref type="bibr" target="#b18">Sebold et al., 2014;</ref><ref type="bibr" target="#b19">Smittenaar et al., 2013;</ref><ref type="bibr" target="#b23">Voon et al., 2015;</ref><ref type="bibr" target="#b25">Wunderlich et al., 2012)</ref>.</p><p>However, it has recently been criticized for not performing its intended function.</p><p>In the two-stage task, participants initially choose an action that transitions them to a second stage via common or rare transitions. They make another choice that results in a probabilistic reward. By analyzing participants' likelihood of repeating their first-stage choice based on reward outcomes and transition types, researchers aim to measure individual's inclination for MF and MB learning <ref type="bibr" target="#b1">(Daw et al., 2011)</ref>. However, a purely MF learner can demonstrate the behaviors associated with both MF and MB learning by adjusting the exploration rate <ref type="bibr" target="#b6">(Enkhtaivan et al., 2021)</ref>. The behavior pattern also varies with how much participants misconstrue the task based on the directions they are given (Feher da Silva and Hare, 2020; Feher da Silva et al., 2023). Moreover, minor task modifications can alter the characteristic behavior of established MB and MF algorithms, making results difficult to interpret (Feher da Silva and Hare, 2018). These observations prompt us to determine if simple modifications to the task could improve its function.</p><p>We refine the two-stage Markov task to more effectively distinguish between MF and MB learning in humans. Inspired by machine learning's progress towards separating MB from MF algorithms, we propose adapting local change adaptation (LoCA) <ref type="bibr" target="#b22">(Van Seijen et al., 2020)</ref> for use in human tasks. We analyze our proposed task in simulation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>1</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Background</head><p>Decision-making experiments can often be described as discrete-time Markov Decision Processes (MDP). A discrete-time MDP consists of states, actions, rewards, and a transition distribution. At each time step t, an agent observes state s t , selects action a t , and transitions to a new state s t+1 while receiving reward r t according to the transition distribution. This process repeats over a time horizon T .</p><p>We describe the two-stage Markov task as an MDP with 3 states, s t ∈ {1, 2, 3}, and two possible actions a t ∈ {1, 2}. The agent starts in state 1 (s 1 = 1). After selecting action a 1 , the agent transitions to state 2 or 3, with no immediate rewards (r 1 = 0). If a t = 1, there is a 70% chance of transitioning to state 2, termed as a common transition, and a 30% chance of transitioning to state 3, termed as a rare transition. If a 1 = 2, the probabilities and transition type labels reverse. After selecting action a 2 , the agent receives reward r 2 .</p><p>The decision-making scenario then repeats, represented as a deterministic transition back to state 1.</p><p>Recent machine learning research emphasizes that a defining trait of MB learning is its capacity to modify its policy across all states when encountering a local change <ref type="bibr" target="#b22">(Van Seijen et al., 2020;</ref><ref type="bibr" target="#b24">Wan et al., 2022)</ref>. This inspired the LoCA task, where agents navigate a finite rectangular grid. Each grid cell represents a state in an MDP with deterministic transitions, and available moves correspond to actions. There are two additional states, T 1 and T 2 , located outside the grid at the left and right boundaries respectively. When the agent is near the leftmost edge of the grid, known as the event horizon, it is forced to navigate only toward T 1 and cannot move away from it. Rewards are given only when the agent transitions to states T 1 or T 2 , after which they transition back to a state in the grid.</p><p>The task comprises three learning phases. In Phase I, the agent is initialized at any grid state and transitions back to any grid state after receiving a reward. In this phase, rewards are greater at T 1 compared to T 2 . In Phase II rewards are smaller at T 1 , and the agent is initialized and transitioned back to within the event horizon, restricting it to navigate near T 1 . In the final phase, Phase III, the rewards remain the same as in Phase II. However, the agent is initialized at any grid state and transitioned to any grid state after receiving a 2 reward.</p><p>Performance is assessed by the fraction of instances it reaches state T 2 instead of T 1 during Phase III. Effective use of MB learning allows the agent to adapt to the altered rewards in Phase II and integrate this locally obtained knowledge into its policy across all states, facilitating successful navigation towards the higher rewards at T 2 at the start of Phase III. Without using MB learning, the agent needs to re-explore the state space in Phase III, just as it does in Phase I, in order to effectively learn to navigate to T 2 rather than T 1 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>We propose a task that captures the core elements of the LoCA task within the general structure of the two-stage Markov task (see <ref type="figure">Figure 1)</ref>. This new task can be described by an MDP with identical states, actions, and transition types as the two-stage Markov task.</p><p>However, we also divide the task into three phases following the ideas of the LoCA task.</p><p>In Phase I, the agent starts in state 1, receives a reward after taking an action in state 2 or 3, and transitions back to state 1. In Phase II, the agent starts in state 2, receives a reward after taking an action, and then transitions back to state 2. In Phase III, transitions revert to those of Phase I. Each phase continues until T visits to states 2 and 3. Average rewards are higher in state 2 than in state 3 during Phase I and we modify the reward distribution for Phases II and III so average rewards are higher in state 3 than in state 2. As in the LoCA task, we can evaluate an individual's inclination for MB and MF learning by measuring their performance at the start of Phase III.</p><p>We developed a simulation of our task, accessible at https://github.com/jwvineyard/ mxm_sp23-Learning. We fixed the number of visits to states 2 or 3 at 50 for each phase. For simplicity, every choice in state 2 would lead to a reward drawn from a normal distribution with mean 4 and variance 1 and every choice in state 3 would lead to a reward drawn from a normal distribution with mean 2 and variance 1, regardless of the action chosen. In Phases II and III, choices in state 2 would always result in a reward drawn from a normal distribution with mean 1 and variance 1, while the rewards for state 3 remained the same. <ref type="figure">Figure 1</ref>: The proposed task's three phases are illustrated as follows: A) The first phase mirrors the two-stage decision-making scenario of the two-stage Markov task. B) In the second phase, the emphasis shifts to locally learning the modified reward distributions associated with actions taken in state 2 (R 21 andR 22 ). C) The third phase repeats the two-stage decision-making scenario but uses the modified reward distribution from Phase II. Reward distributions are designed such that state 2 can yield higher average rewards than state 3 in Phase I, but lower average rewards in Phases II and III. Effective MB learning involves swiftly integrating the local knowledge gained from Phase II into a policy for Phase III, enabling navigation towards the higher average rewards. States are represented by circles, and state transitions for each action are depicted by directed arrows, with the probability of each transition shown next to the arrow. The corresponding reward distribution is also displayed next to each arrow and labeled with an uppercase R.</p><p>We ran this simulation 10,000 times, applying MF and MB algorithms. For our MF algorithm, we used Q-learning with an ε-greedy action selection, as presented in <ref type="bibr" target="#b21">Sutton and Barto (2018)</ref>. For our MB algorithm, we tracked the Q-values at each step using the same update as our MF algorithm, and followed the action selection procedure used for the MB algorithm in the original two-stage Markov task paper. In states 2 and 3, we use the same ε-greedy action selection as the MF algorithm. In state 1, with probability ε we select a random action. With probability 1 − ε, the action was chosen to maximize Q M B (a) = P (s t+1 = 2|s t = 1, a) max a ′ Q(2, a ′ ) + P (s t+1 = 3|s t = 1, a) max</p><formula xml:id="formula_0">a ′ Q(3, a ′ )</formula><p>where Q(s, a) is the Q value for state s and action a, and P (s t+1 = S ′ |s t = S, a) is the probability of transitioning from state S to state S ′ with action a. For both algorithms we used a learning rate of 0.5, a discount rate of 0.1, and ε = 0.1. We then calculated the average reward obtained from each choice in state 2 or 3 in both algorithms. We included 95% Wald confidence intervals for these averages.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>Results are shown in <ref type="figure" target="#fig_0">Figure 2</ref>. In Phase I, the MB algorithm improved slightly quicker than the MF algorithm. However, adjusting parameters could potentially reverse this difference in early performance. What is more striking is the significant leap in performance with MB learning at the beginning of Phase III-both in comparison to the MF algorithm and its own Phase I performance. The MB algorithm starts Phase III close to optimally, extrapolating insights gained from learning local rewards in Phase II to enhance its policy in Phase III, while the MF algorithm must first explore the new space. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>Distinguishing between model-free and model-based learning is an essential component to many psychology and reinforcement learning studies. We presented an adaptation of local learning within the two-stage Markov task to better distinguish between the two. Unlike the original two-stage Markov task, our task incorporates the LoCA framework which has been shown to identify model-based learning for varied parameters and task representations <ref type="bibr" target="#b22">(Van Seijen et al., 2020)</ref>.</p><p>There are several limitations to consider. Primarily, a study with human participants is needed to demonstrate that the task is acceptable, reliable, and learnable by humans. We made the simplifying assumption that rewards following state 2 or 3 would be independent from the decision made in state 2 or 3. This sped up learning, but could lead to disengagement with human participants. We also assumed the MB algorithm has perfect knowledge of the transition probabilities. Needing to learn the transition probabilities could also slow down learning.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 2 :</head><label>2</label><figDesc>Average reward, along with 95% confidence intervals, across 10,000 trials plotted against visit number to state 2 or 3 during Phases I and III. At the beginning of Phase III, the MB learning algorithm shows a noticeable improvement in performance compared to both its initial phase performance and that of the MF learning algorithm.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Competing Interests</head><p>The author(s) has/have no competing interests to declare. Ms. Kottler and Dr. Cochran supervised and edited the manuscript. All authors approved the final manuscript and agreed to submit for publication.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Authors' Contributions</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Habitual control of goal selection in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Cushman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Morris</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">45</biblScope>
+			<biblScope unit="page" from="13817" to="13822" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Model-Based Influences on Humans&apos; Choices and Striatal Prediction Errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">From creatures of habit to goal-directed learners: Tracking the developmental emergence of model-based reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Decker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Hartley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological science</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="848" to="858" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Ventral striatal dopamine reflects behavioral and neural signatures of model-based control during sequential decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Deserno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Boehme</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Buchert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H.-J</forename><surname>Heinze</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Grace</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Schlagenhauf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1595" to="1600" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Modelbased choices involve prospective neural activity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">B</forename><surname>Doll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">D</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Simon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Shohamy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="767" to="772" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Multiple memory systems as substrates for multiple decision systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">B</forename><surname>Doll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Shohamy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neurobiology of learning and memory</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page" from="4" to="13" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">A competition of critics in human decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Enkhtaivan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nishimura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Ly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Cochran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Of goals and habits: age-related and individual differences in goal-directed decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Eppinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Walter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Heekeren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S.-C</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Frontiers in neuroscience</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">253</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">A note on the analysis of two-stage task results: How changes in task structure affect what model-free and model-based strategies predict about the effects of reward and transition on the stay probability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Feher Da Silva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Hare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PloS one</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">195328</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Humans primarily use model-based inference in the two-stage task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Feher Da Silva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Hare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1053" to="1066" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Rethinking modelbased and model-free influences on mental effort and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Feher Da Silva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Lombardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Edelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Hare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="14" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Model-based learning protects against forming habits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Gillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Phelps</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive, Affective, &amp; Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="523" to="536" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">When does model-based control pay off?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kool</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Cushman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page">1005090</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Planning complexity registers as a cost in metacontrol</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kool</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Cushman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of cognitive neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1391" to="1404" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Dorsal hippocampus contributes to model-based planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Brody</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1269" to="1276" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The curse of planning: dissecting multiple reinforcement-learning systems by taxing the central executive</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B</forename><surname>Markman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological science</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="751" to="761" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Workingmemory capacity protects model-based learning from stress</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Raio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Chiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Phelps</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="issue">52</biblScope>
+			<biblScope unit="page" from="20941" to="20946" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Cognitive control predicts use of model-based reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Skatova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Madlon-Kay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of cognitive neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="319" to="333" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Model-based and model-free decisions in alcohol dependence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sebold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Deserno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nebe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Schad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Garbusow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hägele</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Keller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Jünger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kathmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Smolka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychobiology</title>
+		<imprint>
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="122" to="131" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Smittenaar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">H</forename><surname>Fitzgerald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Romei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Disruption of dorsolateral prefrontal cortex decreases model-based in favor of model-free control in humans</title>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="914" to="919" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">The loca regret: A consistent metric to evaluate model-based behavior in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Van Seijen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nekoei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Racah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chandar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="6562" to="6572" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Voon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Derbyshire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Rück</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Irvine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Worbe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Enander</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Schreiber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Fineberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Sahakian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Disorders of compulsivity: a common bias towards learning habits</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="345" to="352" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Towards evaluating adaptivity of model-based reinforcement learning methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rahimi-Kalahroudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rajendran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Momennejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chandar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Van Seijen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Machine Learning</title>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2022" />
+			<biblScope unit="page" from="22536" to="22561" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Dopamine enhances model-based over model-free choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wunderlich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Smittenaar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="418" to="424" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

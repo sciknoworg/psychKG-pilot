@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">BAYESIAN ESTIMATION OF ENGAGEMENT MODELS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kazuhiro</forename><surname>Yamaguchi</surname></persName>
+							<email>yamaguchi.kazuhir.ft@u.tsukuca.ac.jp</email>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kazuya</forename><surname>Fujita</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Monte</forename><surname>Carlo</surname></persName>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Tsukuba</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="institution">Nagoya University</orgName>
+								<address>
+									<addrLine>Author Note Kazuhiro Yamaguchi https://orcid.org/0000-0001</addrLine>
+									<postCode>8011-8575</postCode>
+									<settlement>Kazuya Fujita</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff2">
+								<orgName type="department" key="dep1">Faculty of Human Science</orgName>
+								<orgName type="department" key="dep2">Institutes of Human Sciences A314</orgName>
+								<orgName type="institution">University of Tsukuba</orgName>
+								<address>
+									<addrLine>1-1-1 Tennnodai, Tsukuba-shi, Ibaraki-ken, 305-0006</addrLine>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">BAYESIAN ESTIMATION OF ENGAGEMENT MODELS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:35+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>test engagement model</term>
+					<term>response time</term>
+					<term>Bayesian analysis</term>
+					<term>Markov chain</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Detecting non-engagement test answering behavior is a crucial task in situations where the tests are low-stakes for the individuals but the scores are employed in decision-making. Nagy and Ulitzsch (2022) proposed four test engagement models, but their estimations were conducted using maximum likelihood estimation. This study applied the Bayesian estimation method to the test engagement models. Bayesian formulation of the test engagement models was introduced and estimation was conducted using &quot;just another Gibbs sampler&quot; language. Real data analysis was conducted and problems were discussed regarding the future orientation of the Bayesian framework in test answering behavior modeling.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Bayesian Estimation of Test Engagement Behavior Models with Response Times</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Test scores may be considered as a compound of individual proficiencies, test items characteristics, and several uncontrivable error factors. Item response theory models (IRT; e.g., <ref type="bibr" target="#b4">Embretson &amp; Reise, 2000)</ref> are popular frameworks used to analyze academic tests. Several classical unidimensional IRT models only assume a continuous latent proficiency and item characteristic parameters such as difficulty, discrimination, and guessing parameters.</p><p>Unidimensional IRT models have been employed in large scale assessments because of their simplicity.</p><p>However, such simple IRT models idealize individual item responses, and so, their model assumptions may not uphold in all testing situation. For example, test takers do not seriously take a test if the results do not affect their lives. In other words, test takers are not engaged in the test in low-stakes settings; for example, when a test is conducted to investigate current student learning states for deciding educational policies. In such cases, the test results are used by a government but do not directly affect individual test takers, and test takers have no incentive to seriously answer the items. Therefore, item responses are affected not only by academic proficiency, but also motivation for the test (e.g., <ref type="bibr" target="#b6">Finn, 2015)</ref>.</p><p>Without considering such disengaged responses and applying classical IRT models, the model parameters estimates may be biased because test taking motivation is a nuisance factor and it is neglected in the classical IRT models. If impactful policy decisions rely on such distorted results, it would be problematic because the results do not purely reflect actual individuals' proficiency. Therefore, considering test engagement behaviors is important to avoid misleading results.</p><p>One issue of classical IRT models is that the item responses are dichotomous and have limited information; therefore, external variables are required to model test engagement behaviors. One well-studied information regarding this is response time, and De <ref type="bibr" target="#b2">Boeck and Jeon (2019)</ref> provided a review on the use of response times. Response times can be easily gathered in computer-based tests without huge data collecting cost <ref type="bibr" target="#b5">(Ferrando &amp; Lorenzo-Seva, 2007)</ref> and Programme for International Student Assessment (PISA) also recorded response time data (Organisation for Economic Co-operation and Development; <ref type="bibr">OECD, n.d.)</ref>. Further, response times can be used in adaptive testing in which test items are selected according to participant's responses. Considering the response time and information per time unit, measurement time can be minimized. However, this research does not study this method, but instead, focused on response times for modeling tests engagement behavior.</p><p>Response times and item responses were simultaneously modeled in the hierarchical Bayesian framework by van der <ref type="bibr" target="#b24">Linden (2007)</ref>. In addition, <ref type="bibr" target="#b21">Ulitzsch et al. (2020)</ref> extended a joint modeling of item response and response times and modeled skip behavior. <ref type="bibr">Pohl et al.</ref> (2019) employed a response time to model unreached responses. <ref type="bibr" target="#b21">Ulitzsch et al. (2020)</ref> modeled missing responses due to low engagement with response times, and <ref type="bibr" target="#b19">Ulitzsch, Penk, et al. (2021)</ref> provided a test-taking effort model using response times. Furthermore, <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref> formalized four types of test engagement models. While other variables, such as click streams <ref type="bibr" target="#b17">(Ulitzsch, He, et al., 2021)</ref>, may be used to provide another insight on test engagement behavior, we focused on response time in this study. <ref type="bibr" target="#b10">Nagy and Ulitzsch's (2022)</ref> models were based on previous theoretical assumption of test engagement behaviors, making every part of the model interpretable. The four models were classified according to dependency of engagement, latent variables, and assumption of latent continuous variables. Therefore, these models were called 1) dependent latent class IRT model with single-level relationships of response times (DLC-SL-IRT), 2) dependent latent class IRT model with two-level relationships of response times (DLC-TL-IRT), 3) independent latent class IRT model with a random effect of the latent class variable on response times (ILC-RE-IRT), and 4) independent latent class IRT model with a random intercept of response times (ILC-RI-IRT). They also provided estimation scripts with Mplus <ref type="bibr">(Muthén &amp; Muthén, 1998</ref><ref type="bibr">-2017</ref>. One common important feature of their models was the introduction of a latent engagement indicator variable; this allowed modeling of item responses and response times under engaged and disengaged cases. As a statistical model, their models were a mixture of latent variable model, and were flexible in understanding engaged behavior. However, these models required maximum likelihood estimation.</p><p>Bayesian estimation has several benefits for <ref type="bibr" target="#b10">Nagy and Ulitzsch's (2022)</ref> models. First, disengagement may be rare and estimating parameters under disengagement with maximum likelihood could become difficult. Bayesian estimation could easily incorporate domain knowledge as prior distributions (e.g., <ref type="bibr" target="#b8">Lee &amp; Wagenmakers, 2013)</ref>. In addition, test engagement behaviors were modeled as hierarchical models with several random effects; therefore, the maximum likelihood estimation was unstable because of a multiple integration problem.</p><p>Bayesian estimation is feasible even when multiple latent factors are contained. The original parameter estimation with Mplus in <ref type="bibr" target="#b10">Nagy and Ulitzsch's (2022)</ref> models required special data structure and did not directly represent data generating structure. Bayesian estimation, with Markov chain Monte Carlo (MCMC) which was implemented in this study, directly expressed data generating mechanisms and was easily programmed with "just another Gibbs sampler" (JAGS; <ref type="bibr" target="#b14">Plummer, 2003)</ref> language. This also allowed model extensions to include variables that could be another information source, but it might be difficult under current maximum likelihood estimation. Finally, Bayesian formulation provided several model check methods, such as posterior predictive model check or widely applicable information criterion (WAIC; <ref type="bibr" target="#b25">Watanabe, 2018</ref>) that have practically and theoretically sound.</p><p>This study extends test engagement models developed by <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref> to Bayesian formulation and implements Bayesian estimation with JAGS language. The next section provides Bayesian formulation of the four models. The four types of Bayesian models were applied to real data that was analyzed by <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref> and the four models' parameter estimates were compared in the fourth section. The conclusion and further discussion are provided in the fifth section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Model Formulation</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Item Response Function</head><p>We borrowed basic notations from <ref type="bibr" target="#b10">Nagy and Ulitzsch's (2022)</ref> models. The essential idea of the modeling framework of <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref> was to introduce a latent engagement indicator variable to represent the connection among the test engagement, response time, and item responses. Therefore, <ref type="bibr" target="#b10">Nagy and Ulitzsch's (2022)</ref>  </p><formula xml:id="formula_0">P( = 1|θ , , , = 1) = exp ( (θ − )) 1 + exp ( (θ − )) ,<label>(1)</label></formula><p>where θ is an individual's latent proficiency, is an item discrimination parameter taking positive value, and is a difficulty parameter. In this study, probability mass and density functions are represented by the same notation, (⋅), and are distinguished based on their arguments. We also use (⋅) to define a distribution of its argument. The item response function of Equation (1) is conditioned on latent engagement indicator. A disengaged response was modeled as random guessing:</p><formula xml:id="formula_1">P( = 1| , = 0) = ,<label>(2)</label></formula><p>where 0 ≤ ≤ 0.5. This means that the item response is not dependent on latent proficiency at all in disengaged cases and the value of should be sufficiently small. For simplicity, it is possible to think a common guessing: = , ∀ . Combining Equations (1) and (2), the item response function is defined as follows:</p><formula xml:id="formula_2">P( = 1|θ , , , , ) = { exp ( (θ − )) 1 + exp ( (θ − )) } 1− .<label>(3)</label></formula><p>The complete data likelihood of an item response is expressed as follows:</p><formula xml:id="formula_3">P( |θ , , , , ) = P( = 1|θ , , , , ) {1 − P( = 1|θ , , , , )} 1− .<label>(4)</label></formula><p>Assuming random sampling of individuals and conditional independence (also known as local independence), the joint likelihood of item response matrix whose th row and th column is is as follows:</p><formula xml:id="formula_4">P( | , , , , ) = ∏ ∏ P( |θ , , , , ),<label>(5)</label></formula><p>where , , , and are sets of latent variables and item parameters:</p><formula xml:id="formula_5">{θ 1 , … , θ }, { 1 , … , },</formula><p>{ 1 , … , }, and { 11 , … , }. In addition to the likelihood function, prior distributions should be specified for Bayesian estimation. In this study, the prior of item difficulty parameter, ( ), is a normal distribution with mean μ and variance σ 2 , denoted as (μ , σ 2 ). Here, subscripts on hyper-parameters represent corresponding model parameters. Similarly, the prior of item discrimination parameter, ( ), is a truncated normal distribution whose mean and variance are μ and σ 2 : (μ , σ 2 ) ( &gt; 0), where (⋅) is an indicator function for restricting the support of as positive. The prior for guessing parameter is a truncated beta distribution: </p><formula xml:id="formula_6">( ) = (α, β) ( &lt; 0.3), where (α, β) is</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">DLC-SL-IRT model</head><p>The DLC-SL-IRT model assumes that latent engagement is determined by response time. More formally, latent engagement probability is modeled as a logistic regression form:</p><formula xml:id="formula_7">P( = 1| , γ, τ ) = exp (γ( − τ )) 1 + exp (γ( − τ )) .<label>(6)</label></formula><p>The parameter γ is a common slope parameter over items and similar to a discrimination parameter in IRT models; therefore, the γ indicates engagement sensitively associated with the log item response time. τ is an item-specific threshold parameter, which is analog to the difficulty parameter in IRT models, determining difficulty of engagement.</p><p>The latent proficiency parameter θ in the DLC-SL-IRT model only affects item response and does not relate to engagement. Therefore, prior latent proficiency in the DLC-SL-IRT model is the standard normal distribution for model identification: (θ ) = (0,1). In addition, individual engagement tendency is not assumed in the DLC-SL-IRT model; therefore, all the information of an individual to determine engagement is contained in a single item response time. Similar to item response function, priors for γ and τ are assumed to be a truncated normal distribution and a normal distribution, respectively:</p><formula xml:id="formula_8">(γ) = (μ γ , σ γ 2 ) (γ &gt; 0) and (τ ) = (μ τ , σ τ 2 ).</formula><p>We can marginalize latent class indicator in the DLC-SL-IRT model because latent engagement indicator is defined for a single item response. This marginalization helps to improve the convergence of MCMC iterations. Then, the marginalized correct item response probability can be written as follows: </p><formula xml:id="formula_9">P( = 1| , θ , ,</formula><formula xml:id="formula_10">= { exp ( (θ − )) 1 + exp ( (θ − )) } { exp (γ( − τ )) 1 + exp (γ( − τ )) } + {1 − exp (γ( − τ )) 1 + exp (γ( − τ )) }.<label>(7)</label></formula><p>In the MCMC procedure, latent engagement indicators can be gained as generated quantities if they are required.</p><p>Finally, the full conditional posterior is proportional to a product of the complete likelihood and priors:</p><formula xml:id="formula_11">( , , , , γ, | , ) ∝ P( | , , , , , γ, ) ( ) ( ) ( ) ( ) (γ) ( ) = {∏ ∏ P( | , θ , , , , γ, τ )} {∏ (θ )} {∏ ( ) ( ) (τ )} ( ) ( ),<label>(8)</label></formula><p>where is a set of threshold parameter {τ 1 , … , τ }, and is a log item response time matrix whose element of the th row and th column is .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">DLC-TL-IRT model</head><p>To relax the DLC-SL-IRT model assumptions, the DLC-TL-IRT model introduces the individual engagement difficulty parameter ζ in Equation <ref type="formula" target="#formula_7">6</ref>and the engagement probability is defined as follows:</p><formula xml:id="formula_12">P( = 1| , γ, τ , ζ ) = exp(γ[ − (τ + ζ )]) 1 + exp(γ[ − (τ + ζ )]) .<label>(9)</label></formula><p>In this model, the individual engagement difficulty parameter ζ represents an engagement difference among individuals and is treated as a random effect. Small ζ indicates that the th individual tends to engage in test items easily. In addition, the ζ is connected to latent proficiency θ via a multivariate normal distribution:</p><formula xml:id="formula_13">P (θ , ζ |μ θζ = [ μ θ μ ζ ] , Σ θζ = [ 1 ρ θζ σ ζ ρ θζ σ ζ σ ζ 2 ]) = (μ θζ , Σ θζ ),<label>(10)</label></formula><p>where mean vector of latent variable μ θζ is set to the zero-vector for identifiability. Covariance matrix of person parameters is denoted as Σ θζ . Elements of the covariance matrix are the variance parameter σ ζ 2 , representing deviation of engagement tendency, and the correlation parameter ρ θζ between θ and ζ which may be negative in this case because a highproficiency person tends to easily engage in test items. In addition, the variance of θ needs to be fixed at one for the model identification.</p><p>In a traditional setting, an inverse Wishart distribution is assumed for a prior covariance matrix, but the variance of θ needs to be fixed in this model. Therefore, the inverse Wishart distribution is not appropriate. Instead, the covariance matrix is decomposed in two lowertriangle matrices, called Cholesky decomposition <ref type="bibr" target="#b26">(Zhan et al., 2019)</ref>:</p><formula xml:id="formula_14">Σ θζ = Δ θζ Δ θζ ⊤ ,<label>(11)</label></formula><formula xml:id="formula_15">Δ θζ = [ 1 0 ϕ ψ ],<label>(12)</label></formula><p>where, priors are set for ϕ and ψ, and so, (ϕ) = (0,1) (ϕ &lt; 0) and (ψ) =</p><p>(1, 1) are assumed priors, and where (α, β) is a gamma distribution with shape α and rate β.</p><p>The same marginalization in the DLC-SL-IRT model is applied for the item response probability in the DLC-TL-IRT model and we get a correct response probability without latent engagement indicator which is represented as follows:</p><formula xml:id="formula_16">P( = 1| , θ , ζ , , , , γ, τ ) = ∑ P( = 1|θ , , , , = )P( = | , ζ i , γ, τ ) 1 =0<label>(13)</label></formula><p>Finally, the joint posterior probability of the parameters and latent variables is expressed as follows:</p><formula xml:id="formula_17">( , , , , , γ, | , ) ∝ P( | , , , , , , γ, ) ( , ) ( ) ( ) ( ) (γ) ( ) = {∏ ∏ P( | , θ , ζ , , , , γ, τ )} {∏ (θ , ζ )} × {∏ ( ) ( ) (τ )} ( ) ( ) (ϕ)P(ψ),<label>(14)</label></formula><p>where is a set of individual engagement difficulty parameters; {ζ 1 , … , ζ }.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">ILC-RE-IRT model</head><p>The DLC-IRT models assume that latent engagement indicators are dependent on response times. In the ILC-IRT models, latent engagement indicators are not directly dependent on response times but connected through individual latent variables. One latent variable, η , that is represented as an individual engagement tendency and an item engagement difficulty parameter, κ , define latent engagement probability with one parameter logistic IRT model:</p><formula xml:id="formula_18">P( = 1|η , ) = exp(η − ) 1 + exp(η − ) .<label>(15)</label></formula><p>Similar to IRT difficulty parameters, the prior for κ is a normal distribution denoted as (κ )= (μ κ , σ κ 2 ). Prior for η is defined for later.</p><p>The latent engagement status determines not only different item responses but also different response times. In this case, two different one-factor analysis models are assumed for the response times. In other words, we assume a mixture distribution of two normal distributions for response times:</p><formula xml:id="formula_19">{ P ( |ν , λ , σ ε 2 , = 0) = (ν + λ ξ , σ ε 2 ) , P ( |ν , λ , σ ϵ 2 , = 1) = ( + λ ξ , σ ϵ 2 ) ,<label>(16)</label></formula><p>where and λ are an intercept and a factor loading parameter for engaged status, and ̃ and λ are an intercept and a factor loading parameter for disengaged status. The unique factor variance parameters for engaged and disengaged statuses are σ ϵ 2 and σ ε 2 . A factor score ξ , which can be thought of as a basic individual response speed, is common in both engaged and disengaged statuses.</p><p>In a regression formulation, Equation (16) is rewritten as follows:</p><formula xml:id="formula_20">= ( + λ ξ + ϵ ) + (1 − )(ν + λ ξ + ε ),<label>(17)</label></formula><p>where two sets of residual terms {ϵ 1 , … , ϵ } and {ε 1 , … , ε } are independently and identically distributed random variables followed different normal distributions: (0, σ ϵ 2 ) and</p><p>(0, σ ε 2 ). Here, residual variances can be different among items. Priors are</p><formula xml:id="formula_21">( )= (μ , σ 2 ), (̃)= (μ̃, σ2 ), (λ ) = (μ λ , σ λ 2 ) (λ &gt; 0), (λ ) = (μ λ , σ λ 2 ) (λ &gt; 0), (σ ϵ 2 ) = (α , β )</formula><p>, and (σ ε 2 ) = (α , β ). The gamma distributions here can be replaced by an inverse gamma distribution with shape α and rate β, which may be another standard choice. In this study, the hyper parameters of the gamma distributions are set as the same value, α = β = α = β = 1/2. This gamma distribution is equivariant to 2 distribution with one degree of freedom.</p><p>An important point of the ILC-IRT models is that three types of individual parameters, θ , η , and ξ , are related each other. The major distribution that represents a connection among three continuous random variables is a multivariate normal distribution is as follows:</p><formula xml:id="formula_22">P (θ , η , ξ |μ θηξ = [ μ θ μ η μ ξ ] , Σ θηξ = [ 1 ρ θη ρ θξ ρ θη 1 ρ ηξ ρ θξ ρ ηξ 1 ]) = (μ θηξ , Σ θηξ ),<label>(18)</label></formula><p>where μ θηξ is a mean vector and Σ θηξ is a 3 × 3 positive definite covariance matrix. Again, μ θ , μ η , and μ ξ are zero and diagonal elements of Σ θηξ that are variances of three latent factors are set to one to identify the model. Therefore, Σ θηξ is a correlation matrix rather than a covariance matrix here. Off-diagonal elements of Σ θηξ are correlation parameters among three latent variables that are denoted as ρ θη , ρ θξ , and ρ ηξ , whose subscripts represent a combination of variables to be considered. Priors of correlation parameters are directly specified and are uniform distributions: (ρ θη ) = (0,1), (ρ θξ ) = (−1,1), and (ρ ηξ ) = (0,1). We assumed positive correlations between θ and η, and η and ξ; however, no-strong assumption was assumed between θ and ξ. Note that label switching problem need to be prevented for the general ILC-IRT models to put ordered constraints on intercepts or factor loadings.</p><p>Under conditional independence assumptions, the conditional distribution of model parameters of the general ILC-IRT models is represented as assembling the likelihood functions, individual parameters, and priors as follows: <ref type="figure">( , , , , , , ,</ref> , ,̃, ,̃, ϵ 2 , ε 2 , ρ θη , ρ θξ , ρ ηξ | , )</p><formula xml:id="formula_23">∝ P( | , , , , )P( | , ,̃, ,̃, ϵ 2 , ε 2 , ) ( | , ) ( , , ) × ( ) ( ) ( ) ( ) (̃) ( ) (̃) ( ϵ 2 ) ( ε 2 ) ( ) (ρ θη ) (ρ θξ ) (ρ ηξ ),<label>(19)</label></formula><p>= {∏ ∏ P( |θ , , , , )P ( |ξ , ν , ν , λ , λ σ ϵ 2 , σ ε 2 , ) ( |η , )}</p><formula xml:id="formula_24">× {∏ (θ , η , ζ )} {∏ ( ) ( ) (τ ) (κ ) ( ) (̃) (λ ) (λ ) (σ ϵ 2 ) (σ ε 2 )} × ( ) (ρ θη ) (ρ θξ ) (ρ ηξ ),</formula><p>where , , , ,̃, ,̃, ϵ 2 , and ε 2 are parameter sets corresponding to individuals' and item parameters. is a conditional variable on both and , and so marginalization of engagement indicator will generate dependency between and . Therefore, remains in the likelihood functions of the general ILC-IRT model. The general ILC-IRT model has two likelihood functions: one from item responses and the other from response times, which is different from the DLC-IRT models.</p><p>The general ILC-IRT model is over-parameterized and loses meaning of the parameters.</p><p>One simple constraint is to add a disengagement situation in which set factor loadings are 0 and residual variance are the same across items:</p><formula xml:id="formula_25">λ = 0, ∀ , σ ε 2 = σ ε 2 , ∀ .<label>(20)</label></formula><p>This constraint means that the disengaged response times are not affected by individual response speed because a disengage response is a quick response and does not different across items. This constraint prove response times equation as follows:</p><formula xml:id="formula_26">= ν + (δ + λ ξ ) + ϵ + (1 − )ε ,<label>(21)</label></formula><p>where δ = ν − ν . The second term in Equation <ref type="formula" target="#formula_26">21</ref> </p><formula xml:id="formula_27">{ ( | = 0, ν , σ ε 2 ) = (ν , σ ε 2 ), ( | = 1, ν , δ , λ , ξ σ ϵ 2 ) = (ν + δ + λ ξ , σ ϵ 2 ) .<label>(22)</label></formula><p>The ILC-RE-IRT model assumes that an engaged response time takes longer than a disengaged response.</p><p>Finally, posterior distribution of the ILC-RE-IRT model is slightly simplified version of Equation <ref type="formula" target="#formula_23">19</ref>: <ref type="bibr">( , , , , , , , , ,̃, , ϵ 2</ref> , σ ε 2 , ρ θη , ρ θξ , ρ ηξ | , )</p><formula xml:id="formula_28">∝ P( | , , , , )P( | , ,̃, , ϵ 2 , σ ε 2 , ) ( | , ) ( , , ) × ( ) ( ) ( ) ( ) (̃) ( ) ( ϵ 2 ) ( ) (σ ε 2 ) (ρ θη ) (ρ θξ ) (ρ ηξ )<label>(23)</label></formula><p>= {∏ ∏ P( |θ , , , , )P ( |δ , ν , λ σ ϵ 2 , σ ε 2 , ) ( |η , )}</p><formula xml:id="formula_29">× {∏ (θ , η , ζ )} {∏ ( ) ( ) (τ ) (κ ) (δ ) (̃) (λ ) (σ ϵ 2 )} × ( ) (σ ε 2 ) (ρ θη ) (ρ θξ ) (ρ ηξ ),</formula><p>where = {δ 1 , … , δ }.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">ILC-RI-IRT model</head><p>Different constraints posed on the general ILC-IRT model provide a different ICL-IRM model. For example, equality constraints on factor loadings between engagement and disengagement conditions (i.e., λ = λ , ∀ ) are possible. This provides following regression formulation of a log response time:</p><formula xml:id="formula_30">= ν + λ ξ + δ + ϵ + (1 − )ε ,<label>(24)</label></formula><p>In this formula, the random effect ξ is outside of the regression coefficient and thought of as a random intercept. In the ILC-RI-IRT model, the individual response speed has an effect even in the disengagement situation. The effect of engagement δ is a fixed effect and does not vary </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Application to Real Data</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Data Analysis Setup</head><p>Example data analyzed in <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref> were gained from the Programme for the International Assessment of Adult Competencies (PIAAC), which is an international large-scale assessment for adults. More detailed explanations were shown in <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref>. The sample size was 637, and 20 item responses and log response times were included the data set.</p><p>The items used open response format and the correct item response probability in disengagement was expected to be close to zero. Log response times were standardized in this study.</p><p>The MCMC estimation code was written in JAGS language. Normal priors replaced the standard normal distribution. Correct response probability in disengagement prior parameters was α = 1 and β = 4 and the upper limit was set to 0.3 to represent low correct response probability. Additional constraints to the ̃ parameters were negative and the δ parameters were constrained as positive. The ̃ parameters were average log response time in the disengagement situation and the log response times were standardized in this study so we assumed the responses were faster than general average that was zero. This assumption provided previous negative constraints on the ̃ parameters. Similarly, the δ parameters were the effects of engagement on the log response times and the engagement ought to take several times. This consideration generated that he δ parameters were positive. The number of chains were three, total MCMC iterations were 40,000, burn-in period was the first 10,000 samples, and thinning number was five. Convergence criterion was Gelman-Rubin index (̂; <ref type="bibr" target="#b7">Gelman &amp; Rubin, 1992)</ref> lower than 1.10. WAIC and posterior predictive p-value (PPP) were employed for model comparisons. Employed data, JAGS model, and estimation codes are available from Open Science Framework page: https://osf.io/v4zk3/.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Results</head><p>The ̂s of the model parameters were less than 1.10, and so MCMC iterations were judged to be converged. The DLC-TL-IRT model (WAIC = 11430.940, SE = 118.911, PPP =.652) indicated a lower WAIC value than the DLC-SL-IRT model (WAIC = 11504.543, SE = 117.988, PPP = .697). In addition, the PPP of the DLC-TL-IRT model was closer to .5 than in the DLC-SL-IRT model. These results suggest that the DLC-TL-IRT model was better than the DLC-SL-IRT model. WAIC of the ILC-RI-IRT (WAIC = 36037.783, SE = 246.879, PPP for item response =.579, PPP for log response time = .524) was smaller than that of the ILC-RE-IRT model (WAIC = 36375.162, SE = 241.876, PPP for item response = .586, PPP for log response time =.519), and the PPP values of the ILC-RI-IRT and ILC-RE-IRT models were almost the same. These results were consistent with Nagy and Ulitzsch (2022)'s findings. <ref type="table">Table 1</ref> shows the posterior means of response times thresholds in the DLC-IRT models, engagement difficulties in the ILC-IRT models, and averages of the posterior means of engagement probability over individuals. The absolute values of response time thresholds τ estimates between <ref type="table">Table 1</ref> in this study and <ref type="table">Table 4</ref> in <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref> were similar.</p><p>However, <ref type="bibr">Nagy and Ulitzsch (2022, Table 4</ref>) reported several extremes in κ estimates (e.g., absolute values greater than 5) but the results shown in <ref type="table">Table 1</ref> are quite moderate because priors prevented extreme estimates. Engaged response results were also similar between the current and Nagy and Ulitzsch (2022)'s study. However, the values of current estimates were smaller. This means our Bayesian estimation showed that the individuals were less engaged than the maximum likelihood estimates in <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref>.</p><p>Insert <ref type="table">Table 1</ref> The correct response probability for disengaged status in the DLC-SL-IRT and DLC-   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Conclusion and Discussion</head><p>This study provided Bayesian formulation of four test engagement models and their likelihood functions with explicitly described priors. Furthermore, Bayesians estimation method with JAGS language was applied to PIAAC data. The real data example showed that the parameter estimates did not have extreme values and showed stable estimates. Parameter estimates similarity and differences among the models were shown.</p><p>Maximum likelihood estimation is difficult if the parameters are close to the boundaries. In such cases, maximum likelihood estimation procedure may provide unreasonable solutions. In the context of test engagement behavior, correct response probabilities in disengagement situation and engagement probabilism can be close to zero or one, and it is possible for the maximum likelihood estimation to not work well. In addition, test engagement models considered in this study combined multilevel and mixture models, which are known as difficult models to estimate. Sample size of lower-stakes tests may not be large, which would make parameter estimation harder.</p><p>The Bayesian MCMC method can handle these problems. Even if the parameters are close to their boundaries, MCMC provides appropriate approximated posteriors. In addition, prior distributions work as regularization terms and prevent irregular solution. These benefits are especially important in cases with small sample sizes. Additionally, JAGS codes for estimation are simple and naturally represent data generating functions, making model extension and parameter restriction easy. For adaptive testing, posterior distribution rather than point estimates was proposed <ref type="bibr" target="#b0">(Chang &amp; Ying, 1996)</ref>. When researchers can specify engagement or disengagement, they can consider the stopping rule (when to stop measurement) more precisely because observations with disengagement have little information regarding proficiency.</p><p>One disadvantage of the MCMC procedure is that it takes a longer time for parameter estimation and requires powerful computers that was pointed out by <ref type="bibr" target="#b10">Nagy and Ulitzsch (2022)</ref>.</p><p>The estimation times of the real data example were several hours in the authors' computational environment. If the number of individuals and test items increased, Bayesian MCMC procedure will not be a good choice. Another approximation technique, such as variational Bayesian inference <ref type="bibr" target="#b11">(Nakajima et al., 2019)</ref>, will be required for larger datasets. <ref type="table">Table 1</ref> Posterior means of engagement-related parameters and engagement probabilities in the four engagement models  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure 1</head><p>Scatter plots of latent individual parameters (θ, η, and ξ) in the four engagement models  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure 3</head><p>Response time model parameters (ν parameter: upper left, δ parameter: upper right, λ parameter: lower left, σ ϵ 2 parameter: lower right) estimates with the independent latent class IRT model with a random effect of the latent class variable on response times (ILC-RE-IRT), and independent latent class IRT model with a random intercept of response times (ILC-RI-IRT) models</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>beta distribution with parameter α and β with the upper limit 0.3. This upper limit shows that the correct response under the disengaged condition should be small. Note that prior means and variances can set other values if there are sufficient empirical knowledge. The differences among the models are assumption of the distributions of laten proficiency (θ ), the latent engagement indicator ( ), and modeling of the logarithm of item response time of an individual for an item , which is denoted by .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>, , γ, τ ) = ∑ P( = 1|θ , , , , = )P( = | , γ, τ ) 1 =0 = P( = 1|θ , , , = 1)P( = 1| , γ, τ ) + P( = 1| , = 0)P( = 0| , γ, τ ),</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>represents the effect of engagement on a log response time and contains the random effect ξ. The third and fourth terms are residual corresponding engagement and disengagement situations. In other representation, conditional distributions of log response time given the engagement status are as follows:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>among individuals. Conditional distributions given the latent engagement indicator are normal distributions whose means and variances are different: are the same as in ILC-RE-IRT model. Conditional posterior distribution is a representation of Equation (23) but with Equation (25) for corresponding terms.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>TL-IRT models was the same [ = .002 ( = .002)] but that of the ILC-RE-IRT and ILC-RI-IRT models were = .025 ( = .008) and = .010 ( = .005), respectively, making the values larger than the DLC-IRT models. The latent class discrimination parameters γ of the DLC-SL-IRT and DLC-TL-IRT models were γ = 5.376 ( = 0.432) and γ = 4.663 ( = 0.430), respectively, providing congruent results. The correlation between θ and ζ of the DLC-TL-IRT model was ρ θζ = −.971 ( = .036), implying that the high proficiency individuals could easily engage in the test items. The variance of individual engagement difficulty was σ ζ 2 = 0.234 ( = 0.073); there were individual differences of engagement difficulty. Correlation among three latent variables in the ILC-RE-IRT model were ρ θη = .483 ( = .050), ρ θξ = .341 ( = .044), and ρ ηξ = .131 ( = .045), showing that the latent proficiency and engagement tendency, and the engagement tendency and response speed were correlated. The correlations in the ILC-RI-IRT model were ρ θη = .676 ( = .050), ρ θξ = .008 ( = .058), and ρ ηξ = .414 ( = .040). Both ILC-RE-IRT and ILC-RI-IRT models showed correlations that were greater than .45 between the latent proficiency and engagement tendency. However, the other two correlation results were not consistent with each other. The correlation between latent proficiency and response speed ρ θξ in the ILC-RI-IRT model was approximately zero, but it was positive for one in the ILC-RE-IRT model. The test engagement tendency and response speed ρ ηξ in the ILC-RI-IRT model was larger than in the ILC-RI-IRT model.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 1</head><label>1</label><figDesc>indicates scatter plots for latent proficiency θ between the DLC-SL-IRT and DLC-TL-IRT models (upper left panel), and three proficiencies (θ, η, and ξ) between the ILC-RE-IRT and ILC-RI-IRT models (upper right, lower left, and lower right panels, respectively).The latent proficiency between the DLC-SL-IRT and DLC-TL-IRT models was consistent and provided similar results. Comparison of the θ between the ILC-RE-IRT and ILC-RI-IRT models indicated that lower proficiency (less than -2) in the ILC-RE-IRT model was slightly highly estimated in the ILC-RI-IRT model. The range of latent engagement tendency η in the ILC-RI-IRT model was wider than that in the ILC-RE-IRT model. This implies that the ILC-RI-IRT model could capture detailed individual engagement tendency. Some individuals who took -1 to 0 values in the ILC-RE-IRT model were much smaller values (less than -3) in the ILC-RI-IRT model. The lower values (less than -2) in the response speed factor ξ in the ILC-RE-IRT model took higher values in the ILC-RI-IRT model. InsertFigure 1</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 2</head><label>2</label><figDesc>presents the IRT discrimination and difficulty parameters (left and right panels, respectively) estimates with four engagement models. Four models did not show significant differences in difficulty parameters. Discrimination parameters indicated slightly different estimates across several items (e.g., item 1, 4, 7, 13, 16, and 18) but systematic tendency was not shown.Figure 3 depicts response time model parameters (ν parameter: upper left; δ parameter: upper right; λ parameter: lower left; σ ϵ 2 parameter: lower right) estimates with two engagement models. The ν parameters showed a different tendency in the ILC-RI-IRT model, which showed larger values than the ILC-RE-IRT model except for items 3 and 12. The δ parameters showed the opposite tendency: the ILC-RI-IRT model showed lower estimates than the ILC-RE-IRT model except for items 3 and 12. The λ parameters of the ILC-RE-IRT model were greater thanthe ILC-RI-IRT model's. The σ ϵ 2 parameter estimates were almost the same between the two ILC-IRT models. Finally, the residual variance in the discontinuous parameters of the ILC-RE-IRT model was σ ε 2 = 54.663 ( = 0.430), which was much larger than that of the ILC-RI-</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Note.</head><label></label><figDesc>The four models are the dependent latent class IRT model with single-level relationships of response times (DLC-SL-IRT), dependent latent class IRT model with two-level relationships of response times (DLC-TL-IRT), independent latent class IRT model with a random effect of the latent class variable on response times model (ILC-RE-IRT), and independent latent class IRT model with a random intercept of response times (ILC-RI-IRT) model.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 2 IRT</head><label>2</label><figDesc>discrimination parameters (left panel) and difficulty parameters (right panel) estimates with the four engagement models Note. The four models are the dependent latent class IRT model with single-level relationships of response times (DLC-SL-IRT), dependent latent class IRT model with two-level relationships of response times (DLC-TL-IRT), independent latent class IRT model with a random effect of the latent class variable on response times model (ILC-RE-IRT), and independent latent class IRT model with a random intercept of response times (ILC-RI-IRT) model.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A global information approach to computerized adaptive testing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ying</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Applied Psychological Measurement</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="213" to="229" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1177/014662169602000303</idno>
+		<ptr target="https://doi.org/10.1177/014662169602000303" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">An overview of models for response times and processes in cognitive tests</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">De</forename><surname>Boeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jeon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="page">10</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3389/fpsyg.2019.00102</idno>
+		<ptr target="https://doi.org/10.3389/fpsyg.2019.00102" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Item response theory for psychologist</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Embretson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Reise</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">An item response theory model for incorporating response time data in binary personality items</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Ferrando</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Lorenzo-Seva</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/0146621606295197</idno>
+		<ptr target="https://doi.org/10.1177/0146621606295197" />
+	</analytic>
+	<monogr>
+		<title level="j">Applied Psychological Measurement</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page" from="525" to="543" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Measuring motivation in low-stakes assessments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Finn</surname></persName>
+		</author>
+		<idno type="DOI">10.1002/ets2.12067</idno>
+		<ptr target="https://doi.org/10.1002/ets2.12067" />
+	</analytic>
+	<monogr>
+		<title level="j">ETS Research Report Series</title>
+		<imprint>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1" to="17" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Inference from iterative simulation using multiple sequences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+		<idno type="DOI">10.1214/ss/1177011136</idno>
+		<ptr target="https://doi.org/10.1214/ss/1177011136" />
+	</analytic>
+	<monogr>
+		<title level="j">Statistical Science</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="457" to="472" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Bayesian cognitive modeling: A practical course</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/CBO9781139087759</idno>
+		<ptr target="https://doi.org/10.1017/CBO9781139087759" />
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Mplus: Statistical analysis with latent variables: User&apos;s guide (version 8)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Muthén</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">O</forename><surname>Muthén</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>Muthén &amp; Muthén</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">A multilevel mixture IRT framework for modeling response times as predictors or indicators of response engagement in IRT models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Nagy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Ulitzsch</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/00131644211045351</idno>
+		<ptr target="https://doi.org/10.1177/00131644211045351" />
+	</analytic>
+	<monogr>
+		<title level="j">Educational and Psychological Measurement</title>
+		<imprint>
+			<biblScope unit="volume">82</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="845" to="879" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nakajima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Watanabe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sugiyama</surname></persName>
+		</author>
+		<title level="m">Variational Bayesian learning theory</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1017/9781139879354</idno>
+		<ptr target="https://doi.org/10.1017/9781139879354" />
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">PISA</title>
+		<ptr target="https://www.oecd.org/pisa/data/pisa2018technicalreport/" />
+		<imprint>
+			<date type="published" when="2018-09-16" />
+		</imprint>
+		<respStmt>
+			<orgName>OECD</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+	<note>Retrieved</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Plummer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The 3rd International Workshop on Distributed Statistical Computing</title>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page" from="1" to="8" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Using response times to model not-reached items due to time limits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pohl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Ulitzsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Davier</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11336-019-09669-2</idno>
+		<ptr target="https://doi.org/10.1007/s11336-019-09669-2" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="892" to="920" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">R: A language and environment for statistical computing. R Foundation for Statistical Computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>R Core Team</surname></persName>
+		</author>
+		<ptr target="https://www.R-project.org/" />
+		<imprint>
+			<date type="published" when="2022" />
+			<pubPlace>Vienna, Austria</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Combining clickstream analyses and graph-modeled data clustering for identifying common response processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Ulitzsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Ulitzsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Molter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Nichterlein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Niedermeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pohl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="190" to="214" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1007/s11336-020-09743-0</idno>
+		<ptr target="https://doi.org/10.1007/s11336-020-09743-0" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Model meets reality: Validating a new behavioral measure for test-taking effort</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Ulitzsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Penk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Von Davier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pohl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Educational Assessment</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="104" to="124" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1080/10627197.2020.1858786</idno>
+		<ptr target="https://doi.org/10.1080/10627197.2020.1858786" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">A hierarchical latent response model for inferences about examinee engagement in terms of guessing and item-level non-response</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Ulitzsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Von Davier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pohl</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">British Journal of Mathematical and Statistical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">73</biblScope>
+			<biblScope unit="issue">S1</biblScope>
+			<biblScope unit="page" from="83" to="112" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1111/bmsp.12188</idno>
+		<ptr target="https://doi.org/10.1111/bmsp.12188" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">A hierarchical framework for modeling speed and accuracy on test items</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Van Der Linden</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11336-006-1478-z</idno>
+		<ptr target="https://doi.org/10.1007/s11336-006-1478-z" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">72</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="287" to="308" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Mathematical theory of Bayesian statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Watanabe</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>Chapman and Hall/CRC</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Using JAGS for Bayesian cognitive diagnosis modeling: A tutorial</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Zhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Jiao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Man</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Educational and Behavioral Statistics</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="473" to="503" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3102/1076998619826040</idno>
+		<ptr target="https://doi.org/10.3102/1076998619826040" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">The four models are the dependent latent class IRT model with single-level relationships of response times (DLC-SL-IRT), dependent latent class IRT model with two-level relationships of response times (DLC-TL-IRT), independent latent class IRT model with a random effect of the latent class variable on response times model (ILC-RE-IRT), and independent latent class IRT model with a random intercept of response times</title>
+		<imprint/>
+		<respStmt>
+			<orgName>ILC-RI-IRT) model</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

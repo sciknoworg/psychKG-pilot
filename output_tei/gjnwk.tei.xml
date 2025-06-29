@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Bayesian graphical modeling with the circular drift diffusion model</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Manuel</forename><surname>Villarreal</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Irvine</orgName>
+								<orgName type="institution">University of California</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Adriana</forename><forename type="middle">F</forename><surname>Chávez De La Peña</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Irvine</orgName>
+								<orgName type="institution">University of California</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Percy</forename><forename type="middle">K</forename><surname>Mistry</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Stanford University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vinod</forename><surname>Menon</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Stanford University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joachim</forename><surname>Vandekerckhove</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Irvine</orgName>
+								<orgName type="institution">University of California</orgName>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+							<email>mdlee@uci.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Irvine</orgName>
+								<orgName type="institution">University of California</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Bayesian graphical modeling with the circular drift diffusion model</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:06+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>The circular drift-diffusion model (CDDM) is a sequential sampling model designed to account for decisions and response times in decisionmaking tasks with a circular set of choice alternatives. We present and demonstrate a fully Bayesian implementation and extension of the CDDM. This development allows researchers to apply the CDDM to data from complex experiments and draw conclusions about targeted hypotheses. The Bayesian implementation relies on a custom JAGS module. We describe the module and demonstrate its adequacy through a simulation study. We then illustrate the advantages of the implementation by revisiting data from a continuous orientation judgment task. We develop a graphical model for the analysis that is based on the CDDM, but extends it with hierarchical and latent-mixture structures. We then demonstrate how these extensions are used to accommodate the design of the experiment and to implement psychological assumptions about individual differences, the difficulty of different stimulus conditions, and the impact of cues on decision making. Finally, we demonstrate how the computational Bayesian inference enabled by JAGS allows these assumptions to be tested and addresses psychological research questions about people&apos;s decision making.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The circular drift-diffusion model (CDDM; Smith, 2016) is a sequential sampling decision model that extends the widely used drift-diffusion model (DDM; <ref type="bibr" target="#b15">Ratcliff, 1978;</ref><ref type="bibr" target="#b16">Ratcliff &amp; McKoon, 2008)</ref> to the circular domain. In the classical DDM, it is assumed that evidence from a stimulus is repeatedly sampled until a boundary is reached, at which point the decision associated with that boundary is made. The model makes predictions about both the decisions people make and the time they take to make them. The DDM is designed for tasks with discrete decisions and is most often applied to two-choice tasks.</p><p>The CDDM considers situations in which the boundary of evidence accumulation is an encompassing circle. This extension implies that there exists a continuum of possible decisions, corresponding to points on the circle, and that there is a similarity relationship between the decision alternatives. <ref type="figure">Figure 1</ref> provides three examples: choosing a color from a color wheel, choosing the spatial direction of a voice, and choosing a time in a calendar year. The CDDM has been applied to decision tasks including the detection of hues <ref type="bibr" target="#b6">(Kvam et al., 2022)</ref>, targets presented in visual displays <ref type="bibr" target="#b21">(Smith &amp; Corbett, 2019)</ref>, the orientation of line segments <ref type="bibr" target="#b5">(Kvam, 2019)</ref>, and in the absolute identification of line lengths <ref type="bibr" target="#b6">(Kvam et al., 2022)</ref>.</p><p>In this article, we introduce a custom JAGS module that implements the CDDM. JAGS is a high-level scripting language for implementing probabilistic generative models and automating Bayesian inference using computational sampling methods <ref type="bibr" target="#b13">(Plummer, 2003)</ref>. JAGS is widely used to develop, evaluate, and apply cognitive models <ref type="bibr" target="#b9">(Lee &amp; Wagenmakers, 2013)</ref>. There are at least two reasons to develop custom modules. The first, as demonstrated by <ref type="bibr" target="#b27">Wabersich &amp; Vandekerckhove (2014)</ref> for the DDM, is that it makes <ref type="figure">Fig. 1</ref>. Examples of circular decisions. The top left panel shows a hue identification task where the color of the shirt has to be located along the color wheel. The bottom left panel illustrates a situation in which a person must spatially locate the source of a relevant auditory stimulus (e.g., a voice). The right panel presents the decision space for questions about the occurrence of an event of interest during the calendar year.</p><p>non-standard statistical distributions available. Sometimes, when a new distribution is composed of combinations of standard distributions, this is just a matter of convenience. Other times, when the probability density function of the new distribution relies on procedural calculations that are not part of the base JAGS language, a module is needed to make it available at all. The second advantage of custom modules, as argued by <ref type="bibr" target="#b7">Lee (2011</ref><ref type="bibr" target="#b8">Lee ( , 2018</ref>, is that they facilitate the development of tailored graphical models. In particular, JAGS makes it easy to construct hierarchical, latent mixture, and common cause models in order to capture the context in which behavioral data are observed, and to allow models to answer specific research questions.</p><p>The structure of this article is as follows. We begin by providing a statistical specification of the CDDM. We then implement the CDDM in JAGS and present the results of a parameter recovery study that demonstrates the accuracy of our implementation. To illustrate the use of the module, we present an application to data collected in a continuous orientation judgment task by Kvam Our application is based on a graphical model that extends the CDDM with hierarchical and latent-mixture structures. These extensions allow the model to accommodate the design of the experiment and to implement psychological assumptions about individual differences, the difficulty of different stimulus conditions, and the impact of cues on decision making. We demonstrate how the computational Bayesian inference enabled by JAGS allows these assumptions to be tested, and addresses psychological research questions about people's decision making. We conclude with a discussion of possible applications of the CDDM within JAGS, including potential extensions to decision tasks in which the circular continuum is partitioned into a set of structured discrete choice alternatives.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The Circular Drift Diffusion Model</head><p>The CDDM assumes that evidence for a decision begins at the origin of a circle and is accumulated sequentially in time until the evidence tally reaches the circumference. Evidence accumulation is represented as a two-dimensional random walk, such that the evidence state st at any point in time t can be described using Cartesian coordinates st = (xt, yt), or the corresponding polar coordinates mt and dt, where mt is the radial distance from the origin and 0 ≤ dt &lt; 2π is the angular orientation in radians.</p><p>Once the evidence accumulation reaches the circumference, the corresponding decision alternative is selected. The result of this process on each trial is a two-dimensional outcome containing the angle of the alternative selected in radians and the associated response time. The CDDM requires at least four parameters to describe the re-sponse process. The non-decision time τ ≥ 0 is the fixed amount of time that participants take to encode stimulus information and execute a motor response. The boundary radius η &gt; 0 determines the amount of evidence required before committing to a decision.</p><p>The drift angle 0 ≤ θ ≤ 2π represents the angular direction in radians of the decision alternative favored by the stimulus presented.</p><p>Finally, the drift length δ &gt; 0 indicates the speed with which the participant accumulates information towards the decision implied by the drift angle θ. Together, the drift angle θ and drift length δ describe the information provided by the stimulus and its effect on the speed and direction of the evidence accumulation process. The drift angle θ and drift length δ correspond to the polar coordinates of the drift vector µ = (µx, µy) that specifies the mean step size of the random walk process on the x and y dimension, respectively, in Cartesian coordinates. Translating between these two coordinate systems is straightforward using the following system of equations:</p><formula xml:id="formula_0">δ = µ 2 x + µ 2 y θ = arctan µy µx [1]</formula><p>(µx, µy) = (δ cos (θ) , δ sin (θ)) .</p><p>Much like in other sequential sampling models, the non-decision time and boundary radius are assumed to be fixed across trials while the drift parameters describing the information provided by the stimuli are assumed to vary. At any given moment in time t, the evidence accumulated along the x and y axes st = (xt, yt) is assumed to be independent and identically distributed, such that</p><p>xt ∼ Gaussian µx, σ 2 and yt ∼ Gaussian µy, σ 2 .</p><p>The CDDM likelihood function. An attractive property of the CDDM is that the implied distribution of data given parameters is computationally tractable. The bivariate probability density function, which expresses the joint probability density of decision c and reaction time t, is given by <ref type="bibr" target="#b14">(Qarehdaghi &amp; Rad, 2022;</ref><ref type="bibr" target="#b20">Smith, 2016)</ref>:</p><formula xml:id="formula_1">p (c, t | δ, θ, η, τ ) = σ 2 2πη 2 exp − 1 2σ 2 δ 2 (t − τ ) − 2ηδ cos (c − θ) × +∞ k=1 j 0,k J1(j 0,k ) exp − 1 2η 2 (t − τ )j 2 0,k σ 2 [2] ⇔ (c, t) ∼ CDDMo (δ, θ, η, τ ) ,</formula><p>or equivalently in Cartesian coordinates:</p><formula xml:id="formula_2">p (c, t | µx, µy, η, τ ) = σ 2 2πη 2 exp − 1 2σ 2 µ 2 x + µ 2 y (t − τ ) − 2η(µx cos(c) + µy sin(c)) × +∞ k=1 j 0,k J1(j 0,k ) exp − 1 2η 2 (t − τ )j 2 0,k σ 2 [3] ⇔ (c, t) ∼ CDDM+ (µx, µy, η, τ ) .</formula><p>Throughout, we will choose σ = 1 to identify the model. In these two functions, J1() and j 0,k are, respectively, a first-order Bessel function of the first kind and the k th zero of a zero-order Bessel function.</p><p>The left panel of <ref type="figure">Figure 3</ref> provides an illustration of the CDDM. A number of evidence accumulation paths from the origin to the circumference are shown, and the shading along the circumference shows the resulting distribution of decisions. This marginal distribution of decisions is shown again in the top right panel and the marginal distribution of response times is shown in the bottom right panel.</p><formula xml:id="formula_3">A U T H O R F I N A L V E R S I O N 0 2π π π 2 3π 2 Response observed η Boundary radius µ x</formula><p>Step size on X µ y</p><p>Step size on Y </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>JAGS Implementation of the CDDM</head><p>Custom Module. The steps to constructing a custom JAGS module are laid out in <ref type="bibr" target="#b27">Wabersich &amp; Vandekerckhove (2014)</ref>. The process has become more efficient since the publication of that tutorial, in that there now exist a number of repositories 1 with example modules that can be used as a starting point, and in particular the jags-moduleTemplate repository https://github.com/ raviselker/jags-moduleTemplate/ by <ref type="bibr" target="#b18">Selker (2018a)</ref>. With these resources, the remaining effort in creating a JAGS module is in the writing of applicable logDensity functions and a handful of housekeeping functions such as typicalValue and checkParameterValue. Because the CDDM likelihood is vector-valued (i.e., the model applies to bivariate data), the module defines VectorDist (vector-valued distribution) objects</p><p>1 Some examples are jags-wiener <ref type="bibr" target="#b26">(Wabersich, 2018)</ref>, jags-vonmises <ref type="bibr" target="#b25">(Wabersich, 2016b)</ref>, jagsamoroso <ref type="bibr" target="#b24">(Wabersich, 2016a)</ref>, jags-exgauss <ref type="bibr" target="#b17">(Selker, 2016)</ref>, and jags-rescorlaWagner <ref type="bibr" target="#b19">(Selker, 2018b)</ref>.</p><p>with length 2. The module 2 can be obtained via https:// github.com/joachimvandekerckhove/jags-cddm/. The core code for the density function evaluation can be found in src/distributions/DCDDM.cc. That file implements the logarithm of the Cartesian formulation of the likelihood given in Equa-</p><formula xml:id="formula_4">tion 3: (c, t | µx, µy, η, τ ) ≈ − log 2πη 2 − t − τ 2 µ 2 x + µ 2 y + η(µx cos(c) + µy sin(c)) + log 50 k=1 j 0,k J1(j 0,k ) exp − t − τ 2 j 2 0,k η 2 .</formula><p>[4]</p><p>The polar version of the likelihood is implemented by transforming the input parameters using System 1 and then calculating Equation 4. Note that j 0,k /J1(j 0,k ) and j 2 0,k are only a function of the summation counter k and not of any of the function's parameters or variables, so they can be precomputed for speed. We approximate the infinite sum by computing only the first 50 terms, which we have found to be sufficient -the contribution of the 50 th term is less than 0.1% of the total sum as long as the scaled time factor (t − τ ) /η 2 is at least 0.004.</p><p>Usage. The README.md file of the repository provides installation instructions. Once the module is installed, it can be loaded in JAGS with load cddm. Loading the module will enable two new distributions with the following templates. For CDDMo():</p><formula xml:id="formula_5">X[1:2,i]~dcddmpolar(driftLength, driftAngle, bound, nondecision)</formula><p>and for CDDM+():</p><formula xml:id="formula_6">X[1:2,i]~dcddmcartn(driftx, drifty, bound, nondecision)</formula><p>In both cases, X[1,i] is the decision in radians and X[2,i] is the eaction time in seconds. dcddmpolar() takes the parameters expressed in polar terms (δ, θ, η, τ ) and dcddmcartn() takes the parameters expressed in Cartesian terms (µx, µy, η, τ ). All input parameters are scalars.</p><p>The θ parameter exists in a circular domain, which somewhat complicates the MCMC sampling, especially if its posterior distribution has significant mass near the edge of the (arbitrarily chosen) 2π-interval over which it is defined. While these complications are not insurmountable, we generally prefer the Cartesian implementation.</p><p>Parameter Recovery Study. We tested the accuracy of the CDDM module in simulation studies that examined separately the parameter recovery of the Cartesian and polar coordinates implementations of the module. We selected a small number of values for every parameter in the model and used them to simulate 200 independent data sets for every possible parameter combination. We then applied the JAGS module and compared the parameter values retrieved to those used to generate the data sets. Parameter recovery was evaluated using the distribution of the mean posteriors obtained across every data set generated using every parameter value. Note that this recovery study does not assess the CDDM model, nor does it allow us to evaluate the effectiveness of the Bayesian statistical methods used to make inferences. Recovery studies do provide a method for checking the correctness of the implementation of the JAGS module, and for understanding</p><formula xml:id="formula_7">A U T H O R F I N A L V E R S I O N</formula><p>the informativeness of experimental designs with respect to the CDDM and its parameters.</p><p>We used three different values of boundary radius η ∈ (1.5, 2.0, 2.5) and non-decision time τ ∈ (0.1, 0.2, 0.3). For the recovery study testing the polar coordinate implementation of the module, we used three different values of drift angle θ ∈ (0.0, 2.0, 4.0) and drift length δ ∈ (0.01, 1.0, 2.0), while for Cartesian coordinate implementation we used four mean step size levels on the x and y coordinates, µx ∈ (−0.5, 0, 0.5, 1) and µy ∈ (−1, −0.5, 0, 0.5). Altogether, this resulted in 81 different parameter combinations in the polar implementation and 144 parameter combinations in the Cartesian implementation.</p><p>Posterior estimates were computed across four chains with 2500 recorded samples each after 500 discarded burn-in samples.</p><p>All chains converged, usingR &lt; 1.05 as a criterion <ref type="bibr" target="#b1">(Gelman et al., 2013)</ref>. Note that chain convergence for the drift angle θ parameter in the polar implementation was evaluated after having transformed the posterior samples into the constrained interval 0 ≤ θ &lt; 2π.</p><p>This transformation was conducted using modular algebra.</p><p>The results of the parameter recovery studies are shown in <ref type="figure">Figures 4</ref> and 5 for the Cartesian and the polar coordinate implementations of the module, respectively. In these figures, each panel presents the distribution of the posterior means obtained across all data sets that shared the same true value of that parameter (regardless of the values of the other parameters). 3 Overall, parameters are recovered well: there are no systematic errors from the "true" parameter values used to generate the data, and the variability around these values is acceptably small with sample size 200. These results provide confirmation that the CDDM probability density functions in our JAGS module are correctly implemented.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Application to Modeling Orientation Judgments</head><p>Kvam (2019) Experiment. Kvam (2019) considered a task in which participants estimated the mean orientation of a sequence of rapidly-presented Gabor patches. The design of the task is summarized in <ref type="figure">Figure 6</ref>. Trials were divided into four main blocks with two independent factors: speed versus accuracy instructions, and cued versus uncued conditions. For speed trials, participants gained more points for responses made within 800ms of stimulus onset, while for accuracy trials participants earned more points the closer their estimates were to the true mean. Participants were told at the beginning of each block whether they were a part of the speed or accuracy condition, and they were also reminded of the condition with the words "SPEED" or "ACCURACY" at the beginning of each trial.</p><p>Once a trial started, participants were shown either a green line with a fixed orientation (cued condition) or a green circle at the center of the screen (uncued condition). Following the presentation of the line or circle, participants were shown a rapid sequence of Gabor patches, drawn every 16.7 ms at 60 Hz, with orientations varying according to a Gaussian distribution centered at the true mean orientation with a fixed standard deviation. The standard deviations of the distribution of the samples were used to set three difficulty conditions-low, medium and high-with standard deviations of 15, 30 and 45 degrees respectively. A cue could have a deflection of 0, 20, 50, or 70 degrees in a clockwise or counterclockwise direction from the true mean orientation of the Gabor patches. <ref type="bibr">3</ref> The bottom right panel of <ref type="figure" target="#fig_3">Figure 5</ref> excludes cases where the drift length δ true value was close to 0 (i.e., δ = 0.01), as the drift angle is unidentified in that case. Step size on X (µ</p><formula xml:id="formula_8">x ) 1 2 3 4 1 2 3 4 1 2 3 4 −1.5 −1.0 −0.5 0.0 0.5 1.0</formula><p>Step size on Y (µ y ) Levels <ref type="figure">Fig. 4</ref>. Results of the parameter recovery study conducted using our Cartesian coordinate implementation of the CDDM. Every panel shows the distributions of posterior means obtained across data sets generated using each parameter value. All panels present the results obtained across three simulation studies that considered a sample size of n = 80, n = 200 and n = 500, respectively. The black dashed lines indicate the true values.  <ref type="figure">6</ref>. The design of a trial in the orientation judgment task considered by <ref type="bibr" target="#b5">Kvam (2019)</ref>. After either being cued by a line or not being cued, a sequence of Gabor patches with a mean orientation was presented. Participants could respond at any time to indicate the mean orientation. Based on Kvam (2019, <ref type="figure">Figure 2</ref>).</p><p>Participants could respond at any point during the presentation of the sequence of patches by moving their mouse to the edge of a response circle on the screen. The point at which they reached the edge defined their decision for the trial.</p><p>To simplify our analysis of the experiment, we consider only six of the twelve participants, chosen to be representative of the overall range of individual differences. We also only use the cued condition, since modeling the potential influence of a cue allows us to highlight some of the features of implementing the CDDM within JAGS.</p><p>Research Questions. We address four research questions related to the Kvam (2019) experiment. These research questions were not chosen because they are the most important ones in terms of understanding human perceptual decision making. Instead, they were chosen to demonstrate the flexibility of graphical models to formalize assumptions about psychological processes, and the usefulness of Bayesian methods to answer research questions.</p><p>The first research question is whether participants are more cautious when they are instructed to prioritize accuracy over speed. Statistically, this involves testing whether the boundary radius for a participant is the same or different in the speed versus accuracy conditions. The second research question is whether the speed of information processing decreases as the variability of the Gabor stimuli increases and the task becomes more difficult. Statistically, this involves testing whether the drift length satisfies an order constraint by decreasing monotonically with task difficulty. The third research question is whether participants sample information less consistently as the task becomes more difficult. This involves testing whether the variability of the drift angle satisfies an order constraint by increasing monotonically with task difficulty.</p><p>The final research question is less standard than the first three, and requires the most elaborate modeling. It asks whether positive and negative deflections of cues have different impacts on participants' decision making. In particular, it considers the possibility that, on each trial, a participant could use either the cue or the Gabor stimuli as the basis for their orientation judgment. Addressing this question involves testing whether the base-rate with which each source of information is used is the same or different for cue deflections of the same magnitude but different directions. Our main motivation with this research question is that it seems likely the base-rates will be the same. This allows us to consider the ability of Bayesian inference to find evidence for sameness, indicating equivalence or invariance, rather than just the ability to find evidence for differences, indicating the presence of effects.</p><p>Graphical Model. <ref type="figure" target="#fig_4">Figure 7</ref> shows the graphical model we developed for this analysis. The decision and RT data are represented by the y isdct node at the center of the model. This node is shaded and circular because the data are observed and continuous. It is at the intersection of encompassing plates for trial t of participant i with cue deflection c in speed-accuracy condition s and difficulty condition d.</p><formula xml:id="formula_9">y iscdt ∼ CDDMo (δ id , mod(θ isdct , 2π), η id , τi) [5]</formula><p>The four CDDM parameters-drift angle, drift length, boundary radius, and nondecision time-are represented by the four nodes that are the parents of the y isdct node. These nodes have different colors, and other nodes in the graphical model associated with each parameter share the same color. This helps visually parse the graphical model into the assumptions it makes about drift angle, drift length, boundary radius, and nondecision time.</p><p>Drift angle. The drift angle θ isdct is represented by an unshaded node because it is latent. We assume that there are two qualitatively different possibilities for the drift angle on each trial. 4 It can either be based on the mean orientation of the presented stimuli, or on the cue. These two possibilities are φ isdct and q isdct , which are known properties of the trial, and hence represented by shaded nodes.</p><p>Which value θ iscdt takes is determined by a latent binary indicator z isdct , represented by a square node because it is discrete.</p><p>Formally,</p><formula xml:id="formula_10">θ isdct ∼ Gaussian φ isdct , τ θ id if z isdct = 0 Gaussian q isdct , βiτ θ id if z isdct = 1. [6]</formula><p>The binary indicator follows a Bernoulli distribution with a base rate that depends on the participant and the cue deflection</p><formula xml:id="formula_11">z iscdt ∼ Bernoulli ωic . [7]</formula><p>The base-rate with which participant i uses cues with deflection c is assumed to be ωic.</p><p>Since our research goals include testing whether ωic changes for positive versus negative cue deflections with the same magnitude, we define</p><formula xml:id="formula_12">ωic 1 − ωic = exp (µ ω ia + γ ω ia/2) if c &gt; 0 exp (µ ω ia − γ ω ia/2) if c &lt; 0 exp (µ ω ia ) if c = 0.</formula><p>[8]</p><p>These definitions mean that µ ω ia controls the bias on the logit scale towards using the cue or stimulus information for deflection magnitude a, while γ ω ia is an effect size on the logit scale between positive and negative deflections of the same magnitude. This part of the graphical model provides an example of creating a structure to test research hypotheses. In particular, comparing the prior and posterior on the log effect size γ ω ia provides a principled way to estimate Bayes factors testing whether or not participants have different base-rates for positive versus negative cue deflections with the same magnitude.</p><p>Depending on whether the stimulus or the cue is used, different precisions apply to how accurately the drift angle follows this information. These precisions are represented by the parameters τ θ id and βi. We assume that there are individual differences in stimulus information precision that depend on the stimulus difficulty. For</p><formula xml:id="formula_13">person i in difficulty condition d, τ θ id ∼ log-Gaussian µ τ θ d , 1 σ τ θ 2 [9] A U T H O R F I N A L V E R S I O N</formula><p>with priors on the mean and standard deviation that define the Gaussian distribution of individual differences:</p><formula xml:id="formula_14">µ τ θ d ∼ Gaussian 0, 1 [10] σ τ θ ∼ uniform 0, 4 .</formula><p>[11]</p><p>Note that the assumption is that the mean changes with stimulus difficulty, but the variability of individual differences is the same for all of the different levels of stimulus difficulty.</p><p>The cue information has a precision that is proportional to that of the stimulus information for the trial depending on each participant. This requires defining the constant of proportionality βi for person i as βi ∼ uniform 0, 1 . <ref type="bibr">[12]</ref> This means that the variability of the information provided by the cue distribution is always equal or greater to the stimulus one.</p><p>Drift length. We assume there are individual differences in the drift lengths δ id that depend on stimulus difficulty. For person i in difficulty level d</p><formula xml:id="formula_15">δ id ∼ log-Gaussian µ δ d , 1 (σ δ ) 2 .</formula><p>[13]</p><p>with priors</p><formula xml:id="formula_16">µ δ d ∼ Gaussian 0, 1 [14] σ δ ∼ uniform 0, 1 .</formula><p>[15]</p><p>As was the case for the base-rate of cue versus stimulus use, we assume that only the mean changes with stimulus difficulty, but the variability of individual differences is the same.</p><p>Boundary radius. The boundary radius ηis are assumed to be independent across both participants and speed-accuracy conditions. In order to test whether speed-accuracy instructions affect a participant's boundary radius, ηis is defined in the model in terms of the mean boundary radius on the log scale µ η i for participant i over both conditions, and the effect size difference on the log scale γ η i . This leads to the definitions:</p><formula xml:id="formula_17">ηis = exp (µ η i + γ η i /2) if s = accuracy exp (µ η i − γ η i /2) if s = speed .</formula><p>[16]</p><p>This part of the graphical model provides a second example of creating a structure to test research hypotheses. In particular, comparing the prior and posterior on the log effect size γ η i provides a principled way to estimate Bayes factors testing whether or not participants use different boundaries in speed versus accuracy conditions. Nondecision time. Finally, nondecision time does not have any additional model structure, and each participant is independently given the prior τi ∼ uniform 0, min yi1 , <ref type="bibr">[17]</ref> where min yi1 represents the minimum response time for participant i over all trials.</p><p>Results. The results of analyses addressing the four research questions are presented in the four panels of <ref type="figure" target="#fig_5">Figure 8</ref>. The analyses are based on four chains with 5000 recorded samples after 45000 discarded burn-in samples. Once again, we only considered convergent chains withR &lt; 1.05.</p><p>The first research question about differences in caution is addressed by <ref type="figure" target="#fig_5">Figure 8A</ref>. The panel shows the posterior samples of the boundary radius parameters ηis for each participant in both speed and accuracy conditions. For most of the participants, it is clear that the posterior distribution of the parameter for the accuracy conditions is higher. The η column of <ref type="table" target="#tab_0">Table 1 confirms</ref> this result in terms of Bayes factors comparing the order-restricted alternative hypothesis that the accuracy condition boundary radius is greater to the null hypothesis that the boundaries are the same. These Bayes factors are approximated using the Savage-Dickey method <ref type="bibr" target="#b28">(Wetzels et al., 2010)</ref>. For every participant except participant 3 the Bayes factor is greater than 1000 in favor of the hypothesis that the boundary radius is higher for accuracy trials.</p><p>The second research question about the speed of information processing and task difficulty is addressed by <ref type="figure" target="#fig_5">Figure 8B</ref>. The panel shows the posterior distribution of the drift length δ id for each participant and task difficulty. It is clear that the order constraints are followed by all of the participants except for participant 1. The δ columns of <ref type="table" target="#tab_0">Table 1</ref> confirm this result in terms of the posterior probability that the drift lengths satisfy the order constraint. For participant 1, the posterior probability of the order constraints is close to 0, however, for the rest of participants it is higher than 0.8.</p><p>The third research question about the consistency of information and task difficulty is addressed by <ref type="figure" target="#fig_5">Figure 8C</ref>. The panel shows the posterior distributions of the standard deviation of stimulus information 1/ √ τ θ for each participant and task difficulty. It is clear the order constraint is followed by all six participants. The σ column of <ref type="table" target="#tab_0">Table 1</ref> confirms this result in terms of the posterior probability that the standard deviations satisfy the order constraint. The posterior probability of the order constraints is close to 1 for all participants. The final research question about whether positive and negative deflections have different impacts on cue use is addressed by <ref type="figure" target="#fig_5">Figure 8D</ref>. The panel shows the posterior distribution of the base-rate of stimulus use for each participant and deflection angle. The values of the base-rate show that participants generally used the stimulus information on the majority of trials. Comparing the positive (unfilled) and negative (filled) deflections of the same magnitude suggests the base-rates are often similar. The Bayes factors testing for the sameness or difference of the base-rates are presented in the ω columns of <ref type="table" target="#tab_0">Table 1</ref>, expressed in terms of evidence for a difference. Most of the Bayes factors are close to one, indicating there is not clear evidence in favor of either hypothesis. This provides an example of the ability of using Bayes factors with the CDDM not only to find evidence for sameness (the null) or a difference (the alternative), but also to fail to find clear evidence for either. The obvious conclusion is that more data are needed to address this research question.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>Our application to modeling orientation judgments highlights the usefulness of the JAGS implementation of the CDDM. Graphical models provide a high-level language for probabilistic psychological models for constructing tailored CDDM models that deal with circular decisions and response times. The graphical model we developed has the CDDM at its core, predicting behavior on each   trial, but makes assumptions about how model parameters change over trials, stimuli, and people that are specific to the experimental design that generated the data and the motivating research questions.</p><formula xml:id="formula_18">A U T H O R F I N A L V E R S I O N ; η is γ η i µ η i y isdct θ isdct ϕ isdct q isdct z isdct ω ic µ ω ia γ ω ia κ id µ κ d σ κ τ i δ id σ δ µ δ id β i i participants s speed c cue deflection d difficulty t trials a absolute cue µ η i ∼ Gaussian 0, 1 γ η i ∼ Gaussian 0, 1 T 0, ∞ η is = exp (µ η i + γ η i /2) if s = accuracy exp (µ η i − γ η i /2) if s = speed τ i ∼ uniform 0, min y i1 µ δ d ∼ Gaussian 0, 1 σ δ ∼ uniform 0, 1 δ id ∼ log-Gaussian µ δ d , 1 (σ δ ) 2 µ κ d ∼ Gaussian 0, 1 σ κ ∼ uniform 0, 4 κ id ∼ log-Gaussian µ κ d , 1 (σ κ ) 2 µ ω ia ∼ Gaussian 0, 1 γ ω ia ∼ Gaussian 0, 1 ω ic 1 − ω ic =        exp µ ω ia + γ ω ia 2 if c &gt; 0 exp µ ω ia − γ ω ia 2 if c &lt; 0 exp (µ ω ia ) if c = 0 z isdct ∼ Bernoulli (ω ic ) β i ∼ uniform (0, 1) θ isdct ∼ Gaussian (ϕ isdct , κ id ) if z isdct = 0 Gaussian (q isdct , β i κ id ) if z isdct = 1 y isdct ∼ CDDM • (δ id , η is , τ i , mod(θ isdct , 2π)) 1</formula><p>As argued by <ref type="bibr" target="#b7">Lee (2011</ref><ref type="bibr" target="#b8">Lee ( , 2018</ref>, there are two complementary features of this approach. One feature is that graphical models afford significant freedom and flexibility in model development. A wide range of theoretical assumptions can be implemented, tested, and used. The model of orientation judgments we developed made extensive use of hierarchical and latent-mixture structures, which allow for more theory to be incorporated. For example, instead of treating the drift angle as a free parameter to be estimated, our model formalized the idea that people could use either cue or stimulus information, that this choice could depend on the deflection between the cue and stimulus, and that direction information was perceived differently by different participants. The goal of psychological modeling is to develop accounts that are as general and complete as possible, and graphical models provide the ability to propose ambitious accounts of people's behavior.</p><p>The second noteworthy feature of graphical modeling is that theoretical freedom is complemented by methodological rigor. Whatever model is proposed, its contact with data is governed by Bayesian inference, which by virtue of following the laws of probabil-  <ref type="figure">Figure 1</ref> for a task in which the choice options are color words. The right panel considers the voice direction situation for a task in which the choice options are the names of the possible speakers.</p><p>ity is complete, consistent, and coherent <ref type="bibr" target="#b0">(Cox, 1961;</ref><ref type="bibr" target="#b4">Jaynes, 2003)</ref>. This means that psychological models are evaluated against data in a way that is sensitive to goodness-of-fit and model complexity, and prevents overly ambitious models that over-fit the data <ref type="bibr" target="#b12">(Pitt et al., 2002)</ref>.</p><p>Our application to orientation judgments used Bayes factors to find evidence for a null hypothesis regarding the direction of deflections, which is an example of how Bayesian evaluation can lead to a proposed model being rejected and a psychologically simpler model being preferred. Our application also provided examples in which model assumptions were justified using quantified evidence provided by the data. One example was the Bayes factor for the difference between boundaries for speed and accuracy conditions. Another was the probability of order constraints relating drift rates to different types of stimuli.</p><p>Beyond hierarchical and latent-mixture structures, graphical modeling in JAGS offers a number of other possibilities not demonstrated in our application. One is what Lee (2011, 2018) calls common-cause modeling, in which the same psychological variable is assumed to influence behavior observed in multiple contexts. This idea is the basis for well-developed joint models of behavioral and neural data, which are often implemented in JAGS <ref type="bibr" target="#b22">(Turner et al., 2019)</ref>. The common cause idea, however, applies equally well for linking multiple sources of behavioral data. For example, the individual differences in how participants use the cue or stimulus for direction information in the current orientation judgment task may be related to their behavior in other perceptual attention tasks. Constructing a graphical model that formalizes this possibility is straightforward, requiring a graph structure in which the same parameter or parameters play a role in generating both sets of data (e.g., <ref type="bibr" target="#b2">Guan &amp; Lee, 2018;</ref><ref type="bibr" target="#b3">Guan et al., 2020;</ref><ref type="bibr" target="#b23">Vandekerckhove, 2014;</ref><ref type="bibr" target="#b11">Oravecz &amp; Vandekerckhove, 2020)</ref>.</p><p>Another possibility for future applications involves the extension to categorical decision boundaries discussed by <ref type="bibr" target="#b20">Smith (2016)</ref>. Within JAGS this could be achieved by censoring using the dinterval distribution, which implements situations in which continuous quantities are only observed in terms of discrete outcomes. Two examples are shown in <ref type="figure" target="#fig_6">Figure 9</ref>, highlighting how two of our motivating circular decisions in <ref type="figure">Figure 1</ref> involve discrete decisions. In the left panel, the choice options for choosing the color of a shirt are a set of color words. In the right panel, the direction of the voice is indicated by naming the person speaking. To model these sorts of discrete decisions, the continuous location on the circular boundary of the CDDM must be censored according to choice boundaries. JAGS provides a censoring capability directly through its dinterval distribution.</p><p>Another possibility is the application of CDDMs to decisions that are semi-circular in nature. That is, where there is a continuum of possible decisions corresponding to points on a semi-circle, along with a similarity relationship between the decision alternatives. The difference from a classical circular decision structure is that the end points of the decisions have the lowest degree of similarity. One concrete example, shown in <ref type="figure" target="#fig_7">Figure 10</ref> involves mathematical problem solving where the answers lie on a number line that may be represented as points on a semi-circle (e.g., <ref type="bibr" target="#b10">Mistry et al., 2023)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>Sequential sampling models, and especially the drift diffusion model, are the most successful and widely used models of the time course of human decision making. These models are capable of making predictions about both the choices people make and the time it takes them to make these choices. Most applications have considered forced-choice two-alternative decision tasks, consistent with a model architecture in which an evidence tally accumulates over time towards one of two boundaries. More recently, the development of model architectures that allow many evidence tallies to accumulate towards many boundaries has led to applications to tasks involving multi-alternative choice. These models assume, however, that there is a finite set of nominally-scaled choice alternatives. The CDDM extends the scope of sequential sampling models to allow for choice and response time modeling in situations where there is a continuum of choices that can be represented on a circle. In this way, the CDDM opens up many new possibilities for modeling the time course of human decision making.</p><p>An important part of realizing the promise of the CDDM is to allow it to be used as the key component of models tailored to specific tasks and data, and designed to answer specific research questions. Embedding the CDDM within a graphical modeling framework is one way to achieve this, because it allows the development of very general probabilistic generative models of psychological processes, and facilitates fully Bayesian inference via computational methods. We implemented the CDDM as a module within the JAGS graphical modeling language, and demonstrated the accuracy of our implementation. We then demonstrated, in an application to orientation judgments, how the CDDM can be used to develop an account of task behavior that captures assumptions about individual differences across stimulus and task conditions, and can provide parameter inferences and model comparisons that address research questions. We hope this application serves as an example of how the CDDM can be used to model and understand new research questions involving the time course of human decision making.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Statements and Declarations</head><p>On behalf of all authors, the corresponding author states that there is no conflict of interest.</p><p>• Funding: MV, AFCP, PKM, VM, and MDL were supported by National Science Foundation grant #2024856. AFCP and JV were supported by National Science Foundation grants #1230118, #1658303, #1850849, and #2051186.</p><p>• Competing interests: None</p><p>• Ethics approval: This study involves the use of previously published data from <ref type="bibr" target="#b5">Kvam (2019)</ref>.</p><p>• Consent to participate: Not applicable</p><p>• Consent for publication: Not applicable</p><p>• Availability of data and materials: The data set from <ref type="bibr" target="#b5">Kvam (2019)</ref> is available on the Open Science Framework at https://osf.io/px274/.</p><p>• Code availability: The jags-cddm module is available via https://github.com/joachimvandekerckhove/jags -cddm. Code for the application is available at https:// github.com/ManuelVU/application-jags-cddm.</p><p>• Authors' contributions: AFCP and JV developed the JAGS module. MV and MDL led the development of the graphical modeling application. All authors contributed the interpretation of results and to writing the paper. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2 .Fig. 3 .</head><label>23</label><figDesc>In the CDDM, the evidence accumulation process is a two-dimensional random walk from the origin of a circle to its circumference. The boundary radius η determines the amount of evidence required before committing to an answer. The drift vector µ = (µx, µy) specifies the mean step size on the x and y coordinates. The drift vector can also be expressed in polar coordinates, with the drift angle θ and drift length δ indicating the average direction and speed of the random walk. The non-decision time parameter τ is not depicted. An illustration of the distribution of decision and response times predicted by the CDDM. The left panel shows different random walks observed over 100 trials, with the shaded points along the circumference indicating the decisions registered every time. All random walks present a decision process with the same boundary radius, non-decision time, and drift vector parameters. The top right panel shows the observed distribution of decisions in radians. The bottom right panel shows the positively-skewed observed distribution of response times.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 5 .</head><label>5</label><figDesc>Results of the parameter recovery study conducted using our polar coordinate implementation of the CDDM. Every panel shows the distributions of posterior means obtained across data sets generated using each parameter value. All panels present the results obtained across three simulation studies that considered a sample size of n = 80, n = 200 and n = 500, respectively. The black dashed lines indicate the true values. Note that the drift angle parameter becomes undefined as the drift length approaches 0, so the lower right panel excludes all results from the δ = 0.01 condition.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 7 .</head><label>7</label><figDesc>Graphical model for the reanalysis of cued orientation judgment from<ref type="bibr" target="#b5">Kvam (2019)</ref>.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 8 .</head><label>8</label><figDesc>Posterior distributions of the parameters of interest, with parameter values on the y-axis and participants on the x-axis. Panel A shows the boundary radius parameter η for the accuracy (blue) and speed (purple) conditions. Panel B shows the drift length parameter δ for each difficulty condition, 15 (blue) 30 (green), and 45 (orange) degrees. Panel C shows the standard deviation of the drift angle 1/ √ τ θ for each difficulty condition. Panel D shows the mixing probability φ for the 20 degrees (blue), 50 (green), and 70 (orange) cue deflection conditions. Filled histograms indicate negative (negative) deflection trials.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 9 .</head><label>9</label><figDesc>Categorical-choice extensions of the CDDM. The left panel considers the color identification situation in</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. 10 .</head><label>10</label><figDesc>A categorical-choice extension of the CDDM to mathematical problems with answers that are naturally represented on a semi-circle.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 . Bayes factors and posterior probabilities of order constraints addressing the four research questions.</head><label>1</label><figDesc></figDesc><table><row><cell></cell><cell></cell><cell cols="2">Bayes Factors</cell><cell></cell><cell cols="2">Posterior Probabilities</cell></row><row><cell>Participant</cell><cell>η</cell><cell>ω±20</cell><cell>ω±50</cell><cell>ω±70</cell><cell>δ15 &gt; δ30 &gt; δ45</cell><cell>σ15 &lt; σ30 &lt; σ45</cell></row><row><cell>1</cell><cell>&gt; 1000</cell><cell>1.251</cell><cell>1.675</cell><cell>2.766</cell><cell>0.004</cell><cell>0.997</cell></row><row><cell>2</cell><cell>&gt; 1000</cell><cell>1.223</cell><cell>7.965</cell><cell>1.691</cell><cell>0.997</cell><cell>0.996</cell></row><row><cell>3</cell><cell>9</cell><cell>1.030</cell><cell>1.158</cell><cell>1.782</cell><cell>0.941</cell><cell>0.999</cell></row><row><cell>4</cell><cell>&gt; 1000</cell><cell>1.175</cell><cell>1.066</cell><cell>1.565</cell><cell>0.866</cell><cell>0.999</cell></row><row><cell>5</cell><cell>&gt; 1000</cell><cell>0.986</cell><cell>1.945</cell><cell>1.685</cell><cell>0.992</cell><cell>0.999</cell></row><row><cell>6</cell><cell>&gt; 1000</cell><cell>2.072</cell><cell>1.110</cell><cell>1.607</cell><cell>0.961</cell><cell>0.999</cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">of 10 Villarreal et al.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">For computational reproducibility, the GitHub repository also includes instructions for setting up a virtual machine-a curated computational environment-that includes an operating system with appropriate compilers and software versions that support the module.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4">Other assumptions are possible, such as drift angle being some weighted combination of cue and stimulus information. While these more complicated possibilities could certainly be implemented, we consider just the simplest case in which drift angle is determined by one or the other.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">The algebra of probable inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Cox</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1961" />
+			<publisher>Johns Hopkins University Press</publisher>
+			<pubPlace>Baltimore, MD</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Carlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">S</forename><surname>Stern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Dunson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vehtari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+		<title level="m">Bayesian data analysis</title>
+		<meeting><address><addrLine>USA, New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Taylor &amp; Francis</publisher>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>3rd ed.</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">The effects of goals and evironments on human performance in optimal stopping problems. Decision</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lee</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="339" to="361" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">A cognitive modeling analysis of risk in sequential choice tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Stokes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Judgment and Decision Making</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="823" to="850" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Probability theory: The logic of science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">T</forename><surname>Jaynes</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003" />
+			<publisher>Cambridge University Press</publisher>
+			<pubPlace>Cambridge, UK</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Modeling accuracy, response time, and bias in continuous orientation judgements</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">D</forename><surname>Kvam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: Human Perception and Performance</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="301" to="318" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">A unified theory of discrete and continuous responding</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">D</forename><surname>Kvam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/dkybt</idno>
+		<ptr target="doi:10.31234/osf.io/dkybt" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">How cognitive modeling can benefit from hierarchical Bayesian models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page" from="1" to="7" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Bayesian methods in cognitive modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Psychology and Cognitive Neuroscience</title>
+		<editor>J. Wixted &amp; E.-J. Wagenmakers</editor>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="37" to="84" />
+			<date type="published" when="2018" />
+			<publisher>John Wiley &amp; Sons</publisher>
+		</imprint>
+	</monogr>
+	<note>Methodology. Fourth ed.</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Bayesian cognitive modeling: A practical course</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Learning-induced reorganization of number neurons and emergence of numerical representations in a biologically inspired neural network</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">K</forename><surname>Mistry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Strock</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Menon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">3843</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">A joint process model of consensus and longitudinal dynamics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Oravecz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">98</biblScope>
+			<biblScope unit="page">102386</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Toward a method of selecting among computational models of cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">J</forename><surname>Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page" from="472" to="491" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Plummer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 3rd international workshop on distributed statistical computing</title>
+		<editor>K. Hornik, F. Leisch, &amp; A. Zeileis</editor>
+		<meeting>the 3rd international workshop on distributed statistical computing<address><addrLine>Vienna, Austria</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Ez-cdm for modeling continuous decisions by everyone! fast, simple, robust, and accurate estimation of circular diffusion model parameters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Qarehdaghi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Rad</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note>Via psyarxiv.com/rzqhg</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295x.85.2.59</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page" from="59" to="108" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">The diffusion decision model: Theory and data for two-choice decision tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/neco.2008.12-06-</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="873" to="922" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Jags exgauss module</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Selker</surname></persName>
+		</author>
+		<ptr target="https://github.com/raviselker/jags-exgauss.GitHub" />
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Jags module template</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Selker</surname></persName>
+		</author>
+		<ptr target="https://github.com/raviselker/jags-moduleTemplate.GitHub" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Jags rescorlawagner module</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Selker</surname></persName>
+		</author>
+		<ptr target="https://github.com/raviselker/jags-rescorlaWagner.GitHub" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Diffusion theory of decision making in continuous report</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Smith</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/rev0000023</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">123</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">425</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Speeded multielement decision-making as diffusion in a hypersphere: Theory and application to double-target detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Corbett</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-018-1491-0</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="127" to="162" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">A tutorial on joint modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-03688-1_2</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Joint models of neural and behavioral data</title>
+		<meeting><address><addrLine>Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="13" to="37" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">A cognitive latent variable model for the simultaneous analysis of behavioral and personality data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="page" from="58" to="71" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Jags amoroso module</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<ptr target="https://github.com/yeagle/jags-amoroso.GitHub" />
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Jags vonmises module</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<ptr target="https://github.com/yeagle/jags-vonmises.GitHub" />
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Jags wiener module</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<ptr target="https://github.com/yeagle/jags-wiener.GitHub" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Extending JAGS: A tutorial on adding custom distributions to JAGS (with a diffusion model example)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="15" to="28" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">An encompassing prior generalization of the Savage-Dickey density ratio test</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Wetzels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P P P</forename><surname>Grasman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Statistics and Data Analysis</title>
+		<imprint>
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="page" from="2094" to="2102" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,1534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Human-like Task Adaptation in Artificial Agents with &apos;What&apos; and &apos;Where&apos; Representations</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arthur</forename><surname>Juliani</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Margaret Sereno Psychology Department</orgName>
+								<orgName type="institution" key="instit1">Microsoft Research New York</orgName>
+								<orgName type="institution" key="instit2">University of Oregon</orgName>
+								<address>
+									<region>NY</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Human-like Task Adaptation in Artificial Agents with &apos;What&apos; and &apos;Where&apos; Representations</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:18+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Humans are able to skillfully navigate their environments even when aspects of the environment unexpectedly change over time. Using a realistic virtual environment, we study the ability of both human participants and artificial agents to adapt to changes in a navigation task over time. We find that humans demonstrate a hybrid decisionmaking strategy, whereby they are able to better adapt to changes in superficial statistics of the environment or to goal location than they are to environment structure. To model this behavior, we compared a set of artificial agents utilizing state-space information from a dual-stream world model containing distinct learned &apos;what&apos; and &apos;where&apos; representations. We find that agents utilizing a &apos;what&apos; representation are able to most quickly learn the task, while agents utilizing a &apos;where&apos; representation as the basis of their learned policy are most consistent with the human behavior when task changes take place. This highlights the role that representation learning plays in downstream behavior, even when the underlying behavioral algorithm remains fixed.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Visually guided navigation in complex environments has been the basis of much psychological and neuroscientific research in the past hundred years <ref type="bibr" target="#b54">(Tolman, 1948)</ref>. Some theorists go so far as to consider it a key to understanding human and mammalian intelligence more broadly <ref type="bibr" target="#b40">(Safron, Ç atal, &amp; Verbelen, 2022)</ref>. As a result of this sustained interest, there is a wealth of research exploring the specific types of navigational strategies that humans and other mammals employ <ref type="bibr" target="#b8">(Epstein, Patai, Julian, &amp; Spiers, 2017)</ref>. One popular approach to studying human behavior is to attempt to characterize the computational algorithm by which that behavior may be produced. Studies along this line of inquiry have largely grouped navigation strategies into the categories of model-free, in which statistics regarding state-action-reward contingencies are accumulated over time and used to compute a behavioral policy, or model-based, in which an explicit model of the environment and task dynamics is learned and used to compute a behavioral policy <ref type="bibr" target="#b3">(Daw, Niv, &amp; Dayan, 2005;</ref><ref type="bibr" target="#b11">Gläscher, Daw, Dayan, &amp; O'Doherty, 2010;</ref><ref type="bibr" target="#b2">Daw, Gershman, Seymour, Dayan, &amp; Dolan, 2011;</ref><ref type="bibr" target="#b58">Wunderlich, Smittenaar, &amp; Dolan, 2012)</ref>.</p><p>Early evidence suggested that humans deploy model-free behavioral strategies in certain contexts and model-based strategies in others <ref type="bibr" target="#b3">(Daw et al., 2005)</ref>. However, recent evidence suggests that a more nuanced hybrid behavioral strategy may be best able to characterize human behavior across a range of decision-making and navigational contexts. One such hybrid strategy, which has received particular attention, is the use of a successor representation <ref type="bibr" target="#b4">(Dayan, 1993)</ref>. In this learning algorithm, the statistics regarding the reward contingencies are learned separately from the contingencies regarding future state occupancy.</p><p>This typically results in a behavioral profile in which changes in reward contingencies can be learned more quickly than changes in environmental structure. There is increasing evidence to suggest that humans may utilize a successor-like representation when performing navigation tasks <ref type="bibr" target="#b29">(Momennejad et al., 2017;</ref><ref type="bibr" target="#b10">Gershman, 2018;</ref><ref type="bibr" target="#b27">Momennejad, 2020)</ref>.</p><p>In this work, we examine the behavior of human participants in a virtual navigation task that requires task adaptation. We analyze the behavioral signature of the participants in the task and compare it with the expectations of the model-free, model-based, and hybrid decision-making algorithms. We find that humans are able to adapt to changes in environment content and goal location in a rapid fashion, but adapt less robustly to changes in environment structure, suggestive of a hybrid decision-making strategy. Similar results have been shown in relatively artificial contexts such as the two-step task <ref type="bibr" target="#b29">(Momennejad et al., 2017)</ref>, and in simplified euclidean virtual environments <ref type="bibr" target="#b5">(de Cothi, 2020)</ref>. Here, we present what we believe to be the first work demonstrating a hybrid decision-making strategy in complex 3D environments involving surface, goal, and structural changes in the environment during learning.</p><p>The experimental paradigm used here builds on previous work exploring human navigational performance in a procedurally generated visually realistic virtual environment using fractal geometry <ref type="bibr" target="#b18">(Juliani, Bies, Boydston, Taylor, &amp; Sereno, 2016)</ref>. Such virtual environments allow programmatically varying the environmental appearance, structure, and goal location. Furthermore, fractal geometries are found in various aspects of natural environments <ref type="bibr" target="#b24">(Mandelbrot, 1983;</ref><ref type="bibr" target="#b59">Xu, Moore, &amp; Gallant, 1993)</ref>, such as coastlines and mountain ranges, and thus enable more ecologically valid simulation of navigation in the natural world.</p><p>As a first step, we replicate the main findings of <ref type="bibr" target="#b18">(Juliani et al., 2016)</ref>, demonstrating that humans are better able to navigate virtual environments with a value of the fractal dimension in the low to mid range <ref type="bibr" target="#b18">(Juliani et al., 2016)</ref>, a measure of environmental complexity. This finding provides further evidence for the theory of fractal fluency, which proposes that various aspects of the visual, emotional, and cognitive systems of humans are best adapted to this range of complexities <ref type="bibr" target="#b45">(Spehar et al., 2015;</ref><ref type="bibr" target="#b49">Taylor &amp; Spehar, 2016;</ref><ref type="bibr" target="#b0">Bies, Blanc-Goldhammer, Boydston, Taylor, &amp; Sereno, 2016;</ref><ref type="bibr" target="#b48">Taylor et al., 2018;</ref><ref type="bibr" target="#b39">Robles, Liaw, Taylor, Baldwin, &amp; Sereno, 2020)</ref>. Next, we examine the effect changes to the environment or task have on the learning process in order to find evidence for a model-based, model-free, or hybrid decision-making strategy. Much previous work has been dedicated to determining when and how humans utilize different types of decision-making strategies. Some recent work has suggested that humans navigate using a hybrid strategy <ref type="bibr" target="#b3">(Daw et al., 2005;</ref><ref type="bibr" target="#b28">Momennejad &amp; Haynes, 2012)</ref>, which manifests as selective disruption to various kinds of environmental change. This hybrid strategy has been modeled in the past using a successor representation learning algorithm <ref type="bibr" target="#b29">(Momennejad et al., 2017;</ref><ref type="bibr" target="#b5">de Cothi, 2020)</ref>, with the key behavioral signature being a differential ability to recover from changes to goal location over changes to environmental structure. We find that human behavior in our task best matches that of a hybrid strategy, with humans showing no disruption for visual changes, apparent disruptions for changes to the environment structure and goal location, but importantly a consistent recovery from changes in goal location and a less consistent recovery from changes in structure.</p><p>We use deep reinforcement learning to train a set of artificial agents to perform a modified version of this task <ref type="bibr" target="#b41">(Schulman, Wolski, Dhariwal, Radford, &amp; Klimov, 2017;</ref><ref type="bibr" target="#b47">Sutton &amp; Barto, 2018;</ref><ref type="bibr">Richards et al., 2019)</ref>. We examine the effects of varying the state space used as input to the learning agent to compare the effects of three different state spaces on the learned behavior. The first state space is based on the precomputed location and orientation of the agent. The second and third are based on learned representations from a Dual-Stream World Model (DSWM) <ref type="bibr" target="#b19">(Juliani &amp; Sereno, 2022)</ref>. Inspired by models of the visual system <ref type="bibr" target="#b56">(Ungerleider &amp; Mishkin, 1982;</ref><ref type="bibr" target="#b55">Ungerleider &amp; Haxby, 1994)</ref>, as well as the hippocampus <ref type="bibr" target="#b15">(Hassabis &amp; Maguire, 2009)</ref>, a DSWM is a modified version of a World Model <ref type="bibr" target="#b13">(Ha &amp; Schmidhuber, 2018</ref>) that utilizes separate 'what' and 'where' encoding pathways to learn two latent representations in the service of sensory prediction. The model has previously been validated in the context of one-shot prediction and linear reinforcement learning <ref type="bibr" target="#b19">(Juliani &amp; Sereno, 2022)</ref>. Here, we demonstrate the usefulness of a DSWM for modeling human behavior in more complex and ecologically valid experimental tasks.</p><p>We find that all artificial agents were able to perform the task well, with agents utilizing the what latent state performing best in pre-change conditions. In contrast, we find that agents trained using the where latent state showed task adaptation behavior most consistent with that of human participants. Rather than focusing exclusively on the learning algorithm as the source of behavioral variation, our results demonstrate that the representations used within the larger machinery of the decision-making process can enable meaningful changes in behavior even when the algorithm is fixed. Our findings furthermore demonstrate the usefulness of separate streams of visual processing in the context of navigation and task adaptation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Behavioral Study Methods</head><p>We recruited 66 subjects from the University of Oregon Human Subjects Pool. This number was chosen to ensure statistical power based on the power of the results reported in <ref type="bibr" target="#b18">(Juliani et al., 2016)</ref>. Prior to participation, informed consent was obtained following a protocol approved by the Institutional Review Board of the University of Oregon and demographic information was collected. Participants were granted class credit for participating. Due to restrictions in place as a result of the COVID-19 pandemic, all experiments were conducted online, at the participants' convenience. Each participant was given an hour to complete the study and, in most cases, reported completing it in less time.</p><p>From the perspective of the participant, the study consisted of a website in which a 3D virtual environment was rendered from a first-person perspective. The environment was rendered using the Unity Engine and WebGL <ref type="bibr" target="#b17">(Juliani et al., 2018)</ref>. The environment consisted of a circular island surrounded by water with a diameter of 64 virtual meters.</p><p>Participants were instructed that they can control their virtual avatar by moving it forward or backward, or rotating the perspective of the avatar to the left or right. These controls were provided through keyboard buttons. Participants were instructed that their task was to follow prompts presented on the screen and to find a hidden goal location on the island.</p><p>We refer the reader to <ref type="bibr" target="#b18">(Juliani et al., 2016)</ref> for additional details concerning the generation of the island topography and avatar movement within the environment. When a participant navigated their avatar within a 10-meter radius of the hidden goal, a sphere begins to be rendered, and its screen size increases the closer the avatar is to the goal location. The trial ends successfully when the avatar makes contact with this sphere.</p><p>Alternatively, the trial ends unsuccessfully if the participant goes 30 seconds without contacting the sphere. In either case, at the start of a new trial, the location and orientation of the avatar is randomized, and the participant is instructed to find the sphere again.</p><p>The experiment consists of six blocks of 20 trials each. In each block, the first ten trials keep all environment properties fixed. After the 10th trial, depending on the condition of the block, one of five changes can take place. At this point, participants are notified by an on-screen message that a change may have taken place in the configuration of the task.</p><p>The five possible changes consist of the following: the superficial appearance of the island and water changes (color change), the goal location changes, the terrain changes by adjusting the fractal ground threshold up, or the terrain changes by adjusting the fractal ground threshold down, or no change takes place. In order to acquaint the participants with the fact that the environment changes, the first block is always a color change condition, and the next five consist of a random permutation of all five conditions, such that each participant experiences all conditions at least once during the experiment, and the colorchange condition twice. See <ref type="figure" target="#fig_1">Figure 2</ref> for an example of each of these change conditions. In addition to a different change condition, each block of trials uses a randomly selected seed and fractal dimension (D) to generate the terrain of the virtual island. We used a set of 30 random seeds and three different values of D, 1.2, 1.4, and 1.6. These were chosen based on previous research which demonstrated that humans were exceptionally poor at navigating environments consisting of D &gt; 1.6 <ref type="bibr" target="#b18">(Juliani et al., 2016)</ref>, and as such we would expect that they would be equally poor at this task. We also excluded environments with D = 1, as these would consist of a flat ground and would not be amenable to the manipulations required to impose the terrain change conditions. See <ref type="figure" target="#fig_2">Figure 3</ref> for examples of the effect of varying the fractal dimension in three different random seeds. Lastly, in addition to the fractal dimension and seed, the terrain is generated using a specific threshold value to determine the point at which there is flat ground as opposed to unnavigable terrain. This point is either 0.4 (low) or 0.6 (high), corresponding to more terrain and more ground, respectively. The terrain height for a given block of trials is selected so that in the terrain − less condition blocks, it is 0.4 in the first half of the trials and 0.6 in the second half (that is, changing from more to less terrain). Similarly, in the terrain−more condition blocks, it is 0.6 in the first half and 0.4 in the second half (i.e. changing from less terrain to more terrain). In other condition blocks, the height is randomly selected at the beginning of the block and held constant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Simulation Study Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Dual Stream World Model</head><p>The development of the Dual-Stream World Model (DSWM) was inspired by the existence of separate 'what' and 'where' streams in the visual system <ref type="bibr" target="#b56">(Ungerleider &amp; Mishkin, 1982;</ref><ref type="bibr" target="#b55">Ungerleider &amp; Haxby, 1994)</ref>, along with functionally separate 'content' and 'context' processing centers in the hippocampal formation <ref type="bibr" target="#b21">(Knierim, Neunuebel, &amp; Deshmukh, 2014)</ref>.</p><p>As such, the primary difference between a DSWM and a traditional world model such as that of <ref type="bibr" target="#b13">(Ha &amp; Schmidhuber, 2018)</ref> is that two latent representations instead of one are learned. More complex models of this 'context' and 'content' dissociation exist, such as the Tolman-Eichenbaum machine <ref type="bibr" target="#b57">(Whittington et al., 2020</ref>), but we utilize a DSWM for its simpler architecture, and more critically for its ability to learn representations based on high-dimensional visual inputs. Here, we provide an overview of the DSWM model. We refer the reader to <ref type="bibr" target="#b19">(Juliani &amp; Sereno, 2022)</ref> for additional algorithmic and implementation details.</p><p>The DSWM consists of four main components. A content (what) auto-encoder, a context (where) encoder, a forward model (a recurrent neural network, or RNN), and a differentiable neural dictionary (DND). Specifically, we use a variational encoder with a gumbelsoftmax distribution for both context and content components <ref type="bibr" target="#b20">(Kingma &amp; Welling, 2013;</ref><ref type="bibr" target="#b16">Jang, Gu, &amp; Poole, 2016)</ref>. We implement the forward model using a gated recurrent unit (GRU) <ref type="bibr" target="#b1">(Chung, Gulcehre, Cho, &amp; Bengio, 2014)</ref>, and use as input both the latent context state s and the current action a. The DND is similar to that introduced by <ref type="bibr" target="#b36">(Pritzel et al., 2017</ref>) and uses the latent context state s as keys and the latent content state z as values. The lookup process (DND Memory *) uses the cosine similarity between a query key (s * ) and This process can be seen as roughly mapping to the lateral entorhinal cortex (content encoding) <ref type="bibr" target="#b7">(Deshmukh &amp; Knierim, 2011)</ref>, the medial entorhinal cortex (context encoding) <ref type="bibr" target="#b14">(Hafting, Fyhn, Molden, Moser, &amp; Moser, 2005)</ref>, and the hippocampus (differentiable look-up and forward model) <ref type="bibr" target="#b15">(Hassabis &amp; Maguire, 2009)</ref>. The model can be seen as an instantiation of memory indexing theory, whereby the context variable is used to index the content variable, which itself is an abstracted representation of a high-dimensional observation, which can be thought of as a cortical state <ref type="bibr" target="#b52">(Teyler &amp; DiScenna, 1986</ref>).</p><p>The following series of steps takes place in a given time-step. First, a new observation is observed from the environment, and encoded as the latent content variable z t . In parallel, the observation o t and the previous action a t−1 are used to encode the latent context s t variable. The inferred context variable s t and the content variable z t are then stored together as a pair of key values in the DND M t . The forward model is then unrolled using both the next action a t the agent takes, and the current inferred context variable s t to produce a new context variable s t+1 that is used to query the memory to read a new content variable z t+1 , which is decoded into a predicted observation o t+1 . This process is described in <ref type="figure" target="#fig_3">Figure 4</ref>.</p><p>The DSWM is trained to minimize four objectives. Observation prediction: mean squared error between actual and predicted observations</p><formula xml:id="formula_0">L Obs = 1 n ∑ N n=1 |o q t − o p t | 2 .</formula><p>Spatial context prediction: mean square error between the true and predicted positions</p><formula xml:id="formula_1">L Pos = 1 n ∑ N n=1 |pos q t − pos p t | 2 .</formula><p>Sequence coherence: Kullback-Leibler (KL) divergence between inferred and generated where variables</p><formula xml:id="formula_2">L S = D KL (p(s t |o, s t−1 )||q(s t+1 |s t , a t ))</formula><p>. Latent variable regularization: the negative entropy of the context-and content-variable distributions, which acts as a regularization term.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Modeling Methods</head><p>Observations from the environment are rendered as 64×64×3 color images, and the model uses a convolutional neural network encoder to infer the what and where latent states. The what (z) and where (s) state spaces from this model are then used as input into separate reinforcement learning models. In addition, we define a third state space using the groundtruth spatial information concerning the agent's position and orientation within the island and refer to this as the 'spatial (g)' state space.</p><p>Even by discretizing the fractal island environment into 64 × 64 square meters and discretizing the orientation into eight directions, there are a total of 32,768 possible states.</p><p>To address this large state space, we utilize deep reinforcement learning, which has been shown to be successful in learning policies even in environments with state spaces many orders of magnitude larger than those studied here <ref type="bibr">(Mnih et al., 2015;</ref><ref type="bibr">Silver et al., 2016)</ref>.</p><p>Specifically, we use a two-layer neural network for the policy and value function and train this model using the popular Proximal Policy Optimization (PPO) algorithm <ref type="bibr" target="#b41">(Schulman et al., 2017)</ref>. The size of the intermediate layer of this network is set to 128 units. We use the Unity ML-Agents toolkit to enable an interface between the virtual environment and the learning agents <ref type="bibr" target="#b17">(Juliani et al., 2018)</ref>. While not directly biologically inspired, PPO is in the class of actor-critic methods, which remains a popular account for understanding learning-guided behavior in the hippocampal-striatal axis <ref type="bibr" target="#b32">(O'Doherty et al., 2004;</ref><ref type="bibr" target="#b51">Tessereau, O'Dea, Coombes, &amp; Bast, 2020)</ref>.</p><p>In order to tailor the human behavioral task to artificial agents, we implement a series of adjustments to the fractal island environment and task setup. The observations presented to the agent consist of 64 × 64 × 3 color images representing a 90-degree field of view.</p><p>The agent's action space is simplified compared to that utilized by the human participants.</p><p>The agent space consists of six possible actions: move forward, rotate left, rotate right, move forward and rotate left, move forward and rotate right, and move backward. This simplification is designed to make the learning problem easier and to avoid the issue of representing the action space as a set of joint probability distributions. We also increase the effect of each of these actions relative to the result of the human participants pressing the keyboard keys, such that each agent action is equivalent to two consecutive button presses by the human. This is similar to "action repeat" used frequently in agent simulations of ATARI games <ref type="bibr">(Mnih et al., 2015)</ref>.</p><p>We further modify the task itself in order to accommodate the limitations of artificial agents compared to humans. While retaining the hidden-goal aspect of the task, we remove the feature of the task by which the goal would become visible when the avatar was within a given proximity. Instead, we simply provide a +1 reward when the agent reaches within 4 meters of the goal location, and end the episode. Because the model is initially trained in an environment without any goals, the introduction of a visual goal during policy-learning time would result in disturbed latent representations due to out-of-distribution goal object observations.</p><p>We evaluate performance in an environment derived from a single initialization seed (seed 0 in this case) and a fractal dimension of D = 1.2. We retain the policy of training each agent using five random initialization seeds in order to collect information about the distribution of learned behavior. Due to the agent being initialized with a random behavioral policy, we also provide the agent with the equivalent of double the amount of time each human received per trial, corresponding to 300 agent time steps. Due to the tendency for artificial agents to learn at orders of magnitude slower than humans (Lake, Ullman, Tenen- All agents were trained using a learning rate of α = 0.005 and an entropy bonus of β = 0.02, which prevents premature convergence to sub-optimal policies during the learning process, and a discount factor of γ = 0.99 to encourage long-term credit assignment. Each agent was trained for 500 episodes of a maximum of 300 time steps each.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Behavioral Study Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Environment Complexity Results</head><p>The complexity of an environment has a meaningful impact on how humans navigate that space. This effect has been demonstrated in Euclidean environments <ref type="bibr" target="#b35">(O'Neill, 1992;</ref><ref type="bibr" target="#b44">Slone,</ref> Specifically, in the case of fractal topographies, evidence suggests that humans demonstrate relative optimal performance in environments with low-to-mid fractal dimension (D = 1.2 to D = 1.4), or complexity. One interpretation of these results is the fractal fluency theory, which predicts that the human visual system shows improved information processing for patterns within this range <ref type="bibr" target="#b49">(Taylor &amp; Spehar, 2016;</ref><ref type="bibr" target="#b48">Taylor et al., 2018)</ref>. In addition to navigation performance, this preference has been demonstrated in aesthetic judgements <ref type="bibr" target="#b50">(Taylor, Spehar, Hagerhall, &amp; Van Donkelaar, 2011;</ref><ref type="bibr" target="#b0">Bies et al., 2016;</ref><ref type="bibr" target="#b39">Robles et al., 2020)</ref> and discrimination and sensitivity <ref type="bibr" target="#b45">(Spehar et al., 2015)</ref>, suggesting a more general principle.</p><p>As part of the larger study exploring human navigational strategies during environmental change, we first attempt to replicate the finding that humans are able to best navigate environments with a low-to-mid complexity. In the original work from Juliani et al. <ref type="formula">2016</ref>, two navigation tasks were used, an object finding task (object is visible) and a map reading task (object is invisible or "buried" but its location is indicated on a map). In the first case humans were able to most quickly find the goal object in the low-to-mid complexity environments, and in the second case they were able to make the most accurate judgments of goal location within the same range.</p><p>Here we employ a task inspired by the canonical Morris Water Maze <ref type="bibr" target="#b30">(Morris, Garrud, Rawlins, &amp; O'Keefe, 1982;</ref><ref type="bibr" target="#b53">Thornberry, Cimadevilla, &amp; Commins, 2021)</ref>. In our task, the participant must find a hidden goal location within the environment. Once they do so, they then are moved to a random location within the environment and must return to the goal location. The speed at which they return in subsequent trials determines navigational performance. Participants complete a number of these sets of trials in environments with different fractal topographies consisting of varying fractal dimension. We find that participants are able to learn and remember the goal location best in environments with low-to-mid fractal complexity, thus providing additional evidence for the fractal fluency theory.</p><p>In total, sixty-six participants completed the study. We removed five participants' results from the analyzed data due to insufficient successful completion rates of the task, resulting in a total of sixty-one participants' data being analyzed to compile results. We defined insufficient task completion as the failure to locate the goal in 25% or more trials.</p><p>We believe that such participants were likely distracted or failed to properly attend to the task in the absence of a controlled experimental environment, as the median failure rate was 6%. Furthermore, 90% of the participants had a failure rate of 20% or less, suggesting that the performance of the excluded subset represented extreme outliers.</p><p>Among the analyzed participants, we first turn to the question of their ability to find and remember a goal location in the environment as a function of environmental complexity. A one-way repeated-measures ANOVA [Complexity (D values of 1.2, 1.4, and 1.6)]</p><p>was performed using the Python package SciPy on time-to-goal data (where lower scores reflect better performance). We find a significant main effect of complexity (F(2, 6097) = 55.263, p &lt; 0.001, η 2 = 0.018) (see <ref type="figure" target="#fig_6">Figure 5A</ref>). Performance is best in D = 1. To better understand the impact of the fractal dimension on the learning process over time, we further compare performance by fractal dimension at various stages of a given block of trials. We divide each block of 20 trials into four equally distributed "stages" <ref type="bibr">(1-5, 6-10, 11-15, 16-20)</ref>. This allows us to examine how performance changes over time in the environment by comparing performance between stages of a given block (see <ref type="figure" target="#fig_6">Figure 5B</ref>).</p><p>Aggregating the data within each of the four stages, we find that the main effect of relative performance with respect to fractal dimension holds true. However, we also find that the differences between the two lower fractal dimensions (D = 1.2 and D = 1.4) are not Next, we examine the impact of the threshold used to determine the ground level of the topography on task performance. As mentioned above, this level was set at either 0.4 (low) or 0.6 (high), depending on the condition of the block and a randomization process that ensured equal exposure to both levels for participants. A value of 0.4 corresponds to more terrain in the environment and 0.6 corresponds to less terrain. We find that in all trials, participants are significantly faster at completing a given trial in the 0.6 threshold level trials (M = 13.438, SD = 6.805) compared to the 0.4 level trials (M = 14.198, SD = 6.836) (t(6098) = −4.352, p &lt; 0.001, 95%CI[−1.102, −0.417]) (see <ref type="figure" target="#fig_6">Figure 5C</ref>). This result suggests that the additional open space afforded by the higher threshold allowed participants to better localize themselves and the goal location and navigate between the two.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task Adaptation Results</head><p>A common approach to understanding human decision making has been to characterize the underlying 'algorithm' which is utilized when making decisions or navigating an environment. A popular dichotomy is between model-free or model-based strategy <ref type="bibr" target="#b3">(Daw et al., 2005)</ref>. A model-free strategy is one which conditions the current action on only the current state, whereas a model-based strategy would take additional information into account, typically information present in predicted future states, or explicit memory of past states <ref type="bibr" target="#b31">(Niv, 2009;</ref><ref type="bibr" target="#b47">Sutton &amp; Barto, 2018)</ref>.</p><p>In recent years a third strategy has been proposed, a so-called hybrid decision making strategy, where key information about future states is cached and reused, but a model of the entire environment need not be learned <ref type="bibr" target="#b28">(Momennejad &amp; Haynes, 2012)</ref>. A popular instantiation of this hybrid approach has been the successor representation, and its applicability has been demonstrated both in a simple two-step decision-making task <ref type="bibr" target="#b29">(Momennejad et al., 2017)</ref>, as well as in a more complex navigation task (de Cothi, 2020).</p><p>The mark of a hybrid decision-making strategy is the dissociation between adaptation to changes in the goal state versus changes to the structure of the environment. In the successor representation algorithm, for example, the reward function and successor representation are learned separately, and as a result an agent utilizing such a representation is able to adapt to changes to goal and structure separately. In comparison, a model-free agent would learn a joint value or policy function from which it is not possible to dissociate the separate components of the task. On the other end of the spectrum, a model-based learning agent would dissociate reward and structure, and would be able to adapt to both very rapidly (at the cost of additional computational complexity), whereas a successor-based agent would adapt more quickly to changes in goal than to changes in structure. This is because the underlying successor representation is a statistical estimate, rather than a complete model as in the model-based case.</p><p>Here we utilize the experimental design consisting of blocks of trials with different change conditions to determine which kind of decision-making strategy best matches human behavior in a visually rich virtual navigational task. We find that humans are able to nearly instantaneously adapt to changes in superficial visual content but adapt to both changes in goal location and environment structure over a longer time course. Critically, we find that adaptation to goal location takes place faster and with better final performance than adaptation to changes in environmental structure, suggesting that a hybrid strategy, such as the utilization of a successor-like representation, may be guiding human behavior in this task.</p><p>We first compare the overall learning trend to validate that participants are able to find the goal location, remember it, and deploy a successful navigation strategy to return to it from multiple different locations. We find that participants show signs of learning throughout the course of each block of trials (see <ref type="figure" target="#fig_7">Figure 6A</ref>).</p><p>When dividing a block into four stages (trials 1-5, 6-10, 11-15, and 16-20), an ANOVA test reveals a significant difference between the four blocks (F(3, 6096) = 42.233, p &lt; 0.001, η 2 = 0.02). Multiple comparisons corrected t-tests reveal a significant decrease (t(3048) = 9.239, p &lt; 0.001,CI95% = [1.84, 2.83]) in time-to-goal between the first (M = 15.34, SD = 7.52) and second stages (M = 13.0, SD = 6.36). Furthermore, we find that the change in the environment halfway through the block disrupts performance, with the third stage (M = 14.01, SD = 6.96) performance being significantly worse than the sec- We next turn our attention to the individual block change conditions (see <ref type="figure" target="#fig_7">Figure 6C</ref>).</p><p>Using a one-way ANOVA test, we find that participants' performance was significantly impacted by the condition of the trial block (F(4, 6095) = 5.29, p &lt; 0.001, η 2 = 0.003).</p><p>Between these conditions, a post hoc Tukey test reveals only four significant differences.</p><p>The first is between the no-change and goal-change conditions (MD = 0.784, p = 0.041).</p><p>The second is between the no-change and terrain-less conditions (MD = 0.866, p = 0.015).</p><p>The third is between no-change and terrain-more (MD = 1.064, p = 0.001), and fourth between visual-change and terrain-more (MD = 0.818, p = 0.023) conditions.</p><p>Due to the lack of difference between the visual-change and no-change conditions, we see that at the very least humans are not using an entirely reactive model-free policy, since they are on the whole able to ignore the superficial visual changes in the environment.</p><p>Second, we find that the goal-change and terrain-change conditions do indeed disrupt performance compared to the no-change condition. However, this analysis alone is not enough to provide evidence for either a hybrid or model-based strategy. To determine that, we next turn to a more fine-grained analysis of the impact of condition on each stage of a block of trials. Participants demonstrate significant learning between stages 1 and 2 (t(608) = 3.617, p &lt; 0.001,CI95% = [0.95, 3.21]), their performance is not disrupted between stages 2 and 3</p><p>(t(608) = 0.497, p = 1.0,CI95% = [−0.75, 1.27]), and performance in stage 4 is not different from performance in stage 2 (t(608) = 0.661, p = 1.0,CI95% = [−0.65, 1.3]). This trend is completely expected given that there is no change in task or environment throughout the block.</p><p>We find a similar significant performance trend in the visual-change condition (One- In the goal change condition, there is also a significant performance trend (one-way ANOVA: F(3, 1156) = 9.132, p &lt; 0.001, η 2 = 0.023). We find that there is learning of the task between stages 1 and 2 (t(578) However, this change in performance is completely recovered, suggesting a capacity to adapt to changes in reward contingencies with relative ease.</p><p>Turning to the terrain-less condition (one-way ANOVA: F(3, 1216) = 9.387, p &lt; 0.001, η 2 = 0.023), we find evidence of task learning between stages 1 and 2 (t(608) = 3.609, p &lt; 0.001,CI95% = [0.96, 3.26]), a non-significant disruption in performance between stages 2 and 3 (t(608) = −1.747, p = 0.243,CI95% = [−2.14, 0.12]), and a non-significant difference in performance between stages 2 and 4 (t(608) = 1.364, p = 0.519,CI95% = [−0.33, 1.83]). We can understand this lack of evidence for disruption by considering that participants' overall performance in trials with less terrain is better. Therefore, while there may have been some underlying adjustment on the part of participants to the condition change, the simpler nature of the task results in consistent performance levels between stages 2, 3, and 4.</p><p>Finally, we consider participant performance in the terrain-more condition (one-way ANOVA: F(3, 1196) = 18.185, p &lt; 0.001, η 2 = 0.044). Here, we find task learning between stages 1 and 2 (t(598) = 6.821, p &lt; 0.001,CI95% = [2.63, 4.75]), a disruption in performance between stages 2 and 3 (t(598) = −6.327, p &lt; 0.001,CI95% = [−4.4, −2.31]), and a failure to recover performance in stage 4 to the level achieved in stage 2 (t(598) = −4.535, p &lt; 0.001,CI95% = [−3.18, −1.26]). We can partially understand this lack of performance recovery in light of the fact that trials with more terrain were more difficult for participants in general.</p><p>We can compare these results to the expectations of the canonical decision-making algorithms. Given the lack of performance disruption in the visual change condition, it is unlikely that participants are using a completely model-free decision-making strategy. This leaves two possibilities, a hybrid or a model-based strategy. A hybrid strategy would predict learning differences between changes in the goal location and changes in the environment structure, with changes in the environment structure leading to delayed recovery. We find some evidence for this, with the terrain-more condition resulting in a degraded performance which continues beyond the initial change (stage 3) and persists through the end of the block (stage 4). Taken together, these results provide additional evidence for a hybrid decision-making strategy in which representations of goals and environment structure are at least partially dissociated. In the next section, we compare the performance of artificial agents that use different kinds of representations with those of humans.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Simulation Study Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Representation Learning Results</head><p>Before examining the behavior of the agents, it is worthwhile to analyze the learned representations what and where within the virtual fractal environment. <ref type="figure" target="#fig_11">Figure 7</ref> presents example activations for these two sets of latent states, gathered from an agent performing a uniform random walk around the environment for 100 episodes of 50 time steps each. We find that there is no local coherence in activation for units within the what latent space. In contrast, we find that there is high coherence for units in the where latent space. Of particular note is the resemblance of the activation pattern of the units in the representation to that of place cells found in the hippocampus <ref type="bibr" target="#b34">(O'Keefe, 1976)</ref>. The nature of these response profiles will be of relevance for interpreting the behavioral results presented below.</p><p>What <ref type="formula">z</ref>Where (s) </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>General Agent Performance Results</head><p>We first consider whether there are differences in the overall performance of agents that utilize each of the three different types of state space. A one-way ANOVA reveals a significant difference between the types of agent state space (F(2, 1497) = 11.14, p &lt; 0.001, η (MD = 9.727, p = 0.061). See <ref type="figure">Figure 8A</ref> for a comparison of the overall performance of the three types of agents.</p><p>Next, we consider the behavior of each agent type during the learning process. See <ref type="figure">Figure 8B</ref> for the performance of each agent type as a function of the block stage. We find that agents utilizing the spatial (g), what (z), and where (s) state space types all support the learning of the task, each showing a significant decrease in time to the goal between Stage agent is unable to do so. Of particular note is the fact that where (s) agents not only recover performance, but actually outperform stage 2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Agent Task Adaptation Behavior</head><p>In order to properly understand the ability of each agent type to adapt to various task and environment changes, we consider performance as a function of the change-condition. <ref type="figure">Figures</ref> 9A-C present the learning curves per condition for agents that use each state type.</p><p>We begin with an analysis of the spatial (g) agent type (see <ref type="figure" target="#fig_14">Figure 9A</ref>). These agents are not demonstrate performance recovery. Overall, we find that the behavior of the spatial (g) type agents is consistent with human behavior in the no-change, visual-change, and terrain-more conditions. It is dissimilar in the goal-change condition due to a failure to recover performance, and also dissimilar in the terrain-less condition due to the dramatic increase in performance between stages 2 and 3 in contrast to the non-significant decrease in performance in this condition displayed in the human participant behavioral data.</p><p>Next, we consider the what (z) agent type (see <ref type="figure" target="#fig_14">Figure 9B</ref>). These agents demonstrated significant task learning between stages 1 and 2 under all five conditions (no-change: find that the what (z) agent type is consistent with the participants data only in the nochange and visual-change conditions. In the goal-change condition, the agents were unable to recover performance by stage 4 whereas the participants were able to do so. In the terrain-less condition, the agent was significantly disrupted in performance where the human participants were not. Lastly, in the terrain-more condition the agents were not disrupted in their performance between stages 2 and 3 while the human participants were. We finally consider the adaptive behavior of the where (s) agent type (see <ref type="figure" target="#fig_14">Figure 9C</ref>).</p><formula xml:id="formula_3">t(48) = 5.</formula><p>We first find significant learning taking place in all conditions between stages 1 and 2 terrain-more condition, in which the agents were able to recover performance by stage 4, whereas the human participants were not. For a summary of the behavioral similarity between artificial agents and human participants, see <ref type="figure" target="#fig_14">Figure 9D</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>The goal of this work was to better understand the behavior of both humans and artificial agents when performing a visually guided navigation task in a complex environment. We found broadly that both humans and agents were able to learn to consistently navigate to a hidden goal location, and to do so by using a continuous stream of high-dimensional visual stimuli presented to them.</p><p>We showed that the structure of the environment has a significant impact on human performance, with lower fractal dimension (D = 1.2 -1.4) topographies enabling participants to reach the goal location faster and more consistently ( <ref type="figure" target="#fig_6">Figure 5A</ref>). This can be seen as a partial replication of the results of <ref type="bibr" target="#b18">Juliani et al. (2016)</ref>, who found a similar behavioral trend with respect to fractal dimension in significantly different types of navigation tasks from those used here, and optimal navigation performance at level D = 1.3. This result can also be interpreted within the context of a larger body of work suggesting that humans respond to various visual stimuli of different complexity with a general processing preference for stimuli consisting of a low-to mid-dimensional fractal dimension <ref type="bibr" target="#b45">(Spehar et al., 2015;</ref><ref type="bibr" target="#b0">Bies et al., 2016;</ref><ref type="bibr" target="#b49">Taylor &amp; Spehar, 2016;</ref><ref type="bibr" target="#b48">Taylor et al., 2018;</ref><ref type="bibr" target="#b39">Robles et al., 2020)</ref>.</p><p>Given the consistency of this result, it may be of interest to future work to utilize the fractal dimension as a means of modulating the difficulty of a given navigational task with a fair amount of assurance that the metric is a viable proxy for task difficulty.</p><p>A more fundamental research question led us to examine the effect that various changes in the environment or task had on human navigation performance during the learning process. This was done in order to find evidence for either a model-based, model-free, or hybrid decision-making strategy. Previous work has provided evidence that humans may navigate using a hybrid strategy <ref type="bibr" target="#b28">(Momennejad &amp; Haynes, 2012;</ref><ref type="bibr" target="#b29">Momennejad et al., 2017)</ref>, which manifests itself as a selective disruption to structural changes rather than goal-based changes in environmental and task contingencies. In our work, the participants showed no disruption for changes to the visual appearance of the environment, ruling out a purely reactive model-free decision-making strategy. There were marked disruptions for changes to the goal location and partial disruption to the structural changes. Importantly, participants demonstrated a consistent recovery from changes in target location, but a less consistent recovery from changes in structure, a behavioral profile that is more consistent with a hybrid account over a model-based account of the underlying decision-making strategy (see <ref type="figure" target="#fig_7">Figure 6B</ref>).</p><p>To better understand the algorithm that may drive human behavior in the task, we trained a set of artificial agents to perform a modified version of the navigation task using the PPO deep reinforcement learning algorithm <ref type="bibr" target="#b41">(Schulman et al., 2017)</ref>. This approach has led to insights elsewhere in systems neuroscience, and is increasingly being applied to the modeling of human behavior <ref type="bibr">(Richards et al., 2019)</ref>. We proposed three different states spaces to use as observation input to artificial agents. One was based on the pre-computed location and orientation of the agent (spatial (g)), one was based on a where (s) state space, and one was based on a what (z) state space. The latter two state spaces were generated from training a DSWM in the virtual environment <ref type="bibr" target="#b19">(Juliani &amp; Sereno, 2022)</ref>. We found that all agents were able to perform the task well, with agents trained using the what (z) latent state performing best in the absence of a task change, and agents trained using the where (s) latent state showing adaptation to task changes most consistent with those found in human participants (see <ref type="figure" target="#fig_14">Figure 9D</ref>).</p><p>Although not directly analogous to the traditional means of classifying model-free, model-based, and hybrid behavioral strategies, there is a connection which can be made between these state spaces and these behavioral strategies. In addition to the high-level algorithm, the representations computed as input to a neural network or within the neural network itself can have a significant impact on the behavior displayed by the agent <ref type="bibr" target="#b12">(Graves, Wayne, &amp; Danihelka, 2014;</ref><ref type="bibr" target="#b6">Dehghani, Gouws, Vinyals, Uszkoreit, &amp; Kaiser, 2018)</ref>. Here, we demonstrate that a fixed model-free reinforcement learning algorithm (PPO) can behave similarly to that of a hybrid algorithm (such as a successor representation <ref type="bibr">(Zhu et al., 2017)</ref>) if the appropriate representation is provided as input.</p><p>The inferred what (z) state space consists of an auto-encoded compressed representation of the visual observations. Because of this, it can be interpreted as providing the basis for a purely reactive policy mapping in the agent. In order to adapt to changes to goal location, a complex series of mappings from visual features of the observation input to the policy and value functions of the reinforcement learning agent need to be re-aligned. This is a difficult learning task, especially in the presence of potential loss of plasticity that can develop in the neural network over time and result in the inability to learn in the presence of significant shifts in the task distribution <ref type="bibr" target="#b23">(Lyle et al., 2023)</ref>.</p><p>In contrast to the what (z) latent state, the where (s) latent state explicitly contains spatial information about the position of the agent within the environment. Unlike the spatial (g) state, it contains information that is specific to the structure of the environmental topography and is informed by the incoming visual observations, similar to what is found in the primate dorsal pathway of the visual cortex <ref type="bibr" target="#b9">(Galletti &amp; Fattori, 2018)</ref>. Furthermore, we find that the latent states informed by this stream learn representations that contain place-like activation properties <ref type="bibr" target="#b34">(O'Keefe, 1976)</ref>, showing signs of a geodesic representation, known to be found in place cells <ref type="bibr" target="#b46">(Stachenfeld, Botvinick, &amp; Gershman, 2017)</ref>. We believe that it is this structural accommodation within the representation that enables the agents utilizing the state space to better adapt to all change conditions.</p><p>Examining the larger picture, we find that both what (z) and where (s) representations confer unique advantages on the artificial agents in our simulations. The former enables rapid learning in fixed environments where the task remains stable over time. In contrast, the latter enables more robust adaptation to changes in environmental contingencies, including changes to the goal location and environmental structure (see <ref type="figure" target="#fig_14">Figure 9</ref>). In this work, we find that the advantages of processing visual information into separate representations are largely complementary to each other. An agent capable of learning and utilizing both representations as the basis of its decision-making would be well suited to both learn and adapt to a variety of environmental contingencies. Indeed, this is exactly what is found in humans and other primates who posses the benefits of dual visual pathways <ref type="bibr" target="#b56">(Ungerleider &amp; Mishkin, 1982;</ref><ref type="bibr" target="#b55">Ungerleider &amp; Haxby, 1994)</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1provides a series of example screenshots of the perspective of the participant while exploring the island. Example first-person perspective of participant performing navigation task. A: Participant begins trial in random location on island. B: Participant navigates around island looking for goal location. C: Participant finds goal location indicator, which grows in size as participant approaches. D: Participant touches goal indicator, ending trial.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Visual representation of four possible conditions within each block of trials. Green circle represents goal location. At the beginning of each block, a random topography, goal location, and environment appearance are selected. After 10 trials a change takes place. A: no change. B: visual change. C: goal location change. D: topography change (Terrain-less -fractal ground plane adjusted up).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Examples of different seeds used to generate three environment topographies each with different complexity levels. Rows A-C: Different random initialization seeds. Columns: different values of D used to generate topographies.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 :</head><label>4</label><figDesc>Dual Stream World Model (DSWM) diagram. Blue represents content (what) information. Red represents context (where) information. Purple represents joint content and context information. White represents model inputs. Gray represents model outputs. Nodes marked with an * indicate information at the next time step of the simulation.the stored keys to determine a similarity score. The top 5 stored values are then weighted by their similarity scores using a softmax function to derive the retrieved z (z * ).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>baum, &amp; Gershman, 2017), we provide agents with 500 learning trials, with the change condition taking place after trial 250. Furthermore, a unique agent is trained per change condition. With three agent state spaces, five change conditions, and five repetitions per condition-state-space pair, a total of 75 agents are trained in total. The what and where state spaces were derived from a DSWM trained for 7500 iterations on a dataset of 250 episodes of 50 time steps each of a semi-random behavioral policy. The model's what and where latent states each consisted of eight gumbel-softmax distributions of size 16 each. As such, both latent state vectors were in total 128 units each. These values were chosen based on a parameter search to find the smallest numbers of units that still enabled the model to converge to the minimal loss value. The DSWM was trained with a learning rate of α = 5e −4 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>2 environments (M = 12.763, SD = 6.208), followed by D = 1.4 environments (M = 13.670, SD = 6.861), followed by D = 1.6 environments (M = 14.998, SD = 7.182). A post hoc Tukey test revealed that the mean time-to-goal scores differed significantly between D = 1.2 and 1.4 [MD = 0.906, p &lt; 0.001], D = 1.2 and 1.6 [MD = 2.235, p &lt; 0.001], as well as D=1.4 and 1.6 [MD = 1.329, p &lt; 0.001].</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 5 :</head><label>5</label><figDesc>A. Mean human performance by fractal dimension. B. Mean human performance by fractal dimension in four stages of a single block. Stage 1: Trials 1 -5. Stage 2: Trials 6 -10. Stage 3: Trials 11 -15. Stage 4: Trials 16 -20. Dotted vertical bar corresponds to taskchange point in block. C. Mean human performance per trial by fractal height threshold. In all figures lower time-to-goal scores correspond to better navigation performance and error bars represent +/-SEM. Statistical significance levels are reported as follows: p &lt; 0.001 : * * * , p &lt; 0.01 : * * , p &lt; 0.05 : * . significantly different in any individual stage (Tukey post hoc test: p &gt; 0.05). This aligns with the findings of<ref type="bibr" target="#b18">(Juliani et al., 2016)</ref> and matches the prediction of the fractal fluency theory that a value of D = 1.3 would correspond to optimal performance. In contrast, participants show additional difficulties in navigating within environments of D = 1.6 even in the final stage of a full block of trials (Tukey post hoc test with D = 1.2: MD = 1.818, p = 0.007; with D = 1.4: MD = 1.454, p = 0.035).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 6 :</head><label>6</label><figDesc>A. Mean human time-to-goal over time within a single block. Vertical dotted line corresponds to task-change point. B. Mean human performance by block change condition. Stage 1: Trials 1 -5. Stage 2: Trials 6 -10. Stage 3: Trials 11 -15. Stage 4: Trials 16 -20. C. Mean human performance by block change condition. In all figures lower time-togoal corresponds to better navigation performance and error bars correspond to +/-SEM. Statistical significance levels are reported as follows: p &lt; 0.001 : * * * , p &lt; 0.01 : * * , p &lt; 0.05 : * . ond stage (t(3048) = −4.162, p &lt; 0.01,CI95% = [−1.48, −0.53]), but not at the level of the first stage (t(3048) = 5.053, p &lt; 0.001,CI95% = [0.81, 1.84]), suggesting that some relevant environmental knowledge is retained. Finally, we find that in the fourth stage (M = 12.93, SD = 6.10) performance is not significantly different from that of the second stage (t(3048) = 4.567, p &lt; 0.001,CI95% = [0.62, 1.55]), suggesting that participants can adapt to the changes.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 6 B</head><label>6</label><figDesc>presents the performance of the participants over time for each of the block conditions. We find a significant difference in performance over the course of a block in the no-change condition (One-way ANOVA: F(3, 1216) = 9.193, p &lt; 0.001, η 2 = 0.022).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head></head><label></label><figDesc>way ANOVA: F(3, 1296) = 12.593, p &lt; 0.001, η 2 = 0.028). Participants learn the task between stages 1 and 2 (t(648) = 2.91, p = 0.012,CI95% = [0.55, 2.81]), are not disrupted by the change between stages 2 and 3 (t(648) = 1.304, p = 0.579,CI95% = [−0.35, 1.72]), and demonstrate improved performance in stage 4 compared to stage 2 (t(648) = 2.871, p = 0.012,CI95% = [0.45, 2.38]). Consistent with the mean performance across trials reported above, the trends between the no-change and visual-change conditions are the same. We can interpret this as evidence of the robustness of human navigation to superficial visual changes in an environment.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head></head><label></label><figDesc>= 4.052, p &lt; 0.001,CI95% = [1.11, 3.21]), a disruption in performance between stages 2 and 3 (t(578) = −3.388, p = 0.003,CI95% = [−2.84, −0.76]), and a recovery of performance in stage 4 as compared to stage 2 (t(578) = −0.034, p = 1.0,CI95% = [−0.96, 0.93]). Unlike changing the superficial appearance of the environment, changing the goal location results in significant performance degradation.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 7 :</head><label>7</label><figDesc>Activation profiles of first sixteen units of what (z) and where (s) latent spaces in the DSWM model trained on a single fractal island topography. Where (s) units show spatial activation preferences similar to those of place cells. Warmer colors correspond to greater unit activation. White space corresponds to presence of terrain (within the circle) or water (outside of the circle).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head></head><label></label><figDesc>2 = 0.015). A post hoc Tukey test uncovers differences in performance between the spatial (g) (M = 114.034, SD = 69.667) agents and the what (z) (MD = 20.268, p &lt; 0.001) and where (s) (MD = 10.541, p = 0.038) agents, with the spatial (g) agent performing significantly worse than the other two. In contrast, there was no significant difference between the where (s) (M = 103.493, SD = 55.369) and what (z) (M = 93.766, SD = 76.918) agents</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head></head><label></label><figDesc>able to demonstrate task learning in each of the five change conditions between stages 1 and 2 (no-change: t(48) = 6.051, p &lt; 0.001,CI95% =[38.59, 76.99]; visual-change: t(48) = 6.112, p &lt; 0.001,CI95% = [37.88, 75.02]; goal-change: t(48) = 6.054, p &lt; 0.001,CI95% =Figure 8: A. Mean performance of three artificial agents utilizing different state spaces. B. Mean performance in four stages of a block of trials. Stage 1: Trials 1 -125. Stage 2: Trials 126 -250. Stage 3: Trials 251 -375. Stage 4: Trials 376 -500. C. Mean performance of different agents within each change condition. In all figures lower time-togoal corresponds to better navigation performance and error bars correspond to +/-SEM. Statistical significance levels are reported as follows: p &lt; 0.001 : * * * , p &lt; 0.01 : * * , p &lt; 0.05 : * . [42.9, 85.56]; terrain-less: t(48) = 5.312, p &lt; 0.001,CI95% = [36.37, 80.67]; terrain-more: t(48) = 6.39, p &lt; 0.001,CI95% = [40.4, 77.5]). Only the goal-change (t(48) = −12.573, p &lt; 0.001,CI95% = [−210.42, −152.4]) and terrain-more (t(48) = −8.483, p &lt; 0.001,CI95% = [−94.97, −58.57]) conditions resulted in significant performance disruption between stages 2 and 3. In contrast, the no-change (t(48) = 3.655, p = 0.003,CI95% = [10.94, 37.68]), visual-change (t(48) = 3.658, p = 0.003,CI95% = [7.32, 25.2]), and terrain-less (t(48) = 11.112, p &lt; 0.001,CI95% = [80.61, 116.22]) conditions showed significant performance improvements between stages 2 and 3. Comparing performance in stages 2 and 4, spatial (g) type agents in the goal-change (t(48) = −3.03, p = 0.012,CI95% = [−97.74, −19.77]) and terrain-more (t(48) = −5.425, p &lt; 0.001, CI95% = [−83.02, −38.12]) conditions did</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 9 :</head><label>9</label><figDesc>Mean agent performance within each change condition, and utilizing one of three different state spaces. A. Spatial (g) state space agent. B. Where What (z) state space agent. C. Where (s) state space agent. D. Table summarizing human behavioral likeness of agents. Blue check corresponds to a behavioral match. Red cross corresponds to a behavioral mismatch. Lower time to goal corresponds to better navigation performance. Stage 1: Trials 1 -125. Stage 2: Trials 126 -250. Stage 3: Trials 251 -375. Stage 4: Trials 376 -500. Error bars correspond to +/-SEM.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>(</head><label></label><figDesc>no-change: t(48) = 7.063, p &lt; 0.001,CI95% = [44.21, 79.4]; visual-change: t(48) = 6.491, p &lt; 0.001,CI95% = [44.65, 84.72]; goal-change: t(48) = 5.044, p &lt; 0.001,CI95% = [29.54, 68.69]; terrain-less: t(48) = 8.591, p &lt; 0.001,CI95% = [69.14, 111.39]; terrainmore: t(48) = 5.872, p &lt; 0.001,CI95% = [34.67, 70.78]). We find that performance disruption between stages 2 and 3 takes place in the goal-change (t(48) = −8.753, p &lt; 0.001, CI95% = [−162.94, −102.06]) and terrain-more (t(48) = −3.386, p = 0.003,CI95% = [−38.71, −9.86]) conditions, but not the in the no-change (t(48) = 3.434, p = 0.003, CI95% = [7.56, 28.92]), visual-change (t(48) = 3.449, p = 0.003,CI95% = [8.51, 32.29]),or terrain-less (t(48) = −1.635, p = 0.327,CI95% = [−28.09, 2.89]) conditions. Of the conditions in which agent performance was disrupted, we find that there is recovery in the goal-change (t(48) = 0.468, p = 1.0,CI95% = [−12.45, 20]) condition, as well as the terrain-more condition (t(48) = 2.565, p = 0.042, CI95% = [3.71, 30.61]). Together, these trends suggest the greatest behavioral match with human performance among the artificial agents trained. The where (s) agent type was consistent with human behavior in the no-change, visual-change, goal-change, and terrain-less conditions. It only differed in the</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot"><ref type="bibr" target="#b44">Burles, &amp; Iaria, 2016)</ref> and those composed of fractal topographies<ref type="bibr" target="#b18">(Juliani et al., 2016)</ref>.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>The authors thank Richard Taylor, Dasa Zeithamova-Demircan, and Thien Nguyen for their valuable feedback on an early version of this manuscript. We also acknowledge receipt of a grant from the University of Oregon Faculty Research Award, which was used to purchase the GPU used in the computational experiments described above.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data Availability</head><p>IRB approval was not obtained for the sharing of participant data with the general public.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Author Contribution</head><p>Arthur Juliani: Conceptualization, Formal Analysis, Investigation, Methodology, Software, Visualization, Writing -Original Draft Preparation.</p><p>Margaret Sereno: Conceptualization, Supervision, Writing -Review &amp; Editing.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Aesthetic responses to exact fractals driven by physical complexity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Bies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Blanc-Goldhammer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Boydston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Sereno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in human neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">210</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Empirical evaluation of gated recurrent neural networks on sequence modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.3555</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page">1704</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Improving generalization for temporal difference learning: The successor representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="613" to="624" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Predictive maps in rats and humans for spatial navigation (Unpublished doctoral dissertation)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>De Cothi</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+		<respStmt>
+			<orgName>UCL (University College London</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dehghani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gouws</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ł</forename><surname>Kaiser</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1807.03819</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Universal transformers. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Representation of non-spatial and spatial information in the lateral entorhinal cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Deshmukh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Knierim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in behavioral neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The cognitive map in humans: spatial navigation and beyond</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Epstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">Z</forename><surname>Patai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Julian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Spiers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page">1504</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">The dorsal visual stream revisited: stable circuits or dynamic pathways?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Galletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fattori</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cortex</title>
+		<imprint>
+			<biblScope unit="volume">98</biblScope>
+			<biblScope unit="page" from="203" to="217" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">The successor representation: its computational logic and neural substrates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">33</biblScope>
+			<biblScope unit="page" from="7193" to="7200" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">States versus rewards: dissociable neural prediction error signals underlying model-based and model-free reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gläscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Doherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="585" to="595" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Graves</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Wayne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Danihelka</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1410.5401</idno>
+		<title level="m">Neural turing machines</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.10122</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note type="report_type">World models. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Microstructure of a spatial map in the entorhinal cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hafting</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fyhn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Molden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-B</forename><surname>Moser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">I</forename><surname>Moser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">436</biblScope>
+			<biblScope unit="issue">7052</biblScope>
+			<biblScope unit="page">801</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The construction system of the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hassabis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Maguire</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">364</biblScope>
+			<biblScope unit="page" from="1263" to="1271" />
+			<date type="published" when="1521" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Poole</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.01144</idno>
+		<title level="m">Categorical reparameterization with gumbel-softmax</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Unity: A general platform for intelligent agents</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Juliani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V.-P</forename><surname>Berges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Vckay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mattar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lange</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1809.02627</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Navigation performance in virtual environments varies with fractal dimension of landscape</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Juliani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Boydston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sereno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of environmental psychology</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page" from="155" to="165" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Juliani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sereno</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2209.08035</idno>
+		<title level="m">A biologically-inspired dual stream world model</title>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Welling</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1312.6114</idno>
+		<title level="m">Auto-encoding variational bayes</title>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Functional correlates of the lateral and medial entorhinal cortex: objects, path integration and local-global reference frames</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Knierim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Neunuebel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Deshmukh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">369</biblScope>
+			<date type="published" when="1635" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Building machines that learn and think like people</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Lake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and brain sciences</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="page">253</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lyle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Nikishin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Pires</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Pascanu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Dabney</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2303.01486</idno>
+		<title level="m">Understanding plasticity in neural networks</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mandelbrot</surname></persName>
+		</author>
+		<title level="m">The fractal geometry of nature</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1983" />
+			<biblScope unit="volume">173</biblScope>
+		</imprint>
+	</monogr>
+	<note>WH freeman</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Mnih</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Rusu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Veness</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Bellemare</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Human-level control through deep reinforcement learning</title>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">518</biblScope>
+			<biblScope unit="issue">7540</biblScope>
+			<biblScope unit="page">529</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title level="m" type="main">Learning structures: predictive representations, replay, and generalization. Current Opinion in Behavioral Sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Momennejad</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="155" to="166" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Human anterior prefrontal cortex encodes the &apos;what&apos;and &apos;when&apos;of future intentions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Momennejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-D</forename><surname>Haynes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="139" to="148" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">The successor representation in human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Momennejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Russek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Cheong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page">680</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Place navigation impaired in rats with hippocampal lesions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Morris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Garrud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Rawlins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Keefe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">297</biblScope>
+			<biblScope unit="issue">5868</biblScope>
+			<biblScope unit="page">681</biblScope>
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning in the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="139" to="154" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>O'doherty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Deichmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Dissociable roles of ventral and dorsal striatum in instrumental conditioning</title>
+	</analytic>
+	<monogr>
+		<title level="j">science</title>
+		<imprint>
+			<biblScope unit="volume">304</biblScope>
+			<biblScope unit="issue">5669</biblScope>
+			<biblScope unit="page" from="452" to="454" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Place units in the hippocampus of the freely moving rat</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>O'keefe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental neurology</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="78" to="109" />
+			<date type="published" when="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Effects of familiarity and plan complexity on wayfinding in simulated buildings</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>O'neill</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Environmental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="319" to="327" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Neural episodic control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pritzel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Uria</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Srinivasan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Badia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hassabis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Blundell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 34th international conference on machine learning</title>
+		<meeting>the 34th international conference on machine learning</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page" from="2827" to="2836" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Richards</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Lillicrap</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Beaudoin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bogacz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Christensen</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">A deep learning framework for neuroscience</title>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1761" to="1770" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">A shared fractal aesthetic across development</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Robles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Liaw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Baldwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sereno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Humanities and Social Sciences Communications</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="8" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Generalized simultaneous localization and mapping (g-slam) as unification framework for natural and artificial intelligences: towards reverse engineering the hippocampal/entorhinal system and principles of highlevel cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Safron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Verbelen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Systems Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">787659</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schulman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Wolski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Klimov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1707.06347</idno>
+		<title level="m">Proximal policy optimization algorithms</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Maddison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Sifre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Van Den Driessche</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Mastering the game of go with deep neural networks and tree search</title>
+	</analytic>
+	<monogr>
+		<title level="j">nature</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="issue">7587</biblScope>
+			<biblScope unit="page">484</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Environmental layout complexity affects neural activity during navigation in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Slone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Burles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Iaria</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">European Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1146" to="1155" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Beauty and the beholder: the role of visual sensitivity in visual preference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Spehar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Van De Klundert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lui</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W G</forename><surname>Clifford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in human neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page">514</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">The hippocampus as a predictive map</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Stachenfeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page">1643</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">The implications of fractal fluency for biophilic architecture</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Juliani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Cooper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Spehar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sereno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of biourbanism</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="23" to="40" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">Fractal fluency: an intimate relationship between the brain and processing of fractal stimuli. The fractal geometry of the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Spehar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="485" to="496" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Perceptual and physiological responses to jackson pollock&apos;s fractals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Spehar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hagerhall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Van Donkelaar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in human neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">60</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning approaches to hippocampus-dependant flexible spatial navigation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Tessereau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>O'dea</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Coombes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Bast</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+	<note>bioRxiv</note>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">The hippocampal memory indexing theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Teyler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Discenna</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">147</biblScope>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Virtual morris water maze: Opportunities and challenges</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Thornberry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Cimadevilla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Commins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Reviews in the Neurosciences</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="887" to="903" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Cognitive maps in rats and men</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">C</forename><surname>Tolman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="1948" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">what&apos;and &apos;where&apos;in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ungerleider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Haxby</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current opinion in neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="157" to="165" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Two cortical systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ungerleider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mishkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Analysis of visual behavior</title>
+		<editor>D. Ingle, M. Goodale, &amp; R. Mansfield</editor>
+		<meeting><address><addrLine>Cambridge, MA</addrLine></address></meeting>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="1982" />
+			<biblScope unit="page" from="549" to="586" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">The tolman-eichenbaum machine: unifying space and relational memory through generalization in the hippocampal formation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Whittington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Muller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Barry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Burgess</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Behrens</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cell</title>
+		<imprint>
+			<biblScope unit="volume">183</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1249" to="1263" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">Dopamine enhances model-based over model-free choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wunderlich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Smittenaar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="418" to="424" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Fractals, fractal dimensions and landscapes-a review</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gallant</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Geomorphology</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="245" to="262" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kolve</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fei-Fei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gupta</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Farhadi</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Visual semantic planning using deep successor representations</title>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the ieee international conference on computer vision</title>
+		<meeting>the ieee international conference on computer vision</meeting>
+		<imprint>
+			<biblScope unit="page" from="483" to="492" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

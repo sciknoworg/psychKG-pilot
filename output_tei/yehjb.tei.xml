@@ -1,0 +1,1992 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">The DARC Toolbox: automated, flexible, and efficient delayed and risky choice experiments using Bayesian adaptive design *</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Benjamin</forename><forename type="middle">T</forename><surname>Vincent</surname></persName>
+							<email>b.t.vincent@dundee.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Social Sciences</orgName>
+								<orgName type="institution">University of Dundee</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Rainforth</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Statistics</orgName>
+								<orgName type="institution">University of Oxford</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">The DARC Toolbox: automated, flexible, and efficient delayed and risky choice experiments using Bayesian adaptive design *</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:21+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Financial psychophysics</term>
+					<term>decision making</term>
+					<term>risky choice</term>
+					<term>discounting</term>
+					<term>magnitude effect</term>
+					<term>inter-temporal choice</term>
+					<term>time preference</term>
+					<term>two-alternative forced choice</term>
+					<term>Bayesian adaptive design</term>
+					<term>valuation</term>
+					<term>Monte Carlo methods</term>
+					<term>sequential design optimisation</term>
+					<term>maximum marginal likelihood estimation</term>
+					<term>automated inference</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Delayed and risky choice (DARC) experiments are a cornerstone of research in psychology, behavioural economics and neuroeconomics. By collecting an agent&apos;s preferences between pairs of prospects we can characterise their preferences, investigate what affects them, and probe the underlying decision making mechanisms. We present a state-of-the-art approach and software toolbox allowing such DARC experiments to be run in a highly efficient way. Data collection is costly, so our toolbox automatically and adaptively generates pairs of prospects in real time to maximise the information gathered about the participant&apos;s behaviours. We demonstrate that this leads to improvements over alternative experimental paradigms. The key to realising our real time and automatic performance is a number of advances over current Bayesian adaptive design methodology. In particular, we derive an improved estimator for discrete output problems and design a novel algorithm for automating sequential adaptive design. We provide a number of pre-prepared DARC tools for researchers to use, but a key contribution is an adaptive experiment toolbox that can be extended to virtually any 2-alternative-choice task. In particular, to carry out custom adaptive experiments using our toolbox, the user need only encode their behavioural model and design space-both the subsequent inference and sequential design optimisation are automated for arbitrary models the user might write.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>One problem faced by researchers trying to understand human and animal decision making is to appropriately construct choice environments so as to learn an agent's decision preferences, what influences these preferences, and what mechanisms underlie these. A bewildering array of experimental paradigms have been created by researchers in order to do this, but one central strategy has been to locate points in decision space where an agent is indifferent between two choices. For example, if we were to discount future rewards exponentially as they become more delayed into the future and we discover indifference between £100 now and £60 in 5 years, then we can infer an annual discount rate of approximately 10%.</p><p>In order to find these unknown indifference points, agents express preferences between sets of pairs of prospects, most commonly. They must evaluate each prospect which involves a reward (monetary or otherwise), a delay between choice and receipt of reward, a risk of never receiving the reward, and potentially some cognitive or physical effort required to obtain the reward. If our experimental procedure has gone well, then the pairs of prospects and the agent's responses are sufficient for us to make inferences about the parameters of a model, or which of multiple models, best account for the data. The experimenter's task of designing choice environments is not trivial however. In the next section, we describe a spectrum of different approaches that researchers have taken, ranging from simple fixed questionnaires to adaptive approaches in which the participant undergoes a customised experience, akin to a choose your own adventure.</p><p>The tasks we set ourselves in this work is to a) improve upon the current state of the art Bayesian adaptive design methods in order to run near-optimal experiments, and b) to demonstrate this with a variety of delayed and risky choice (DARC) experiments. Being able to near-optimally select experimental stimuli in real time, on a trial-to-trial basis, has a number of significant advantages. We will maximise the rate at which we obtain information about a participant, allowing researchers to achieve a set level of measurement precision in fewer trials, or to achieve higher precision in the same number of trials, compared to existing methods. This is particularly appealing when experiments are costly in time or resources, such as when real monetary rewards are given, special participant populations are being tested, or when using fMRI or electrophysiological measurements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Types of experimental procedures</head><p>The experimental tasks that have been applied to study issues in DARC are particularly broad. Many of these are complex and highly domain-specific, and so here we present a brief high-level review of various experimental methods that have been used to study inter-temporal choice tasks which allow us to learn how rewards are discounted as a function of delay.</p><p>Experimental methods to study discounting can be categorised in a number of ways, one of which is whether they are passive or adaptive. The simplest and most widely used passive approach to inter-temporal choice is the <ref type="bibr" target="#b33">Kirby (2009)</ref> 27-item questionnaire. This is easy to administer, but the majority of the questions are far from indifference points for any given experimental participant and so are uninformative.</p><p>There are a number of adaptive approaches however, which seek greater efficiency by determining which discounting questions to pose to a participant, in real time while an experiment is in progress. These in turn can be sub-categorised into heuristic vs. model-based approaches.</p><p>The vast majority of adaptive methods use heuristic procedures. Simple rules are created to stepwise increase or decrease one of the decision parameters <ref type="bibr">(reward, delay, risk, etc)</ref> in an attempt to find an indifference point. This approach is exactly the same as the commonly used staircase procedures in visual psychophysics <ref type="bibr" target="#b31">(Kingdom and Prins, 2009)</ref>. Many variations on this theme have been proposed and used in empirical studies, <ref type="bibr">(e.g. Mazur, 1988;</ref><ref type="bibr" target="#b58">Richards, Mitchell, de Wit, and Seiden, 1997)</ref>, and a particularly clear algorithm is provided by Frye, Galizio, Friedel, DeHart, and Odum (2016) (see Appendix E.1) who provide software for experimenters to use. The result of their procedure is a set of estimated indifference points at a number of delays specified by the experimenter. This would then be scored, to produce estimated discounting parameters, by fitting a parametric discount function (e.g. exponential, hyperbolic, etc) to the raw data or estimated indifference points, either by error minimisation, maximum likelihood <ref type="bibr" target="#b74">(Wileyto, Audrain-McGovern, Epstein, and Lerman, 2004)</ref>, or Bayesian methods <ref type="bibr" target="#b72">(Vincent, 2016)</ref>.</p><p>This kind of heuristic procedure has been pushed to the limits by <ref type="bibr">(Koffarnus and Bickel, 2014, see Appendix E.</ref>2) who present a procedure with only 5 trials and can be conducted in less than 1 minute. In order to do this, the authors take a parametric approach. If we assume a priori that people discount hyperbolically, then it is easy to see that the discount rate can be fully determined by finding just a single indifference point. This approach still uses simple heuristic rules to determine which question (out of a set of 31) will be posed next. Even though the estimated discount rates are correlated with longer adjusting amount procedures (r 2 = 0.45, based on their <ref type="figure">Figure 1</ref>), the tradeoff between speed of testing and accuracy of results becomes clear. For example, fewer trials will result in less reliable measures, and we are less able to detect any deviations from the assumption of hyperbolic discounting.</p><p>Model-based methods are another class of adaptive experimental approach and consist of either maximum likelihood or Bayesian methods. Maximum likelihood-based approaches construct a model of response probability to a set of questions for a given set of parameter values. However, these approaches have more often been used in the data analysis stage (e.g. <ref type="bibr" target="#b48">Peters, Miedl, and Büchel, 2012)</ref> rather than the data collection stage. A Bayesian approach to data collection in discounting tasks was recently proposed by <ref type="bibr" target="#b49">Pooseh, Bernhardt, Guevara, Huys, and Smolka (2017)</ref>. The primary benefit of doing this is that it allows for prior knowledge of discounting parameters to be incorporated. However, while the method presented by <ref type="bibr" target="#b49">Pooseh et al. (2017)</ref> would be expected to be reasonably efficient, it also includes a number of heuristic elements. For example, choice of questions to pose to participants is based on the intuition that asking questions at currently estimated indifference points will be the most informative. While this might seem reasonable, it is in fact suboptimal. For example, in the context of estimating a psychometric function in the field of visual psychophysics, <ref type="bibr" target="#b35">Kontsevich and Tyler (1999)</ref> demonstrate that at certain points in the experiment it becomes optimal to place experimental design variables either side of the predicted indifference point in order to learn about parameters relating to response variability for example (see their <ref type="figure">Figure 2</ref>). This is particularly important in order to not get fooled when participant behaviours deviates from your model (termed model misspecification), and is discussed further in the paper and Appendix G.</p><p>The gold standard in terms of efficient experimentation comes from the field of Bayesian adaptive design <ref type="bibr" target="#b8">(Cavagnaro, Aranovich, McClure, Pitt, and Myung, 2016;</ref><ref type="bibr" target="#b9">Chaloner and Verdinelli, 1995;</ref><ref type="bibr" target="#b44">Myung, Cavagnaro, and Pitt, 2013a;</ref><ref type="bibr" target="#b62">Sebastiani and Wynn, 2000a)</ref>. Also known as sequential Bayesian experimental design, Bayesian adaptive design is another class of adaptive methods that will be described in detail in the next section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2">Overview of our approach</head><p>Our goal is to collect data as efficiently as possible, so that we learn as much as we can about a participant's behaviour with each question posed. The overall approach to achieve this is to use Bayesian adaptive design (see <ref type="figure">Figure 1</ref>) which has been applied to achieve similar efficiency aims in a wide variety of areas <ref type="bibr" target="#b8">(Cavagnaro et al., 2016;</ref><ref type="bibr" target="#b35">Kontsevich and Tyler, 1999;</ref><ref type="bibr" target="#b43">Myung, Karabatsos, and Iverson, 2005;</ref><ref type="bibr" target="#b51">Prins, 2013;</ref><ref type="bibr" target="#b73">Watson, 1983)</ref>. There are 4 main steps required to initially set up an adaptive experiment:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.1">STEP 1: DEFINE A DESIGN SPACE</head><p>We as experimenters need to define the design space D (i.e. set of possible questions we could ask) appropriate for the chosen experiment. This design space can be thought of as a large table where each row d represents one possible question that could be posed to a participant. The number of columns represent the dimensionality of the experiment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.2">STEP 2: DEFINE A RESPONSE SPACE</head><p>In this paper we confine ourselves to experiments where participants make binary responses, that is they can respond with 1 of 2 possible responses on each trial, y ∈ {0, 1}. We note, however, that our Bayesian adaptive design approach (though not, at present, the provided toolbox) also applies equally well to cases where there are any (finite) number of possible responses.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.3">STEP 3: DEFINE A GENERATIVE MODEL</head><p>We need a participant response model (i.e. a likelihood p(y|d, θ ), see <ref type="figure">Figure 2</ref>) which relates latent parameters θ to observable responses y for a given design d. For discounting tasks, such a model could be based upon one of many possible discounting functions (see <ref type="bibr" target="#b14">Doyle, 2013)</ref>. It does not matter for our purposes whether this model is descriptive or explanatory, but it must provide us with the likelihood of a response given an experimental design and set of model parameters. Assuming the model is a reasonable way to capture participant's behaviours, then we better characterise a participant's behaviour by reducing our uncertainty over the parameters.</p><p>While we have focussed on DARC experiments with binary choices (i.e. 2 prospects), our approach is very general. It can be adapted to virtually any binary-choice task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.4">STEP 4: DEFINE A PRIOR OVER MODEL PARAMETERS, p(θ )</head><p>We can make experiments even more efficient by providing any existing knowledge about participants in the form of priors over parameters. Very often we will have this kind of prior knowledge because of the particular participant population being tested. By doing so, we can avoid asking questions which result in responses that would not have surprised us. Prior knowledge can not only be used in the data collection stage, but also in the data analysis stage of DARC experiments (e.g. <ref type="bibr" target="#b47">Nilsson, Rieskamp, and Wagenmakers, 2011;</ref><ref type="bibr" target="#b72">Vincent, 2016)</ref>. It does however require experimenters to have given thought to not just what behaviour they may expect, but to produce a prior belief over parameters which results in this expected behaviour.</p><p>After these preparatory steps have been completed, we have 3 repeating steps that form the core of an adaptive experiment: </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Collect data</head><p>Collect the response to the optimal design.</p><p>Initial setup 1. Specify the design space. 2. Specify the response space. 3. Define model of how responses are generated.</p><p>4. Define a prior over model parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Human, animal, or simulated participant</head><p>Experimental tools in the DARC Toolbox</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Raw question and response data</head><p>Parameter estimates <ref type="figure">Figure 1</ref>: The steps used in Bayesian adaptive design. The initial setup steps for different models and experimental paradigms require some attention. We provide a number of preconstructed tools in the toolbox, but the toolbox is modular and expandable for users to construct their own. Once set up, using these in an adaptive experiment is automatic. The toolbox provides parameter estimates as well as raw data to use in more advanced analysis methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.5">STEP 5: QUESTION SELECTION (AKA DESIGN OPTIMISATION)</head><p>On any given trial, we must select which design to present to the participant out of the set of possible designs. Static, non-adaptive, procedures simply select the next question in the list, regardless of any previous responses, and so will waste experiment time by asking questions which provide us</p><formula xml:id="formula_0">y t p t d t θ t = 1, . . . , T trials p t = Ψ(d t , θ) y t ∼ Bernoulli(p t )</formula><p>Figure 2: The general form of the data generating process in 2-choice tasks. Our approach is very general and can be applied to any binary response situation where a data likelihood function P(y|θ , d) can be defined. Here Ψ represents a generic model which maps experimental design and model parameters to response probability. Continuous and discrete variables are represented as circles and squares, respectively. Single-bordered nodes represent stochastic variables, and double-bordered nodes represent deterministic functions of parent nodes.</p><p>with little information with which to update our beliefs. Adaptive methods however, can use the model and current posterior over parameters in order to maximise expected information gain about parameters, given that we can only guess how the participant will respond. The optimal design d * is chosen on the basis of maximising the expectation of a utility function over all possible experimental outcomes. In our case, we seek to maximise expected information gain about model parameters (see Section 2.4). It can be shown that this procedure corresponds to the optimal decision under uncertainty (under the assumption that our model is correct) for choosing the next design. A key novel contribution of our work is in using this principled information-theoretic approach for the design optimisation and in developing an efficient, provably correct, and automated process for carrying it out.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.6">STEP 6: COLLECT PARTICIPANT RESPONSE</head><p>Our task now is to take the optimal design, d * , and present this to the participant in an appropriate manner, such that the participant can understand and choose between the prospects. In the software toolbox, this involves a simple function call -the input is a the chosen design d * which is simply a row vector representing the stimulus presented to the participant, and the output is the response which could consist of the choice as well as other useful information such as reaction time. This function can be adapted by experimenters to suit their particular preferences for stimulus presentation, choice framing and response recording they require.</p><p>1.2.7 STEP 7: INFERENCE STEP TO UPDATE OUR BELIEFS.</p><p>Non-probabilistic approaches traditionally use heuristic scoring methods to arrive at a single estimated indifference point. However, here we conduct inference in order to update our beliefs about parameters given the new response data. This is conceptually rather easy as we can just apply Bayes' rule, but in practice this is not trivial. A key part of our approach is doing this automatically and efficiently for a wide selection of models in a manner that is able to scale to models with many parameters, unlike the commonly used grid approximation methods employed by other adaptive approaches <ref type="bibr" target="#b35">(Kontsevich and Tyler, 1999;</ref><ref type="bibr" target="#b51">Prins, 2013;</ref><ref type="bibr" target="#b69">Treutwein and Strasburger, 1999</ref>). Because we evade the heuristic estimation of indifference points, we are not tied to design strategies which take 'slices' along delay, reward, or probability values in search of indifference points. Instead, our use of Bayesian inference allows us to use a statistically grounded decision-theoretic approach and also to consider a much larger design space to test a greater range of possible delays or reward values. Furthermore, once the experiment is complete, we are able to immediately return a full posterior over the participant's parameter values, conveying significantly more information than a simple point estimate.</p><p>Steps 5-7 are repeated until we meet our experiment termination criteria. A simple scheme could be when we reach a predefined number of trials, but more advanced schemes are also possible such as terminating when the entropy (i.e. uncertainty) in the participant's parameters falls below a desired threshold.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.3">Our contributions</head><p>Many of the practical advances which will interest the experimenter, rely upon a number of important theoretical and computational advancements in Bayesian adaptive design which are essential in both fully automating the Bayesian adaptive design process and in ensuring that it can be carried out fast enough for the toolbox to be run in real-time. In the next section we present our novel and very general Bayesian adaptive design optimisation approach. It can be applied to almost all research contexts where participants make binary choices, but we go on to thoroughly describe how the Bayesian adaptive design approach can be applied to risky inter-temporal choice tasks. At the heart of this approach is a novel Monte Carlo based method for the inference and optimisation required for Bayesian adaptive design. To the best of our knowledge, this is the first fully automated approach to sequential Bayesian adaptive design for a general class of problems -the user need only specify their model and set of allowable designs, everything else is automated. Achieving this involves many core innovations as follows:</p><p>• We employ a general purpose inference scheme, meaning that we can carry out inference efficiently for a large range of possible models the user might specify.</p><p>• Previous common Bayesian adaptive design methods have typically used either inefficient grid search <ref type="bibr" target="#b35">(Kontsevich and Tyler, 1999;</ref><ref type="bibr" target="#b51">Prins, 2013;</ref><ref type="bibr" target="#b69">Treutwein and Strasburger, 1999)</ref> or naïve nested Monte Carlo approaches <ref type="bibr" target="#b44">(Myung et al., 2013a)</ref> to calculate the expected gain in Shannon information used as the target for the design optimisation <ref type="bibr" target="#b9">(Chaloner and Verdinelli, 1995)</ref>. We instead introduce a novel non-nested Monte Carlo estimation scheme with a substantially improved convergence rate <ref type="bibr">(Rainforth, Cornish, Yang, Warrington, and Wood, 2017)</ref>, leading to improvements of orders of magnitude in the efficiency of the estimation.</p><p>• By using a particle based inference scheme, namely population Monte Carlo (PMC) <ref type="bibr" target="#b6">(Cappé, Guillin, Marin, and Robert, 2004)</ref>, we are able to propagate our distribution of beliefs about model parameters using a set of samples known as particles, the number of which can be scaled according to available computer power. This propagation allows us to both transfer information from one inference to the next and modularise the problems of inference and optimisation. Not only does this dramatically improve the speed, accuracy and memory requirements of the toolbox compared with existing methods, making our software practical for real-time usage, it is also key to our ability to fully automate the sequential Bayesian adaptive design process.</p><p>• We use a novel optimisation scheme that only requires a set of samples representing the posterior and a set of valid designs as input. This means we are able to fully automate both the inference and optimisation processes for any user specified model by inputting the particles output from the former into our novel scheme for solving the latter. Furthermore, our design optimisation scheme builds on ideas from <ref type="bibr" target="#b1">Amzal, Bois, Parent, and Robert (2006)</ref> to produce a novel and highly efficient scheme for optimisation of intractable expectations in its own right, adaptively allocating computational resources between the estimators for different designs.</p><p>These advances are described in detail in Section 2. However those primarily interested in the application to specific experimental methods can feel free to skip this technical section, progressing to Section 3 onwards. We describe how we apply Bayesian adaptive design in the context of DARC experiments, provide a detailed worked example and evaluation of adaptive temporal discounting experiments, and demonstrate the adaptability by applying our toolbox to other DARC experiments.</p><p>This work also makes a number of novel practical contributions, allowing experimenters to easily run efficient DARC experiments. More specifically:</p><p>• We are the first to provide a comprehensive set of efficient experimental tools to run DARC experiments, with easy extendability to many other 2-choice experiments.</p><p>• We make the software freely available (see end of document) for researchers to collect data using these methods in their own experiments. The code is written in a modular fashion to allow simple extensions such as using different time discounting or probability weighting functions, and to construct entirely new models for different experimental tasks.</p><p>• Through the example of temporal discounting, we demonstrate accurate recovery of known delay discounting parameters for a simulated participant with much higher precision (lower variance) than alternative fixed and adaptive methods.</p><p>• We demonstrate the generality and ease of extending the approach to other DARC experiments by describing a) temporal discounting the the magnitude effect, b) probability discounting (risky choice), and c) combined delayed and risky choices.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Our approach to finding the optimal design</head><p>From tuning microscopes to designing surveys on politics, all problems of experimental design can be reduced to the same mathematical abstraction: choosing a design that maximizes the expected information gained from the experiment. Bayesian adaptive design <ref type="bibr" target="#b9">(Chaloner and Verdinelli, 1995;</ref><ref type="bibr" target="#b63">Sebastiani and Wynn, 2000b)</ref>, also known as Bayesian experimental design or Bayesian-optimal design, provides a powerful framework for this abstraction. In Bayesian adaptive design one constructs a likelihood model for the experiment outcome and then uses this, along with a prior on the parameters one wishes to learn about, to find the experimental setup that maximizes the expected information gathered by the experiment. If the model is correct, this forms a design strategy that is optimal from an information-theoretic viewpoint <ref type="bibr" target="#b63">(Sebastiani and Wynn, 2000b)</ref>. The general nature of its formulation means that Bayesian adaptive design can, at least in principle, be applied to almost any experimental design situation. It can be particularly useful in sequential design settings, where it provides a means of constructing adaptive strategies that use previous experience in order to make decisions which optimize the sequential learning process. It the context of DARC experiments, this means we can adapt the questions asked to each participant, resulting in questions tailored to match their behaviour and maximize the information gained. In this section we will introduce a method for automating Bayesian adaptive design in arbitrary sequential design problems. Our approach only requires the user to specify their model and design space, with all subsequent calculations automated for any arbitrary model the user might write. Not only does this allow for rapid development of new models and experiments, it also means users require no expertise in Bayesian adaptive design to setup and run their own efficient adaptive experiments. The framework is also extremely general and can be applied to any problem with discrete responses. 1 As alluded to in Section 1.3, there are a number of technical innovations underlying our approach. Roughly speaking, these can be grouped into the development of a new estimator for the Bayesian adaptive design equations and a mixed inference-optimisation algorithm for using this estimator to carry out the sequential adaptive design. After providing a more technical introduction to Bayesian adaptive design, we will now explain these in turn.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Bayesian-optimal design</head><p>In order to carry out adaptive design, we need some metric for how good a design is. By optimizing this metric we can then find the best design. The key to Bayesian adaptive design is a particular metric that we now derive. For simplicity, we will for now only consider the problem of selecting a single design and ignore conditioning on previous design-response pairs.</p><p>Let the parameters we wish to learn about be denoted by θ ∈ Θ, for which we defined a prior distribution p (θ ). Let the probability of achieving outcome (i.e. response) y ∈ Y , given parameters θ and a design d ∈ D, be defined by the likelihood model p(y|θ , d). Under our model, the outcome of the experiment given a chosen d is distributed according to</p><formula xml:id="formula_1">p(y|d) = Θ p(y, θ |d)dθ = Θ p(y|θ , d)p(θ )dθ (1)</formula><p>where we have used the fact that p(θ ) = p(θ |d) because θ is independent of the design. To derive our metric for how good a design is, we first define a utility function U(y, d), representing the utility of choosing design d and getting response y. Typically our aim is to maximize the information about the parameters θ , which can be done by maximizing the gain in Shannon information between the prior and the posterior</p><formula xml:id="formula_2">U(y, d) = Θ p(θ |y, d) log(p(θ |y, d))dθ − Θ p(θ ) log (p(θ )) dθ .</formula><p>(2)</p><p>In other words, we want to minimize the entropy after observing y, relative to the entropy before. However, we are still uncertain about the outcome y. The Bayesian adaptive design metric is, therefore, defined as the expected utility, i.e. the expectation of U(y, d) with respect to p(y|d):</p><formula xml:id="formula_3">U(d) = Y p(y|d) Θ p(θ |y, d) log(p(θ |y, d))dθ − Θ p(θ ) log(p(θ ))dθ dy.<label>(3)</label></formula><p>Note that this corresponds to the mutual information between the parameters θ and the observations y. AsŪ(d) corresponds to the Bayesian adaptive design metric, the Bayesian-optimal design is now given by</p><formula xml:id="formula_4">d * = argmax d∈DŪ (d).<label>(4)</label></formula><p>We can intuitively interpret d * as being the design that most reduces the uncertainty in θ on average over possible experimental results. If our likelihood model is correct, i.e. if experimental outcomes are truly distributed according to p(y|θ , d) for a given θ and d, then it is easy to see from the above definition that d * is the true optimal design, in terms of information gain, given our current information about the parameters p (θ ). In practice, our likelihood model is an approximation of the real world. Nonetheless, Bayesian adaptive design remains a very powerful and statistically principled approach that is typically significantly superior to other, more heuristic-based, alternatives. However, a major drawback to the Bayesian adaptive design approach is that it is typically difficult and computationally intensive to carry out. Not only does it represent an optimisation of an intractable expectation, the integrand is itself intractable because the p (θ |y, d) term cannot be calculated analytically. Consequently, (3) forms a so-called nested expectation which cannot be directly estimated using, for example, conventional Monte Carlo estimation. Instead one typically must rely on nested estimation schemes which are usually very computationally expensive <ref type="bibr" target="#b55">(Rainforth, 2018;</ref>.</p><p>Remarkably, however, our novel approach, allows the accurate estimation of d * with a computational complexity similar to that of finding an indifference point. From a practical perspective, the time taken in estimating d * is similar to that of the inference used to keep track of the distribution over the parameters through the experiment and can easily be run in real-time on a small laptop.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">EstimatingŪ(d)</head><p>As we explained in the last section, estimating d * is in general challenging because the posterior p(θ |y, d) is rarely known in closed form. One popular method within the visual psychophysics literature <ref type="bibr" target="#b35">(Kontsevich and Tyler, 1999;</ref><ref type="bibr" target="#b51">Prins, 2013;</ref><ref type="bibr" target="#b69">Treutwein and Strasburger, 1999)</ref> is to use a grid-search approach to the required inference, which subsequently provides (biased) estimates for p(θ |y, d). However, this is highly unsatisfactory for a number of reasons. Firstly, it is well documented that grid-search is typically a substantially inferior inference method, compared with, for example, Monte Carlo approaches . Its many shortcomings include an exponential degradation of performance with dimension, failure to deal with unbounded variables and spending most of its computational budget evaluating points with very low posterior probability. Secondly, it is a highly inflexible approach and requires careful, problem specific, human input -the grid must be chosen up front. Both these make it unsuited to our needs.</p><p>Alternatively, as shown by, for example, Myung et al. <ref type="formula">2013a</ref>, one can instead use the following nested Monte Carlo estimator (see Appendix A for a derivation)</p><formula xml:id="formula_5">U(d) ≈Û NMC (d) := 1 N N ∑ n=1 log(p(y n |θ n,0 , d)) − log 1 M M ∑ m=1 p(y n |θ n,m , d)<label>(5)</label></formula><p>where each θ n,m ∼ p(θ ), y n ∼ p(y|θ = θ n,0 , d), and N and M are a number of outer and inner samples respectively. The total cost of this estimator is T = NM and the best achievable convergence rate in the mean squared error is order 1/T 2/3 <ref type="bibr" target="#b19">(Fort, Gobet, and Moulines, 2017;</ref><ref type="bibr" target="#b28">Hong and Juneja, 2009;</ref>) -substantially slower than the order 1/T rate of conventional Monte Carlo.</p><p>To address the inefficiency of this nested estimator, we have developed a method of estimating the Bayesian adaptive design metric (3) that maintains the convergence rate of conventional Monte Carlo whenever y can only take on one of C possible values (y 1 , . . . , y C ), providing a substantial improvement. We will omit the derivation of this estimator here, referring the reader to Appendix A, quoting only the final result as follows</p><formula xml:id="formula_6">U(d) ≈Û(d) := 1 N N ∑ n=1 C ∑ c=1 p(y c |θ n , d) log (p(y c |θ n , d)) − C ∑ c=1 1 N N ∑ n=1 p(y c |θ n , d) log 1 N N ∑ n=1 p(y c |θ n , d)<label>(6)</label></formula><p>where each θ n ∼ p(θ ) and y c are fixed constants. The critical difference to the nested estimator (5) is that C (= 2 for our DARC experiments) is a fixed constant rather than being a number of samples that needs to be increased to increase the accuracy of the estimator; we only here need N samples of θ rather than NM samples. Therefore, if our estimator uses N samples, then using (5) will require on the order of N 3/2 samples to achieve the same accuracy. Given N is typically quite large, ( 10 4 ) this means (5) usually needs multiple orders of magnitude more samples to achieve the same accuracy as our estimator. We finish the description for our estimator ofŪ(d) by noting that it requires only the ability to sample θ n and evaluate p(y c |θ , d) for a given θ , d, and y c . The latter of these is always trivial as it simply corresponds to the model we have defined. The former is also trivial in the absence of previous experiment-response pairs, but, as we will discuss next, requires more detailed consideration in sequential experiments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Sequential experiments and parameter inference</head><p>We have thus far assumed that there is no previous data (i.e. design-response pairs), but in practise the experiment is sequential and previous data must be incorporated in choosing future designs. This previous data is incorporated into the model through conditioning θ . As such, at experiment iteration t, we replace p (θ ) with the posterior p (θ |d 1:t−1 , y 1:t−1 ), where d 1:t−1 and y 1:t−1 are respectively the designs and responses at previous iterations. This posterior now represents our beliefs about the participants parameters given the information from previous questions and the ultimate aim of our experiment is to refine it. Making changes to our estimator to operate in this sequential setting is Algorithm 1 Sequential Bayesian adaptive design</p><formula xml:id="formula_7">Inputs: Prior p(θ ), likelihood p(y|θ , d), number of experiment iterations T , candidate designs D Outputs: Design-response pairs {d t , y t } t=1:T , posterior samples θ 1:M 1: θ m ∼ p(θ ) ∀m = 1, . . . , M 2: for t = 1 : T do 3: d t ← DESIGNOPTIMISATION (θ 1:M , p(y|θ , d), D) Find next step optimal design 4: y t ← RUNEXPERIMENT(d t )</formula><p>Get response from using design d t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5:</head><p>D ← D\d t Eliminate new design from candidate set (optional)</p><p>6:</p><formula xml:id="formula_8">θ 1:M ← INFERENCE (p(θ ), p(y|θ , d), {d i , y i } i=1:t , θ 1:M )</formula><p>Update the posterior 7: end for 8: return {d t , y t } t=1:T , θ 1:M conceptually remarkably simple -we just sample θ from the posterior instead of p(θ ). In other words, we sample θ n ∼ p (θ |d 1:t−1 , y 1:t−1 ) and then use (6).</p><p>Unfortunately, generating these samples can be challenging as it requires Bayesian inference. Despite its clear shortfalls, this is perhaps why the grid-search estimation approach has previously been employed so readily in the literature as it, at first glance, seems to sidestep this issue. However, the key point here is that grid-search is an inference method and so it is not side-stepping the issue at all, but instead just carrying out this required inference very inefficiently. In fact, the grid-search approximation is even more inefficient than the naïve nested estimator (5).</p><p>Our approach instead exploits two key features of the estimatorÛ(d) -that it only requires provision of samplesθ n and that the same samples can be used to evaluate multiple designs. This means that we can modularize the problems of inference and of optimizing the Bayesian adaptive design metric to choose the best design. Namely, we can carry out inference to generate a "reservoir" of samples θ 1:M (for some large M) and then pass these on to an algorithm that uses them to find the optimal design, drawing samples from the reservoir as an when required, rather than generating directly from the posterior on-demand. A high level summary of our approach is given in Algorithm 1. As input we require the model (in the form of the prior and the likelihood), the set of candidate designs, and a number of experiment iterations T . For the first design, we just generate our reservoir simply by sampling from the prior (line 1). We then iterate between using our reservoir to choose the next design (line 3), evaluating that design (line 4), and updating the posterior to include this new design-response pair (line 6).</p><p>Given this framework, we see that there are two key components to the approach which we are yet to introduce -the design optimisation algorithm and the method for carrying out inference. While the latter is introduced in the next section, the former builds on ideas from probabilistic programming <ref type="bibr" target="#b24">(Goodman, Mansinghka, Roy, Bonawitz, and Tenenbaum, 2008;</ref><ref type="bibr" target="#b75">Wood, Meent, and Mansinghka, 2014)</ref> in order to automate the inference problem for a wide array of problems. The core philosophy of probabilistic programming systems (PPSs) is to decouple model specification and inference, with the latter carried out by an inference engine capable of operating on arbitrary models. While our approach is certainly not a PPS in its own right, it builds on the same idea of automating inference for a wide range of models to remove this burden from the user. Specifically, we require the user to provide only the prior, likelihood, and data, with the subsequent inference fully automated (though there are parameters users can tweak if they desire </p><formula xml:id="formula_9">n 1:K ← ALLOCATESAMPLES(N,Û 1:K )</formula><p>Allocate a number of samples n k to each design 4:</p><formula xml:id="formula_10">for k = 1 : K do 5:θ 1:n k ∼ DISCRETE (θ 1:M )</formula><p>Draw n k samples from reservoir 6:</p><formula xml:id="formula_11">Û k ← UPDATEESTIMATE Û k ,θ 1:n k , d k</formula><p>Use new samples to refine estimate 7:</p><p>end for 8: end for 9:</p><formula xml:id="formula_12">k * ← argmax k∈{1,...,K}Ûk</formula><p>Best design is one with highestÛ k 10: return d k * such as the computational budget). Our inference scheme is based on population Monte Carlo (PMC) <ref type="bibr" target="#b6">(Cappé et al., 2004)</ref>, technical details for which are given in Appendix B.</p><p>There are a number of advantages to using PMC for the problem at hand. Firstly, the fact that it is based on a population of samples representing the target distribution allows for transferring of considerable information from the inference problem at one experiment iteration to the next, compared with say a conventional MCMC sampler. Secondly, PMC naturally outputs the required sample reservoir, corresponding the final population of samples. Finally, because it uses localized proposals, it is less prone to sample degeneracy than importance sampling based algorithms such as SMC <ref type="bibr" target="#b13">(Doucet, Godsill, and Andrieu, 2000)</ref>. In particular, such methods would scale exponentially badly in the dimensionality of θ , while PMC can be noticeably more robust if the proposal is chosen appropriately. Though θ is quite low dimensional in the models we have considered, using PMC means that, at least in principle, our toolbox will be able to scale gracefully to higher dimensions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Optimisation</head><p>Having demonstrated how to estimateŪ(d), we will now look at how to optimise for d. In all but the most trivial scenarios, simply evaluating the utility for each candidate design using the full reservoir of samples and then choosing the best will not be practical due to its excessive computational cost, particularly given there will often be thousands of possible designs or even more. Instead we will need to be clever about how we allocate our finite computational resources to achieve the most reliable estimate for which design is optimal. To do this we introduce a novel approach that uses adaptive resource allocation between different design, sharing some parallels with sequential Monte Carlo search <ref type="bibr" target="#b1">(Amzal et al., 2006)</ref>, Thompson sampling <ref type="bibr" target="#b68">(Thompson, 1933)</ref>, adaptive Monte Carlo via bandit allocation <ref type="bibr" target="#b46">(Neufeld, György, Schuurmans, and Szepesvári, 2014)</ref>, and the Hyperband algorithm <ref type="bibr">(Li, Jamieson, DeSalvo, Rostamizadeh, and Talwalkar, 2016)</ref>. We emphasise though that our method is a new algorithm in its own right.</p><p>The underlying idea of our approach is that we are willing to accept higher variance in the Bayesian adaptive design metric estimates for lower utility designs as this error is unlikely to lead to an incorrect estimation of which design is optimal. Therefore, we desire to take more Monte Carlo samples, and thus achieve a more accurate estimate, for the designs we believe to have a higher chance of being the optimal design. An overview of our algorithm is given in Algorithm 2, a more detailed version of which is given in Appendix C. We again highlight the importance of using a reservoir of samples to provide modularization between the inference and optimisation processes, and thereby the automation of our pipeline.</p><p>Rather than calculating a full estimateÛ k for a design d k in one go, we exploit the intermediate information from incomplete evaluations to reallocate computational resources. Given a total budget of NL samples, we carry out L sampling rounds, allocating N samples between the K designs at each round, assigning more samples to more promising designs. These new samples are used to refine the estimatesÛ k , which in turn leads to a refinement of the sample allocation strategy at the next round. At the end of our L rounds, we will have used more samples, and thus achieved better estimates, for the better designs. As we are only concerned with which design is best, this in turn increases the chance we will choose the true optimal design. Further explanation and technical details are given in Appendix C.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Theoretical result</head><p>We finish the introduction of approach with the following theoretical result that confirms its statistical correctness, in the sense that the method is guaranteed to return the optimal design at each iteration in the limit of large computational resources.</p><p>Theorem 1. Assume that the PMC proposal q(θ |θ ) satisfies the convergence requirements laid out in <ref type="bibr" target="#b6">Cappé et al. (2004)</ref> and that eachŪ t (defined as per (23)) is a measurable function. Given a finite number of candidate designs d 1:K , fixed parameters ρ &gt; 0 and N ∈ N + , and a function τ : R → R such that τ(L) ≥ NL ∀L, then using Algorithms 1 and 3 to choose design outcome pairs with M = τ(L) ensures that the chosen design at each iteration t satisfies</p><formula xml:id="formula_13">U t (d t ) = max d∈DŪ t (d)<label>(7)</label></formula><p>almost surely (i.e. occurs with probability 1) in the limit L → ∞.</p><p>Proof. See Appendix D.</p><p>Remark 1. This result holds when both the number of particles in the design optimisation algorithm N and the number of iterations of the PMC inference are fixed finite values. The convergence is in L (and by proxy M) only.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Bayesian adaptive design applied to DARC experiments</head><p>The advances we have made in the previous section can be applied to virtually any 2-choice experiment that can be modelled. Given this is inherently very general we envisage that these methods (embodied in our software toolbox) can be used and adapted by researchers for a wide variety of experimental contexts. Obviously, it is important to demonstrate our approach and to compare it to others, and we do this by choosing the general domain of delayed and risky choice experiments. The DARC domain is still incredibly broad however (see <ref type="figure">Figure 3</ref>), so while it is impossible to embody all possible decision making experiments in one fell swoop, we target a broad class of models and a reasonably broad design space that will be easy for researchers to adapt to their particular needs.  <ref type="figure">Figure 3</ref>: A schematic of some of the core modelling themes (rows) in the utility-based decision making approach. There are a wide family of models under the utility-based approach, from more normative approaches (with linear probability weighting functions and exponential time discounting) to more descriptive approaches such as the Prospect theory family of models (which does not address delayed rewards), to the discounting approach (which typically assumes a linear utility function).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Utility-based models of DARC behaviour</head><p>Readers are referred to <ref type="table" target="#tab_2">Table 1</ref> for a summary of the notation we use for modelling behaviour in DARC experiments. First, we assume that participants compare two prospects P which consist of rewards R, to be received with a delay D, with probability P, i.e. P = (R, D, P). For the present work, we assume a simple reward/no-reward structure such that there is a 1 − P probability of obtaining zero reward. As mentioned, we also restrict ourselves to experiments where choices are made between 2 prospects, P a , and P b . The preferred prospect is that which has highest present subjective value V (P), also termed utility, but we describe the stochastic nature of choices in more  </p><formula xml:id="formula_14">V (P) = u(R) • π(P) • d(D)<label>(8)</label></formula><p>where u(R) is a function which maps objective rewards to subjective value (i.e. utility), π(P) is a probability weighting function (equally a probability discounting function), and d(D) is a discounting factor accounting for delay of the prospect 2 . In this utility-based approach, there are of course many model variations (see <ref type="figure">Figure 3)</ref>, each focussing on possible functions for utility u(R), risk π(P), and delay d(D), each of which will have parameters which need to be inferred from behavioural data. The approach presented here will allow highly efficient experiments to be conducted to maximise information gained about these parameters, for a given model.</p><p>Determining the nature of the value function has been the focus of sustained theoretical and empirical work (e.g. <ref type="bibr" target="#b30">Kahneman and Tversky, 1979;</ref><ref type="bibr" target="#b65">Stott, 2006)</ref>. The DARC toolbox is suited to continue this exploration, but in the present work we focus on the discounting approach which traditionally assumes a linear utility function, u(R) = R.</p><p>The probability weighting function is normally composed of some function π(P) that over-or under-weights low and high probabilities in line with the central ideas of prospect theory (Kahneman and <ref type="bibr" target="#b30">Tversky, 1979;</ref><ref type="bibr" target="#b70">Tversky and Kahneman, 1992)</ref> and derivative models. However, the discounting literature typically refers to the probability weighting function as 'probability discounting', and considers hyperbolic discounting (or similar) of odds against receiving a prospect. This mismatch between approaches is only superficial; odds and probabilities can be trivially calculated from each other, and there are interesting connections and equivalences between probability weighting and probability discounting <ref type="bibr" target="#b50">(Prelec and Loewenstein, 1991;</ref><ref type="bibr" target="#b53">Rachlin, Raineri, and Cross, 1991;</ref><ref type="bibr" target="#b66">Takahashi, 2011;</ref><ref type="bibr" target="#b67">Takemura and Murakami, 2016)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Term Explanation D</head><p>Design space, a 2-dimensional matrix d</p><p>A particular design, one row of D d *</p><p>The optimal design given our model and beliefs P A prospect, P = (R, D, P) a Prospect a, also referred to as P a b</p><p>Prospect b, also referred to as P b R reward magnitude D delay of reward P probability of obtaining reward <ref type="table">Table 2</ref>: Summary of the notation used for the design space</p><p>The delay discounting function d(D) is typically not included in the Prospect Theory class of models, but allows us to predict the present subjective value of delayed rewards. Given that many real-world decisions do not result in instant reward delivery, understanding agents' temporal preferences is important. This has been done (under the utility-based approach) by investigating different forms of the discount function <ref type="bibr" target="#b8">(Cavagnaro et al., 2016;</ref><ref type="bibr" target="#b14">Doyle, 2013;</ref><ref type="bibr" target="#b41">McKerchar, Green, Myerson, Pickford, Hill, and Stout, 2009;</ref><ref type="bibr" target="#b48">Peters et al., 2012)</ref>.</p><p>In order to conduct design optimisation we need a likelihood model, which can be thought of as a putative model of participant responses P(y|θ , d) for a given design d and set of parameter values θ (see <ref type="figure">Figure 2</ref>). We define this as</p><formula xml:id="formula_15">P(y|θ , d) ∼ Bernoulli(Ψ(V (P a ),V (P b ), θ ))<label>(9)</label></formula><p>where the probability of preferring P b (coded as y = 1), Ψ(V (P a ),V (P b ), θ ), is defined by a psychometric function (see Vincent, 2016, for more details) for which we take as a default</p><formula xml:id="formula_16">Ψ(V (P a ),V (P b ), θ ) = L(V (P a ),V (P b ), θ ) (10) = ε + (1 − 2ε) • Φ V (P b ) −V (P a ) α (11)</formula><p>where Φ is the cumulative standard normal distribution. The comparison acuity α can be thought of as capturing noise in the participant's process of calculating present subjective value, and the lapse rate ε is the baseline rate of randomly choosing a response. These are useful parameters in terms of accounting for participant response errors (see Appendix F).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">A design space for DARC experiments</head><p>In the previous section, we have already indirectly introduced our design space. It consists of pairs of prospects, each consisting of a reward, a probability of obtaining the reward, and a delay. In this section we describe issues relating to the design space in more detail so that readers can better understand the Bayesian adaptive design approach, understand what we have done, and be better able to modify our code or extend it to fit their own needs. Readers are referred to <ref type="table">Table 2</ref> for the notation used in relation to the design space.</p><p>The 27 questions from <ref type="bibr" target="#b33">Kirby (2009)</ref> represent one particular design space that has seen heavy use in delay discounting studies. It has 27 fixed questions (each represented by a row in a table), with 4 question variables (sooner reward amount R a , delay of sooner reward D a , later reward amount R b and delay of later reward D b ), with rewards considered to be certain. The questions asked using this model are pre-set, such that information gathered during the experiment is wastefully ignored.</p><p>Our design space D can also be represented by a table, with 6 question variables R a , D a , P a , R b , D b and P b . Again, any row in this table represents a particular design, d = [P a , P b ]. However, unlike in <ref type="bibr" target="#b33">Kirby (2009)</ref>, D contains hundreds or thousands of possible questions, only a small proportion of which will be used in any particular experiment and which are adaptively chosen to be maximally informative for the particular participant.</p><p>The software provided is very flexible, so we can adjust the design space to the needs of an experiment (see <ref type="table">Table 3</ref>). We can choose to explore either delayed choice 3 , risky choice 4 , or both. For example, we can apply this to inter-temporal choice tasks by setting P a = P b = 1 and specifying a range of allowable delays such as D a = 0 for no front-end delays, and D b spanning many values from minuets to hours, to days or years. Likewise, we can adapt this for inter-temporal choice with a magnitude effect by ensuring we offer a wide range of delayed reward values (e.g. R b = [10, 100, 1000]). We can turn this from a time discounting experiment into a risky choice experiment simply by setting D a = D b = 0 such that both prospects are immediate. We can also optionally fix P a to be certain and P b as risky by setting P a = 1 and 0 &lt; P b &lt; 1.</p><p>While the toolbox is modular, and highly automated, there are some complexities which arise from trying to model real behaviour with simple parametric models. Until we find the 'true' model describing how agents behave in experiments, we will have an element of model misspecification. We may also have some degree of redundancy in how different parameters can account for different aspects of the data. To deal with these inevitable issues that affect all cognitive modelling efforts, we sometimes need to partially restrict the candidate designs available to the design selector on each experimental trial to ensure a good spread in the questions over features that are of no consequence to the model and therefore do not effect the theoretical optimality of the questions. When needed, these are dynamically chosen for each experimental trial in isolation using a heuristic described in Appendix G.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Worked example: temporal discounting experiments</head><p>Our approach is exceedingly general, and could be applied to any two-choice decision making task that we can also provide a generative model for. In the previous section we begun to define a specific class of models and appropriate design space for our topic of interest, DARC experiments. In this section we provide a worked example for temporal discounting, before showing how this can easily be applied to other DARC experiments and models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Building the adaptive experiment</head><p>In order to make the most efficient inferences about a participant's discount rate, we assume a parametric form for the discount function, namely the widely used 1-parameter hyperbolic function  <ref type="table">Table 3</ref>: A summary of the models and design space restrictions for each of the experiment types highlighted in this paper. The modular nature of the approach should be clear, there are specific pieces of code corresponding to elements in the table to implement a specific experiment (row). Entries labelled (*) are free variables that can be either single values or vectors of experimenter-defined allowed values. Note that the actual parameters estimated are log(k) and h. We focus on the 1-parameter hyperbolic discount function, but our toolbox can implement alternatives (see the toolbox software for examples).</p><p>(Mazur, 1987, see <ref type="table">Table 3</ref>). We stress that it is trivial to adapt our software implementation to use alternative discount functions. The parameters of this model are the log discount rate log(k), the error rate ε, and comparison acuity α.</p><p>For this model, we define specific restrictions on the design space, appropriate for estimating a participant's discount rate. We use no front-end delay D a = 0. We also do not want to estimate the magnitude effect so we restrict ourselves to a single reward magnitude R b = £100. Rewards are certain P a = P b = 1. We define a set of possible delays for the later reward as D b = (1, 2, 3, 4, 5, 6, 7, 8, 9, 12 hours; 1, 2, 3, 4, 5, 6, 7 days; 2, 3, 4 weeks; 3, 4, 5, 6, 8, 9 months; 1, 2, 3, 4, 5, 6, 7, 8, 10, 15, 20, 25 years), where a month is defined as 30 days.</p><p>The prior over log(k) allows experimenters to utilise prior knowledge about their participants, and because of this there is no single correct prior that can be recommended. For example, if we are testing a population suffering from anorexia nervosa, we would want our prior over log(k) to be centred on −5.9 (based upon <ref type="bibr" target="#b11">Decker, Figner, and Steinglass, 2015)</ref>, but if we were testing those suffering from major depressive disorder, our prior should be centred on −3.2 (based upon <ref type="bibr" target="#b52">Pulcu, Trotter, Thomas, McFarquhar, Juhasz, Sahakian, Deakin, Zahn, Anderson, and Elliott, 2013)</ref>. Rather than being an inconvenience, we can utilise our domain knowledge in order to avoid wasting time and resources during an experiment, which is the entire aim of our adaptive approach. Our software makes it easy for experimenters to provide their own prior knowledge about discount rates of their testing population.</p><p>The mode of the prior over log(k) also needs to take into account the reward magnitude on offer. There is a body of evidence suggesting our discount rates are strongly affected by the reward magnitude (see for example <ref type="bibr" target="#b29">Johnson and Bickel, 2002)</ref>, in a manner that is well modelled by a power law (ie. a straight line in log(reward), log(k) space, Vincent, 2016). So even if we do not want to characterise the magnitude effect, we should not ignore that it exists. We recommend researchers pay particular attention to this issue to avoid erroneous priors based on previous research conducted on the right population, but at a different reward magnitude.</p><p>Our recommended uninformative prior, for rewards in the order of £100, was based on a brief survey of the literature including <ref type="bibr" target="#b25">Green, Myerson, Lichtman, Rosen, and Fry (1996)</ref>, <ref type="bibr" target="#b52">Pulcu et al. (2013)</ref>, and <ref type="bibr" target="#b11">Decker et al. (2015)</ref>. Values of log(k) range from approximately −2.5 (bipolar disorder) to approximately −6 (anorexia nervosa). Therefore the prior used was centred on the middle of this range, so our recommended uninformative prior is log(k) ∼ Normal(−4.25, 1.5).  <ref type="formula">2016</ref>, and our approach) to measuring delay discounting of simulated participants. We simulated participants with high, medium and low temporal discounting (rows). Discount rates used correspond to those with major depressive disorder (k = 0.04, half life of 25 days, <ref type="bibr" target="#b52">Pulcu et al., 2013)</ref>, upper income older adults (k = 0.01, half life of 100 days, <ref type="bibr" target="#b25">Green et al., 1996)</ref>, and those with anorexia nervosa (k = 0.0028, half life of 357 days, <ref type="bibr" target="#b11">Decker et al., 2015)</ref>. These examples provide an overview of the different methods in terms of how their experimental designs (points) unfold. Intuitively, we can interpret designs which fall far from the indifference curve to be less informative than those which lie closer to the indifference curve. We also represent the uncertainty in discount rates by plotting a random subset of 100 draws from the posterior over log(k). High uncertainty is bad, and is shown as a broad range of credible discount functions. <ref type="figure" target="#fig_3">Figure 5</ref> shows the result of a large parameter estimation simulation. We simulated 500 participants whose log discount rates were drawn from our prior over log(k). Each of these simulated participants responded to the 3 competitor delay discounting experimental protocols and our own. The figure shows how our uncertainty (measured as posterior entropy over log(k)) decreases over trials of each of the experiments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Comparison to alternative fixed and adaptive methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Efficiency of our methods compared to others</head><p>Of these approaches, the widely used method of <ref type="bibr">(Kirby, 2009, Figure 5</ref>) was the worst in that the rate at which our uncertainty decreases is lowest, and the total amount of uncertainty we can remove is limited. The limitations should be clear when examining the design space, represented by data points in <ref type="figure" target="#fig_2">Figure 4</ref>, top row.</p><p>The approach of (Koffarnus and Bickel, 2014, <ref type="figure" target="#fig_3">Figure 5</ref>) is promising. It has a relatively rapid decrease in uncertainty, indicating that each trial results in learning a lot about discount rates. The main limitation however is that the approach does not scale; the procedure is only defined for a maximum of 5 trials.</p><p>The approach of (Frye et al., 2016, <ref type="figure" target="#fig_3">Figure 5</ref>) is also promising. It is more efficient than the approach of <ref type="bibr" target="#b33">Kirby (2009)</ref>, and can be scaled up to high numbers of trials by adding more delays and more trials per delay. The approach is not quite as efficient as Koffarnus and Bickel (2014) however, but can result in more precise discount rate estimates once more than 10 trials worth of data have been obtained. This approach is quite variable however, on average the approach decreases uncertainty at an acceptable level, but on occasion the approach can be as inefficient as the method of <ref type="bibr" target="#b33">Kirby (2009)</ref>.</p><p>Our approach however ( <ref type="figure" target="#fig_3">Figure 5</ref>) is, on average, the most efficient. We see a very rapid decline in uncertainty, which beats the method of <ref type="bibr" target="#b34">Koffarnus and Bickel (2014)</ref>. While the method of Frye et al. (2016) can also go beyond 5 trials, our method can do this in a more efficient manner. For example, there are times when the method of Frye et al. (2016) would require double the amount <ref type="figure" target="#fig_2">Figure 4</ref>: Illustration of the different experimental approaches (rows) for delay discounting, applied to simulated observers with high, medium, and low discount rates (columns). Solid black lines show point estimates (posterior means) of the hyperbolic discount function, along with a representation of our uncertainty (light grey lines are samples from the posterior over log(k)). Circles represent designs posed to the simulated participant. Filled circles represent choosing the immediate reward, empty circles the later reward. Simulated participants had true parameters α = 2 and ε = 0.01 were used, but ε was fixed, while inference was conducted over α. All x-axes are cropped to 0-365 days delay for ease of visual comparison.</p><p>of trials as our approach in order to reach the same level of precision in the estimated discount rate.</p><p>To emphasise the benefits of our approach; the amount of information gained, about a simulated participant, using 27 trials of the <ref type="bibr" target="#b33">Kirby (2009)</ref> can be achieved in approximately 3 of our adaptive trials and is comfortably exceeded with 4 trials.  <ref type="figure" target="#fig_4">Figure 6</ref> shows how each of the experimental approaches are able to recover known time discount rates of simulated participants. The <ref type="bibr" target="#b33">Kirby (2009)</ref> method provides reasonable estimates, but the 95% credible regions are quite broad given that 27 designs were used. However we can see extreme quantisation in the inferred values. Because of the design space used in this method, it is not possible to make very fine-grained inferences about a participant's discount rate. Instead, it is more appropriate to think of putting them into one of a number of discounting categories.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Parameter recovery simulations</head><p>The 5-trial protocol of Koffarnus and Bickel (2014) is interesting in that it overall provides good estimates, but there are some interesting failure cases. We believe these are caused by an implicit assumption that answers are accurate -when incorrect responses are given it is likely to lead to wildly inaccurate estimates. This will have implications for data collected using this paradigm. The same quantisation issues reoccur here, so fine-grained evaluation of discount rates are not possible. The method of Frye et al. (2016) run with 20 trials is impressive for a heuristic approach. The estimates are both accurate, and precise. We should certainly favour this approach over that of <ref type="bibr" target="#b33">Kirby (2009)</ref>.</p><p>The parameter recovery performance for our method is, however, even better. After 20 trials we can again see that inferred discount rates are accurate and precise. We rely on <ref type="figure" target="#fig_3">Figure 5</ref> however for a clearer comparison of the two approaches, which shows our method is clearly more efficient than the heuristic method of <ref type="bibr" target="#b21">Frye et al. (2016)</ref>. inferred value <ref type="figure">Figure 7</ref>: The role of prior beliefs on the estimated log(k) using our method. In the low data regime, the prior has a strong influence upon our beliefs, but as more data is obtained, the influence of the prior diminishes. Parameters α and ε as in <ref type="figure" target="#fig_2">Figure 4</ref>. <ref type="figure">Figure 7</ref> shows the influence of the prior on our posterior beliefs of log(k) for low to high amounts of trial data. We can see that in the low data regime the prior has the effect of drawing our estimates toward the prior mean. If a participant has an extremely high discount rate of log(k) = −1, then after 2-4 trials worth of data, our estimate is attenuated toward the prior mean. However, as more trial data arrives, our posterior shifts and extremely high discount rates become more credible.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5">Role of the prior</head><p>This influence of the prior on both our beliefs, and the subsequent influence on what question is deemed most informative is a desirable property. Ours is the only method where our prior beliefs that extreme discount rates are actually rare are taken into account. This is a desirable effect if our prior truly reflects our beliefs about how discount rates are distributed across our participant population. However, if our participant population does deviate from our prior, then it does not take many trials for the data to assign appropriate credibility to the participant's true discount rate.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Implementing other DARC experiments</head><p>So far we have presented advances to Bayesian adaptive design, and outlined a flexible approach of applying this to DARC experiments. We have thoroughly demonstrated the benefits of this approach in the context of delay discounting experiments, as compared to some existing approaches. However the real power of this toolbox is its generality -in this section we demonstrate how our approach can easily be applied to 3 additional experiment types. Namely, delayed (i.e. inter-temporal) choice with magnitude effect, risky choice (i.e. probability discounting), and combined delayed and risky choice experiments. <ref type="table">Table 3</ref> lists the 4 experimental approaches (models and design spaces) we focus upon in this paper which essentially plug-in to the core toolbox. At the end of this section we briefly describe our successful parameter recovery simulations to highlight that the toolbox does indeed function very well not only for temporal discounting, but for a range of experimental paradigms.</p><p>We implement these with the popular hyperbolic discount functions, but again stress that it is trivial to extend these to alternative discount functions. Indeed, we provide examples in our software to demonstrate how to, for example, extend to a 2-parameter hyperboloid model of risky choice.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Delayed choice, with the magnitude effect</head><p>The DARC Toolbox allows for extensions to the utility-based approach. We can, for example, extend Equation 8 to</p><formula xml:id="formula_17">V (P) = u(R) • π(P, R) • d(D, R).<label>(12)</label></formula><p>By making d(•) a function of both the delay and reward, we can capture the magnitude effect where present bias decreases for higher magnitude delayed rewards <ref type="bibr" target="#b32">(Kirby and Maraković, 1996;</ref><ref type="bibr" target="#b72">Vincent, 2016)</ref>. Doing the same for probability weighting, we could capture the peanuts effect where present bias increases for higher magnitude probabilistic rewards <ref type="bibr" target="#b4">(Brown and Cross, 2000;</ref><ref type="bibr" target="#b26">Green, Myerson, and Ostaszewski, 1999)</ref>. The second experimental procedure presented addresses the question, "How does a participant's discount rate vary with reward magnitude?" Again, we assume people discount according to the 1parameter hyperbolic function (see <ref type="table">Table 3</ref>), however, we define that the log of the discount rate varies linearly with the log of the reward magnitude (as in Vincent, 2016). The parameters used to estimate the magnitude effect are: m for the slope of how log discount rate changes with log reward magnitude, c for the intercept of this line, and again ε and α as before.</p><p>The form of the design space is similar, but testing values of R b over a number of orders of magnitude clearly allows much better estimation of the slope of the magnitude effect. For the present work we defined, R b = (10, 100, 1000).</p><p>When estimating the magnitude effect, we set the priors over the slope and intercept as m ∼ Normal(−0.243, 5), and c ∼ Normal(−4.716, 100), respectively. The mean slope was chosen as −0.243 and mean intercept as −4.716 because it was the most probable value from a survey of previous studies presented in <ref type="bibr" target="#b29">Johnson and Bickel (2002)</ref>, analysed by Vincent (2016). The standard deviations were chosen to reflect our increased uncertainty in the intercept.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Risky choice (probability discounting)</head><p>Rachlin et al. <ref type="bibr">(1991)</ref> showed that discounting of the probability of receiving a delayed reward (compared to a certain immediate reward) can also be described using the 1-parameter hyperbolic discount function. The process of estimating the probability discounting parameter h (see <ref type="table">Table 3</ref>) is therefore identical to that of discount rates log(k). The descriptive adequacy of the hyperbolic discount functions for probabilistic outcomes <ref type="bibr" target="#b3">(Blackburn and El-Deredy, 2013;</ref><ref type="bibr" target="#b5">Bruce, Bruce, Catley, Lynch, Goggin, Reed, Lim, Strober, Glusman, Ness, and Jarmolowicz, 2015;</ref><ref type="bibr" target="#b18">Estle, Green, Myerson, and Holt, 2007;</ref><ref type="bibr" target="#b36">Lawyer, Williams, Prihodova, Rollins, and Lester, 2010;</ref><ref type="bibr" target="#b56">Rasmussen, Lawyer, and Reilly, 2010)</ref> will allow researchers to more efficiently collect data which can contribute to more mechanism-focussed questions. For example, there is an ongoing debate about whether delay and probability discounting is driven by a single process, or two independent processes (e.g. <ref type="bibr" target="#b42">Myerson, 2004)</ref>, but in terms of our task here of data collection, we can remain impartial to this mechanistic debate.</p><p>The response model remains essentially the same as for time discounting, however the discount function is changed to represent that participants are now discounting odds against receiving the later reward 1−P b P b , as opposed to time delay D b (see <ref type="table">Table 3</ref>). A slightly different approach was taken to arrive at a prior over probability discount rate h than the time discount rate k. We should note that when h = 1 a participant would be risk-neutral, using a maximum expected value strategy <ref type="bibr" target="#b26">(Green et al., 1999)</ref>. For example, they would be indifferent between £10 and 10% of £100. However, when 0 &lt; h &lt; 1, a participant would be risk-seeking, preferring the latter option, and when h &gt; 1 they are risk-averse preferring the former option. Here will restrict h &gt; 0. There are a number of studies showing people vary along this risk-aversion riskseeking dimension. We propose using as prior where h is Gamma distributed with parameters mode = 1 and σ 2 = 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Delayed and risky choice</head><p>Yi, de la <ref type="bibr" target="#b76">Piedad, and Bickel (2006)</ref> provided the first evidence that discounting of delayed and probabilistic rewards can be well described by a hyperbolic model of discounting according to a summative overall discount rate. However, <ref type="bibr" target="#b71">Vanderveldt, Ariana, Green, Leonard, and Myerson, Joel (2015)</ref> provide evidence that the subjective value function is well described by a multiplicative interaction between probability and delay discount rates (as in Equation 8). They used a 2-parameter hyperboloid model, but in keeping with our attempt to retain simplicity we apply this multiplicative interaction to the 1-parameter hyperbolic function (see <ref type="table">Table 3</ref>, bottom row).</p><p>In theory, we could freely vary all 6 aspects of the design space (R a , D a , P a , R b , D b , P b ). However, here we constrain prospect a to be immediate and certain, but the toolbox can vary the reward level. Prospect b is set to have a reward value of £100, but the toolbox can vary the delay and the probability.</p><p>The parameters, log(k) and h have the same meaning as the previously discussed time and probability discounting models, and so the same priors for each parameter were used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4">Parameter recovery simulations</head><p>One of the strengths of our approaches is that we can apply it to multiple different delayed and risky choice experiments. While two of the alternative methods we have examined <ref type="bibr" target="#b21">(Frye et al., 2016;</ref><ref type="bibr"></ref> Koffarnus and Bickel, 2014) could be adapted to work with risky choice (probability discounting), they are not general enough to be applied to all models. In particular, they would not work with models which have a discount surface that varies over 2 dimensions such as with combined delay and probability discounting, nor delay discounting where discount rate varies with reward magnitude. Therefore it is not possible to compare our method against these alternative methods. But the performance of our approach in general has already been established in the previous section with the basic time discounting experiment. However, to confirm that the usefulness of the methods extend to these other experimental procedures (time discounting with magnitude effect, probability discounting, and combined probability and time discounting), we conducted a similar parameter recovery procedure on our remaining discounting models (see <ref type="figure" target="#fig_7">Figure 8)</ref>. We again find that our approach is able to do well at recovering known discounting parameters of simulated participants. For each of the discounting experiment types, we examine a cross section of true parameter values that span a reasonable range for that model, and these are shown on the x-axes. The role of the prior with low trial numbers still occurs (as we showed for the time discounting model, <ref type="figure">Figure 7</ref>) but are not shown here; we present parameter estimates after a total of 30 simulated trials.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Discussion</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">Example use cases</head><p>To emphasise the generality of the toolbox we have presented, we will briefly discuss a few example use cases. These examples, and more practical implementation advice is provided along with the toolbox at https://github.com/drbenvincent/darc-experiments-matlab or https://github .com/drbenvincent/darc-experiments-python.</p><p>Thus far we have seen examples with positive rewards. It is trivial to run DARC experiments with losses -one need simply alter the design space, for example such that R a and R b consist of negative values. This has been done and one of us have been using the toolbox to collect data about behaviours in both the gain and loss domains.</p><p>The toolbox will provide optimal designs, d * , and the user can use this to present pairs of prospects to participants using whatever presentation method they would like. By default, we assume experiments are being run with monetary rewards, and options are presented as text in clickable buttons. Various built-in options are provided (see <ref type="figure" target="#fig_9">Figure 9</ref>) including money (in various commodities) and non-monetary rewards, and provide either delay or date framing of delays <ref type="bibr" target="#b12">(DeHart, 2015;</ref><ref type="bibr" target="#b57">Read, Frederick, Orsel, and Rahman, 2005)</ref>. This flexibility has meant that the present methods have already been used for data collection for a range of different commodity types <ref type="bibr" target="#b64">(Skrynka and Vincent, 2017)</ref>. Researchers can of course update the existing code to present in whatever manner is appropriate for their experiment. For example, one could test the effects of verbal versus graphical portrayal of risk as in <ref type="bibr" target="#b15">(Drichoutis and Lusk, 2017)</ref>. Or if testing non-humans, the experimenter would need to write some interface code with their particular experimental apparatus.</p><p>It is also possible to simultaneously run multiple experiments. The software is built such that researchers could interleave trials from a delay discounting experiment and a risky choice experiment, or a discounting experiment with an exponential discounting function and a hyperbolic discounting, or any such combination. Examples of how to do this are shown along with the code.</p><p>It is also entirely possible to inject manually derived experimental designs into the sequence of automatically generated designs. This might be useful if experimenters wish to display catch trials,  : Parameter recovery for remaining discounting tasks (rows). Many simulations (points and 95% credible intervals) of 30 trials were run to see how close the estimated parameters (y axes) match the true parameters of a simulated observer (x axes). Our method can correctly infer known parameter values of simulated observers for hyperbolic discounting with magnitude effect (top row; parameter sweep of (m, c) = (−1, −0.5) to (−0.5, −2.5)), probability discounting (middle row) and combined probability and time discounting (bottom row; parameter sweep of (log(k), h) = (−8, 0.1) to (−1, 10)). Parameters α and ε as in  : Examples of existing built-in ways in which the experimenter can modify framing of the optimal designs, d * produced by the toolbox. Rewards can be either monetary (in various currencies) or non-monetary in nature. Delays can be framed as delays from now, or as specific dates in the future.</p><p>or present pairs of prospects that for a given decision difficulty or reward conflict, that is, distance from indifference, V (P a ) −V (P b ). This could be useful in situations where researchers are trying to map behaviour (or EEG or fMRI measures) as a function of distance from indifference points. For example <ref type="bibr" target="#b17">, Eppinger, Heekeren, and Li (2017)</ref> found differences in BOLD signals for low vs high decision difficulty. Similarly, <ref type="bibr" target="#b38">Lin, Saunders, Hutcherson, and Inzlicht (2017)</ref> find pupil dilation and midfrontal theta signals (from EEG) systematically vary as a function of decision difficulty. Using our adaptive methods would allow very rapid real-time assessment of a participant's present behaviour (as captured by the posterior over θ ) and allow trials to be injected with systematic decision difficulty / reward conflict levels.</p><p>There are many more possible imaginable use cases. Our approach has been to make the toolbox as flexible as possible, and our documentation and code should allow for researchers to modify it for their own custom purposes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">Analysis of collected experimental data</head><p>After running an adaptive experiment, our toolbox provides raw behavioural data, point estimates (e.g. posterior median) and full posterior distributions over parameters. While it is entirely rea-sonable to enter the point estimates of parameters into one's larger experimental dataset, it may be advantageous to use more sophisticated methods.</p><p>The recommended workflow is to use the adaptive experimental methods presented in this paper in order to obtain raw behavioural data, and then to use hierarchical Bayesian analysis methods (e.g. <ref type="bibr" target="#b0">Ahn, Haines, and Zhang, 2017;</ref><ref type="bibr" target="#b47">Nilsson et al., 2011;</ref><ref type="bibr" target="#b72">Vincent, 2016)</ref> with study-specific priors in order to draw research conclusions.</p><p>The next best approach would be to use non-hierarchical but still Bayesian analysis methodswhich corresponds to taking the estimated posterior estimates from the toolbox (if the user has customised the priors to be study-specific). However, our toolbox uses 50,000 particles to represent the posterior, and if greater precision is needed, then MCMC-based methods in the packages mentioned above are suitable for generating hundreds of thousands of samples from the posterior.</p><p>In turn, the next best approach would be to use maximum likelihood methods <ref type="bibr" target="#b20">(Franck, Koffarnus, House, and Bickel, 2015;</ref><ref type="bibr" target="#b22">Gilroy, Franck, and Hantula, 2017;</ref><ref type="bibr" target="#b44">Myung et al., 2013a;</ref><ref type="bibr" target="#b77">Young, 2018)</ref>. These approaches can work very well, and are convenient when researchers are not able or willing to formalise any prior beliefs, however sometimes the data is not sufficient (in the absence of priors) to uniquely identify the maximum likelihood parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3">Cautions</head><p>While the adaptive methods we have outlined here represent a significant advance in running efficient experiments, there are a couple of caveats which have to be kept in mind.</p><p>We assumed each experimental trial to be an independent event. This is an often-made assumption in the modelling of human behaviour, but we should bear in mind that trial-to-trial and order effects are observed <ref type="bibr">(Robles and Vargas, 2007,0)</ref>.</p><p>In virtually all work of this type, the response model makes an assumption that the participant's responses are essentially fixed, in that the parameters that describe their behaviour are unchanging (i.e. stationary). This assumption may not in fact be true: it could be, for example, that participants are not entirely clear about their internal preferences, and running through an experiment may lead to refinement of their discount rates.</p><p>If real or hypothetical monetary rewards are offered, then experimenters must take care with priors over parameters when using different currencies. Many of the studies which report discount rates, or log discount rates have a meaning in the currency in which those studies were undertaken, often in U.S. dollars. Therefore, experimenters should either attempt to work out an exchange rate (which could involve complications) or to simply provide less informative priors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.4">Conclusion</head><p>We have presented methodological advances to the Bayesian adaptive design approach, along with a software toolbox implementation. This is a powerful and extendable resource which can be applied to any 2-choice task, however here we focussed on evaluating our approach using a variety of DARC experiments. We provide adaptive experiments for delay discounting, delay discounting with magnitude effects, probability discounting (risky choice), and combined delay discounting and risky choice. Further, these procedures are computationally efficient enough to run in real time on a mid-range laptop. We found that our method is superior to a number of other procedures in terms of quickly reducing our uncertainty about participant's behaviours (as captured by model parameters) in low numbers of experimental trials. Experimenters could then maintain accurate measures even when running experiments with fewer trials, which is highly desirable when testing special populations or when using EEG, fMRI, or other imaging methods. Alternatively, even more precise measures of behaviour can be obtained in a given number of trials. Together with the hierarchical Bayesian data analysis methods <ref type="bibr" target="#b47">(Nilsson et al., 2011;</ref><ref type="bibr" target="#b72">Vincent, 2016)</ref>, we now have a state-of-theart, fully Bayesian data collection and analysis pipeline to aid researchers reach robust and reliable research conclusions.</p><p>Our starting point to derive both the nested Monte Carlo (NMC) and our new non-nested estimator is the expected utility given in (3) of the main paper and repeated below for conveniencē</p><formula xml:id="formula_18">U(d) = Y p(y|d) Θ p(θ |y, d) log(p(θ |y, d))dθ − Θ p(θ ) log(p(θ ))dθ dy.<label>(13)</label></formula><p>We start by deriving the nested estimator, for which the first step, as shown by Myung et al. <ref type="formula">2013a</ref>, is to use Bayes rule to rearrange (13) into a form that only contains known terms as follows (remembering that p(θ ) = p(θ |d))</p><formula xml:id="formula_19">U(d) = Y p(y|d) Θ p(θ |y, d) log(p(θ |y, d))dθ − Θ p(θ ) log(p(θ ))dθ dy Y Θ p(y, θ |d) log p(θ |y, d) p(θ ) dθ dy = Y Θ p(y, θ |d) log p(y|θ , d) p(y|d) dθ dy = Y Θ p(y, θ |d) log(p(y|θ , d))dθ dy − Y p(y|d) log(p(y|d))dy.<label>(14)</label></formula><p>Though still problematic, this reformulation offers a number of advantages. One of these is that the first of the two terms now takes the form of a standard inference problem and is amenable to, for example, Monte Carlo estimation as follows</p><formula xml:id="formula_20">V 1 (d) = Y Θ p(y, θ |d) log(p(y|θ , d))dθ dy ≈ 1 N N ∑ n=1 log(p(y n |θ n , d))<label>(15)</label></formula><p>where θ n ∼ p(θ ) and y n ∼ p(y|θ = θ n , d). We can do this because, although the full integral is not analytic, the integrand in this term can now be evaluated exactly. As such, the integral of this term can be evaluated to a given accuracy orders of magnitude faster than the utility evaluation for grid-search approaches. By contrast, the second term of (14) is not directly amenable to standard MC estimation as the marginal p(y|d) represents an expectation and taking its logarithm represents a nonlinear functional mapping. However, we can still use a NMC estimator as follows</p><formula xml:id="formula_21">V 2 (d) = Y p(y|d) log(p(y|d))dy ≈ 1 N N ∑ n=1 log 1 M</formula><p>where θ n,m ∼ p(θ ) ∀m ∈ 0 : M, n ∈ 1 : N and y n ∼ p(y|θ = θ n,0 , d) ∀n ∈ 1 : N. As explained in the main paper, this NMC estimator is substantially less efficient than a standard Monte Carlo estimator ) and so we seek a more efficient means of estimatinḡ V 2 . To do this, we note that if y can only take on one of C possible values (y 1 , . . . , y C ), we can achieve significant improvements in the convergence rate by calculating the outer integral inV 2 analytically through enumeration, instead of using Monte Carlo. Namely we have</p><formula xml:id="formula_22">Y p(y|d) log (p(y|d)) dy = C ∑ c=1 p(y c |d) log(p(y c |d)),<label>(18)</label></formula><p>such that we no longer have to worry about an integral of non-analytic term at all. Instead, we need only estimateP</p><formula xml:id="formula_23">c = 1 N N ∑ n=1 p(y c |θ n , d) ≈ p(y c |d)<label>(19)</label></formula><p>for c = 1, . . . ,C and substitute p(y c |d) forP c in (18), noting that this represents a deterministic mapping of our estimates and that the y c are a finite number of fixed constants rather than Monte Carlo samples. We can also improve upon (15) by carrying out the integration over y analytically. This process is known as Rao-Blackwellisation <ref type="bibr" target="#b7">(Casella and Robert, 1996)</ref> and is (in terms of variance of the estimate) never worse than vanilla Monte Carlo. Namely we havē</p><formula xml:id="formula_24">V 1 (d) ≈V 1 (d) = 1 N N ∑ n=1 C ∑ c=1 p(y c |θ n , d) log (p(y c |θ n , d))<label>(20)</label></formula><p>where θ n ∼ p(θ ) as before. Putting this together leads to our final estimator as per (6) in the main paperŪ</p><formula xml:id="formula_25">(d) ≈Û(d) := 1 N N ∑ n=1 C ∑ c=1 p(y c |θ n , d) log (p(y c |θ n , d)) − C ∑ c=1 1 N N ∑ n=1 p(y c |θ n , d) log 1 N N ∑ n=1 p(y c |θ n , d)<label>(21)</label></formula><p>It is straightforward to show (see, for example, <ref type="bibr">(Rainforth, 2017, Chapter 13)</ref>) that the mean squared error ofÛ(d) toŪ(d) converges at a rate O(1/N), i.e.</p><formula xml:id="formula_26">E Û (d) −Ū(d) 2 ≤ σ N<label>(22)</label></formula><p>as per standard Monte Carlo convergence, with σ being a constant equal to the standard deviation resulting from an the estimator using a single sample. Consequently, we have that as N → ∞, the error inÛ(d) as an approximation ofŪ(d) tends to zero and that this error decreases faster than that ofÛ NMC (d).</p><p>From a mathematical perspective, we can generalize to the sequential design setting by incorporating data in the standard Bayesian fashion such that at experiment iteration t, we replace p (θ ) with p (θ |d 1:t−1 , y 1:t−1 ), where d 1:t−1 and y 1:t−1 are respectively the designs and outcomes at previous iterations. The likelihood p (y t |θ , d t ), on the other hand, is unchanged (presuming it is a parametric distribution) as, conditioned on θ and d, the current outcome is independent of the previous data. Putting this together, we get that the expected information gain criteria for the sequential case is</p><formula xml:id="formula_27">U t (d) = Y Θ p (θ |d 1:t−1 , y 1:t−1 ) p(y t |θ , d t ) log(p(y t |θ , d t ))dθ dy t − Y p(y t |y 1:t−1 , d 1:t ) log(p(y t |y 1:t−1 , d 1:t ))dy t<label>(23)</label></formula><p>where</p><formula xml:id="formula_28">p(y t |y 1:t−1 , d 1:t ) = Θ p (θ |d 1:t−1 , y 1:t−1 ) p(y t |θ , d t )dθ .<label>(24)</label></formula><p>We can now see that these terms are the same as in the non-sequential case, except that expectations are taken with respect to p (θ |d 1:t−1 , y 1:t−1 ) rather than p(θ ). Therefore, we can use the same Monte Carlo estimators (19), (20), and (6), simply changing how the θ n are sampled. Unlike p (θ ), it is typically not possible to evaluate, or sample from, p (θ |d 1:t−1 , y 1:t−1 ) exactly -we need to perform Bayesian inference to estimate it. Noting the implicit assumption of the likelihood model that observations are independent of one other given the parameters we have</p><formula xml:id="formula_29">p (θ |d 1:t−1 , y 1:t−1 ) ∝ p(θ ) t−1 ∏ i=1 p(y i |θ , d i )<label>(25)</label></formula><p>which is a typical Bayesian inference problem. We now remember that other than the likelihood, which is unchanged, the estimation scheme introduce in Appendix A requires only samples of θ as input. Therefore we can use a Monte Carlo inference method to produce these required samples θ n . There are many suitable candidates for this inference such as Metropolis Hastings <ref type="bibr" target="#b27">(Hastings, 1970)</ref>, sequential Monte Carlo (SMC) <ref type="bibr" target="#b13">(Doucet et al., 2000)</ref>, and Hamiltonian Monte Carlo <ref type="bibr" target="#b16">(Duane, Kennedy, Pendleton, and Roweth, 1987)</ref>. The relative merit of these will depend on characteristics of the problem such as multi-modality, dimensionality of θ , and the total number of questions that will be asked. In this work we have decided to use population Monte Carlo (PMC) <ref type="bibr" target="#b6">(Cappé et al., 2004)</ref>. At a high level, the PMC algorithm targeting an unnormalized distribution π(θ )</p><formula xml:id="formula_30">(= p(θ ) ∏ t−1 i=1 p(y i |θ , d i )</formula><p>in our scenario) comprises of independently propagating a population of, say M, samples known as particles. At each iteration j each particle is propagated in a manner similar to Metropolis Hastings using a proposal q(θ j+1 |θ j ). 5 However, instead of applying an individual accept/reject step to each sample, they are each assigned an importance weight</p><formula xml:id="formula_31">w j+1 m = π(θ j+1 m ) q(θ j+1 m |θ j m )<label>(26)</label></formula><p>5. Though it is permitted to use a different form of proposal for each sample in the population, we do not do so in our approach and so omit this case for clarity.</p><p>where m ∈ {1, . . . , M} is the sample index. The population is then resampled by sampling M new particles with replacement from the original population, with the probability of sampling each particle proportional to its weight w j+1 m . This creates a new population of unweighted particles, where particles that had high weight before the resampling will typically be replicated multiple times, whilst low weight particles will typically have been removed. The rational of this resampling is to reallocate computational resources to where they are needed -each of the duplicated particles will be propagated to different points at the next proposal step and thus form distinct samples. As the proposals are generally localized, replicating good particles will increase the number of samples in high probability regions, while eliminating those with negligible probability mass. Over time the particles will converge to the target distribution, such that they constitute samples from π. We refer the reader to <ref type="bibr" target="#b6">Cappé et al. (2004)</ref> for further details.</p><p>In order to run this inference, six things need to be specified: the prior p(θ ), the likelihood for a single response p(y|θ , d), the question response pairs {y i , d i } i=1:t−1 , the proposal q(θ j+1 |θ j ), the population size M, and the number of inference iterations j max . The first two correspond to specifying the model, as detailed in the main paper, and are the main input provided by the user. The question response pairs are, of course, collected during the running of the experiment. For the proposal we use a non-isotropic Gaussian, with length scales set adaptively an run time using the previous samples of θ . Though we found this worked well in practice across the range of models we consider, it may be necessary to specify this in a more problem specific manner for more challenging models. The modularity of our approach means that this can easily be changed if required. The final two things to be set, M and j max , are parameters that dictate the accuracy of the inference and are set based on computational restrictions. We take as default M = 5 × 10 4 and j max = 5 for which inference generally takes less than a second on a mid-range laptop. We note though, that they may need to be raised for problems where the inference is more challenging, or lowered in scenarios where time restrictions are even stricter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix C. Design optimisation details</head><p>Imagine that we are considering K designs with a total sample budgetNK and decide to use the same number of samples,N, to calculate an estimateÛ k for the utility of each design d k . After we have taken say n samples for each estimate, where 1 ≤ n &lt;N, then we will have a set of intermediate estimatesÛ n</p><p>1:K for each utility. Now remembering that our aim is to establish which design is best (i.e. whichŪ k is largest), we note that our intermediate estimates convey valuable informationthey show that some designs are more likely to be optimal than others. Consequently, sticking to our original plan and using the same number of samples,N − n, to complete our final estimates will be inefficient as some designs will be highly unlikely to be optimal and therefore it is pointless to spend a noticeable proportion of our computational budget to carefully refine their estimates. It is clearly more efficient, in terms of final optimisation problem, to take relatively more samples for the promising designs, so that we can better distinguish between their relative utilities, even if this results in very poor estimates for the low utility designs. This is the key idea of our approach -to adaptively change the number of samples used to estimate the utilities for different designs, based on the probability the design may end up being optimal given its intermediate estimates.</p><p>More specifically, given a total budget of NL =NK samples for all our estimates, then we will carry out L rounds of sampling (we take L = 50 as default), where at each round we adaptively allocate N samples (we take N = 5 × 10 4 as default) between the different estimators in proportion Algorithm 3 Design optimisation Inputs: Reservoir θ 1:M , likelihood p(y|θ , d), candidate designs D = d 1:K , number of rounds L, number of samples per round N, annealing schedule γ : Z + → R, minimum selection probability ratio ρ Outputs:</p><formula xml:id="formula_32">Chosen design d * 1:Û 1:K ← 0 Initialize estimates 2: for = 1 : L do 3:p 1:K ←Û γ( +1) 1:K Unnormalized selection probability = annealedÛ k 4: Z ← ∑ K k=1p k</formula><p>Normalization constant.  for k = 1 : K do 9:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5:</head><formula xml:id="formula_33">p k ← max ρ N ,p k Z ∀k = 1, . . . , K</formula><formula xml:id="formula_34">p k ← p k ∑ k=1:K p k ∀k = 1, . . . , K<label>Renormalize 7</label></formula><formula xml:id="formula_35">θ 1:n k ∼ DISCRETE (θ 1:M )</formula><p>Draw n k samples from reservoir 10:</p><formula xml:id="formula_36">Û k ← UPDATEESTIMATE Û k ,θ 1:n k , d k</formula><p>Use new samples to refine estimate 11:</p><p>end for 12: end for 13: k * ← argmax k∈{1,...,K}Ûk</p><p>Best design is one with highestÛ k 14: return d k *</p><p>to how relatively promising their respective designs appear. To do this, we sample a number of samples to take for each design at each round in proportion to an annealed version of its utility estimate (line 7 of Algorithm 3). Namely, if p k, is the probability each sample from our budget is assigned to design k at round andÛ k, is the corresponding running estimate for the utility of that design, then we have (line 3 of Algorithm 3)</p><formula xml:id="formula_37">p k, ∝ (Û k, ) γ( )<label>(27)</label></formula><p>where γ : Z + → R is an annealing function (see next paragraph). Thus we will, on average, add E[n k, ] = p k, N samples of θ to the estimate forŪ k at round (lines 9 and 10 of Algorithm 3). Specifically, the algorithm stores running estimates (not shown in Algorithm 3) for each V 1 k , P c k , and the number of estimates taken so far N k . Using the likelihood p(y|θ , d) and the design d k , each of these can then be updated with the n k new samples from the reservoir {θ j } j=1:n k at each round. This corresponds to the UPDATE function in Algorithm 3. The purpose of the annealing function is to control how aggressive our algorithm is in its allocation of computational resources to promising designs. At the early rounds, we are quite uncertain about the relative utilities and therefore wish to allocate samples fairly evenly. At the later rounds, we become more certain about the estimates so we become more aggressive about concentrating our efforts on promising designs. Therefore γ( ) is set to increase with so that the algorithm becomes more aggressive as our estimates become better refined. By default, we take γ( ) to vary linearly between γ(1) = 0 and γ(L) = 50.</p><p>We finish by noting a small, but important, subtlety of our method. As introduced so far, our algorithm is not guaranteed to converge. For example, it might be thatÛ k * = 0 after the first round of sampling where k * indicates the true optimal design andŪ k * = 0. Presuming that another design has a non zero estimate at this point, sampling naïvely from (27) would mean that no additional samples are ever added toÛ k * , even if infinite rounds are undertaken, meaning that the true optimum will be missed. To guard against this, we introduce a new parameter 0 &lt; ρ ≤ 1 (by default we take ρ = 0.01). After calculating p k, according to (27) and normalizing so that ∑ K k=1 p k, = 1, we update the probabilities by setting</p><formula xml:id="formula_38">p k, ← max ρ N , p k,<label>(28)</label></formula><p>and finally renormalizing (lines 3 to 6 in Algorithm 3). This ensures that each p k, &gt; ρ 2N as the maximum possible value for ∑ K k=1 p k, is 1 + N−1 N before renormalizing (which occurs when all but one p k, equals 0 prior to applying (28)) and so the minimum possible value of p k, after renormalizing is</p><formula xml:id="formula_39">ρ N(1+ N−1 N ) &gt; ρ 2N . Consequently, E L ∑ =1 n k, &gt; ρL 2<label>(29)</label></formula><p>and so for any finite value of ρ, each estimate will, in expectation, be assigned infinitely many samples as L → ∞, regardless of the true utilities and the values of γ( ). 6 As we show in the next section, we can use this to prove the convergence of the algorithm, in the sense of guaranteeing the optimal design will be found given infinite computational budget.</p><p>Algorithm 4 Method of Frye et al. <ref type="formula">2016</ref>Inputs: Vector of delays, delayed reward magnitude R b , trials per delay T Outputs: Vector of responses for each trial 1: D a ← 0 2: for each d in delays do 3:</p><formula xml:id="formula_40">D b ← d 4:</formula><p>for t = 1 : T do 5:</p><p>if t = 1 then  <ref type="bibr" target="#b34">Koffarnus and Bickel (2014)</ref> In the 5-trial approach of Koffarnus and Bickel (2014), a pre-defined series of 31 delays (D b ) are chosen (their <ref type="table" target="#tab_2">Table 1</ref>), ranging from 1 hour to 25 years. All sooner rewards are immediate (D a = 0), and the delayed reward is always double the immediate reward (R b = 2R a ). This design space can be thought of as a series of 31 questions of different D b values which takes a cross section at a discount fraction of 0.5. So by assuming a hyperbolic discount function, we can determine the half life (k −1 ), which is the delay in which the present subjective value of a future reward is half of its objective value. Their heuristic algorithm is given in Algorithm 5.</p><p>Algorithm 5 Method of <ref type="bibr" target="#b34">Koffarnus and Bickel (2014)</ref> Inputs: Delayed reward value R b Outputs: Vector of responses for each trial 1: delays ← As per <ref type="table" target="#tab_2">Table 1</ref> in <ref type="bibr" target="#b34">Koffarnus and Bickel (2014)</ref> 2: D a ← 0, R a ← R b /2, n ← 8 3: for t = 1 : 5 do 4:</p><p>if t = 1 then Determine index i into delay list we wish to minimize uncertainty. The rationale for this is that treating it explicitly as a nuisance parameter would require the replacement of p (y|θ , d) with p (y|θ , d) dα. This would massively increase the computational cost of the estimatingŪ as it would restrict one to only using a substantially less efficient NMC based estimator. <ref type="bibr">8</ref> Furthermore, we argue we should still look to minimize the entropy with respect to α even if we are not interested in the "true" value of α and in the absence of computational considerations. There are two core reasons for this: a) the optimal design equations are myopic <ref type="bibr" target="#b23">(González, Osborne, and Lawrence, 2016)</ref> -they only consider one iteration in isolation -and b) they presume that the responses will be generated exactly by p (y t |y 1:t−1 , d 1:t ), whereas in practice model-misspecification means this is not the case. Reducing uncertainty in α alleviates both these issues, reducing the level of model-misspecification and improving our estimate of the predictive marginal. Therefore although treating α as a nuisance variable when we expect to make no further questions might be preferable, information gathered about α will be helpful for future questions and so, even if it is a nuisance variable, it should be included in the entropy reduction to improve performance of the experiment as a whole. can result in a posterior that is far-fetched to a human observer, but still technically correct in the given model. This can be particularly damaging for adaptive design as the resulting severe overconfidence in current predictions -the model has no concept it might be wrong -can cause the process to get stuck repeatedly asking similar questions.</p><p>Our particular model also has a large degree of redundancy, as our discount factors depend only on the difference between the rewards and are thus effectively independent of the sum of the rewards V (P a ) + V (P b ). This, along with the issue of model misspecification, means that it is necessary for us to sometimes incorporate heuristic components to the design optimisation to artificially force a good spread of questions, rather than just ensuring that all our questions are pertinent.</p><p>There are a number of subtleties to this heuristic and we will only provide the high level idea here, referring the reader to the generate designs.m function in the code for full details. The desire of our heuristic is to ensure a good spread in values of V (P a ) + V (P b ) as this value does not effect the outcome probability in our model. To do this, we will manipulate the set of candidate designs D at each step of the algorithm. Our heuristic works by first taking a point estimate for our parametersθ (for which we use the mean) that can be used to cheaply estimate subjective values, which we then calculate for all candidate and previous questions. We further eliminate any points from both the candidate and previous questions where the response is effectively certain as these points will clearly not make for helpful questions. We then use a kernel density estimator on V (P a ) + V (P b ) for the previous questions and use this as a measure of how often we have asked questions in that region of V (P a ) + V (P b ) before. Minimizing this gives us a target value of V (P a ) + V (P b ). To select the candidate designs, we then split the candidate designs into an number of evenly spaced bins (by default 100) of values for the probability of preferring P b , i.e. ψ(V (P a ),V (P b ),θ ). Our set of candidate designs is then taken as the point in each bin which has V (P a ) +V (P b ) closest to the target. There are also various fall-back strategies for when most bins are empty etc, for which we refer the reader to the code for full details.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4</head><label>4</label><figDesc>demonstrates 4 different experimental protocols (rows top to bottom;<ref type="bibr" target="#b33">Kirby (2009)</ref>, Koffarnus and Bickel (2014), Frye et al.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 5 :</head><label>5</label><figDesc>Comparison of how our uncertainty about log delay discount rates is reduced as a function of trials. The plot is based upon 500 simulated observers, each of which have a log discount rate sampled from our prior over log(k). Each simulated participant was subjected to the 4 experimental methods under consideration. Parameters α and ε as inFigure 4. Solid lines represent the median posterior entropy over the simulated experiments, shaded regions represent 50% credible regions for visual clarity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 6 :</head><label>6</label><figDesc>Parameter recovery of true time discounting rates for the existing approaches (top row) and our approach (bottom row). Each point and error bar represents the mean and 95% credible intervals of the posterior over log(k) of one simulated discounting experiment. Parameters α and ε as inFigure 4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 8</head><label>8</label><figDesc>Figure 8: Parameter recovery for remaining discounting tasks (rows). Many simulations (points and 95% credible intervals) of 30 trials were run to see how close the estimated parameters (y axes) match the true parameters of a simulated observer (x axes). Our method can correctly infer known parameter values of simulated observers for hyperbolic discounting with magnitude effect (top row; parameter sweep of (m, c) = (−1, −0.5) to (−0.5, −2.5)), probability discounting (middle row) and combined probability and time discounting (bottom row; parameter sweep of (log(k), h) = (−8, 0.1) to (−1, 10)). Parameters α and ε as in Figure 4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>Figure 4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 9</head><label>9</label><figDesc>Figure 9: Examples of existing built-in ways in which the experimenter can modify framing of the optimal designs, d * produced by the toolbox. Rewards can be either monetary (in various currencies) or non-monetary in nature. Delays can be framed as delays from now, or as specific dates in the future.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head></head><label></label><figDesc>Algorithm 2 Design optimisationInputs: Reservoir θ 1:M , candidate designs D = d 1:K , number rounds L and samples per round N Outputs: Chosen design d</figDesc><table><row><cell>1:Û 1:K ← 0</cell><cell>Initialize estimates</cell></row><row><cell>2: for = 1 : L do</cell><cell></cell></row><row><cell>3:</cell><cell></cell></row></table><note>*</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 1 :</head><label>1</label><figDesc>Notation used for modelling behaviour in DARC experiments.</figDesc><table /><note>detail below. The present subjective value of a prospect, in this class of models, is determined by</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7"><head></head><label></label><figDesc>ASKQUESTION(D a , D b , R a , R b ) 16: end for</figDesc><table><row><cell>5:</cell><cell>i ← 16</cell><cell>First delay corresponds to D b of 3 weeks</cell></row><row><cell>6:</cell><cell>else</cell><cell></cell></row><row><cell>7:</cell><cell>if responses[t − 1] = sooner then</cell><cell></cell></row><row><cell>8:</cell><cell>i ← i − n</cell><cell>decrease delay of later reward</cell></row><row><cell>9:</cell><cell>else</cell><cell></cell></row><row><cell>10:</cell><cell>i ← i + n</cell><cell>increase delay of later reward</cell></row><row><cell>11:</cell><cell>end if</cell><cell></cell></row><row><cell>12:</cell><cell>n ← n/2</cell><cell></cell></row><row><cell>13:</cell><cell>end if</cell><cell></cell></row><row><cell>14:</cell><cell>D b ← delays[i]</cell><cell></cell></row><row><cell>15:</cell><cell>responses[t] ←</cell><cell></cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">. Though our code implementation currently only supports binary responses, this is not inherent to the approach and we plan to extend the code at a later date.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">. Note that when dealing with the more general case of a full payoff distribution, then R, P, and D are now vectors where the sum of elements in P equals 1. In this case, Equation 8 becomesV (P) = Σ i u(R[i]) • π(P[i]) • d(D[i]).Our provided software toolbox is easily extends to payoff distributions.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3">. Delay discounting only is a 4-dimensional design space,d = (R a , D a , 1, R b , D b , 1) where D a ≥ 0, D b &gt; 0, D b &gt; D a ,and R b &gt; R a tends to be imposed. 4. Probability discounting only is a 4-dimensional design space, d = (R a , 0, P a , R b , 0, P b ) where R b &gt; R a , 0 &lt; P b &lt; 1 and typically P a = 1.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>The authors thank Daniel Baker for comments on an early draft of this manuscript. Tom Rainforth's research leading to these results has received funding from the European Research Council under the European Union's Seventh Framework Programme (FP7/2007-2013) ERC grant agreement no. 617071. However, the majority of this work was undertaken while he was in the Department of Engineering Science, University of Oxford, and was supported by a BP industrial grant. We also thank Aaron Johnson for the invitation to run a workshop at Concordia University on the methods presented in this paper, which gave rise to useful feedback for the paper and software.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Software</head><p>The adaptive experiments are freely available to download at https://github.com/drbenvincent/ darc-experiments-matlab or https://github.com/drbenvincent/darc-experiments-python. Examples are provided online to demonstrate how to run experiments with a few simple commands. We are interested in hearing about user-experiences, feature requests, and bug reports so that we can improve the toolbox over time. The DARC Toolbox is written in a modular and expandable fashion to allow researchers to construct and contribute additional models.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We start our proof by noting that by the definition of τ(•) then L → ∞ also predicates that M → ∞, while M ≥ NL also ensures the reservoir is large enough to not need to reuse samples. By the convergence results shown for PMC in <ref type="bibr" target="#b10">Chopin et al. (2004)</ref> this means that Monte Carlo estimates of measurable functions made with respect to our infinite reservoir will converge almost surely.</p><p>As the n k, are not independent, we break each down into two terms n k, = m k, + r k, where m k, ∼ BINOMIAL(N, ρ 2N ) and r k, ∼ BINOMIAL(N, p k, − ρ 2N ) (which induces the appropriate distribution on n k, ). For any given k, all the m k, are mutually independent and P(m k,</p><p>Therefore, for any possible N (including N → ∞) we have ∑ ∞ =1 P(m k, ≥ 1) = ∞ and so by the second Borel-Cantelli lemma, the event m k, ≥ 1 occurs infinitely often with probability 1. Thus, as each r k, ≥ 0, it must also be the case that P(lim L→∞ ∑ L =1 n k, = ∞) = 1. Together these two results ensure almost sure convergence of each of the K estimatesÛ k (i.e. all the estimates become exact) at each iteration and so we must choose the optimal design (or one the equally best designs if there is a tie) almost surely in the limit L → ∞. 6. Note that one should, if desired, be able to instead use an upper confidence bounding strategy <ref type="bibr" target="#b2">(Auer, 2002)</ref> to produce a zero-regret strategy whilst maintaining convergence Appendix F. Nuisance parameters: error rate ε and comparison acuity α</p><p>The parameters α and ε can be described as nuisance parameters, in that they are an important part of the model, but they are not of key theoretical interest. In other words, these parameters can capture something useful about participant's response errors, but for the present purposes we are primarily interested in the discounting parameters; either log(k), (m, c), or log(h), depending upon the model. Our software allows for these parameters to be either set to fixed values (as is done for demonstrative purposes in the shown experiments α = 2, and ε = 0.01) or to be included as parameters by introducing priors. In practise we recommend setting ε, as its accurate inference would require hundreds if not thousands of data-points 7 .</p><p>Placing a prior over α on the other hand can be eminently useful by reducing the model misspecification. This comes with a caveat though -if not fixed, α will be treated as a parameter for which 7. For example consider the case were we have one highly dubious result in an experiment of 30 questions. Any values of ε between say 0.02 to 0.1 remain very plausible in the absence of other information.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix G. Heuristics for coping with model misspecification and redundancy</head><p>The true underlying model for a participant is clearly far more complicated than can be modelled using a simple parametric model. Remaining tractable and ensuring interpretability of the parameters makes such simple models necessary, while practical limitations on the information that can be extracted from the experiment mean that more complicated models are not likely to gather significantly more information. Unfortunately, misspecification can be problematic when inferring parameters. For example, the presence of a very low likelihood observation in a misspecified model 8. Note that the resulting estimator is distinct to theÛ NMC (d) defined in (17).</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Revealing Neurocomputational Mechanisms of Reinforcement Learning and Decision-Making With the hBayesDM Package</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><surname>Woo-Young Ahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lei</forename><surname>Haines</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="24" to="57" />
+			<date type="published" when="2017-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Bayesian-optimal design via interacting particle systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Billy</forename><surname>Amzal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Frédéric</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><surname>Bois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian P</forename><surname>Parent</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Robert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American Statistical Association</title>
+		<imprint>
+			<biblScope unit="volume">101</biblScope>
+			<biblScope unit="issue">474</biblScope>
+			<biblScope unit="page" from="773" to="785" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Using confidence bounds for exploitation-exploration trade-offs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Auer</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<publisher>JMLR</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">The future is risky: Discounting of delayed and uncertain outcomes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Marianna</forename><surname>Blackburn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wael</forename><surname>El-Deredy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">94</biblScope>
+			<biblScope unit="page" from="9" to="18" />
+			<date type="published" when="2013-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Discounting in judgments of delay and probability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jay</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Cross</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Behavioral Decision Making</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="145" to="159" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Being Kind to Your Future Self: Probability Discounting of Health Decision-Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Jared</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amanda</forename><forename type="middle">S</forename><surname>Bruce</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Delwyn</forename><surname>Bruce</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sharon</forename><surname>Catley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kathleen</forename><surname>Lynch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Derek</forename><surname>Goggin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Seung-Lark</forename><surname>Reed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lauren</forename><surname>Lim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Morgan</forename><surname>Strober</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Abigail</forename><forename type="middle">R</forename><surname>Glusman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><forename type="middle">P</forename><surname>Ness</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jarmolowicz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015-12" />
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="page" from="297" to="309" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Population Monte Carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Olivier</forename><surname>Cappé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arnaud</forename><surname>Guillin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jean-Michel</forename><surname>Marin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian P</forename><surname>Robert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Computational and Graphical Statistics</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="907" to="929" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Rao-blackwellisation of sampling schemes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">George</forename><surname>Casella</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Christian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Robert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">83</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="81" to="94" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">On the functional form of temporal discounting: An optimized adaptive test</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Daniel R Cavagnaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gabriel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Aranovich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Samuel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mcclure</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jay I</forename><surname>Pitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Myung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Risk and Uncertainty</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1" to="22" />
+			<date type="published" when="2016-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Bayesian experimental design: A review</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kathryn</forename><surname>Chaloner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Isabella</forename><surname>Verdinelli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistical Science</title>
+		<imprint>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Central limit theorem for sequential monte carlo methods and its application to bayesian inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nicolas</forename><surname>Chopin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="2385" to="2411" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">On Weight and Waiting: Delay Discounting in Anorexia Nervosa Pretreatment and Posttreatment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Johannes</forename><forename type="middle">Hugo</forename><surname>Decker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bernd</forename><surname>Figner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joanna</forename><forename type="middle">E</forename><surname>Steinglass</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biological Psychiatry</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="9" />
+			<date type="published" when="2015-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">The effects of the framing of time on delay discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">William</forename><surname>Brady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dehart</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="10" to="21" />
+			<date type="published" when="2015-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">On sequential monte carlo sampling methods for bayesian filtering</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arnaud</forename><surname>Doucet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simon</forename><surname>Godsill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christophe</forename><surname>Andrieu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and computing</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="197" to="208" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Survey of time preference, delay discounting models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J R</forename><surname>Doyle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Judgment and Decision Making</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="116" to="135" />
+			<date type="published" when="2013-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">What can multiple price lists really tell us about risk preferences?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Andreas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jayson</forename><forename type="middle">L</forename><surname>Drichoutis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lusk</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Risk and Uncertainty</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">2-3</biblScope>
+			<biblScope unit="page" from="1" to="18" />
+			<date type="published" when="2017-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Hybrid monte carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simon</forename><surname>Duane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Anthony</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Brian</forename><forename type="middle">J</forename><surname>Kennedy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Duncan</forename><surname>Pendleton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Roweth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Physics letters B</title>
+		<imprint>
+			<biblScope unit="volume">195</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="216" to="222" />
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Age Differences in the Neural Mechanisms of Intertemporal Choice Under Subjective Decision Conflict</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ben</forename><surname>Eppinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shu-Chen</forename><surname>Hauke R Heekeren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cerebral Cortex</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="11" />
+			<date type="published" when="2017-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Discounting of Monetary and Directly Consumable Rewards</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leonard</forename><surname>Estle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel D</forename><surname>Myerson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Holt</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="58" to="63" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Mcmc design-based non-parametric regression for rare-event. application to nested risk computations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gersende</forename><surname>Fort</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Emmanuel</forename><surname>Gobet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><surname>Moulines</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monte Carlo Methods Appl</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Accurate characterization of delay discounting: a multiple model approach using approximate Bayesian model selection and a unified discounting measure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Christopher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Franck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Mikhail</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leanna</forename><forename type="middle">L</forename><surname>Koffarnus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Warren</forename><forename type="middle">K</forename><surname>House</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bickel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="218" to="233" />
+			<date type="published" when="2015-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Measuring Delay Discounting in Humans Using an Adjusting Amount Task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C J</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ann</forename><surname>Frye</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><forename type="middle">E</forename><surname>Galizio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Brady</forename><surname>Friedel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amy</forename><forename type="middle">L</forename><surname>Dehart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Odum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of visualized experiments : JoVE</title>
+		<imprint>
+			<biblScope unit="issue">107</biblScope>
+			<date type="published" when="2016-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">The discounting model selector: Statistical software for delay discounting applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Shawn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gilroy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Christopher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Donald</forename><forename type="middle">A</forename><surname>Franck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Hantula</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="388" to="401" />
+			<date type="published" when="2017-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Glasses: Relieving the myopia of bayesian optimisation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Javier</forename><surname>González</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Neil</forename><surname>Lawrence</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Artificial Intelligence and Statistics</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="790" to="799" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Church: A language for generative models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Noah D Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Vikash</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Mansinghka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Keith</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><forename type="middle">B</forename><surname>Bonawitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Twenty-Fourth Conference on Uncertainty in Artificial Intelligence. Citeseer</title>
+		<meeting>the Twenty-Fourth Conference on Uncertainty in Artificial Intelligence. Citeseer</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Temporal discounting in choice between delayed rewards: the role of age and income</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Myerson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lichtman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rosen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychology and Aging</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="79" to="84" />
+			<date type="published" when="1996-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Amount of reward has opposite effects on the discounting of delayed and probabilistic outcomes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leonard</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><surname>Myerson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pawel</forename><surname>Ostaszewski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: Learning, Memory, and Cognition</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="418" to="427" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Monte carlo sampling methods using markov chains and their applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W Keith</forename><surname>Hastings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="97" to="109" />
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Estimating the mean of a non-linear function of conditional expectation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jeff</forename><surname>Hong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sandeep</forename><surname>Juneja</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Winter Simulation Conference</title>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Within-subject comparison of real and hypothetical money rewards in delay discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Matthe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Warren</forename><forename type="middle">K</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bickel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">77</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="129" to="146" />
+			<date type="published" when="2002-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Prospect Theory: An Analysis of Decision under Risk</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Kahneman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amos</forename><surname>Tversky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Econometrica</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="263" to="292" />
+			<date type="published" when="1979-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">Psychophysics. A Practical Introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Frederick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nicolaas</forename><surname>Kingdom</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Prins</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009-09" />
+			<publisher>Academic Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Delay-discounting probabilistic rewards: Rates decrease as amounts increase</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K N</forename><surname>Kirby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N N</forename><surname>Maraković</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="100" to="104" />
+			<date type="published" when="1996-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">One-year temporal stability of delay-discount rates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kirby</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="457" to="462" />
+			<date type="published" when="2009-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">A 5-trial adjusting delay discounting task: accurate discount rates in less than one minute</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Mikhail</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Warren</forename><forename type="middle">K</forename><surname>Koffarnus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bickel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental and Clinical Psychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="222" to="228" />
+			<date type="published" when="2014-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Bayesian adaptive estimation of psychometric slope and threshold</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C W</forename><surname>L L Kontsevich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Tyler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Vision research</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="issue">16</biblScope>
+			<biblScope unit="page" from="2729" to="2737" />
+			<date type="published" when="1999-08" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Probability and delay discounting of hypothetical sexual outcomes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Steven R Lawyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sonja</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tereza</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jason</forename><forename type="middle">D</forename><surname>Prihodova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anita C</forename><surname>Rollins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lester</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="687" to="692" />
+			<date type="published" when="2010-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lisha</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kevin</forename><surname>Jamieson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Giulia</forename><surname>Desalvo</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1603.06560</idno>
+		<title level="m">Afshin Rostamizadeh, and Ameet Talwalkar. Hyperband: A novel bandit-based approach to hyperparameter optimization</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">Midfrontal theta and pupil dilation parametrically track subjective conflict (but also surprise) during intertemporal choice. bioRxiv</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hause</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Blair</forename><surname>Saunders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cendri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Hutcherson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Inzlicht</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017-08" />
+			<biblScope unit="page" from="1" to="56" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">An adjusting procedure for studying delayed reinforcement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mazur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Quantitative Analyses of Behavior</title>
+		<editor>M L Commons, J A Nevin, and Howard Rachlin</editor>
+		<meeting><address><addrLine>Erlbaum, Hillsdale, NJ</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1987" />
+			<biblScope unit="page" from="55" to="73" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Estimation of Indifference Points with an Adjusting-Delay Procedure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mazur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="37" to="47" />
+			<date type="published" when="1988-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">A comparison of four models of delay discounting in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Todd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leonard</forename><surname>Mckerchar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Myerson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jade</forename><forename type="middle">C</forename><surname>Stephen Pickford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Steven C</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Stout</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">81</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="256" to="259" />
+			<date type="published" when="2009-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">A discounting framework for choice with delayed and probabilistic rewards</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><surname>Myerson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological bulletin</title>
+		<imprint>
+			<biblScope unit="volume">130</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="769" to="792" />
+			<date type="published" when="2004-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">A Bayesian approach to testing decision making axioms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">George</forename><surname>Jay I Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Geoffrey</forename><forename type="middle">J</forename><surname>Karabatsos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Iverson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="205" to="225" />
+			<date type="published" when="2005-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">A tutorial on adaptive design optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jay I Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><forename type="middle">A</forename><surname>Daniel R Cavagnaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Pitt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">3-4</biblScope>
+			<biblScope unit="page" from="53" to="67" />
+			<date type="published" when="2013-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">A tutorial on adaptive design optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jay I Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><forename type="middle">A</forename><surname>Daniel R Cavagnaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Pitt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of mathematical psychology</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="53" to="67" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Adaptive Monte Carlo via bandit allocation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><surname>Neufeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">András</forename><surname>György</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dale</forename><surname>Schuurmans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Csaba</forename><surname>Szepesvári</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1405.3318</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Hierarchical Bayesian parameter estimation for cumulative prospect theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Håkan</forename><surname>Nilsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jörg</forename><surname>Rieskamp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric-Jan</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="84" to="93" />
+			<date type="published" when="2011-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Formal Comparison of Dual-Parameter Temporal Discounting Models in Controls and Pathological Gamblers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jan</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stephan</forename><forename type="middle">Franz</forename><surname>Miedl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Büchel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS ONE</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="47225" to="47237" />
+			<date type="published" when="2012-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Value-based decision-making battery: A Bayesian adaptive approach to assess impulsive and risky behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shakoor</forename><surname>Pooseh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nadine</forename><surname>Bernhardt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alvaro</forename><surname>Guevara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J M</forename><surname>Quentin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">N</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Smolka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">82</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="14" />
+			<date type="published" when="2017-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Decision Making Over Time and Under Uncertainty: A Common Approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Drazen</forename><surname>Prelec</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">George</forename><surname>Loewenstein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Management Science</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="770" to="786" />
+			<date type="published" when="1991-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">The psi-marginal adaptive method: How to give nuisance parameters the attention they deserve (no more, no less)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Prins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Vision</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1" to="17" />
+			<date type="published" when="2013-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Temporal discounting in major depressive disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pulcu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P D</forename><surname>Trotter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E J</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mcfarquhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Juhasz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B J</forename><surname>Sahakian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J F W</forename><surname>Deakin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Zahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I M</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Elliott</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Medicine</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">09</biblScope>
+			<biblScope unit="page" from="1825" to="1834" />
+			<date type="published" when="2013-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Subjective probability and delay</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Howard</forename><surname>Rachlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andres</forename><surname>Raineri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Cross</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="233" to="244" />
+			<date type="published" when="1991-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Automating inference, learning, and design using probabilistic programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Rainforth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Doctoral Dissertation</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">On the opportunities and pitfalls of nesting Monte Carlo estimators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Rainforth</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.06328</idno>
+		<idno>arXiv:1709.06181</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Nesting probabilistic programs</title>
+		<meeting><address><addrLine>Tom Rainforth, Robert Cornish, Hongseok Yang, Andrew Warrington, and Frank Wood</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Percent body fat is related to delay and probability discounting for food in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Erin B Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">William</forename><surname>Steven R Lawyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Reilly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">83</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="23" to="30" />
+			<date type="published" when="2010-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Four Score and Seven Years from Now: The Date/Delay Effect in Temporal Discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Read</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shane</forename><surname>Frederick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Burcu</forename><surname>Orsel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Juwaria</forename><surname>Rahman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Management Science</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1326" to="1335" />
+			<date type="published" when="2005-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">Determination of discount functions in rats with an adjusting-amount procedure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J B</forename><surname>Richards</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S H</forename><surname>Mitchell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>De Wit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L S</forename><surname>Seiden</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="353" to="366" />
+			<date type="published" when="1997-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+		<title level="m" type="main">Monte carlo methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Christian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Robert</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004" />
+			<publisher>Wiley Online Library</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Functional parameters of delay discounting assessment tasks: Order of presentation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Elias</forename><surname>Robles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Perla</forename><forename type="middle">A</forename><surname>Vargas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="237" to="241" />
+			<date type="published" when="2007-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Parameters of delay discounting assessment: Number of trials, effort, and sequential effects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Elias</forename><surname>Robles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Perla</forename><forename type="middle">A</forename><surname>Vargas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="285" to="290" />
+			<date type="published" when="2008-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title level="m" type="main">Maximum entropy sampling and optimal Bayesian experimental design</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sebastiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H P</forename><surname>Wynn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000-01" />
+			<biblScope unit="volume">62</biblScope>
+			<biblScope unit="page" from="145" to="157" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">Maximum entropy sampling and optimal bayesian experimental design</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Paola</forename><surname>Sebastiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Henry P Wynn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Royal Statistical Society: Series B (Statistical Methodology)</title>
+		<imprint>
+			<biblScope unit="volume">62</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="145" to="157" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<monogr>
+		<title level="m" type="main">Subjective hunger, not blood glucose, influences domain general time preference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jordan</forename><surname>Skrynka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Benjamin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Vincent</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017-07" />
+			<biblScope unit="page" from="1" to="12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Cumulative prospect theory&apos;s functional menagerie</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Stott</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Risk and Uncertainty</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="101" to="130" />
+			<date type="published" when="2006-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">Psychophysics of the probability weighting function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Taiki</forename><surname>Takahashi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Physica A: Statistical Mechanics and its Applications</title>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kazuhisa</forename><surname>Takemura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hajime</forename><surname>Murakami</surname></persName>
+		</author>
+		<title level="m">Probability Weighting Functions Derived from Hyperbolic Time Discounting: Psychophysical Models and Their Individual Level Testing</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">778</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title level="a" type="main">On the likelihood that one unknown probability exceeds another in view of the evidence of two samples</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>William R Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">3/4</biblScope>
+			<biblScope unit="page" from="285" to="294" />
+			<date type="published" when="1933" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title level="a" type="main">Fitting the psychometric function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Treutwein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Strasburger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; Psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">61</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="87" to="106" />
+			<date type="published" when="1999-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title level="a" type="main">Advances in prospect theory: Cumulative representation of uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amos</forename><surname>Tversky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Kahneman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Risk and Uncertainty</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="297" to="323" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<analytic>
+		<title level="a" type="main">Discounting of monetary rewards that are both delayed and probabilistic: delay and probability combine multiplicatively, not additively</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ariana</forename><surname>Vanderveldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leonard</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><surname>Myerson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: Learning, Memory, and Cognition</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="148" to="162" />
+			<date type="published" when="2015-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<analytic>
+		<title level="a" type="main">Hierarchical Bayesian estimation and hypothesis testing for delay discounting tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Benjamin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Vincent</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">48</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1608" to="1620" />
+			<date type="published" when="2016-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<analytic>
+		<title level="a" type="main">QUEST: a Bayesian adaptive psychometric method</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>A B Watson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="113" to="120" />
+			<date type="published" when="1983-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<analytic>
+		<title level="a" type="main">Using logistic regression to estimate delay-discounting functions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Janet</forename><surname>Paul Wileyto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Audrain-Mcgovern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Leonard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Caryn</forename><surname>Epstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lerman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Merhods, Instruments, &amp; Computers</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="41" to="51" />
+			<date type="published" when="2004-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<analytic>
+		<title level="a" type="main">A new approach to probabilistic programming inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Frank</forename><surname>Wood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jan</forename><forename type="middle">Willem</forename><surname>Meent</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vikash</forename><surname>Mansinghka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Artificial Intelligence and Statistics</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1024" to="1032" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title level="a" type="main">The combined effects of delay and probability in discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Richard</forename><surname>Yi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Xochitl</forename><surname>De La</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Piedad</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Warren</forename><forename type="middle">K</forename><surname>Bickel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural Processes</title>
+		<imprint>
+			<biblScope unit="volume">73</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="149" to="155" />
+			<date type="published" when="2006-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<analytic>
+		<title level="a" type="main">Discounting: A practical guide to multilevel analysis of choice data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Young</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="476" to="496" />
+			<date type="published" when="2018-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

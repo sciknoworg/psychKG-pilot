@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Predicting graded dishabituation using perceptual stimulus embeddings in a rational learning model</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anjie</forename><surname>Cao</surname></persName>
+							<email>anjiecao@stanford.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Brain and Cognitive Sciences</orgName>
+								<orgName type="institution">MIT</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">C</forename><surname>Frank</surname></persName>
+							<email>mcfrank@stanford.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Brain and Cognitive Sciences</orgName>
+								<orgName type="institution">MIT</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">Stanford University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Predicting graded dishabituation using perceptual stimulus embeddings in a rational learning model</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>attention</term>
+					<term>learning</term>
+					<term>visual perception</term>
+					<term>bayesian models</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>How do humans decide what to look at and when to stop looking? The Rational Action, Noisy Choice for Habituation (RANCH) model formulates looking behaviors as a rational information acquisition process. RANCH instantiates a hypothesis about the perceptual encoding process using a neural network-derived embedding space, which allows it to operate on raw images. In this paper, we show that the model not only captures key looking time patterns such as habituation and dishabituation, but also makes fine-grained, out-of-sample predictions about magnitudes of dishabituation to previously unseen stimuli. We validated those predictions experimentally with a self-paced looking time task in adults (N = 468). We also show that model fits are robust across parameters, but that assumptions about the perceptual encoding process, the learning process and the decision process are all critical for predicting human performance.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>From birth, humans learn actively. Even before they can move on their own, infants can select information by deciding what to look at and when to stop looking <ref type="bibr" target="#b9">(Haith, 1980;</ref><ref type="bibr" target="#b23">Raz &amp; Saxe, 2020)</ref>. Developmental psychologists have long leveraged this attentional decision-making to make inferences about the perceptual and cognitive abilities of infants by measuring how long infants look at certain stimuli <ref type="bibr" target="#b1">(Aslin, 2007;</ref><ref type="bibr" target="#b2">Baillargeon, Spelke, &amp; Wasserman, 1985;</ref><ref type="bibr" target="#b7">Fantz, 1963)</ref>.</p><p>Two key phenomena are particularly critical for these inferences: habituation and dishabituation. Habituation refers to the decrease in looking time upon seeing the same or similar stimuli repeatedly; dishabituation refers to the increase in looking time following the presentation of a novel stimulus after habituation. In order to dishabituate, the infant must distinguish between the original stimulus and the novel one. While habituation and dishabituation have been robustly documented, the underlying mechanisms of these looking time changes remain poorly understood. In this paper, we address this gap by presenting a rational model that provides principled predictions about the magnitude of dishabituation. Critically, this model can be applied generally to make predictions about looking time for arbitrary stimuli by using embeddings derived from a convolutional neural network.</p><p>The dominant model of infant looking time proposes that habituation and dishabituation are driven by the amount of information to be encoded in the stimulus <ref type="bibr" target="#b12">(Hunter &amp; Ames, 1988)</ref>. Observers look longer at a stimulus if the stimulus has a lot of unencoded information, and as exposure to the stimulus accumulates, less information is left unencoded, leading to shorter looking time. While this theory has been highly influential, the lack of formal details about what is meant by "encoding" opens the door for post-hoc interpretation of looking time measurements. A stimulus could be argued to be novel because it has distinct perceptual features, but it could also be familiar because of its conceptual characteristics (or perhaps both at the same time). In part as a result of this interpretive ambiguity, concerns have been raised repeatedly about whether looking time measurements should be the foundation for central claims in developmental psychology <ref type="bibr" target="#b3">(Blumberg &amp; Adolph, 2023;</ref><ref type="bibr" target="#b10">Haith, 1998;</ref><ref type="bibr" target="#b19">Paulus, 2022)</ref>.</p><p>Computational models provide an important tool for formalizing the details of the habituation and dishabituation process. One set of models describes infants' looking behaviors with information-theoretic measures derived from ideal observer models <ref type="bibr" target="#b13">(Kidd, Piantadosi, &amp; Aslin, 2012;</ref><ref type="bibr" target="#b20">Francesco Poli, Ghilardi, Mars, Hinne, &amp; Hunnius, 2023;</ref><ref type="bibr" target="#b21">F. Poli, Serino, Mars, &amp; Hunnius, 2020)</ref>. For example, <ref type="bibr" target="#b20">Poli et al. (2023)</ref> developed a model that learned probability distributions from sequences of events. They then calculated the Kullback-Leibler (KL) divergence between the model's parameters before and after each event in a sequence, capturing how much the model learned from each observation. This measure was shown to predict infants' looking behavior, with higher KL associated with lower probabilities of infants looking away.</p><p>While this type of model provides a quantitative account of the habituation process, it does not model the infant's information sampling process directly. Instead, it describes trial-level correlations between model-derived, informationtheoretic measures and infant looking times. Essentially, this type of model fails to elucidate the causal relationship between information theoretic measurements and infant's samling decision. Furthermore, it presupposes an abstracted representation of the stimuli as a sequence of schematic events (e.g., 1, 2, 1, 1, 3, etc.) rather than instantiating a hypothesis about how visual encoding occurs during attentional decision-making. This feature limits the ability of these models to make principled predictions about looking time for new stimuli.</p><p>To address these issues, Rational Action, Noisy Choice for Habituation (RANCH) model was developed . RANCH describes an agent's looking behavior as rational exploration based on a sequence of noisy perceptual samples. The model construes the looking time paradigm as a series of binary decisions: to keep sampling from the current stimulus, or to move on to the next stimulus. The model makes sampling decisions based on the Expected Information Gain (EIG) of the perceptual samples, choosing to keep looking or look away based on which one would in expectation yield the most information; it therefore can be seen as a rational analysis of looking behavior <ref type="bibr" target="#b0">(Anderson, 1991;</ref><ref type="bibr" target="#b15">Lieder &amp; Griffiths, 2020;</ref><ref type="bibr" target="#b17">Oaksford &amp; Chater, 1994)</ref>.</p><p>RANCH also incorporates recent progress in convolutional neural networks, which have offered insights into how the visual system encodes objects <ref type="bibr" target="#b5">(Doshi &amp; Konkle, 2023;</ref><ref type="bibr" target="#b11">Hebart, Zheng, Pereira, &amp; Baker, 2020;</ref><ref type="bibr" target="#b26">Yamins et al., 2014)</ref>. The activations of these brain-inspired neural networks form embedding spaces, each of which can be seen as a quantitative hypothesis about how humans represent visual stimuli <ref type="bibr" target="#b24">(Schrimpf et al., 2020)</ref>. For example, Lee (2022) projected the final layer of a trained ResNet50 into a "perceptuallyaligned" space, by making its representations match dissimilarity matrices derived from human adult reaction times in a 2-AFC match-to-sample task. Passing new stimuli through this perceptual alignment yields a plausible representation of how humans embed different visual stimuli in a lowdimensional space. Using this perceptually-aligned embedding space as a model of perceptual encoding allows RANCH to learn from raw, previously unseen images.</p><p>Previously, <ref type="bibr" target="#b4">Cao et al. (2023)</ref> and <ref type="bibr" target="#b22">Raz et al. (2023)</ref> have shown that RANCH can successfully model habituation and dishabituation in adults and infants. In this paper, we test RANCH's ability to predict responses in new data, particularly a key phenomenon in qualitative accounts of dishabituation. To conduct these tests, we first fit RANCH's parameters to a training dataset from the habituation-dishabituation experiment in which participants saw sequences of monsters which were either familiar or novel (dataset reported in <ref type="bibr">Cao et al., 2023, Fig 1A)</ref>. Then, we use the best-fitting parameters to generate predictions for a new experiment designed to measure subtle differences in dishabituation magnitude based on stimulus similarity ( <ref type="figure" target="#fig_0">Fig 1C)</ref>. In this new experiment, we systematically varied the similarity between habituation and dishabituation stimuli such that dishabituation stimuli differed in their pose angle, their number, their identity, or their animacy. This experiment tests a prediction from <ref type="bibr" target="#b12">Hunter &amp; Ames (1988)</ref> model of habituation and dishabituation: that observers' dishabituation magnitude should be related to the similarity between the habituated stimulus and the novel stimulus. The more dissimilar two stimuli are, the more one should dishabituate to the novel stimulus.</p><p>To preview our results, we show that RANCH can predict looking time responses in new data by transferring model parameters fit from previous data, with marginal differences in performance compared to completely refitting to the new data. RANCH also captures the particular ordering of the dishabituation magnitude as a function of stimulus dissimilarity, thereby predicting a novel qualitative phenomenon (graded dishabituation) without ever being trained on it. Finally, we show that RANCH is relatively robust across parameter settings, but the assumptions about its perceptual representation, learning process, and the decision process are all critical to its performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model Model Components</head><p>We modeled looking behaviors in our task as rational information acquisition, using a rational analysis approach previously described for different information-seeking behaviors <ref type="bibr" target="#b6">(Dubey &amp; Griffiths, 2020;</ref><ref type="bibr" target="#b17">Oaksford &amp; Chater, 1994)</ref>. Our goal was to develop a model which formalizes the entire process underlying looking time: from perception of a stimulus to deciding how long to look at it. To do so, our model has three separate components describing (1) how stimuli are embedded in a low-dimensional perceptual space (2) how RANCH learns a concept over this perceptual space and <ref type="formula">3</ref>how RANCH makes decisions about how long to sample from a stimulus based on its expected information gain. Here, we describe these three components in turn.</p><p>Perceptual representation To allow RANCH to operate on raw images, we used the perceptually-aligned embeddings obtained from a model presented recently by <ref type="bibr" target="#b14">Lee (2022)</ref>. We use these projections into a perceptually-aligned embedding space as a principled low-dimensional representation of stimuli, over which our learning model can form perceptual concepts. We used the first three principal components of the embedding space due to limits on the computing power; increasing dimension would lead to exponential increase in the total run time. The first three components captured 57.9% of the variance. A visualization of experimental stimuli in the embedding space can be seen in <ref type="figure" target="#fig_0">Figure 1B</ref>.</p><p>Learning model RANCH's goal is to learn a concept in the perceptual embedding space described above, through noisy perceptual samples from a stimulus. The concept is parameterized by a single 3D Gaussian (µ, σ), which represents beliefs about the location and variance of the concept in the embedding space. This concept describes the distribution of all viewed stimuli in this experiment. This concept (µ, σ) generates exemplars (y) of the concept. Each exemplar corresponds to one stimulus observed. RANCH observes repeated noisy samples (z) from each exemplar. For any sample (z) from an exemplar (y), the model expects the observation to get corrupted by zero-mean gaussian noise with standard deviation (ε). A plate diagram is shown in <ref type="figure" target="#fig_0">Figure 1B</ref>. We used a normal-inverse-gamma prior on the concept, the conjugate prior for a normal with unknown mean and variance, on the concept parameterized as µ p ,ν p ,α p , β p . Still, applying perceptual noise to y breaks the conjugate relation, so we computed approximate posteriors using grid approximation over (µ, σ) and (ε). This computationally expensive approximation was accomplished through a PyTorch implementation and distributed GPU computation. Decision model To decide whether to take an additional sample from the same stimulus, RANCH computes Expected Information Gain (EIG) of the next sample. EIG is computed as the product of the posterior predictive probability of the next sample and the information gained conditioned on that next sample, by iterating through a grid of possible subsequent samples. RANCH then makes a softmax choice (with temperature = 1) between taking another sample and looking away. We assumed that participants expect a constant information gain from looking away (the "world EIG"). Therefore, as EIG from the stimulus drops below world EIG, it becomes increasingly likely that RANCH will look away.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Alternative models</head><p>To test the importance of each of RANCH's components for its performance, we defined three lesioned models, in which one key feature of the model was removed in each model. First, to test the importance of the perceptual embeddings, we ran a version of RANCH in which the mappings from stimulus labels to embeddings were permuted, such that the associations between embeddings and violation type were randomized ("Random embeddings"). Second, we ran a version in which RANCH assumes that each perceptual sample in the learning process is noiseless, rather than corrupted by ε ("No noise").Third, we ran a version in which RANCH made decisions randomly rather than based on the learning model ("No learning").</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Training Procedure</head><p>We used the behavioral dataset reported in <ref type="bibr" target="#b4">Cao et al. (2023)</ref> as the training data. In this prior experiment, 449 adults participated in an online self-paced looking time paradigm <ref type="figure" target="#fig_0">(Fig.  1A)</ref>. In this paradigm, participants watched blocks of six animated monsters. Each block consisted of one repeating monster (the background), and one monster different from the repeated one (the deviant). The deviant, if shown, was on either the 2nd, 4th, or 6th trial of the block. Adults can proceed to the next trial whenever they press a key on the keyboard, and the interval between the onset of the stimuli and the key press was used as the proxy for looking time. To train on this dataset, we first converted the raw stimuli into perceptual embeddings, and combined them into the same sequences the participants saw. Since the model makes stochastic sampling decisions, we conducted 400 runs for each stimulus sequence for each parameter setting. To avoid numerical instabilities due to the granularity of our grid approximation, for each run we slightly jittered all parameter grid values by a constant offset. We conducted an iterative grid search across the priors over µ, ν and ε, along with the actual noise ε. We selected the parameters that yielded the highest R 2 between the model output and the behavioral data as the best fitting parameters. The best fitting parameters were: µ p = 0,ν p = 1, α p = 1, β p = 1, ε = 0.0001.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Behavioral Experiment</head><p>Next, we introduce the novel experiment used to test the generalizability of the parameter setting found above. The procedure was similar to the previous training data with two key differences: First, stimuli used in the training data were animated monsters, whereas the current experiment (test data) used images of animals and vegetables with added shaking animations. Second, unlike the training data, the current experiment varied the dissimilarity between the repeating stimuli and the deviant stimuli by introducing four different types of deviant stimuli.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>Stimuli All stimuli were created using images selected from Unity assets "Quirky Series -Animals" and "3D Prop Vegetables and Fruits". We added the same minor shaking animation to each image to increase interest. For each image from the animal set, we created a mirrored version to create an image with a different pose. The long axis of each vegetable image was tilted before mirroring.</p><p>Procedure The experiment was a self-paced web-based looking time experiment <ref type="figure" target="#fig_0">(Fig. 1C)</ref>. Participants saw 24 blocks that consisted of either two, four, or six trials. On each trial, a schematic screen would rise up to reveal a stimulus behind it. Participants pressed the spacebar to go on to the next trial after a minimum viewing time of 500 ms, triggering the schematic screen to drop and raise again to reveal the next stimulus.</p><p>Each participant saw eight types of repeating stimuli. The eight types of stimuli included all combinations of the three features that each included two levels: animacy (e.g. animals or vegetables), number (singleton or pair), and pose (facing left or right).</p><p>Eight blocks consisted of one stimulus being repeatedly presented throughout the block (background blocks). The remaining sixteen blocks included two stimuli, including one that was repeatedly presented and one that deviated from the repeating trial. Stimuli for each block were randomly sampled from the stimulus pool without replacement. The deviant trial was always different from the repeating stimulus in one of the four dimensions: animacy, identity, number, and pose. The deviant trial always appeared in the last trial of the block. In the first three violation types, the feature would be switched to the previously unseen level (e.g. an inanimate deviant after an animate repeating stimulus, keeping the number and the pose the same). For identity violations, the participants would see a different, but within-category, exemplar from the repeating stimulus category. Among the sixteen blocks, the four violation types each appeared four times. After each block, participants performed a filler task in which they judged whether they had seen an animation before. Half of the filler task showed previously unseen animation, and the other half showed an animation from the preceding block.</p><p>To control the distribution of background blocks and deviant blocks, we grouped the 24 blocks into four groups. Each group consisted of two background blocks, and one deviant block from each violation type. The order of blocks within each group was randomized.</p><p>Participants We recruited 550 adult participants on Prolific. Participants were excluded if either (1) the standard deviation of log-transformed of their reaction times on all trials was less than 0.15 (indicating key-smashing, e.g. <ref type="bibr" target="#b16">Moon, 2021)</ref>; (2) they spent more than three absolute deviations above the median of the task completion time as reported by Prolific, or (3) they provided the incorrect response to more than 20% of the memory task. In total, 15 % of the participants were excluded by these criteria. After the participantlevel exclusion, we also applied trial-level exclusion. A trial was excluded from final analysis if it was three absolute deviations away from the median in the log-transformed space across all participants. The final sample included 468 participants.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results and discussion</head><p>The sample size and analysis plan were all pre-registered and can be found here. All analysis scripts are publicly available and can be found here.</p><p>We were primarily interested in (1) whether our experimental paradigm captured habituation and dishabituation and (2) whether the magnitude of dishabituation was influenced by the type of violation. We tested these two hypotheses in a linear mixed-effect model with maximal random effect structure that predicted log-transformed looking time with the following specification on the fixed effects: log(total rt) ∼ trial number + is first trial + (trial number + is first trial) * stimulus number + (trial number + is first trial) * stimulus pose +(trial number + is first trial) * stimulus animacy + (trial number + is first trial) * violation type + log(block number). The violation type has five levels, including the background trial and four types of violation. <ref type="bibr">1</ref> To examine the specific contrast between different violations, we set different reference levels for violation type. We found evidence for habituation and graded dishabituation using this technique <ref type="figure" target="#fig_1">(Fig. 2)</ref>.When the background trial was treated as the reference level, there was a significant effect of trial number, suggesting participants were habituating to the stimuli (β = -0.02, SE = 0, p &lt; .001). Moreover, looking time to animacy violations was significantly longer than to number violations (β = 0.17, SE = 0.04, p &lt; .001) and pose violations (β = 0.18, SE = 0.04, p &lt; .001), and so were identity violations (cf. number: β = 0.18, SE = 0.04, p &lt; .001; cf. pose: β = 0.19, SE = 0.04, p &lt; .001). But animacy violation was not different from the identity violation, nor was the number violation different from the pose violation (all p &gt; 0.1)</p><p>Following the pre-registration, we explored the relation- ship between the embedding distance between background and deviant stimuli and the dishabituation magnitude. We fit a linear regression model predicting the residuals of the previous model on the deviant trials with an interaction term of the embedding distance and the violation type. None of the terms were significant (all p &gt; 0.05).</p><p>We also pre-registered a qualitative prediction on the ordering of the dishabituation magnitude (i.e. animacy &gt; number &gt; identity &gt; pose). We predicted this order based on the degree of intuitive dissimilarity of these four different violations. However, we did not find evidence consistent with this prediction. The qualitative ordering in our data was animacy (M = 2694.74), identity (M = 2489.2), pose (M = 2201.44) and number (M = 2117.63).</p><p>In conclusion, our experiment successfully captured habituation and dishabituation. We observed that participants exhibited varying levels of dishabituation in response to different deviating stimuli. Notably, they did not show sensitivity to violations within or across categories; their responses to within-category stimuli (identity violations) were similar to their responses to out-of-category stimuli (animacy violations). Intriguingly, and contrary to our initial hypotheses, the concept of number did not serve as a strong perceptual cue to trigger a robust dishabituation response. The degree of dishabituation to number was on par with that to pose changes, which were the most subtle form of violation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model Evaluation</head><p>We evaluate RANCH in three ways. First, we evaluate whether RANCH can make parameter-free predictions on the new data that it has not been trained on. Second, we investigate to what extent RANCH's performance is robust across parameter settings. Finally, we examined to what extent each component of RANCH is critical to predicting human behaviors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter generalizability</head><p>The procedure to model the current experiment is very similar to the training procedure. We first converted the raw images into the perceptual representations. Then, we assembled the stimuli into the sequences that participants saw in each block. For the blocks with deviating stimuli, we sampled deviant stimuli from the corresponding violation categories. We sampled 23 stimulus pairs for each combination of violation type and deviant position.</p><p>However, instead of searching for a new set of best-fitting parameters, we used the best parameters found in the training dataset, and tested their generalizability to the new task. The best fitting parameters (µ p = 0,ν p = 1, α p = 1, β p = 1, ε = 0.0001) predicted the habituation and dishabituation in the training data (R 2 = 0.95 [0.90, 0.98]). Using these previously obtained parameters, we now test RANCH's performance on the current experiment with different stimuli and design. We found that the parameters generalized to the current context well ( Moreover, RANCH also showed a qualitative ordering of the graded dishabituation similar to the behavioral data: animacy &gt; identity &gt; number &gt; pose.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter robustness</head><p>To evaluate RANCH's robustness to different parameters, we then conducted a grid search over the parameters, fitting the model to data from our new experiment. We selected the best fitting parameters (µ p = 0,ν p = 2, α p = 10, β p = 1, ε = 0.0001) using a 10-fold cross-validation on the behavioral dataset. When fit to the full dataset, the best fitting parameter from this search was comparable with the parameters generalized from the training dataset <ref type="bibr">(R 2 : 0.77 [0.71, 0.95]</ref>, <ref type="bibr">RMSE: 142.69 [107.82,</ref><ref type="bibr">211.02]</ref>). Moreover, performance across the 162 parameter settings was relatively stable, yielding a moderate range of R 2 (M = 0.62; SD = 0.1) and RMSE (M = 181.75; SD = 23.28). Finally, the qualitative ordering of the dishabituation magnitude was also preserved when averaged across all parameter settings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Comparison with alternative models</head><p>To examine whether the three components -the perceptual representation, the learning model, and the decision modelin our models were critical to the success, we ran three alternative models: Random Embedding model, No Noise model, and No Learning Model. We ran a parameter search for each of the model, and all of the models showed worse performance compared to RANCH (Random Embedding: R 2 : 0.57 [0.08, 0.89], <ref type="bibr">RMSE: 195.06 [147.39,</ref><ref type="bibr">288.47]</ref>; No Noise: R 2 : 0.45 [0.34, 0.85], <ref type="bibr">RMSE: 221.46 [167.34,</ref><ref type="bibr">327.5]</ref>; No Learning: R 2 : 0.28 <ref type="bibr">[0.19,</ref><ref type="bibr">0.76],</ref><ref type="bibr">RMSE: 253.46 [191.52,</ref><ref type="bibr">374.83]</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>General Discussion</head><p>In this paper, we report a novel experiment in which participants were familiarized to sequences of animations, and we measured habituation and their dishabituation to different types of deviations from familiar stimuli. We found that adults' dishabituation is graded by the type of violation they see, and that the magnitude of dishabituation is predicted by a rational model which takes noisy samples from perceptual embeddings of the same stimuli. RANCH, through its use of perceptual embeddings, operates directly on raw images and therefore can generate predictions for previously unseen stimuli or even tasks. Making use of this property, RANCH successfully predicted human behaviors in our graded dishabituation task while using parameters fit to behaviors on a different task.</p><p>Lesioning RANCH by removing key components caused its fit to the data to drop substantially relative to the full model (∆ R 2 of 0.2 -0.49) and eliminated any sense of qualitative correspondence to the human data. This result suggests that the aspects that we lesioned -a psychologically-plausible embedding space, noisy perception, connecting sampling to concept learning -are all essential for explaining behaviors in our task.</p><p>There are several directions in which RANCH could be extended in future work. First, in the current paper, we imple-mented a specific version of RANCH, with a specific form for each of its components: the perceptual representation, the learning model, and the linking hypothesis between learning and attentional sampling. However, RANCH's modular and interpretable structure allows researchers to adjust its components according to the population or task for which predictions are being generated. For example, the perceptual embedding space used in this paper was aligned to adult behavior <ref type="bibr" target="#b14">(Lee, 2022)</ref>, but infants likely represent visual objects differently from adults. Using perceptual representations based on visual input experienced by infants may provide a better fit to infant data <ref type="bibr" target="#b18">(Orhan &amp; Lake, 2023;</ref><ref type="bibr" target="#b27">Zhuang et al., 2021)</ref>. Similarly, task settings in which there was hierarchical structure to the stimulus sequences would call for more complicated learning models. RANCH could be extended to accommodate learning from multiple concepts. The linking hypothesis can also vary. For example, the rational, but computationally expensive, EIG could be replaced with easier-tocompute information-theoretic quantities such as surprisal or KL-divergence <ref type="bibr" target="#b4">(Cao et al., 2023;</ref><ref type="bibr" target="#b22">Raz et al., 2023)</ref>. While previous work has found that these linking hypotheses make similar predictions, it is possible that they may dissociate under different task settings or different assumptions about the perceptual representations. In summary, RANCH's modularity offers a rich space of hypotheses about possible computations underlying looking behavior.</p><p>Second, while inspired by infant looking time research, our current work only has adult participants. Beyond encoding stimuli differently from infants, adults may conceptualize our task differently from infants, and experience different task demands. In particular, infants are quite sensitive to changes in the number of objects that are displayed <ref type="bibr" target="#b8">(Feigenson &amp; Carey, 2003;</ref><ref type="bibr" target="#b25">Wynn, 1992)</ref>, but in the current study, adults dishabituated to number violations as little as to pose violations, the subtlest violation in our task. This suggests that adults may not have engaged number cognition in this task, as infants likely would. Furthermore, given the interpretability of the model parameters we fit to the behaviors, conducting the same experiment with infants may lead to interpretable developmental differences in the model parameters, such as priors on perceptual noise and prior uncertainty about the mean and standard deviation of perceptual concepts.</p><p>Overall, our work presents a rational model, RANCH, which describes how humans decide how long to look at stimuli. Using a psychologically motivated visual encoding model allows RANCH to operate on raw images, and generate predictions for previously unseen stimuli or tasks. We think that the generality and interpretability of our model framework constitutes a significant step towards predictive modeling of adult, and eventually infant, looking time, thereby putting the field on firmer ground.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Workflow of the current study. (A) The experimental design and stimuli used in the training dataset. (B) The core components of RANCH, with the top showing the stimuli embedding in PC-space. The bottom is the plate diagram of the learning model. (C) The experimental design of the test data. RANCH model is first fit using the training data in A, and we test its prediction on the test data collected in the experiment illustrated in C.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>RANCH and alternative models. For the human panel, X-axis shows the trial number, y-axis shows the looking time at each trial to the test stimuli in milliseconds. The line shows the fit from the preregistered linear mixed effect model. For the remaining panels, Y-axis represents the samples model made on each trial, scaled linearly to the behavioral data. The scaling procedure was applied to each model individually. Different colors represent different trial types.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head></head><label></label><figDesc>R 2 : 0.75 [0.68, 0.96], RMSE: 148.46 [112.18, 219.54]).</figDesc><table /><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">In our preregistered model, we specified an interaction between trial number and is first trial that was automatically removed in the final model.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Anderson</surname></persName>
+		</author>
+		<title level="m">Is human cognition adaptive? Behavioral and Brain Sciences</title>
+		<imprint>
+			<date type="published" when="1991" />
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="471" to="485" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">What&apos;s in a look?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Aslin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Developmental Science</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="48" to="53" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Object permanence in five-month-old infants</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Baillargeon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">S</forename><surname>Spelke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wasserman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="191" to="208" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Protracted development of motor cortex constrains rich interpretations of infant cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Blumberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Adolph</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Habituation reflects optimal exploration over noisy perceptual samples</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Raz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="290" to="302" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Cortical topographic motifs emerge in a self-organized map of object space</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">R</forename><surname>Doshi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Konkle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science Advances</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">25</biblScope>
+			<biblScope unit="page">8187</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Reconciling novelty and complexity through a rational analysis of curiosity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dubey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">455</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Pattern vision in newborn infants</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Fantz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">140</biblScope>
+			<biblScope unit="issue">3564</biblScope>
+			<biblScope unit="page" from="296" to="297" />
+			<date type="published" when="1963" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Tracking individuals via object-files: Evidence from infants&apos; manual search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Feigenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Carey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Developmental Science</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="568" to="584" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Rules that babies look by: The organization of newborn visual activity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Haith</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1980" />
+			<publisher>Lawrence Erlbaum Associates</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Who put the cog in infant cognition? Is rich interpretation too costly? Infant Behavior and Development</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Haith</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="167" to="179" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Revealing the multidimensional mental representations of natural objects underlying human similarity judgements</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Hebart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">Y</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pereira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">I</forename><surname>Baker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1173" to="1185" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">A multifactor model of infant preferences for novel and familiar stimuli. Advances in Infancy Research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Hunter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Ames</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">The goldilocks effect: Human infants allocate attention to visual sequences that are neither too simple nor too complex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kidd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Piantadosi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Aslin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PloS One</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">36399</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Rapid visual object learning in humans is explainable by low-dimensional image representations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Lee</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+		<respStmt>
+			<orgName>Massachusetts Institute of Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Resource-rational analysis: Understanding human cognition as the optimal use of limited computational resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Tense1983 smashes his keyboard</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Moon</surname></persName>
+		</author>
+		<ptr target="https://www.youtube.com/watch?v=Nk-K7kJ6jeg" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">A rational analysis of the selection task as optimal data selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Oaksford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Chater</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">101</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">608</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">What can generic neural networks learn from a child&apos;s visual experience?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Orhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Lake</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2305.15372</idno>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv Preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Should infant psychology rely on the violation-of-expectation method? Not anymore. Infant and Child Development</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Paulus</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page">2306</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Eight-month-old infants meta-learn by downweighting irrelevant evidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Francesco</forename><surname>Poli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ghilardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">B</forename><surname>Mars</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hinne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hunnius</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Open Mind</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="141" to="155" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Infants tailor their attention to maximize learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Poli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Serino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mars</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hunnius</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science Advances</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">39</biblScope>
+			<biblScope unit="page">5053</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Modeling habituation in infants and adults using rational curiosity over perceptual embeddings</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Raz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Intrinsically-motivated and open-ended learning workshop@ NeurIPS2023</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Learning in infancy is active, endogenously motivated, and depends on the prefrontal cortices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Raz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Developmental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="247" to="268" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Integrative benchmarking to advance neurally mechanistic models of human intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schrimpf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kubilius</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A R</forename><surname>Murty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ajemian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Dicarlo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="413" to="423" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Addition and subtraction by human infants</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wynn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">358</biblScope>
+			<biblScope unit="issue">6389</biblScope>
+			<biblScope unit="page" from="749" to="750" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Performanceoptimized hierarchical models predict neural responses in higher visual cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Yamins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Hong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">F</forename><surname>Cadieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Solomon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Seibert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Dicarlo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">23</biblScope>
+			<biblScope unit="page" from="8619" to="8624" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Unsupervised neural network models of the ventral visual stream</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zhuang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Nayebi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schrimpf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Dicarlo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Yamins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">2014196118</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

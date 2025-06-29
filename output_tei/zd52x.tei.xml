@@ -1,0 +1,1302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Excessive flexibility? Recurrent neural networks can accommodate individual differences in reinforcement learning through in-context adaptation</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kentaro</forename><surname>Katahira</surname></persName>
+							<email>k.katahira@aist.go.jp</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Human Informatics and Interaction Research Institute</orgName>
+								<orgName type="institution" key="instit2">National Institute of Advanced Industrial Science and Technology (AIST)</orgName>
+								<address>
+									<settlement>Tsukuba</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Excessive flexibility? Recurrent neural networks can accommodate individual differences in reinforcement learning through in-context adaptation</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:25+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Recurrent neural networks</term>
+					<term>Cognitive computational modeling</term>
+					<term>Reinforcement learning</term>
+					<term>Individual differences</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Cognitive and computational modeling has been used as a method to understand the processes underlying behavior in humans and other animals. A common approach in this field involves the use of theoretically constructed cognitive models, such as reinforcement learning models. However, human and animal decisionmaking often deviates from the predictions of these theoretical models. To capture characteristics that these cognitive models fail to account for, recurrent neural networks (RNNs) have been increasingly used to model choice behavior involving reinforcement learning. RNNs are able to capture how choice probabilities change depending on past experience. In this work, we demonstrate that RNNs can improve future choice predictions by capturing individual differences on the basis of past behavior, even when a single model is fit across the entire population. We term this property of the RNN the individual difference tracking (IDT) property. While the IDT property might be useful for prediction, it may introduce excessive flexibility when RNNs are used as benchmarks for predictive accuracy. We investigate the nature of the IDT property through simulation studies and examine how it affects the interpretation of predictive accuracy when RNNs are used as benchmarks for cognitive models. We also present examples using real-world data. Through these analyses, we discuss practical considerations and limitations in using RNNs as benchmarks for cognitive models.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Cognitive computational modeling, in which models representing cognitive and computational processes are applied to human and animal behavioral data to infer underlying processes, is becoming an essential method of behavioral analysis <ref type="bibr" target="#b7">(Daw, 2011;</ref><ref type="bibr" target="#b47">Wilson &amp; Collins, 2019)</ref>. The typical models used are reinforcement learning (RL) models, which are often used to analyze reward learning in humans and animals <ref type="bibr" target="#b48">(Yechiam, Busemeyer, Stout, &amp; Bechara, 2005;</ref><ref type="bibr" target="#b6">Corrado &amp; Doya, 2007;</ref><ref type="bibr" target="#b7">Daw, 2011;</ref><ref type="bibr" target="#b47">Wilson &amp; Collins, 2019)</ref>. However, such models are susceptible to misspecification, where the true underlying processes may not be captured, leading to erroneous interpretations <ref type="bibr" target="#b33">(Nassar &amp; Gold, 2013;</ref><ref type="bibr" target="#b32">Nassar &amp; Frank, 2016</ref>). Specifically, model misspecification can lead to bias in the parameter estimates because the components not included in the model might be compensated for by other components <ref type="bibr" target="#b33">(Nassar &amp; Gold, 2013;</ref><ref type="bibr" target="#b28">Katahira, 2018;</ref><ref type="bibr" target="#b44">Toyama, Katahira, &amp; Ohira, 2019a;</ref><ref type="bibr" target="#b41">Sugawara &amp; Katahira, 2021)</ref>. Furthermore, in model-based fMRI analyses where computational models are used to relate behavior to neural activity model misspecification has been shown to produce spurious group differences <ref type="bibr" target="#b29">(Katahira &amp; Toyama, 2021)</ref>. Thus, researchers must strive to develop models that represent actual underlying processes and fit behavioral data. Nevertheless, in the analysis of actual experimental data, where the true model is unknown, determining whether a model fits well enough is challenging. This is because behavioral choices inherently involve stochastic components that cannot be fully explained by any model, making it difficult to determine which aspects of variability are due to cognitive processes that should be modeled, and which are better regarded as noise.</p><p>To address this issue, the application of highly flexible artificial neural networks (ANNs) has gained attention in recent years. By using the predictive performance of ANNs as a benchmark, researchers can assess whether computational cognitive models adequately capture the variability in the data and whether any important cognitive components are missing <ref type="bibr" target="#b9">(Dezfouli, Griffiths, Ramos, Dayan, &amp; Balleine, 2019;</ref><ref type="bibr" target="#b40">Song, Niv, &amp; Cai, 2021;</ref><ref type="bibr" target="#b12">Fintz, Osadchy, &amp; Hertz, 2022;</ref><ref type="bibr" target="#b10">Eckstein, Summerfield, Daw, &amp; Miller, 2024)</ref>. If the predictive performance of a cognitive model is clearly inferior to that of an ANN benchmark, it suggests that the model is lacking essential elements. In such cases, researchers may iteratively refine the cognitive model by incorporating additional components and re-evaluating its performance. The use of ANN benchmarks thus provides a means of determining how far this model improvement process should be pursued.</p><p>In the analysis of reward learning in humans and other animals, recurrent neural networks (RNNs), a type of ANN for learning sequential data, are often employed <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019;</ref><ref type="bibr" target="#b40">Song et al., 2021;</ref><ref type="bibr" target="#b12">Fintz et al., 2022;</ref><ref type="bibr" target="#b24">Ji-An, Benna, &amp; Mattar, 2023;</ref><ref type="bibr" target="#b16">Ger, Nachmani, Wolf, &amp; Shahar, 2024;</ref><ref type="bibr" target="#b37">Rmus, Pan, Xia, &amp; Collins, 2024;</ref><ref type="bibr" target="#b10">Eckstein et al., 2024)</ref>. Among various RNN architectures, long short-term memory (LSTM) <ref type="bibr" target="#b21">(Hochreiter, 1997)</ref> and gated recurrent units (GRUs) <ref type="bibr" target="#b5">(Cho, 2014)</ref> are particularly prevalent. These architectures are capable of capturing long-term influences from past events, offering more flexible learning than theory-based cognitive models such as RL models <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019)</ref>. This flexibility enables RNNs to better model the complex structure of behavior.</p><p>On the other hand, RNNs typically have a much larger number of parameters than theory-based cognitive models, which often requires a relatively large amount of data for effective training. As a result, it is generally difficult to fit RNNs individually for each participant, and researchers typically pool data across participants and train a single RNN model on the entire dataset.</p><p>In general, when the amount of data is insufficient relative to the number of parameters, a model may overfit to noise or incidental structure unrelated to the true datagenerating process, resulting in poor generalization performance. In statistical models such as cognitive models, information criteria such as Akaike's Information Criterion (AIC; <ref type="bibr" target="#b1">Akaike, 1974)</ref> and the Bayesian Information Criterion (BIC; <ref type="bibr" target="#b39">Schwarz et al., 1978)</ref> or model evidence (i.e., marginal likelihood) are commonly used to penalize excess model complexity <ref type="bibr" target="#b7">(Daw, 2011)</ref>. However, in artificial neural networks such as RNNs, the number of parameters (i.e., weights) does not correspond directly to model flexibility, and information criteria applicable to <ref type="bibr">RNNs</ref> have not yet been established.</p><p>As a practical solution, model performance for RNNs is commonly evaluated based on predictive accuracy on held-out test data <ref type="bibr" target="#b8">(Dezfouli, Ashtiani, et al., 2019;</ref><ref type="bibr" target="#b40">Song et al., 2021;</ref><ref type="bibr" target="#b10">Eckstein et al., 2024)</ref>. In reinforcement learning tasks, however, data from successive trials are often dependent due to the sequential structure of the task. When participants are exposed to only one pair of stimuli, it is difficult to split the data within a session into training and test sets, because the test data would be influenced by learning from earlier trials. In such cases, a common strategy is to split the dataset by participants using some participants for training and others for testing (see <ref type="figure" target="#fig_0">Supplementary  Fig. S1B</ref> for a schematic illustration). Under this approach, even if a participant-specific model were fitted to the training data, it would be meaningless for evaluation because the corresponding individual would not appear in the test set. Therefore, RL models must be fitted using a single set of parameters shared across all participants.</p><p>However, in the case that each participant experiences multiple independent sessions (e.g., with different stimulus pairs), training and test samples can be split at the session level (see <ref type="figure" target="#fig_0">Supplementary Fig. S1A</ref> for schematic illustration). In such cases, it becomes possible to fit RL models individually for each participant using one session and evaluate predictive accuracy on the other <ref type="bibr" target="#b40">(Song et al., 2021)</ref>. Nonetheless, this type of design is still relatively rare.</p><p>Given these constraints, when comparing RNNs with theory-based cognitive models such as RL models, it is common practice to also fit RL models using a single set of parameters shared across participants <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019;</ref><ref type="bibr" target="#b12">Fintz et al., 2022;</ref><ref type="bibr" target="#b10">Eckstein et al., 2024)</ref>. This approach is generally referred to as a fixed-effect model in the statistical modeling literature. In this study, we refer to it as a "common fit", to emphasize that the same parameter set is applied to all individuals. From this perspective, comparing RL models and RNNs in terms of model fit and predictive accuracy can be considered fair, as both approaches rely on a single group-level parameterization.</p><p>However, we demonstrate that even a single RNN might learn individual differences from behavior during early trials and use this information to predict subsequent behavior. This occurs through what is known as in-context adaptation or in-context learning, a property of RNNs whereby the internal state of the network is dynamically updated based on the sequence of observed inputs allowing the model to adjust its behavior on a per-individual basis without explicitly estimating separate parameters for each individual. We term this ability the individual difference tracking (IDT) property of RNNs. We suggest that, owing to the IDT property, RNNs might overly inflate prediction accuracy when used as a benchmark against cognitive models that assume shared parameters across individuals. We also discuss the implications of these properties for cognitive and computational modeling.</p><p>Notably, this paper is not the first to mention the IDT property of RNNs: <ref type="bibr" target="#b9">Dezfouli, Griffiths, et al. (2019)</ref> noted this possibility in the last paragraph of their Discussion sec-tion. The novel contributions of this paper are as follows. First, we illustrate the IDT property of RNNs using data generated from numerical simulations based on simple RL models. We then examine the extent to which RNNs can express individual differences through IDT across various scenarios involving different underlying generative models. These simulations demonstrate how the presence or absence of IDT affects the interpretation of RNNs as predictive benchmarks for cognitive models. The results show that RNNs do not always track individual differences accurately, and in many cases, perform worse than cognitive models that are individually fitted to data. We also propose a method to quantify the degree of IDT in a trained RNN, which we term the on-policy IDT check and investigate factors that suppresses IDT, such as early stopping and architectural constraints. In addition to synthetic data simulations, we present empirical demonstrations using real-world behavioral datasets to highlight how IDT manifests in practical applications. Finally, we discuss how RNNs should be used as benchmarks for evaluating cognitive models, considering the presence of IDT and its limitations, and suggest directions for future research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Simulation Settings</head><p>In this paper, we first discuss the properties of RNNs trained using behavioral data generated from simple RL models, where the true underlying model is known. This allows us to evaluate how well RNNs capture the structure of the data, including individual differences. We simulated the choice behavior of 100 agents (virtual subjects) on a two-armed bandit task using various RL models, systematically varying parameters such as the learning rate. Specifically, to generate the synthetic data, we used variants of Q-learning models 1 . Among the variants, we especially focus on forgetting Q-learning (FQ-learning) model <ref type="bibr" target="#b23">(Ito &amp; Doya, 2009)</ref>. The behavior of FQ-learning is theoretically guaranteed to be replicable even with the simplest form of RNN (a linear RNN with a single RNN cell; see Appendix C). More complex RNN architectures (e.g., a vanilla RNN, LSTM and GRU) are likely to exhibit similar capabilities. This allows us to eliminate the influence of model misspecification and focus on the effects of individual differences.</p><p>In the Q-learning models, the Q-value or action value, Q t (a t ), for the chosen option a t ∈ {A, B} at trial t is updated as</p><formula xml:id="formula_0">Q t+1 (a t ) = Q t (a t ) + α(r t − Q t (a t )),<label>(1)</label></formula><p>where α ∈ [0, 1] is the learning rate, which determines the extent to which the prediction error affects the updated value, and r t ∈ {0, 1} is the reward received at trial t.</p><p>1 When there is no state variable as in the present study assumed, Q-learning and other variants of RL algorithm, Sarsa are indistinguishable <ref type="bibr" target="#b43">(Sutton &amp; Barto, 2018)</ref>; however, following convention, we refer to it as Q-learning. This model is also reffered to as the Rescorla-Wagner model or delta-rule.</p><p>In standard Q-learning, the Q-value of the unchosen option remains unchanged. In the forgetting variants of Q-learning, the Q-value for the unchosen optionā t is assumed to decay as:</p><formula xml:id="formula_1">Q t+1 (ā t ) = (1 − α F )Q t (ā t ),<label>(2)</label></formula><p>where α F is the forgetting rate, which determines the rate at which the value of the unchosen option decays. In FQ-learning, α F is set as α F = α (the forgetting rate is identical to the learning rate). The standard Q-learning model corresponds to the setting with α F = 0. The choice probability (for option A) is determined by the softmax function:</p><formula xml:id="formula_2">P (a t = A) = 1 1 + exp (−β(Q t (A) − Q t (B))) .<label>(3)</label></formula><p>The parameter β is the inverse temperature, which indicates how sensitively the choice probability changes with the value difference between options. A larger β results in a more sensitive change in the choice probability.</p><p>In the FQ-learning model, individual differences are represented as the differences in the learning rate α and the inverse temperature β. Notably, in FQ-learning, α also determines the strength of forgetting (i.e., the decay rate) for the values of unchosen options.</p><p>The agent simulated via RL models engages in a two-armed bandit task (probabilistic reversal learning task), where it receives rewards based on the reward probabilities associated with each option; the reward probabilities switch every 50 trials. Each agent completes two sessions of the task, with each session consisting of 200 trials. One session is used as training data for the RNN and RL models, and the other is used as test data for evaluating predictive accuracy of the models. For further details about the task, see Section A.1. In the simulation, we assumed 100 subjects (agents), each modeled using the RL models.</p><p>For RNN model training and evaluation, the training data from all 100 subjects were pooled to train a single model. Predictive performance was then evaluated on the test data by computing the normalized log-likelihood for each subject (see Appendix A.4 and A.6 for the details).</p><p>For RL model fitting, we applied both the common fit approach where a single parameter set is estimated by pooling the training data across all 100 subjects, similar to the RNN and the individual fit approach, where parameters are estimated separately for each subject. Details of the model fitting and evaluation procedures are provided in Appendix A.3 and A.6. As noted in the Introduction, the common fit approach is often applied when the subjects in the training and test datasets differ. In our simulation settings, however, the same subjects (i.e., agents with identical parameter values) were included in both the training and test datasets. This design is expected to be comparable to realistic situations, as long as the parameter distributions across subjects in empirical data are not substantially different between the training and test sets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Illustration of the IDT Properties of an RNN</head><p>We begin by considering the case where the ground-truth model is an FQ-learning model, and both an FQ-learning model with common parameters and an RNN are fitted to the simulated data. In the following analyses, we primarily use a GRU-based architecture for the RNN. Unless otherwise noted, the term "RNN" refers to an RNN implemented with GRU (for details on the RNN architecture, see Section A.4). The simulated data were pooled across subjects, and each model (RNN and FQ-learning) was trained to estimate a single set of parameters using the entire dataset. Choice predictions were generated using off-policy simulation, meaning that each model predicted the probability of the choice at trial t based on the history of choices and rewards up to trial t − 1, without actually selecting actions. <ref type="figure" target="#fig_0">Figure 1A</ref> shows the choice probabilities produced by the RNN and the commonfit FQ-learning model when all subjects shared the same (ground-truth) learning rate (α = 0.5), implying no individual differences. The gray lines represent the true choice probabilities for option A generated by the FQ-learning model (almost completely overlapped by the colored lines in this case). In this case, the choice probabilities predicted by the common-fit FQ model (left panel, blue line) closely match the true choice probabilities generated by the ground-truth FQ model (gray line). This result is expected, as the fitted model structure including the absence of individual differences perfectly matches the generative model, and sufficient data are available for estimation.</p><p>The RNN also shows an almost perfect fit to the true model (right panel, orange line), with the KL divergence (per trial) between the true and predicted choice probabilities being nearly zero (see SectionA.6 for the definition of KL divergence). This close match is also theoretically expected: when the ground truth is an FQ-learning model with no individual differences, even the simplest RNN with linear units can exactly reproduce the same input-output behavior (see Appendix C). Therefore, it is unsurprising that an RNN, which uses hyperbolic tangent activation functions and can approximate linear responses in certain regimes, can learn behavior that is effectively equivalent to the FQ model.</p><p>Next, we consider a simple case involving individual differences. <ref type="figure" target="#fig_0">Figure 1B</ref> depicts a scenario in which the ground-truth agents follow the FQ-learning, but with two distinct learning rates: half of the agents (Subjects 1 to 50) have a low learning rate (α = 0.1), and the other half (Subjects 51 to 100) have a high learning rate (α = 0.9). This setup instantiates the kind of situation discussed conceptually by <ref type="bibr" target="#b9">Dezfouli, Griffiths, et al. (2019)</ref>. The left panels show data from a representative low learning rate agent, while the right panels show data from a high learning rate agent. As expected, the choice probabilities of the low learning rate agent change gradually, reflecting slower learning (left panel, gray line). In contrast, the high learning rate agent shows rapid fluctuations in choice probabilities, driven by recent outcomes (right panel, gray line).</p><p>The uppper panels of <ref type="figure" target="#fig_0">Figure 1B</ref> show the predictions from an FQ-learning model fitted with a single, common parameter sets (including learning rate) across all subjects (blue lines). Because this model must compromise between the two extreme learning shown in orange lines) trained on data simulated using the FQlearning model (shown in gray lines) in a two-armed bandit task. A Case without individual differences, where all subjects share a common learning rate (α = 0.5). B Case with individual differences, where half of the subjects (Subjects 1 to 50) have a low learning rate (α = 0.1) and the other half (Subjects 51 to 100) have a high learning rate (α = 0.9). The upper panels show the results of fitting an FQ model with common parameters (blue), and the lower panels show the results from the RNN (GRU). KL: Kullback-Leibler divergence between the true and predicted choice probabilities. A value of zero indicates perfect agreement between the model's prediction and the true choice probability.</p><p>rates among subjects, it adopts an intermediate learning rate. As a result, its choice probability (blue line) changes more rapidly than that of the low learning rate agents and more gradually than that of the high learning rate agents, leading to deviations from the true values in both cases. The KL divergences were approximately 0.05. In the RNN model (bottom panels), while there is a divergence between the true model and RNN's prediction (orange line) up to the initial 20 trials, it captures the overall trend of the true choice probability effectively afterward. This demonstrates that the RNN effectively captures individual differences by leveraging information from earlier trials, storing this information in the latent units (see Supplementary Text S2, <ref type="figure">Fig. S7</ref>, where we plot the latent variables). This mechanism can be regarded as the IDT property. Owing to this property, the KL divergence was less than 0.01. While <ref type="figure" target="#fig_0">Fig. 1</ref> illustrated the behavior of a single subject from each group, Supplementary <ref type="figure" target="#fig_0">Fig. S1</ref> shows trial-by-trial choice probabilities for all subjects under conditions with individual differences, including both individual trajectories and group averages. The predicted choice probabilities of the RNN closely match the true model's probabilities on average, which demonstrates that the RNN successfully captured individual differences and was able to track changes in choice probability across subjects.</p><p>In the settings used in <ref type="figure" target="#fig_0">Fig. 1B</ref>, we considered a case with a large difference in learning rates (i.e., α = 0.1 vs. 0.9). To explore how much individual difference is required for the RNN to begin adapting through IDT, we further examined this question in Supplementary Text S3, where we systematically varied the values of α of the ground-truth model <ref type="figure" target="#fig_2">(Fig.S6</ref>). We found that when the difference in learning rates reached around 0.4 (e.g., α = 0.3 vs. 0.7), the RNN began to show improved predictive accuracy as a result of IDT.</p><p>In addition to individual differences in the learning rate α (as shown in <ref type="figure" target="#fig_0">Fig. 1</ref>), we confirmed that the RNN can also adapt to differences in the inverse temperature β through the IDT mechanism ( <ref type="figure">Supplementary Fig. S2</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Impact of IDT on the Use of RNNs as Benchmarks for Cognitive Models: Illustrative Scenarios</head><p>We investigate how the IDT property of RNNs may influence conclusions about whether a fitted cognitive model (here, an RL model) sufficiently accounts for variability in choice behavior when RNNs are used as a benchmark. To this end, we present illustrative scenarios based on data generated through simulations, in which RL models are evaluated according to their predictive accuracy relative to an RNN, and examine how the presence of IDT can affect the interpretation of such comparisons.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Scenario 1: When FQ-learning is the True Model</head><p>In modeling reinforcement learning process in the two-armed bandit task, standard Qlearning, where the value of the unchosen option is not updated (i.e., α F = 0 in Eq. 2), is more commonly used than the FQ-learning model. On the other hand, several studies have reported that incorporating forgetting, as in the FQ model, can often improve model fit <ref type="bibr" target="#b23">(Ito &amp; Doya, 2009;</ref><ref type="bibr" target="#b18">Gershman, Zhou, &amp; Kommers, 2017;</ref><ref type="bibr" target="#b30">Katahira, Yuki, &amp; Okanoya, 2017;</ref><ref type="bibr" target="#b45">Toyama, Katahira, &amp; Ohira, 2019b;</ref><ref type="bibr">Groman et al., 2019)</ref>. Suppose a researcher first fits the standard Q-learning model to his/her data. A key question is then whether the predictive accuracy on test data can be regarded as sufficient, or whether there remains room for improvement. To address this, we consider whether an RNN can serve as a benchmark for evaluating the adequacy of the cognitive model. We first consider a case the same as that shown in <ref type="figure" target="#fig_0">Fig. 1B</ref>, where the true underlying model is the FQ-learning, and agents exhibit individual differences in learning rate: half of the subjects have a learning rate of 0.1, and the other half have a learning rate of 0.9. Each simulated subject is supposed to complete two sessions; one session is used to trainin/fit RNN and Q-learning, and the other session is used as test data to evaluate predictive performance. Predictive accuracy is quantified using the normalized likelihood, defined as the likelihood per trial on the test data (see Appendix A.6 for details). <ref type="figure">Figure 2</ref> shows the results. Let us focus first on the standard Q-learning model (denoted 'Q') shown on the left, the blue markers indicate the performance of the common fit, where a single parameter set is estimated for the entire group. This model yields significantly lower predictive accuracy than the RNN (paired t-test, p &lt; 0.05; asterisks in the figure indicate models significantly worse than RNN). Even when using the individual fit (Maximum a posteriosi, MAP, see Methods for details), the standard Qlearning model fails to achieve comparable accuracy with the RNN (p &lt; 0.05). These results suggest that the standard Q-learning model lacks critical components necessary to capture the cognitive processes underlying behavior.</p><p>Next, suppose the researcher adds the FQ-learning model as a candidate model for fitting. In this case, the fitted model has identical in structure to the true generative model. Despite this, the common fit of the FQ model yields significantly lower predictive accuracy than the RNN <ref type="figure">(Fig. 2</ref>, 'FQ', blue marker). This discrepancy can be attributed to the IDT property of RNNs: whereas the common-fit FQ model cannot account for individual differences, the RNN can implicitly capture such differences, thereby achieving higher predictive performance. Consequently, a researcher relying solely on the common fit might incorrectly conclude that the FQ model is inadequate.</p><p>In contrast, when the FQ model is fitted individually (using MAP estimation), its predictive performance matches or exceeds that of the RNN (green marker). In this case, comparing the individually fitted model to the RNN appears to be a reasonable approach. However, this relies on the assumption that the IDT property allows the RNN to adequately capture individual differences. In the present example, this assumption may hold to some extent (except for the early trials): the RNN's predicted choice probabilities closely match those of the ground truth (see <ref type="figure" target="#fig_0">Fig. 1B</ref>). Nonetheless, this assumption does not always hold. We examine such a case in the next scenario.  <ref type="figure">Fig. 3</ref>. Comparison of RL models and RNNs in a scenario where the true model is an asymmetric learning-rate model (Q+A), in which learning rates differ depending on the sign of the prediction error. A A case with individual differences where all parameters are continuously distributed across subjects (Scenario 2a). B A case without any individual differences, where all parameters are fixed and shared across all subjects (Scenario 2b). In Scenario 2a, the learning rates for positive and negative prediction errors (α + and α − ) were independently sampled from uniform distributions: α + ∼ Uniform(0.4, 0.9) and α − ∼ Uniform(0.1, 0.6), sorted to ensure systematic assignment across subjects. The inverse temperature β was sampled from Uniform(1.0, 4.0). In Scenario 2b, the learning rates were fixed at α + = 0.8 and α − = 0.2 for all subjects, and the inverse temperature β was fixed at 3.0. Error bars indicate standard errors of the mean.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Scenario 2: When IDT Fails to Fully Capture Individual Differences</head><p>The previous scenario, in which learning rates took one of two fixed values, represents an extreme case in terms of the individual differences. In practice, it is more natural to assume that parameters such as the learning rate are continuously distributed across individuals within a population. The same applies to the inverse temperature parameter β, which governs the randomness of choice behavior. Moreover, when the true underlying model is not FQ-learning, the influence of past experiences on current choices can involve statistical interactions <ref type="bibr" target="#b26">(Katahira, 2015)</ref>, resulting in more intricate dependencies between reward and choice histories. In such cases, the IDT property of RNNs is expected to yield an even more incomplete approximation of individual differences.</p><p>Here, we examine a scenario in which the true model is the asymmetric learning rate model (simply reffered to as 'Q+A model'), where the learning rate varies depending on the sign of the reward prediction error such that the action value of the chosen option a t is updated as:</p><formula xml:id="formula_3">Q t+1 (a t ) = { Q t (a t ) + α + (r t − Q t (a t )) if r t − Q t (a t ) ≥ 0 Q t (a t ) + α − (r t − Q t (a t )) if r t − Q t (a t ) &lt; 0 ,<label>(4)</label></formula><p>This model has been widely used in a number of studies that models of human and animal learning behavior <ref type="bibr" target="#b34">(Niv, Edlund, Dayan, &amp; O'Doherty, 2012;</ref><ref type="bibr" target="#b13">Frank, Moustafa, Haughey, Curran, &amp; Hutchison, 2007;</ref><ref type="bibr" target="#b31">Lefebvre, Lebreton, Meyniel, Bourgeois-Gironde, &amp; Palminteri, 2017;</ref><ref type="bibr" target="#b35">Palminteri, Lefebvre, Kilford, &amp; Blakemore, 2017)</ref>. In this model, interactions between reward outcomes across trials can arise for example, the influence of a reward received two trials ago may depend on whether a reward was received in the previous trial <ref type="bibr" target="#b28">(Katahira, 2018)</ref>. In this scenario, we do not assume any forgetting effect (i.e., α F = 0). <ref type="figure">Figure 3A</ref> shows the predictive accuracy of RL models and the RNN when the true model is the Q+A model with individual differences (Scenario 2a). As expected, the highest predictive performance is achieved when the fitted model is the same as the true model (Q+A) and is fitted individually <ref type="figure">(Fig. 3A)</ref>. The RNN achieves higher predictive accuracy than the common-fit Q+A model presumably due to the IDT property but this improvement is modest and does not reach the level of the individual-fit Q+A model. Crucially, when the standard Q-learning model is fitted individually, its predictive accuracy is no longer significantly different from that of the RNN (t(99) = 1.614, p = 0.110). This implies that if researchers focus on the predictive performance of individual-fit models and use the RNN as a benchmark, they may mistakenly conclude that the standard Q-learning model is sufficient without ever considering the more appropriate Q+A model.</p><p>As shown above, the IDT property of RNNs does not always allow them to fully capture individual differences. While a significantly lower predictive accuracy of an individually fitted model compared to the RNN suggests that essential components may be missing from the model, it is important to emphasize that comparable or superior predictive performance of the individual-fit model relative to the RNN does not necessarily imply that the cognitive model is suffient and leaves no room for improvement. Furthermore, the results from both <ref type="figure">Fig. 2</ref> and <ref type="figure">Fig. 3</ref> demonstrate that even when a common-fit cognitive model performs worse than the RNN in terms of predictive accuracy, this discrepancy may be due to the RNN's ability to exploit individual differences via the IDT property. Thus, inferior performance of the common-fit model does not necessarily indicate structural inadequacy of the cognitive model. <ref type="figure">Figure 3B</ref> shows the results for a scenario in which the true model is again the Q+A model, but no individual differences are assumed that is, all agents share the same (ground truth) parameter values (Scenario 2b). In this case, the common-fit Q+A model achieves predictive accuracy comparable to that of the RNN. In contrast, the individualfit Q+A model exhibits lower predictive performance compared to the common parameter model, likely due to increased estimation error arising from fitting each subject separately when individual variability is sufficiently small, a common-fit (fixed-effect) model can reduce estimation noise and outperform individually fitted models in terms of prediction accuracy <ref type="bibr" target="#b27">(Katahira, 2016)</ref>. Notably, the RNN also achieves predictive accuracy equivalent to the true model in this case. This suggests that when a cognitive model with common parameters shows comparable predictive accuracy with the RNN, the model may be considered adequate. However, such a conclusion rests on the as- A Case where the RNN outperforms the common-fit cognitive model but underperforms compared to the individual-fit model. B Case where the RNN achieves higher predictive accuracy than the individual-fit cognitive model, assuming that IDT is sufficiently acquired. C Case where the common-fit cognitive model performs as well as or better than the individual-fit model, suggesting that individual differences are negligible. sumption that the RNN has appropriately captured the underlying generative process. In practical applications to empirical data, the true process is unknown, and verifying whether the RNN has sufficiently captured it is generally a difficult task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Decomposing Predictive Accuracy and the Influence of IDT</head><p>Based on the scenarios and simulation results described above, we now summarize the factors that contribute to predictive accuracy and consider how the IDT property may influence the use of RNNs as benchmarks. The total variability in choice behavior can be separated into model-explainable and model-unexplainable components. The explainable component defines the upper bound of predictive accuracy achievable by the ground-truth model. The unexplainable component, which cannot be captured by any model, is irrelevant when comparing models. The key focus lies in how the explainable component is structured.</p><p>We decompose predictive accuracy quantified as normalized likelihood on test data into several contributing components ( <ref type="figure" target="#fig_1">Fig. 4</ref>). Let us first consider the cognitive models (e.g., RL models; <ref type="figure" target="#fig_1">Fig. 4A</ref>). A common-fit cognitive model improves predictive accuracy by capturing cognitive processes shared across the population ("Capturing common cognitive processe"). An individually fitted model further enhances prediction by accounting for individual differences (Panel A, "Capturing individual differences"). However, individual fits are more susceptible to estimation error, which can reduce predictive performance (Panel A, "Estimation error"). Although common-fit models also suffer from estimation error, it is typically smaller due to the use of more data and is therefore neglected here. <ref type="figure" target="#fig_1">Figure 4A</ref> illustrates a situation corresponding to the comparison between the Q+A model and the RNN in Scenario 2a, where the RNN outperforms the common-fit RL model but underperforms compared to the individually fitted model. Two factors may account for the RNN's higher predictive accuracy relative to the common-fit model. First, the RNN may better capture group-level cognitive processes that the common-fit model fails to represent (indicated by the red arrow), which is often the intended role of RNNs in cognitive modeling. Second, the RNN may improve prediction by leveraging its IDT property to capture individual differences (gray arrow).</p><p>However, it is difficult to disentangle these two factors. The improvement may stem entirely from the IDT-based adaptation to individual differences, with no advantage in capturing shared cognitive processes (i.e., the red arrow might be absent). Therefore, the fact that the RNN outperforms the common-fit model does not necessarily imply that the cognitive model lacks essential structural components. <ref type="figure" target="#fig_1">Figure 4B</ref> corresponds to a situation in which the RNN outperforms even the individualfit model, as observed in Scenario 1 when evaluating the standard Q-learning model. In such cases, even if the RNN's IDT accounts for individual differences to a similar extent as the individual-fit model, the remaining gain in predictive accuracy implies that the RNN is capturing aspects of the behavior that the cognitive model fails to represent. This suggests a structural limitation in the cognitive model. <ref type="figure" target="#fig_1">Figure 4C</ref> corresponds to Scenario 2b, in which there are no individual differences in the data-generating process, as in the comparison with standard Q-learning or FQlearning. In such cases, the predictive accuracy of the common-fit cognitive model is comparable to or even better than that of the individually fitted model, indicating that individual differences are negligible. Accordingly, IDT is unlikely to contribute to improved predictions by the RNN. Therefore, if the RNN still outperforms a cognitive model, it likely reflects that the cognitive model is missing key structural components. 5 Assessing and Suppressing the IDT Property</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Evaluating IDT via On-Policy Simulation</head><p>As we have seen, the presence of IDT introduces ambiguity in interpreting the predictive accuracy of RNNs when used as benchmarks for cognitive models. Therefore, it can be useful to assess whether the RNN has acquired the ability to track individual differences (IDT), and if so, to what extent. For instance, if IDT can be shown to be sufficiently suppressed, it would justify a fair comparison between the RNN and common-fit cognitive models, as the RNN would more likely reflect only shared cognitive processes.</p><p>Here, we consider a method for assessing whether an RNN has acquired IDT. We adopt a heuristic approach based on on-policy simulation <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019</ref>; also referred to as closed-loop simulation), in which a trained RNN is used to generate new choice data by sampling actions according to its own predicted choice probabilities. As input to the RNN, we provide sequences of past choices and rewards (over 50 trials) generated from RL models with a plausible range of parameter values, in order to induce diversity in the latent states of the RNN. We then fit a RL model to the simulated choice data and examine the distribution of the resulting parameter estimates. If the estimated parameters are narrowly concentrated around a single point despite the variability in input, this suggests that the RNN does not retain information about individual differences and therefore lacks IDT. For further details, see Methods Section A.7. <ref type="figure">Figure 5D</ref> shows the results of the IDT check conducted on an RNN trained with data generated from the FQ-learning, where individual differences exist only in the learning rate, α, as in Scenerio 1. After 1000 training iterations (Bottom two panels of <ref type="figure">Figure 5D</ref>), where the KL divergence reaches its minimum, the estimated values of α from the data generated by the RNN are distributed around the true values of 0.1 and 0.9, indicating that the RNN has stably maintained individual differences ( <ref type="figure">Figure 5D</ref>). This suggests that despite the RNN initially receiving input data generated from a broad range of learning parameters, its latent states ultimately converged to represent a model that stably behaves according to one of the two distinct parameter values. <ref type="figure">Figure 5A</ref> shows the learning curves of the loss function and KL divergence during training. Before converging to their asymptotic values, there is a phase in which learning temporarily plateaus, followed by a sharp drop in loss. <ref type="figure">Figure 5C</ref> (top panels) shows the RNN's predictions at 200 training iterations, corresponding to this plateau phase. Notably, at training step 200, the RNN's predicted choice probabilities closely match those of the common-fit FQ-learning model (shown in light blue), suggesting that the RNN captures the group-level cognitive process at this stage.</p><p>At this stage, the on-policy IDT check reveals that the estimated learning rate parameters exhibit a unimodal distribution narrowly concentrated around 0.5 <ref type="figure">(Fig. 5D</ref>). This suggests that even after updating its latent state with 50 trials of off-policy simulation using agents with a wide range of parameter values, the effective learning rate in subsequent choices remains unchanged. This provides evidence that the RNN has not yet acquired the IDT property.</p><p>These results indicate that, during training, the RNN first learns the common processes across all subjects, akin to a common-fit FQ-learning model, before later acquiring IDT as training progresses.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Early Stopping of Training</head><p>As observed above, stopping RNN optimization at earlier training steps may suppress IDT. When using this RNN as a benchmark for model comparison, its predictive accuracy becomes comparable to that of the common-fit FQ model <ref type="figure">(Fig. 5B</ref>). This result suggests that, within the scope of common-fit models, FQ-learning may be considered a sufficient model. However, early stopping may not only suppress IDT but also prevent the RNN from capturing common cognitive processes shared across the population. For example, consider the previously discussed scenario in which the true model is the Q+A model without individual differences (Scenario 2b). Supplementary <ref type="figure">Figure S3</ref> shows the results of the on-policy IDT check for this scenario. The true learning rates were set to α + = 0.8 and α − = 0.2. When the RNN was trained for 600 steps, the on-policy simulation confirmed that it successfully captured these parameters. However, at 200 training steps, the estimated α + and α − were narrowly concentrated around 0.3 to 0.4, indicating that the RNN failed to adequately represent the true underlying process.</p><p>In real-world applications where the true generative model is unknown, it is difficult to determine whether an under-trained RNN, which does not account for individual differences, can still appropriately represent the common cognitive process of the population. One possible approach is to use the on-policy IDT check to identify the maximum number of training steps before IDT emerges. However, this method may be impractical, as each on-policy IDT check requires computationally intensive simulations and model fitting. Moreover, it remains unclear to what extent the pattern in which common cognitive processes are learned first, followed by individual differences, represents a general phenomenon. For these reasons, suppressing IDT through early stopping may not be a viable or practical approach when analyzing real-world data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Effect of Reducing the Number of RNN Units on IDT Suppression</head><p>Another intuitive approach to suppressing IDT is to simplify the architecture of the RNN. One concrete method is to reduce the number of hidden units. The rationale is that, to represent individual differences as latent variables, an RNN layer must have a sufficient number of units dedicated to capturing such variation.</p><p>The results of simulations examining this possibility are shown in <ref type="figure" target="#fig_2">Figure 6</ref>. In addition to the GRU-based RNNs, we also included results from Linear-RNNs architectures in which the recurrent layer consists of purely linear units as an example of simplified network structures. A Case where the true model is FQ-learning with two learning rates groups: α = 0.1 and α = 0.9. IDT is considered to be acquired when the KL divergence falls below 0.05. B Case where the true model is FQ-learning with no individual differences. C Case where the true model is standard Q-learning with with two learning rates groups: α = 0.1 and α = 0.9. D Case where the true model is Q-learning without individual differences. Error bars show the mean and standard error across three repetitions.</p><p>In Panel A, the true model was set to the FQ-learning model with two distinct learning rates (as in Scenario 1). In this setup, a KL divergence of approximately 0.05 indicates that IDT has not been acquired, whereas values below this threshold suggest the presence of IDT (see <ref type="figure" target="#fig_0">Fig.1</ref>). Contrary to expectations, even a small number of units (around 2 to 3) was already sufficient for the KL divergence to drop below the threshold, indicating the acquisition of IDT. Furthermore, in the absence of individual differences (Panel B), we observe that when the true model is FQ-learning, even a single unit is sufficient to achieve near-zero KL divergence, as predicted by theory (AppendixC).</p><p>Panels C and D illustrate the results for the case where the ground truth model is the standard Q-learning, where the values of unchosen options do not decay. In this case, interactions arise between past choices and rewards that are not easily captured by linear-RNNs <ref type="bibr" target="#b26">(Katahira, 2015)</ref>. When there are individual differences in the learning rate α, the pattern resembles that of FQ-learning (Panel C). As shown in Panel C, RNNs with two or more hidden units exhibit a marked decrease in KL divergence, indicating that IDT has been acquired. In the case with no individual differences (Panel D), models with two or more units also show a substantially lower KL divergence than those with a single unit. This contrast does not emerge in linear RNNs, suggesting that the nonlinearity of the RNN enables it to capture the history-dependence of Q-learning.</p><p>These findings indicate that IDT can already emerge with as few as two units, and that multiple non-linear units are necessary to adequately capture common cognitive processes. Thus, simply reducing the number of RNN units is unlikely to suppress IDT without compromising the flexibility that RNNs are expected to provide for modeling complex reinforcement learning processes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Empirical Demonstration on Real-World Datasets</head><p>We next present empirical examples of using RNNs as benchmarks for cognitive models, based on real-world choice behavior data from a two-armed bandit task. The aim is to illustrate how IDT should be taken into account when using RNNs for predictive benchmarking, rather than to replicate or reinterpret the original analyses. Accordingly, some aspects of our modeling and analysis procedures differ from those in the original studies. For instance, while the original studies did not employ cross-validation, we incorporate it here to evaluate the RNN's predictive performance-none of the original studies used RNNs in their analyses.</p><p>The primary datasets analyzed here consist of human choice data from two-armed bandit tasks: the dataset from Sugawara and Katahira (2021) (referred to as the 'Sugawara dataset', n = 143), the dataset from Palminteri et al. (2017) (referred to as the 'Palminteri dataset', n = 20), and the dataset from Waltmann, Schlagenhauf, and Deserno (2022) (referred to as the 'Waltmann dataset', n = 40).</p><p>In these studies, the same participants experience multiple independent stimulus pairs (contexts), allowing us to split the data into training and test sets at the session (context) level. Additionally, a key contrast between the three datasets (Waltmann dataset vs. others) is the substantial difference in the number of trials per context. For the details of these dataset, see Appendix A.8.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">Sugawara and Palminteri datasets</head><p>The experimental design of Sugawara and Katahira (2021) followed that of , with key features such as the number of trials and reward probabilities being essentially identical. In these experiments, trials from eight contexts are presented in an intermixed manner, with four contexts appearing in the first session and the remaining four in the second session. Each context consists of only 24 choice trials. This limited trial number per context may reduce the likelihood of RNNs developing strong IDT properties. The predictive accuracies on the test data for various RL model variants and the RNN model for Sugawara dataset are shown in <ref type="figure">Fig. 7A</ref>. The Q and Q+A models with both individual or common fit performed significantly worse than the RNN. This result indicates that these two models are insufficient in terms of predictive accuracy and suggests room for improvement in their model structure. The Q+C and Q+CA models extend Q and Q+A, respectively, by incorporating choice hysteresis, where the influence of past choices accumulates gradually (see Appendix A.2). These models were previously examined by <ref type="bibr" target="#b41">Sugawara and Katahira (2021)</ref>, and in accord with this study, they improved predictive accuracy relative to models without choice hysteresis (Q and Q+A models). We also evaluated the FQ-learning model and the FQ+C model, which incorporates both forgetting and choice hysteresis. The predictive accuracy for the individually fitted Q+C, Q+CA, FQ, and FQ+C models were comparable to or exceeded that of the RNN. However, under common fit, all of them showed significantly worse accuracy than the RNN.</p><p>To assess the degree to which the RNN acquired IDT, we performed on-policy IDT check using the RNN trained on the Sugawara dataset. Specifically, we fitted the FQ+C model, which had the best predictive accuracy among the common-fit models, to data generated from the RNN. <ref type="figure">Figure 7B</ref> shows the distribution of parameter estimates of the fitted FQ+C model. The distribution was not particularly broad and concentrated on a single points, suggesting that the RNN did not strongly acquire IDT.</p><p>In summary, while it is clear that standard Q-learning without forgetting and Qlearning with asymmetric learning alone are insufficient, the fact that the common-fit RL models underperformed the RNN, which we assume had minimal IDT, suggests that some cognitive component may be absent in the RL models we consider. <ref type="figure">Figure 7C</ref> and D show the results for the Palminteri dataset. In contrast to the Sugawara dataset, the predictive accuracies of individually fitted models were lower than those of the corresponding common-fit models in most cases (4 out of 6 models). This suggests that individual differences were smaller in this dataset. As a result, the on-policy IDT check ( <ref type="figure">Figure 7D</ref>) also showed narrow parameter distributions, similar to those observed in the Sugawara dataset, indicating that the RNN likely did not acquire substantial IDT.</p><p>Considering that the predictive accuracy of the common-fit Q+C, FQ, and FQ+C models was not significantly lower than that of the RNN, there is no clear evidence that these RL models lack essential cognitive processes captured by the RNN. This result suggests that the FQ and FQ+C models may be sufficient for explaining choice behavior in this dataset. However, it is important to note that the Palminteri dataset included only 20 participants (compared to 143 in the Sugawara dataset), and the lack of significant differences may simply reflect insufficient statistical power.</p><p>Overall, the normalized likelihoods were lower in the Sugawara dataset (0.54-0.56) compared to the Palminteri dataset (0.60-0.63). The Sugawara dataset were collected online, which may have resulted in some participants being inattentive or unengaged, leading to noisier and less predictable behavior (c.f., <ref type="bibr" target="#b50">Zorowitz, Solis, Niv, &amp; Bennett, 2023)</ref>. In contrast, the Palminteri data were collected in a laboratory setting, likely  <ref type="figure">Fig.7</ref>. B Results of the on-policy IDT check: Distribution of parameters estimated by fitting the FQ+C model to simulated choice data generated by the RNN. Compared to <ref type="figure">Fig.7</ref>, the distributions of the learning rate α and choice trace decay parameter τ were slightly broader, suggesting the possibility that the RNN acquired a modest degree of IDT.</p><p>leading to greater engagement and more consistent behavior that is easier to model. Regarding individual variability, participants in the Palminteri dataset had a relatively narrow age range (mean ± SD = 23.9 ± 0.7 years), whereas the Sugawara dataset included participants with a wider age range (38.7 ± 9.6 years), suggesting greater heterogeneity in the latter. On the other hand, both datasets involved only 24 trials per stimulus pair, which may have been insufficient for the RNN to acquire strong IDT properties.</p><p>Notably, the FQ model and FQ-C model were not considered in the original studies <ref type="bibr" target="#b35">(Palminteri et al., 2017;</ref><ref type="bibr" target="#b41">Sugawara &amp; Katahira, 2021)</ref>, and its performance, which was comparable to or even better than models with choice hysteresis, was unexpected. One possible explanation is that forgetting, by reducing the value of unchosen options, increases the tendency to repeat the same choice, thereby inducing the effective choice hysteresis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">Waltmann dataset</head><p>In the experiment by <ref type="bibr" target="#b46">Waltmann et al. (2022)</ref>, the primary aim was to assess the testretest reliability of RL parameter estimates. Participants completed two sessions of a two-armed bandit task with the same underlying reward probability structure (though the visual stimuli representing the options differed), approximately one week apart.</p><p>Each session consisted of 160 trials. We treated the first session as training data and the second session as test data (see Appendix A.8 for details). <ref type="figure">Figure 8A</ref> shows the predictive accuracy of each model. The differences between RL models were relatively small compared to the Sugawara dataset, particularly between the Q and Q+A models and their counterparts incorporating choice hysterisis (Q+C and Q+CA; see <ref type="figure">Fig. 7 for comparison)</ref>. When using the RNN as a benchmark, the overall pattern was consistent with that observed in the Sugawara data: while the Q, Q+C, Q+CA, FQ, and FQ+C models showed comparable predictive accuracy to the RNN under individual-fit approach, they performed significantly worse under commonfit approach.</p><p>The results of the on-policy IDT check <ref type="figure">(Fig. 8B)</ref> show slightly broader distributions of the learning rate and choice trace decay parameter compared to the RNN trained on the Sugawara and Palminteri datasets, suggesting that the RNN may have acquired a weak degree of the IDT property. Among the common-fit RL models, the FQ+C model had the highest predictive accuracy, but it still underperformed relative to the RNN. However, the RNN's advantage may reflect its IDT property, leaving insufficient evidence to conclude that the FQ+C model is inadequate. It remains possible that the FQ+C model is sufficient.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Discussion</head><p>In this study, we demonstrated that recurrent neural networks (RNNs), which are increasingly used to model behavior in both humans and animals, can capture individual differences in learning and decision-making processes-we term this property individual difference tracking (IDT). This IDT property is due to the ability of in-context adaptation of the RNN, where information of past histories is stored in latent states, which effectively adjusts the later predictions.</p><p>RNNs have gained attention in computational cognitive modeling as models capable of representing more flexible processes compared to theory-based cognitive models. However, the computations within RNNs remain largely a black box, making them fundamentally uninterpretable. In this regard, RNNs do not serve as replacements for cognitive models, which explicitly describe cognitive processes. In computational cognitive modeling, RNNs are considered to serve two primary roles. The first is to identify behavioral patterns not captured by the hypothesized cognitive models through simulations of an RNN trained on empirical data (e.g., detecting oscillatory patterns in choice behavior; <ref type="bibr" target="#b9">Dezfouli, Griffiths, et al., 2019)</ref>. Such insights can contribute to the formulation of hypotheses about necessary components in cognitive models. The second role is to provide a benchmark for evaluating whether a candidate cognitive model is sufficient or whether further refinement is necessary effectively determining how far the model refinement process should be pursued.</p><p>Although the impact of IDT on the first role discovering behavioral patterns through simulation was beyond the scope of this study, our results on on-policy IDT check confirmed that individual differences could be partially reproduced in such on-policy simulations. This suggests that IDT may influence such behavioral insights as well. In this paper, we have mainly focused on the second role of RNNs and argue that the IDT property of such RNN models might provide an unfair benchmark when assessing predictive accuracy against theory-based cognitive models. In the following section, we discuss the implications of our findings, the influence of IDT in this context, and how researchers should consider using RNNs in cognitive modeling moving forward.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.1">Challenges in Comparing RNNs and Cognitive Models in Terms of Predictive Accuracy</head><p>RNNs are typically trained with a single set of parameters for an entire population. Likewise, theory-based cognitive models are often fitted using a single parameter set pooled across all subjects <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019;</ref><ref type="bibr" target="#b12">Fintz et al., 2022;</ref><ref type="bibr" target="#b10">Eckstein et al., 2024)</ref>. This common approach is particularly convenient in cross-validation settings where the individuals in the training and test (or validation) sets differ, requiring reliance on population-level summary statistics <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019;</ref><ref type="bibr" target="#b10">Eckstein et al., 2024)</ref>. In cognitive models, when parameters are shared across the population, the model is essentially incapable of adapting to individual differences except in special cases, which we discuss later. This lack of adaptability gives RNNs a comparative advantage: when comparing an RNN to a cognitive model fitted with common parameters, the RNN may appear to perform better not because it captures cognitive processes more accurately, but because it is able to adapt to individual differences through its IDT property. Consequently, even if the cognitive model has the correct structural assumptions, it may seem inadequate, giving the false impression that it lacks essential components and requires further refinement. Given that RNNs can express individual differences through IDT, one natural approach might be to compare them against cognitive models that also account for individual variability. This could be done by fitting models to individuals separately or by using hierarchical models where individual parameters are treated as random effects <ref type="bibr" target="#b0">(Ahn, Krawitz, Kim, Busemeyer, &amp; Brown, 2011;</ref><ref type="bibr" target="#b7">Daw, 2011)</ref>. However, as we have observed in simulations with synthetic data, IDT does not perfectly capture individual differences. Consequently, simpler cognitive models fitted at the individual level may sometimes match or even exceed the predictive accuracy of RNNs, potentially leading researchers to overlook the need for further improvements in cognitive models (cf. <ref type="figure">Fig. 3A</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.2">Interpreting RNN Benchmarks Under Uncertain IDT Property</head><p>Given the uncertainty about the extent to which an RNN possesses IDT, the conclusions that can be drawn from using RNNs as a benchmark are summarized as following two points: 1) If an individually fitted cognitive model underperforms relative to the RNN, this suggests that important components may be missing from the model <ref type="figure" target="#fig_1">(Fig. 4B)</ref>. For example, in Scenario 2a <ref type="figure">(Fig. 3A;</ref> when the Q-learning model with asymmetric update was the ground truth), the individual-fit FQ-learning model underperforms compared to the RNN, indicating that it lacks necessary cognitive component. However, the converse is not true: if an individually fitted cognitive model achieves predictive accuracy comparable to the RNN, this does not necessarily mean that the model is structurally sufficient. For instance, in <ref type="figure">Fig. 3A</ref>, the standard Q-learning model outperforms the RNN when fitted individually, but this does not imply that the model is fully adequate. This outcome could arise because the RNN's IDT is insufficient, preventing it from fully capturing individual differences. 2) If a common-fit cognitive model achieves predictive accuracy comparable to the RNN <ref type="figure" target="#fig_1">(Fig. 4C)</ref>, this suggests that there may not be a significantly better cognitive model in terms of predictive accuracy. This situation is expected when individual differences are negligible or when constraints prevent the RNN's IDT from functioning (e.g., in cases like <ref type="figure">Fig. 3B</ref>, where no individual differences exist, the common-fit Q+A model and RNN show similar predictive accuracy). However, if the RNN itself does not sufficiently capture the true underlying process, it cannot be assumed that the RNN represents the upper bound of predictive accuracy.</p><p>As such, while using RNNs as a benchmark provides a rough reference point, it is important to recognize that the conclusions drawn from such benchmarks are inherently limited.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.3">Measuring the IDT Property in RNNs</head><p>As discussed above, for a fair comparison between RNNs and cognitive models, it is important to assess the extent to which the IDT property enhances predictive accuracy. In this study, we examined a method to check for the presence of IDT using on-policy simulation (cf. on-policy IDT check). Specifically, we generated choice data from the trained RNN, fitted a cognitive model to the simulated data, and evaluated the distribution of the estimated parameters.</p><p>However, this method has several limitations. It is effective only when the individual differences encoded via IDT are stably maintained during the simulation. If the effective parameters fluctuate substantially, the resulting parameter estimates may not be meaningful. Moreover, the stability of the estimated parameters can heavily depend on the choice of cognitive model used for fitting. Additionally, the computational cost is substantial on a standard laptop CPU, a single IDT check for one RNN required several hours of computation. Developing a more efficient and lightweight method for assessing IDT remains an important direction for future research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.4">Challenges in Suppressing IDT</head><p>Two strategies have been explored to suppress IDT, but neither has proven fully effective. One approach is to stop training early (e.g., <ref type="figure">Fig. 5</ref>). While this can sometimes prevent IDT from being acquired, the appropriate stopping point is often unclear. Stopping too early may result in an RNN that fails to learn even the basic common cognitive processes, potentially performing worse than a common-fit cognitive model. In our simulations, the RNN tended to learn group-level cognitive processes first, followed by adaptation to individual differences. However, this order may not always hold and likely depends on the model and task, suggesting that early stopping must be evaluated on a case-by-case basis.</p><p>Another strategy is to reduce the number of RNN units. Although this was expected to suppress IDT, we found that even with only two units, IDT still emerged. Thus, reducing the number of units may not be an effective solution. Similarly, using a linear activation function made the acquisition of IDT less likely. In this setting, the RNN was able to replicate the input-output mapping of an FQ-learning model, but failed to capture the behavior of the standard Q-learning model when it served as the ground truth. This suggests that linear RNNs lack the flexibility to model more complex behavioral patterns. In such cases, using an RNN provides no clear advantage.</p><p>Reducing the number of trials per session is another potential approach. Since IDT depends on past behavior, shorter sessions may make it more difficult for the RNN to acquire IDT. Evidence of this effect was observed in the Sugawara and Palminteri datasets. However, this strategy requires an experimental design with short sessions and multiple contexts, which is not always feasible. Once data collection is complete, it is difficult to apply this approach retrospectively through post hoc analyses.</p><p>Overall, it appears difficult to suppress IDT without also compromising the RNN's ability to capture common cognitive processes. Furthermore, cognitive models with common parameters do not always accurately reflect human decision-making. For example, if participants exhibit opposing asymmetries in learning rates, averaging across individuals could falsely suggest symmetry, thereby masking meaningful individuallevel structure.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.5">Future Directions: Expanding RNNs to Better Represent Individual Differences</head><p>As discussed above, suppressing IDT through a single method may not always be feasible. Rather than focusing on eliminating IDT, it may be more productive to explore ways to explicitly model individual differences within RNNs. Neural network architectures that aim to explicitly model individual differences based on RNNs have been proposed <ref type="bibr" target="#b8">(Dezfouli, Ashtiani, et al., 2019;</ref><ref type="bibr" target="#b40">Song et al., 2021)</ref>. For example, the encoder-decoder architecture developed by <ref type="bibr" target="#b8">Dezfouli, Ashtiani, et al. (2019)</ref> uses an encoder that takes an individual's behavioral data as input and maps it onto a low-dimensional latent space representing individual-specific characteristics. These latent variables are then passed through a decoder, which outputs the connection weights of an RNN. The resulting RNN models the individual's behavior and can be used to predict future actions. The results obtained by <ref type="bibr" target="#b8">Dezfouli, Ashtiani, et al. (2019)</ref>, both in simulations using synthetic data and in applications to real behavioral data, were promising. However, as we demonstrated in the present study, RNNs may themselves acquire the ability to represent individual differences via IDT. This raises the possibility that individual variability could be encoded directly within the RNN itself, potentially bypassing the intended role of the latent variables. Whether such latent variables can reliably capture individual differences across a wide range of conditions remains an open question.</p><p>Developing RNN-based models that can explicitly and sufficiently represent individual differences, whether through latent variables or alternative mechanisms, is an important direction for future research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.6">Tracking Within-Subject Parameter Variability</head><p>In this study, we have interpreted the RNN's ability to dynamically adjust effective parameters such as the learning rate within a session through in-context learning as a form of adaptation to individual differences. However, it is also plausible that parameters vary within individuals over time, and as demonstrated in Appendix D, RNNs are capable of tracking such changes. This ability may be more appropriately described as individual state-tracking, rather than IDT.</p><p>Ultimately, such within-subject variability may be better modeled explicitly within cognitive models. Indeed, a number of cognitive models have been proposed that allow parameters such as learning rate or inverse temperature to change during task performance. Some of these models assume stochastic fluctuations introduced by noise <ref type="bibr" target="#b38">(Samejima, Ueda, Doya, &amp; Kimura, 2005;</ref><ref type="bibr" target="#b23">Ito &amp; Doya, 2009;</ref><ref type="bibr" target="#b11">Findling, Skvortsova, Dromnelle, Palminteri, &amp; Wyart, 2019)</ref>, while others define specific rules governing the temporal dynamics of parameter change <ref type="bibr" target="#b48">(Yechiam et al., 2005;</ref><ref type="bibr" target="#b2">Bai, Katahira, &amp; Ohira, 2014;</ref><ref type="bibr" target="#b36">Piray &amp; Daw, 2024)</ref>.</p><p>When RNNs outperform cognitive models with stationary parameters, it may indicate that such within-subject parameter dynamics are relevant, and incorporating them into the cognitive model could lead to improved explanatory power.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.7">The Boundary Between IDT and Within-Subject Cognitive Processes</head><p>Throughout this paper, we have implicitly assumed that the components described in cognitive models (i.e., RL models) are intended to reflect cognitive processes within individuals, whereas in-context adaptation by RNNs reflects individual differences and is thus conceptually distinct from these cognitive processes. While this distinction is clear at the definitional level, the boundary between them is often ambiguous in practice. Some mechanisms expressed in cognitive models may themselves be interpreted as forms of in-context adaptation to individual differences. For example, choice hysteresis in RL models (Eq.7 in AppendixA.2) can be viewed as a form of in-context adaptation, in which a latent variable tracks past choices and influences future decisions. In some cases, choice hysteresis may genuinely reflect within-subject cognitive dynamics; in others, it may simply serve to capture stable individual differences.</p><p>Consider a situation in which an RL model assumes no initial bias in choices (i.e., identical initial Q-values for both options), but some participants exhibit strong initial preferences. In such cases, incorporating a choice hysteresis effect can improve predictive accuracy by accounting for this bias. For example, if a participant consistently selects option B from the beginning, a model with choice hysteresis may predict continued selection of option B. When these initial biases differ across individuals, such in-context adaptations effectively capture individual differences implying that the RL model itself possesses an IDT property.</p><p>This illustrates that whether a mechanism in a cognitive model constitutes IDT depends on both the structure of the model and the nature of the underlying process. Researchers must therefore be explicit about which components they regard as part of the cognitive process and how those components are implemented in the model. Moreover, in the presence of model misspecification, mechanisms defined as cognitive components may, in effect, serve the role of IDT. Awareness of this possibility is crucial when interpreting modeling results. For instance, in the situation described above, one could address the issue by including a free parameter for initial choice bias or allowing initial Q-values to vary across participants (e.g., <ref type="bibr" target="#b49">Zhu, Katahira, Hirakawa, and Nakao (2025)</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Conclusion</head><p>We have examined how the ability of a single RNN to adapt to individual differences affects its predictive accuracy as a benchmark for cognitive models. The impact of this IDT property is likely to vary depending on multiple factors, such as the design of the behavioral task, the magnitude of individual differences, and the assumed cognitive model structure, making it difficult to establish general guidelines. At present, researchers should be aware of this property when using RNNs for behavioral modeling. Further understanding of the IDT property and other characteristics of RNNs is needed, along with continued efforts to harness these properties to make RNNs a more useful tool in cognitive modeling.</p><p>where α F is the forgetting rate, which determines the rate at which the value of the unchosen option decays.</p><p>To model the effects of choice history (choice hysteresis), the choice trace (or choice kernel) C t (i), which quantifies how frequently option i has been chosen recently, is computed as follows <ref type="bibr" target="#b47">(Wilson &amp; Collins, 2019)</ref>:</p><formula xml:id="formula_4">C t+1 (i) = (1 − τ )C t (i) + τ I(a t = i),<label>(7)</label></formula><p>where the indicator function I(•) is 1 if the statement is true and 0 if the statement is false. The initial values are set to zero, i.e., C 1 (A) = C 1 (B) = 0. The parameter τ ∈ [0, 1] is the decay rate of the choice trace. The choice probability (for option A) is determined by the softmax function:</p><formula xml:id="formula_5">P (a t = A) = 1 1 + exp (−β(Q t (A) − Q t (B)) + φ(C t (A) − C t (B))) .<label>(8)</label></formula><p>The parameter β ∈ [0, ∞) is the inverse temperature, which indicates how sensitively the choice probability changes with the value difference between options. A larger β results in a more sensitive change in the choice probability. The choice trace weight φ ∈ (−∞, ∞) controls the tendency to repeat (when φ &gt; 0) or avoid (when φ &lt; 0) recently chosen options. Since the model involves only two options, the choice probability for option B is given by P (a t = B) = 1 − P (a t = A). First, we consider six variants of Q-learning models withoug forgetting (α F = 0), as follows. The standard Q-learnig model ('Q-model') assumes symmetric learning rates, α + = α − = α, and does not include choice autocorrelation factor (φ = 0). The Q+C model extends the Q-model by incorporating a choice trace component, allowing φ and τ to be estimated as free parameters, while still assuming symmetric learning rates. The Q+A model introduces asymmetric learning rates, allowing α + and α − to differ, but does not include a choice trace component (φ = 0). The Q+CA model combines both features, allowing asymmetric learning rates and including a choice trace mechanism.</p><p>In addition, we consider forgetting versions of Q-learning, termed FQ and FQ+C. These models are equivalent to the Q and Q+C models, respectively, but with the forgetting rate α F is equal to the learning rate α.</p><p>The parameters of the ground-truth RL models used to generate the data are provided in the captions of the corresponding figures.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.3 Fitting Reinforcement Learning Models</head><p>We fitted RL models to synthesized and empirical choice data using two approaches: common parameter fitting and individual parameter fitting (hereafter referred to as "common fit" and "individual fit," respectively). In the common fit approach, we assumed that all subjects share the same parameter values, and thus estimated a single set of parameters for the entire dataset. This estimation was conducted via maximum likelihood estimation, where the parameters were optimized by minimizing the total negative log-likelihood across all subjects. In the individual fit approach, we allowed model parameters to vary across subjects and fitted them separately for each subject using maximum a posteriori (MAP) estimation. This method combines the log-likelihood of the data with prior distributions over the parameters, providing regularization and improving estimation stability, especially when the number of trials per subject is limited <ref type="bibr" target="#b27">(Katahira, 2016)</ref>.</p><p>An approach that treats individual differences in parameters is commonly implemented either by maximizing the likelihood for each individual or by using hierarchical models that estimate both individual-level parameters and group-level distributions <ref type="bibr" target="#b7">(Daw, 2011)</ref>. In the present study, we adopted MAP estimation (as in <ref type="bibr" target="#b35">Palminteri et al. (2017)</ref>; <ref type="bibr" target="#b41">Sugawara and Katahira (2021)</ref>). While hierarchical modeling generally yields more accurate parameter estimates, it typically requires computationally intensive procedures such as Markov chain Monte Carlo (MCMC) sampling <ref type="bibr" target="#b0">(Ahn et al., 2011)</ref> or the expectation-maximization (EM) algorithm <ref type="bibr" target="#b22">(Huys et al., 2011)</ref>. These procedures can be time-consuming, especially when performing systematic simulations. Moreover, hierarchical models can be sensitive to the choice of prior distributions and model specifications. In some cases, strongly informative priors may lead to excessive shrinkage, resulting in unstable estimates and requiring additional effort for model tuning <ref type="bibr" target="#b42">(Sumiya &amp; Katahira, 2020)</ref>. Maximum likelihood estimation, which does not rely on prior assumptions, tends to produce larger estimation errors and generally yields lower predictive accuracy compared to MAP estimation. When using weakly informative priors, MAP estimation can achieve predictive performance comparable to that of full hierarchical Bayesian models <ref type="bibr" target="#b27">(Katahira, 2016)</ref>. Therefore, results obtained using MAP estimation can be expected to approximate those of hierarchical models.</p><p>We used the same prior distribution as used in Sugawara and Katahira (2021), which follows <ref type="bibr" target="#b35">Palminteri et al. (2017)</ref>. Specifically, learning rate parameters were assigned Beta(1.1, 1.1) priors (either symmetric α or asymmetric α + and α − ), the inverse temperature parameter β was given a Gamma(1.2, scale = 5.0) prior, and the chocie trace weight φ was assigned a Gaussian prior N (0, σ 2 = 5). The decay parameter of the choice trace τ was, if included, also assigned a Beta(1.1, 1.1) distribution. If initial Q-values were treated as free parameters, uniform priors over <ref type="bibr">[0,</ref><ref type="bibr">1]</ref> were implicitly imposed via bounded optimization. For both approaches, we employed the Sequential Least Squares Programming (SLSQP) algorithm, implemented in the scipy.optimize.minimize function from the Python SciPy package, to perform constrained optimization with five random initializations to avoid local minima.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.4 RNN Architectures</head><p>The RNN architectures examined in this paper consist of an input layer that receives the action and reward at trial t − 1, an output layer that generates the choice probability for trial t, and an RNN layer in between <ref type="figure">(Fig. 9)</ref>. This structure is standard in previous studies that have used RNNs to model RL processes (e.g., Dezfouli, Griffiths, et al., <ref type="figure">Fig. 9</ref>. Schematic of RNN models. The input consists of choice and reward information from the previous trial, with choice is represented via one-hot encoding and reward is coded via choicedependent reward coding. These inputs are fed into an RNN layer with recurrent connections, where they are integrated with past history data before being passed to the output layer. In the output layer, the probability of selecting each option is computed via the softmax function. 2019), except for the method of coding the reward in the input layer, which will be described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Input layer</head><p>The input to the network at trial t is represented by the four-dimensional vector</p><formula xml:id="formula_6">x t =     ã t−1,1 a t−1,2 r t−1,1 r t−1,2      .<label>(9)</label></formula><p>Here,ã t−1 is a one-hot vector such that if option A is chosen, the first element,ã t−1,1 , is 1, and the second element,ã t−1,2 , is 0. If option B is chosen instead,ã t−1,1 = 0 and a t−1,2 = 1.r t−1 is a vector defined as follows: if the i-th option is chosen at trial t − 1, the i-th element,r t−1,i , takes the reward value r t−1 . The j-th element corresponding to the unselected j-th option is set to zero. This reward coding scheme is referred to as choice-dependent reward (CDR) coding. Many existing studies input the reward value r t as a single scalar value, regardless of the choice. This is referred to as choice-independent reward (CIR) coding. In CIR coding, the network needs to learn the interaction between reward and choice, whereas in CDR coding, this is not necessarily needed, which makes training more efficient. Additionally, as demonstrated in Appendix C, CDR coding allows a linear-RNN to be equivalent to FQ-learning.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RNN layer</head><p>In this study, we primarily use the Gated Recurrent Unit (GRU; Cho, 2014) as the recurrent layer of the RNN for the following reasons. GRUs offer a simpler architecture than Long Short-Term Memory <ref type="figure">(LSTM; (?, ?)</ref>), while achieving comparable performance. Unlike LSTMs, which maintain two latent states per unit, GRUs use only a single latent variable per unit. Although LSTMs were initially used to model reward-based choice behavior <ref type="bibr" target="#b9">(Dezfouli, Griffiths, et al., 2019)</ref>, GRUs have become more commonly used in recent work <ref type="bibr" target="#b16">(Ger, Nachmani, et al., 2024;</ref>. Simpler architectures such as the vanilla RNN have also been applied to choice modeling, but they suffer from slow convergence (see Appendix B).</p><p>We also consider a further simplified variant, the linear RNN, as a point of comparison. The definitions of each recurrent unit type vanilla RNN, linear RNN, LSTM, and GRU are provided below, in that order.</p><p>Suppose that N h denotes the number of units in the RNN layer.</p><p>Vanilla RNN In the vanilla RNN, the internal state vector h t , which is an N h -dimensional vector, is updated, and the output is calculated as follows:</p><formula xml:id="formula_7">h t = tanh(Wx t + Uh t−1 + b h ).<label>(10)</label></formula><p>Here, The function tanh(•) is the hyperbolic tangent activation function, which introduces nonlinearity to the model. The matrix W, which has dimensions N h × 4, is the weight matrix that is applied to the input x t , while U is the weight matrix, with dimensions N h × N h , applied to the previous latent state h t−1 . The vector b h , which is N h -dimensional, is the bias associated with the latent state.</p><p>Linear RNN The linear RNN is obtained by replacing the tanh function in Eq. <ref type="formula" target="#formula_7">10</ref>with the identity function as follows:</p><formula xml:id="formula_8">h t = Wx t + Uh t−1 + b h .<label>(11)</label></formula><p>GRU In GRU <ref type="bibr" target="#b5">(Cho, 2014)</ref>, the internal state vector h t is updated as follows:</p><formula xml:id="formula_9">z t = σ(W z x t + U z h t−1 + b z ),<label>(12)</label></formula><formula xml:id="formula_10">r t = σ(W r x t + U r h t−1 + b r ),<label>(13)</label></formula><formula xml:id="formula_11">h t = tanh(W h x t + U h (r t ⊙ h t−1 ) + b h ),<label>(14)</label></formula><p>h</p><formula xml:id="formula_12">t = (1 − z t ) ⊙ h t−1 + z t ⊙h t ,<label>(15)</label></formula><p>where z t is the update gate, r t is the reset gate,h t is the candidate latent state, σ is the sigmoid function, and ⊙ represents elementwise multiplication.</p><p>LSTM The LSTM update equations are as follows:</p><formula xml:id="formula_13">f t = σ(W f x t + U f h t−1 + b f ),<label>(16)</label></formula><formula xml:id="formula_14">i t = σ(W i x t + U i h t−1 + b i ),<label>(17)</label></formula><formula xml:id="formula_15">o t = σ(W o x t + U o h t−1 + b o ),<label>(18)</label></formula><formula xml:id="formula_16">c t = tanh(W c x t + U c h t−1 + b c ),<label>(19)</label></formula><formula xml:id="formula_17">c t = f t ⊙ c t−1 + i t ⊙c t ,<label>(20)</label></formula><formula xml:id="formula_18">h t = o t ⊙ tanh(c t ),<label>(21)</label></formula><p>where c t−1 is the cell state from the previous time step, f t is the forget gate, i t is the input gate, o t is the output gate, andc t is the candidate cell state In all the RNN models, the number of latent units was generally fixed at 10. This was chosen because increasing the size beyond this point did not result in notable improvements in prediction accuracy (see Appendix B).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Output layer</head><p>In the output layer, the state of the RNN layer, h t , is linearly transformed as follows:</p><formula xml:id="formula_19">y t = W y h t + b y .<label>(22)</label></formula><p>Here, y t is a 2-dimensional vector representing the output for the two possible choices, and b y is a 2-dimensional bias vector. The matrix W y is an 2 × N h matrix that linearly transforms the latent state h t . The choice probability of option A is then determined via the softmax function:</p><formula xml:id="formula_20">P (a t = A) = 1 1 + exp (− [y t,1 − y t,2 ]) .<label>(23)</label></formula><p>Here, y t,i denotes the i-th element of the vector y t .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Loss Function Used for Training RNNs</head><p>Categorical cross-entropy was employed as the loss function, which corresponds to maximum likelihood estimation. For a given target choice label a s t (where s indexes the subject), and the predicted choice probabilities P pred (a s t ) for options A and B, the loss is defined as:</p><formula xml:id="formula_21">L CE = − [I(a s t = A) log (P pred (a s t = A)) + I(a s t = B) log (P pred (a s t = B))] ,<label>(24)</label></formula><p>where I(•) is the indicator function. The entire dataset of 100 subjects was used as a single batch during training.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.5 Implementation and Training of RNN Models</head><p>The vanilla RNN and linear RNN were constructed using the SimpleRNN class from Keras implemented in TensorFlow (version 2.16.1). Similarly, the GRU and LSTM models were built using the GRU and LSTM classes.</p><p>To train the networks, the Adam optimizer was used with a constant learning rate of 0.001. Additionally, gradient clipping with clipnorm = 0.001 was applied during training. Gradient clipping ensures that the norm of the gradient does not exceed the specified threshold (here, 0.001), preventing exploding gradients.</p><p>The number of training iterations was generally set to 3000. During training, network weights were saved every 100 steps. For simulations using synthetic data, where the ground truth choice probabilities were known, the Kullback-Leibler (KL) divergence between the true and model-predicted choice probabilities was computed at each checkpoint. The weights corresponding to the minimum KL divergence were selected, and the RNN with those weights was used as the final model.</p><p>For real-world data, we selected the model weights that yielded the lowest crossentropy loss on the test set and used that model as the final output. Ideally, a separate validation dataset, independent of both the training and test datasets, should be used to determine the optimal number of training iterations <ref type="bibr" target="#b10">(Eckstein et al., 2024)</ref>. However, given the limited number of subjects in the datasets, we adopted this simplified approach. As a result, we used the models trained for 200 iterations for the Sugawara dataset, 300 iterations for the Palminteri dataset, and 1200 iterations for the Waltmann dataset, corresponding to the training step at which the lowest loss on the test data was achieved.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.6 Performance metrics</head><p>When the ground-truth choice probabilities are available (i.e., when synthetic data are used), the model's fit can be evaluated by measuring the distance between the model's predicted choice probabilities and the true probabilities. First, we denote the choice at trial t of subject s as a s t . To quantify the difference between the choice probabilities of the true model P true (a s t ) (generated by RL models) and the predictions from the RNN model P pred (a s t ), we compute the Kullback-Leibler (KL) divergence. Given that the probability distributions in our case are Bernoulli distributions (i.e., binary choices), we calculate the KL divergence for a s t as follows:</p><formula xml:id="formula_22">KL(P true (a s t )||P pred (a s t )) =P true (a s t = A) log ( P true (a s t = A) + ϵ P pred (a s t = A) + ϵ ) + (1 − P true (a s t = A)) log ( 1 − P true (a s t = A) + ϵ 1 − P pred (a s t = A) + ϵ ) ,<label>(25)</label></formula><p>where ϵ is a small constant (set to 10 −10 ) added to avoid division by zero or taking the logarithm of zero. The KL divergence is averaged across all subjects and trials.</p><p>To reduce the computation time, KL divergence was computed once every 10 training iterations. In real-world behavioral data analysis, the ground truth is unknown. In such cases, model performance cannot be evaluated using metrics like KL divergence. Instead, it is commonly assessed based on predictive accuracy on held-out test data. Specifically, we computed the normalized log-likelihood <ref type="bibr" target="#b23">(Ito &amp; Doya, 2009)</ref> on test data, or trial-wise prediction accuracy <ref type="bibr" target="#b10">(Eckstein et al., 2024)</ref>, defined as follows:</p><formula xml:id="formula_23">Normalized likelihood = exp ( 1 N s T Ns ∑ s=1 T ∑ t=1 log(P pred (a s t )) )<label>(26)</label></formula><p>Here, T denotes the number of trials (= 200 for simulations), and N s denotes the number of subjects (= 100 for simulations). We performed paired t-tests using the normalized log-likelihoods to compare the predictive performance of the RNN and each RL model. If the RL model showed significantly lower predictive accuracy than the RNN at the 5% significance level, we considered that the RL model had room for improvement. Since our goal was not to control for family-wise error but to evaluate each model individually as a benchmark comparison, we did not apply any correction for multiple comparisons.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.7 On-Policy IDT Check</head><p>To examine whether a trained RNN has acquired IDT property, we propose the onpolicy IDT check, which involves simulating the RNN as an agent to generate choice data (a process referred to as on-policy simulation or closed-loop simulation), fitting a cognitive model to the generated data, and examining the distribution of estimated parameters.</p><p>Specifically, we first define RL model parameters for 100 hypothetical agents, ensuring that these parameters span a broad range of plausible values for each parameter: α parameters and τ are sampled uniformly from [0.1, 0.9], β from [1.0, 4.0], and φ from [ 2.5, 2.5]. When multiple candidate RL models can be considered, we select the one with the highest predictive accuracy for use in this procedure. Each agent performs a two-armed bandit task for 50 trials, generating 100 sessions of behavioral data. These data are then used to update the RNN states for each session through off-policy simulation, allowing the RNN to encode individual characteristics as latent variables.</p><p>Next, we use each session-specific RNN state to simulate 5000 trials of a two-armed bandit task in an on-policy manner, where choices are sampled according to the model's predicted choice probabilities. If the RNN successfully encodes individual differences via latent variables and maintains them stably, the generated 5000-trial data for each session should reflect the corresponding agent's characteristics.</p><p>To evaluate this, we fit a RL model to each session's 5000-trial data using maximum likelihood estimation. Since the initial 50 trials in the off-policy simulation may introduce biases in early choices specifically, differences in the initial Q-values between options we account for this by allowing the initial Q-values to be free parameters in the fitting procedure. Finally, we examine the estimated parameter distributions (e.g., learning rates) across the 100 sessions using histograms. If the recovered distribution covers wide parameter range, we infer that the RNN has acquired IDT. Conversely, if the estimated parameters are narrowly concentrated around a single value, we conclude that IDT has not been acquired.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8 Real-world data Sugawara data and Palminteri data</head><p>In the experiments by <ref type="bibr" target="#b41">Sugawara and Katahira (2021)</ref> and <ref type="bibr" target="#b35">Palminteri et al. (2017)</ref>, two feedback conditions were included: a factual condition, where participants were only shown the outcome (rewarded or not) of the chosen option, and a counterfactual condition, where they also received feedback on the unchosen option. Here, we focus exclusively on the factual condition, which aligns with the paradigms considered in previous sections.</p><p>In both conditions, trials from eight contexts (i.e., stimulus pairs) were presented in an intermixed manner, with four contexts appearing in the first session and the remaining four in the second session. Each session included one 'Symmetric', one 'Reversal', and two 'Asymmetric' contexts, resulting in a total of eight stimulus pairs across the two sessions.</p><p>Each context was associated with one of three reward probability conditions: In the Symmetric condition, both options had a reward probability of 50%. In the Asymmetric condition, one option had a reward probability of 75% and the other 25 %. In the 'Reversal' condition, one option had a reward probability of 83% and the other 17% for the first 12 trials, after which the reward probabilities were reversed for the final 12 trials. Each stimulus pair (context) was presented across 24 trials, resulting in a total of 96 trials per session and 192 trials across the two sessions.</p><p>By splitting the dataset into two sets of four contexts, we could perform crossvalidation at the session (context) level. Specifically, Contexts 1 and 3 (first session) and 6 and 8 (second session) were assigned as training data, while Contexts 2 and 4 (first session) and 5 and 7 (second session) were used as test data. This assignment ensured that each of the training and test sets included an equal number of contexts from each of the three reward probability conditions. The Sugawara dataset included 143 participants (58 females; mean age = 38.7, SD = 9.6), and the experiment was conducted online. In contrast, the Palminteri dataset consisted of 20 participants (mean age = 23.9, SD = 0.7), collected in the laboratory. Unlike the original experiment by <ref type="bibr" target="#b35">Palminteri et al. (2017)</ref>, <ref type="bibr" target="#b41">Sugawara and Katahira (2021)</ref> imposed a 1500 ms response time limit. Trials with missed responses were excluded and the remaining trials were concatenated for analysis. Among the 143 participants, 10 had at least one missed response, with the number of misses ranging from 4 to 12 (mean = 5.5), totaling 55 missed trials across all participants.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Waltmann Dataset</head><p>In the study by <ref type="bibr" target="#b46">Waltmann et al. (2022)</ref>, 40 participants (20 males; age = 26.45 ± 3.88) completed a probabilistic reversal learning task, which is one specific version of twoarmed bandit task, across two sessions, approximately one week apart. All sessions were conducted in a laboratory setting. Each session consisted of 160 trials in a twoarmed bandit setting.</p><p>In the first 55 trials of each session, one option was associated with a high reward probability (80%) and the other with a low probability (20%). After trial 55, reward contingencies reversed five times <ref type="bibr">(at trials 55, 70, 90, 105, and 125)</ref>, requiring participants to flexibly adapt their choices.</p><p>In the present study, we treated the first session as the training data and the second session as the test data. While the second session may be affected by practice effects <ref type="bibr" target="#b25">(Karvelis, Paulus, &amp; Diaconescu, 2023)</ref>, we do not attempt to control for or model such effects here.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B Comparison of RNN Architectures</head><p>Here, we investigate whether the IDT property, which was demonstrated with the GRU in the main text, can also be observed in other RNN architectures commonly used as models for human and animal RL, such as LSTM and the vanilla RNN. LSTM, like the GRU, is designed to retain information from distant past histories more effectively, so we expect to see similar behavior in terms of the IDT property. On the other hand, the vanilla RNN simply applies a nonlinear and monotonic tanh function to the latent units of the linear RNN. It is not obvious whether the IDT property will emerge in the vanilla RNN.</p><p>Since the speed of learning might differ between RNN architectures, we plotted the KL divergence between the true choice probability and the model's prediction as a function of the number of training iterations. We also examined the sensitivity to initial conditions by generating multiple learning curves from eight randomly initialized network weights while using the same dataset. The number of iterations was set to 2000 for all the RNN models except for the vanilla RNN, but the plot shows up to 1500 iterations for clarity. For the vanilla RNN, which exhibited significantly slower convergence, training was repeated for 8000 iterations, and the results were plotted across the full range of iterations. The number of latent units in the all RNN was set to 10. <ref type="figure" target="#fig_0">Fig. 10</ref> shows the results for the same data in <ref type="figure" target="#fig_0">Fig. 1</ref> (Ground truth is FQ-learning model with α being either 0.1 or 0.9). The KL divergence for the linear RNN converges to approximately 0.05, which we interpret as the lower bound in the non-IDT mode. For the GRU, the KL divergence ultimately converges toward the IDT mode, approaching a KL divergence of 0. However, it exhibits a phenomenon where the KL divergence temporarily remains at approximately 0.05-indicating that the model remains in a non-IDT mode-before suddenly dropping into the IDT mode. This behavior, com- monly observed in multilayer neural networks, is referred to as the plateau phenomenon <ref type="bibr" target="#b15">(Fukumizu &amp; Amari, 2000)</ref>. LSTM also reaches the near KL = 0 region, indicating the IDT mode, and exhibits a plateau phenomenon. However, its convergence speed was relatively slower than that of the GRU, and the degree of dependency on the initial weights was stronger than that of the GRU. Additionally, even after convergence, instability was observed, with multiple temporary spikes where the KL divergence increased.</p><p>The vanilla RNN takes much longer to converge. Notably, only the vanilla RNN panel extends up to 8000 iterations, which is a longer scale than the others. Eventually, the KL divergence approaches the region near 0. This suggests that even the vanilla RNN is able to reach the IDT mode, but it requires many iterations to do so. <ref type="figure" target="#fig_0">Figure 11</ref> shows how the number of GRU units affects the learning curves of an RNN. When the model contains only a single GRU unit, the KL divergence remains around 0.05, which corresponds to the upper bound of the no-IDT mode. As the number of units increases, the KL divergence falls below this threshold, indicating that the model begins to acquire the IDT property. Notably, models with more GRU units tend to converge more quickly, regardless of initialization. This is likely because a larger number of weights increases the probability of randomly initializing a configuration that is close to an optimal solution, consistent with the "lottery ticket hypothesis" <ref type="bibr" target="#b14">(Frankle &amp; Carbin, 2018)</ref>. Although near-optimal solutions can be achieved with around five units, models with approximately ten units converge more reliably and rapidly. Since increasing the number of units beyond ten yields minimal additional benefit, we used ten GRU units as the default configuration in the main analyses.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C Equivalence between FQ-learning and linear-RNN models</head><p>Here, we demonstrate that the FQ-learning and linear RNN models can be equivalent in terms of their input-output relationships by showing the correspondence between their respective parameters. First, from Eq. (3), the choice probability in FQ-learning is expressed via the difference between the two action values, ∆Q t = Q t (A) − Q t (B), as follows:</p><formula xml:id="formula_24">P (a t = A) = 1 1 + exp (−β∆Q t ) .<label>(27)</label></formula><p>The update rule for FQ-learning (Eqs. (1) and (4)) can be rewritten as follows:</p><formula xml:id="formula_25">Q t (A) = Q t−1 (A) + α(I(a t−1 = A)r t−1 − Q t−1 (A)),<label>(28)</label></formula><formula xml:id="formula_26">Q t (B) = Q t−1 (B) + α(I(a t−1 = B)r t−1 − Q t−1 (B)).<label>(29)</label></formula><p>Here, the indicator function I(•) takes a value of 1 when the expression inside is true and 0 otherwise. By subtracting the terms in Eq. (29) from Eq. (28), we obtain ∆Q t = (1 − α)∆Q t−1 + α(I(a t−1 = 1) − I(a t−1 = 2))r t−1 .</p><p>Now, a linear RNN with a single latent unit (N h = 1) is used. In this case, h t becomes a scalar, which we denote as h t . We demonstrate that this h t can correspond to the variable ∆Q t , with appropriate weights assigned to the linear RNN. If we assume that b x = 0, b h = 0, we can write the equations as follows:</p><formula xml:id="formula_28">h t = W h x t + u h h t (31) y t = W y h t<label>(32)</label></formula><p>The input (for choice-dependent reward coding) can be expressed as: </p><formula xml:id="formula_29">x t =     ã t−1</formula><p>We further assume that the weight matrix W h has nonzero values only for the components corresponding tor t , specifically set to α, −α for the respective options:</p><formula xml:id="formula_31">W h = [ 0 0 α −α ] .<label>(34)</label></formula><p>Suppose that u h = 1 − α; then, Eq. (31) becomes h t = (1 − α)h t−1 + α(I(a t−1 = A) − I(a t−1 = B))r t−1 .</p><p>This can be viewed as an equation where we replace ∆Q t with h t in Eq. (30).</p><p>If the weight to the output layer is W y = [β, 0] T (where • T denotes the transpose), y t,1 − y t,2 in Eq. (23) becomes βh t . This confirms that this linear RNN yields an equivalent output (choice probability) with the FQ-learning model; if the initial value of h t , h 1 is the same as that of ∆Q t (this is the case if h 1 = 0 and Q 1 (A) = Q 1 (B)).</p><p>There is an indeterminacy in the weights of the linear RNN, and there are infinitely many models that can be equivalent to FQ learning. For example, models with W y = [0.5β, −0.5β] T would produce the same output as well. When there are two or more latent units, countless combinations of weights exist that can yield behavior equivalent to that of the linear RNN with a single latent unit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>D RNN Also Tracks Within-Subject Parameter Variability</head><p>As shown in <ref type="figure" target="#fig_0">Figure 1B</ref>, the RNN appears to capture individual differences during the initial trials and subsequently generates behavior that remains consistent with those differences. However, in reality, parameters such as the learning rate may also vary within individuals during the task (e.g., <ref type="bibr" target="#b3">Behrens, Woolrich, Walton, &amp; Rushworth, 2007;</ref><ref type="bibr" target="#b4">Browning, Behrens, Jocham, O'Reilly, &amp; Bishop, 2015)</ref>. To examine whether the RNN can also track such within-subject fluctuations in parameters, we consider two cases: one in which the ground-truth data used to train the RNN have constant learning rates, and another in which the ground-truth learning rate changes during the task. <ref type="figure" target="#fig_0">Figure 12A</ref> illustrates the predictions of an RNN trained on data from Scenario 1, where the true model is the FQ-learning model and the learning rate (α) remains constant throughout the task (either 0.1 or 0.9). In the test data, however, the learning rate switches after 100 trials (from α = 0.1 to 0.9 or vice versa). For agents whose learning rate changes from 0.1 to 0.9, the RNN fails to track the change in α, continuing to produce behavior consistent with a slow learning rate (left panel). In contrast, when α changes from 0.9 to 0.1, the RNN gradually adapts and slows the rate of change in its choice probabilities accordingly (right panel). These results reveal an asymmetry in the RNN's tracking ability: it can follow transitions from fast to slow learning, but not the reverse, when such transitions were not present during training.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A B</head><p>Trained on data with constant learning rates Trained on data with varying learning rates α = 0.1→0.9 α = 0.9→0.1 α = 0.1→0.9 α = 0.9→0.1 <ref type="figure" target="#fig_0">Fig. 12</ref>. Tracking within-subject changes in learning rate by the RNN. A A case where the RNN was trained on data with a constant learning rate and tested on data with a switching learning rate. The RNN was trained on simulated data with agents whose learning rate α remained constant throughout the task (either α = 0.1 or α = 0.9), and tested on agents whose learning rate switched at trial 101 (from 0.1 to 0.9 on the left, from 0.9 to 0.1 on the right). B A case with both training and test sets containing learning rate switches. The RNN was trained on agents whose learning rate changed within the task in the same manner as the test data. The orange lines represent the RNN's predicted choice probability, and the gray lines show the ground-truth choice probability generated by the FQ-leaning model. <ref type="figure" target="#fig_0">Figure 12B</ref> shows the results when the RNN is trained on data that include the learning rate shift (from α = 0.1 to 0.9 and vice versa). In this case, the RNN successfully tracks the changes in both directions, demonstrating that RNNs can learn to adapt to within-subject changes in parameters when such patterns are present in the training data.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>FQFig. 1 .</head><label>1</label><figDesc>Illustration of the individual difference tracking (IDT) property of an RNN. The plots show the trajectories of choice probabilities output by common-fit FQ-learning (shown in blue lines) and RNN (here, GRUs;</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 4 .</head><label>4</label><figDesc>Schematic decomposition of predictive accuracy across different modeling approaches: a cognitive model with common parameters (common fit), a cognitive model with individual parameters (individual fit), and an RNN.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 6 .</head><label>6</label><figDesc>Relationship between predictive accuracy and the number of RNN cells. The vertical axis indicates the Kullback-Leibler (KL) divergence between the predicted choice probabilities of the RNN models (GRU and linear RNN) and the true probabilities; lower values indicate better predictive performance. The left panels correspond to scenarios with individual differences, while the right panels correspond to scenarios without individual differences.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 10 .</head><label>10</label><figDesc>Comparison of learning curves across RNN architectures. The average KL divergence, which represents the deviation from the true model, is plotted. When the KL divergence drops below 0.05 and approaches zero, it is considered to have entered the IDT mode. The results starting from ten different initialized network weights are overlaid in different colors. The simulation settings are the same as those inFig. 1B.Fig. 11. Comparison of learning curves across different numbers of GRU units. The number of GRU units was varied across 1, 2, 3, 5, 10, and 20. The KL divergences between true model and RNN are plotted. When the KL divergence drops below 0.05 and approaches zero, the model is considered to have entered the IDT mode. Results from ten different random initializations of network weights are overlaid in different colors. The simulation settings are identical to those used inFig. 1B.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head></head><label></label><figDesc>Fig. 5. Relationship between training progression and IDT acquisition in Scenario 1. A Learning curves showing the change in the RNN's training loss, including the cross-entropy loss (red) and KL divergence (blue) over the course of training. B Comparison between RL models and the RNN trained up to training step 200. The convention is the same as that ofFig. 2. C Trajectories of the predicted choice probabilities at training steps 200 and 1000. Notably, at training step 200, the RNN's predictions closely match those of the common-fit FQ model (shown in light blue).</figDesc><table><row><cell>A</cell><cell></cell><cell>B</cell><cell cols="2">* Lower predictive accuracy than RNN (p &lt; 0.05, paired t-test)</cell></row><row><cell></cell><cell>KL-divergence</cell><cell></cell><cell></cell></row><row><cell cols="2">Training iteraƟon</cell><cell></cell><cell></cell><cell>RNN</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell>(Itr: 200)</cell></row><row><cell>C</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Itr: 200</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Itr: 1000</cell><cell></cell><cell></cell><cell></cell></row><row><cell>D</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Itr: 200</cell><cell></cell><cell>Itr: 1000</cell><cell></cell></row><row><cell>True value</cell><cell></cell><cell>True value</cell><cell></cell></row><row><cell>Learning rate, α</cell><cell>Inverse temperature, β</cell><cell cols="2">Learning rate, α</cell><cell>Inverse temperature, β</cell></row></table><note>D Results of the On-Policy IDT check for RNNs at training steps 200 and 1000. The plots show the distribution of FQ-learning parameters fitted to simulated choice data generated by the RNN via on-policy simulation. Red vertical lines indicate the true parameter values used to generate the data (α = 0.1, 0.9 and β = 3.0).</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head></head><label></label><figDesc>Predictive accuracy (normalized likelihood) on the test data for various RL models and the RNN model. Each bar represents the mean predictive accuracy across participants. Error bars indicate the standard error of the mean (SEM). Asterisks denote that the model performed significantly worse than the RNN (paired t-test, p &lt; .05). B &amp; D Results of on-policy IDT check: Distribution of parameters estimated by fitting the FQ+C model to simulated choice data generated by the RNNs. The narrow distribution in all the paneles suggests that the RNNs did not strongly acquire IDT in both datasets.</figDesc><table><row><cell cols="2">Sugawara dataset</cell><cell></cell></row><row><cell>A</cell><cell>* Lower predictive accuracy than RNN (p &lt; 0.05, paired t-test)</cell><cell>B</cell></row><row><cell></cell><cell></cell><cell>Lerning rate, α</cell><cell>Inverse temperature, β</cell></row><row><cell></cell><cell></cell><cell>Choice trace weight, φ</cell><cell>Choice trace decay rate, τ</cell></row><row><cell cols="2">Palminteri dataset</cell><cell></cell></row><row><cell>C</cell><cell></cell><cell>D</cell></row><row><cell></cell><cell></cell><cell>Lerning rate, α</cell><cell>Inverse temperature, β</cell></row></table><note>Choice trace weight, φ Choice trace decay rate, τ RNN RNN Fig. 7. Empirical demonstration using real-world data. A &amp; B Sugawara dataset; C &amp; D Palminteri dataset. A &amp; C</note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>The author would like to thank Yuichi Yamashita, Maria Eckstein, Michiyo Sugawara and Asako Toyama for helpful discussions. The author also thank Stefano Palminteri and Maria Waltmann for sharing their data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Declarations</head></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflict of Interests</head><p>The author declares that there is no conflict of interest.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Funding Statement</head><p>This work was partially supported by JSPS KAKENHI grant numbers JP24K15121, JP23H00074 and JP21H04420.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Availability of Data and Materials</head><p>Not applicable. (This manuscript does not contain any raw data.)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Code availability</head><p>All code used for simulations, analyses, and figures will be made available upon publication.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Authors Contribution</head><p>The author confirms sole responsibility for the study's conception and design, simulations and analyses, and manuscript preparation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Ethical Approval</head><p>Not Applicable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Consent to Participate</head><p>Not Applicable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Consent to Publish</head><p>Not Applicable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.1 Task Settings for Simulations</head><p>We simulated the choice behavior of 100 agents (virtual subjects) on the two-armed bandit task via various RL models with parameters (e.g., learning rate) being systematically varied.</p><p>In the two-armed bandit task used for the simulations, one option was associated with a high reward probability, 0.7, whereas the other option was associated with a low reward probability, 0.3. At each trial t (where t denotes the trial index), a reward was given (r t = 1) with the probability associated with the chosen option; otherwise, no reward was given (r t = 0). After each 50-trial block, the reward probabilities of the two options were reversed. For each trial, whether a reward was available for each option was predetermined according to these probabilities. Although the same reward sequence was used across agents, different sequences were used for the training and test data. In all simulations conducted in the present study, each agent completed two sessions of the task, with each session consisting of 200 trials, resulting in three reversals per session. One session was used as training data for the RNN and RL models, while the other was used as test data to evaluate predictive accuracy. All simulations were implemented in Python (version 3.12.1).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.2 Reinforcement Learning (RL) Models</head><p>Here, we first provide the general formulation of the variants of the Q-learning model considered in the present study. This model includes various additional components (in addition to the standard Q-learning model), such as an asymmetric learning rate, forgetting rate, and choice-autocorrelation (choice hysterisis). Specific reduced models are derived from this general formulation by decreasing or fixing the parameters.</p><p>The Q-value or action value, Q t (a t ), for the chosen option a t ∈ {A, B} at trial t is updated as</p><p>where α + ∈ [0, 1] and α − ∈ [0, 1] are the learning rates that determine how much the model updates the Q-value depending on the sign of the RPE, r t − Q t (a t ). The initial Q-values are basically set to zero (i.e., Q 1 (A) = Q 1 (B) = 0). The Q-value for the unchosen optionā t ∈ {A, B} is assumed to decay as:</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A modelbased fMRI analysis with hierarchical Bayesian parameter estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W.-Y</forename><surname>Ahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krawitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychology, and Economics</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>Journal of Neuroscience</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">A new look at the statistical model identification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Akaike</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Automatic Control</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="716" to="723" />
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Dual learning processes underlying human decision-making in reversal learning tasks: functional significance and evidence from the model fit to human behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in psychology</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">871</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Learning the value of information in an uncertain world</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Behrens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Woolrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Walton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rushworth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1214" to="1221" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Anxious individuals have difficulty learning the causal statistics of aversive environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Browning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">E</forename><surname>Behrens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Jocham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">X</forename><surname>O'reilly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Bishop</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="590" to="596" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">On the properties of neural machine translation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1409.1259</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Encoder-decoder approaches. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Understanding neural coding through the model-based analysis of decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Doya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">31</biblScope>
+			<biblScope unit="page">8178</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Trial-by-trial data analysis using computational models. Decision Making, Affect, and Learning: Attention and Performance XXIII</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Disentangled behavioural representations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ashtiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Ghattas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Nock</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Ong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="2254" to="2263" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Models that learn how humans learn: the case of decision-making and its disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ramos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">W</forename><surname>Balleine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">1006903</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Hybrid neuralcognitive models reveal how memory shapes human reward learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Summerfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2024" />
+			<publisher>PsyArXiv</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Computational noise in reward-guided learning drives behavioral variability in volatile environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Findling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Skvortsova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dromnelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="2066" to="2077" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Using deep learning to predict human decisions and using cognitive models to explain deep learning models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fintz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Osadchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Hertz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4736</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Genetic triple dissociation reveals multiple roles for dopamine in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Moustafa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Haughey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Curran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Hutchison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="issue">41</biblScope>
+			<biblScope unit="page" from="16311" to="16316" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Frankle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carbin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.03635</idno>
+		<title level="m">The lottery ticket hypothesis: Finding sparse, trainable neural networks</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Local minima and plateaus in hierarchical structures of multilayer perceptrons</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Fukumizu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Amari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural networks</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="317" to="327" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Harnessing the flexibility of neural networks to predict dynamic theoretical parameters underlying human choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Nachmani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Shahar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">1011678</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Using recurrent neural network to estimate irreducible stochasticity in human choice-behavior. eLife</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shahar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Shahar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2024" />
+			<biblScope unit="page">13</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Imaginative reinforcement learning: Computational principles and neural mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kommers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of cognitive neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="2103" to="2113" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Groman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Keistler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Keip</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hammarlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dileone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Pittenger</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Orbitofrontal circuits control multiple reinforcementlearning processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Taylor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="734" to="746" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Long short-term memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Disentangling the roles of approach, activation and valence in instrumental and pavlovian responding</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Cools</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gölzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Friedel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1002028</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Validation of decision-making models and analysis of decision variables in the rat basal ganglia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Doya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">31</biblScope>
+			<biblScope unit="page">9861</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Automatic discovery of cognitive strategies with tiny recurrent neural networks. bioRxiv</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ji-An</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Benna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Mattar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="page" from="2023" to="2027" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Individual differences in computational psychiatry: a review of current challenges</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Karvelis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Paulus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">O</forename><surname>Diaconescu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroscience &amp; Biobehavioral Reviews</title>
+		<imprint>
+			<biblScope unit="page">105137</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">The relation between reinforcement learning parameters and the influence of reinforcement history on choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="page" from="59" to="69" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">How hierarchical models improve point estimates of model parameters at the individual level</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">73</biblScope>
+			<biblScope unit="page" from="37" to="58" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">The statistical structures of reinforcement learning with asymmetric value updates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page" from="31" to="45" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Revisiting the importance of model fitting for model-based fmri: It does matter in computational psychiatry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Toyama</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">1008738</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Model-based estimation of subjective values using choice tasks with probabilistic feedback</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yuki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Okanoya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">79</biblScope>
+			<biblScope unit="page" from="29" to="43" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Behavioural and neural characterization of optimistic reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Lefebvre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lebreton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Meyniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bourgeois-Gironde</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">67</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Taming the beast: extracting generalizable knowledge from computational models of cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Behavioral Sciences</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="49" to="54" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">A healthy fear of the unknown: perspectives on the interpretation of parameter fits from computational models in neuroscience</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Gold</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1003015</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Neural prediction errors reveal a risk-sensitive reinforcement-learning process in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Edlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Doherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="551" to="562" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Confirmation bias in human reinforcement learning: Evidence from counterfactual feedback processing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Lefebvre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Kilford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S.-J</forename><surname>Blakemore</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page">1005684</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Computational processes of simultaneous learning of stochasticity and volatility in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Piray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">9073</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Artificial neural networks for model identification and parameter estimation in computational cognitive models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rmus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T.-F</forename><surname>Pan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">1012119</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Representation of actionspecific reward values in the striatum</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Samejima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ueda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Doya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kimura</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="issue">5752</biblScope>
+			<biblScope unit="page" from="1337" to="1340" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Estimating the dimension of a model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schwarz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="461" to="464" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Using recurrent neural networks to understand human reward learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Cai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the annual meeting of the cognitive science society</title>
+		<meeting>the annual meeting of the cognitive science society</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">43</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Dissociation between asymmetric value updating and perseverance in human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sugawara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="13" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Commentary: Altered learning under uncertainty in unmedicated mood and anxiety disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sumiya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Human Neuroscience</title>
+		<imprint>
+			<biblScope unit="page">14</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Biases in estimating the balance between model-free and model-based learning systems due to model misspecification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Toyama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">91</biblScope>
+			<biblScope unit="page" from="88" to="102" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning with parsimonious computation and a forgetting process</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Toyama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Human Neuroscience</title>
+		<imprint>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Sufficient reliability of the behavioral and computational readouts of a probabilistic reversal learning task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Waltmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Schlagenhauf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Deserno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Behavior Research Methods</title>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="page" from="2993" to="3014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title level="m" type="main">Ten simple rules for the computational modeling of behavioral data. eLife</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">49547</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Using cognitive models to map relations between neuropsychological disorders and human decision-making deficits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Yechiam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stout</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bechara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="973" to="978" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Externally provided rewards increase internal preference, but not as much as preferred ones without extrinsic rewards</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hirakawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Nakao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Brain &amp; Behavior</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="71" to="91" />
+			<date type="published" when="2025" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Inattentive responding can induce spurious associations between task behaviour and symptom measures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zorowitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Solis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bennett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1667" to="1681" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

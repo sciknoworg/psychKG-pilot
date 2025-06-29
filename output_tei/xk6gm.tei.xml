@@ -1,0 +1,2931 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Structure in the noise: understanding temporal variability in perceptual decision-making</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anne</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+							<email>a.e.urai@fsw.leidenuniv.nl</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">Cognitive Psychology Unit</orgName>
+								<orgName type="institution">Leiden University</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Structure in the noise: understanding temporal variability in perceptual decision-making</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:16+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>decision-making</term>
+					<term>choice variability</term>
+					<term>noise</term>
+					<term>behavioral strategies</term>
+					<term>dynamic cognitive modeling</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Studies of perceptual decision-making typically present the same stimulus repeatedly over the course of an experimental session but ignore the order of these observations, assuming unrealistic stability of decision strategies over trials. However, even so-called &apos;stable&apos;, &apos;steadystate&apos; or &apos;expert&apos; decision-making behavior features significant trial-to-trial variability that is richly structured in time. Structured trial-to-trial variability of various forms can be uncovered using latent variable models such as hidden Markov models and autoregressive models, revealing how unobservable internal states change over time. Capturing such temporal structure can avoid confounds in cognitive models, provide insights into inter-and intra-individual variability, and bridge the gap between neural and cognitive mechanisms of variability in perceptual decisionmaking.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Trial-to-trial variability in perceptual decision-making</head><p>As we move around the world, we constantly make decisions about incoming sensory information:</p><p>Has the traffic light turned green? How fast is the cyclist riding towards me? Is this fruit ripe, or will it give me a stomachache? Such perceptual decision-making is notoriously variable -we make different choices, even based on the same information. Classical models of perceptual decision-making assume that decision variability arises because of unstructured noise (IID, independent and identically distributed) in sensory processing, motor execution, or decisionmaking <ref type="bibr" target="#b24">(Drugowitsch et al., 2016;</ref><ref type="bibr" target="#b42">Green &amp; Swets, 1966;</ref><ref type="bibr" target="#b83">Ratcliff &amp; McKoon, 2008)</ref>. While these models may account for the amount of decision variability, they mostly ignore its ubiquitous temporal structure: patterns of choices and reaction times that are correlated in time.</p><p>Temporal structure unfolds over timescales from seconds (sensory adaptation, e.g. afterimages)</p><p>to minutes and hours (fatigue, learning), and years (development and aging) ( <ref type="figure" target="#fig_0">Figure 1a</ref>). This temporal structure has long been noted <ref type="bibr" target="#b38">(Gilden et al., 1995;</ref><ref type="bibr" target="#b101">Wagenmakers et al., 2004)</ref>.</p><p>Currently, new latent variable models developed in systems neuroscience and mathematical psychology capture both the overall distribution of variability as well as trial-by-trial estimates of latent, time-varying decision strategies. These models then allow decomposing observed behavioral variability into different sources: unmodelled but deterministic, versus probabilistic or truly random. Considering trial-to-trial structure in cognitive models has three distinct benefits: first, avoiding confounded scientific conclusions about cognitive models of decision-making; second, characterizing the rich diversity of behavioral strategies and solutions that individuals may adopt; milliseconds seconds minutes hours months years 10 -3 10 -2 10 -1 10 0 10 1 10 2 10 3 10 4 10 5 10 6 10 7 and third, as a basis for linking cognitive to neural variability. The latter two are part of a larger trend in neuro-and cognitive science, where variability and diversity (both between and within individuals) is increasingly appreciated rather than averaged away <ref type="bibr" target="#b41">(Gomez-Marin &amp; Ghazanfar, 2019;</ref><ref type="bibr" target="#b54">Krakauer et al., 2017;</ref><ref type="bibr" target="#b73">Musall et al., 2019)</ref>.</p><p>Here, I review recent progress in capturing the temporal structure of decision variability, and technological and methodological developments that make this progress possible. The focus is on models capturing latent trial-to-trial variability that is internally generated, rather than inherited from external stimulus items <ref type="bibr" target="#b84">(Ratcliff et al., 2018)</ref>, suboptimalities and heuristics <ref type="bibr" target="#b36">(Gardner, 2019;</ref><ref type="bibr" target="#b82">Rahnev &amp; Denison, 2018)</ref> or experimenter-defined stimulus sequences <ref type="bibr" target="#b68">(Meyniel et al., 2016)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A catalogue of models for latent trial-to-trial variability</head><p>Various potential model classes can be used to capture structured decision variability: from slowly drifting autoregressive models and discrete state switches to systematic updates ( <ref type="figure" target="#fig_0">Figure 1b</ref>; <ref type="table" target="#tab_1">Table 1</ref>) <ref type="bibr" target="#b75">(Owens &amp; Fulcher, 2024)</ref>. In principle, structured variability may arise when observers select different strategies ('regimes' or 'mental sets') over time, or from changing the parameters of a given strategies -these are ends of a spectrum, where large parameter jumps could be considered a different strategy. Each cognitive model may include stochastic and deterministic components. This overview focuses on models that have recently been used to extract latent single-trial variables that can be linked to neural or physiological data, making them of most interest to scientists studying the cognitive and neural mechanisms of (perceptual) decisionmaking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Random noise</head><p>The easiest way to deal with temporal structure is to assume it doesn't exist. In this fashion, statistical models taught in every undergraduate psychology program (ANOVA's, GLMS) assume that observations are IID: they have independent error terms, and the distribution they are drawn from is stationary <ref type="bibr" target="#b75">(Owens &amp; Fulcher, 2024)</ref>. For instance, signal detection theory assumes that the internal representation of repeated sensory stimuli is corrupted by independent Gaussian noise (for instance from stochastic firing of visual neurons) creating variability in responses <ref type="bibr" target="#b42">(Green &amp; Swets, 1966)</ref>. The popular drift diffusion model (DDM) includes not just within-trial noise, but also trial-to-trial variability in drift rates, starting point and non-decision time. These across-trial variability parameters are crucial to account for specific aspects of human response time distributions <ref type="bibr" target="#b7">(Boehm et al., 2018;</ref><ref type="bibr" target="#b83">Ratcliff &amp; McKoon, 2008)</ref>. While it has long been noted that some part of decision variability may arise from systematic updates (e.g. starting point variability may be generated by sequential effects), trial order is usually ignored in sequential sampling model fits <ref type="bibr" target="#b29">(Fengler et al., 2022)</ref> and variability is assumed to be stationary. Generally, if we squeeze all our unexplained variance into a Gaussian noise term, much interesting temporal structure remains hidden.</p><p>Across-trial behavioral variability may also arise when organisms actively generate computational noise <ref type="bibr" target="#b32">(Findling &amp; Wyart, 2021)</ref>, the level of which can be strategically adjusted to task demands <ref type="bibr" target="#b93">(Tervo et al., 2014)</ref>, which may help trade-off exploration and exploitation. Random decision variability is a potential 'behavioral marker' used in computational psychiatry, and increases with age and various brain disorders <ref type="bibr" target="#b51">(Judd et al., 2024;</ref><ref type="bibr" target="#b65">Mansouri et al., 2024</ref>; but see <ref type="bibr" target="#b80">Perquin et al., 2023)</ref>, which may be useful in building dynamic 'computational phenotypes' that may improve diagnostic validity beyond average choice behavior <ref type="bibr" target="#b61">(MacDonald et al., 2006;</ref><ref type="bibr" target="#b92">Schurr et al., 2024)</ref>. </p><formula xml:id="formula_1">! = ( ! ) + ! where ~ (0, )</formula><p>Trial-to-trial stochasticity in early sensory responses Drift Autoregressive model When = 1, special case of a Gaussian random walk  <ref type="bibr" target="#b18">(Chakravarty et al., 2024;</ref><ref type="bibr" target="#b87">Roy et al., 2021)</ref>: humans can be instructed verbally about the structure and goals of the task, reduce task exploration, and regular breaks in human psychology experiments may reduce fatigue and task disengagement.</p><formula xml:id="formula_2">! = !"# + ! Fluctuations in decision criterion Switches Hidden Markov model ! = 1 $ ( ! ) + ! if $ % ( ! ) + ! if % Engagement</formula><p>Yet, even highly motivated human observers show substantial history-dependent choice biases <ref type="bibr" target="#b34">(Fründ et al., 2014)</ref> and fluctuations between internal and external modes of processing <ref type="bibr" target="#b105">(Weilnhammer et al., 2023)</ref>, suggesting that human strategy fluctuations may be subtle yet ubiquitous.</p><p>Dynamic choice biases are a striking example of how structured variability can confound scientific conclusions. If choice biases drift randomly over the course of a session, they will create sequential effects in the data -suggesting that observers systematically repeat their choices <ref type="bibr" target="#b45">(Gupta &amp; Brody, 2022;</ref><ref type="bibr" target="#b58">Lak et al., 2020;</ref><ref type="bibr" target="#b98">Vloeberghs et al., 2024)</ref> or even perform confidenceweighted reinforcement learning <ref type="bibr" target="#b45">(Gupta &amp; Brody, 2022;</ref><ref type="bibr" target="#b58">Lak et al., 2020)</ref>, even when in fact no systematic updating occurs. The assumption of stable choice biases (e.g. to repeat past choices) causes model misspecification, leading to false inferences when choice biases instead fluctuate slowly over trials. Including drifting parameters in a model of choice behavior allows disentangling them from systematic updates, with the additional benefit of providing a trial-to-trial estimate of fluctuating biases that can be linked to neural and physiological data <ref type="bibr" target="#b45">(Gupta &amp; Brody, 2022;</ref><ref type="bibr" target="#b98">Vloeberghs et al., 2024)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>State switches</head><p>A decision-maker can also jump between discrete strategies or internal states, for instance when mind-wandering leads to a period of 'off-task' focus. Influential models in cognitive psychology have treated behavioral data as arising from a mixture of processes, where some (random) trials are characterized by the 'failure to engage' (de Jong, 2000) or an 'attentional lapse' <ref type="bibr" target="#b107">(Wichmann &amp; Hill, 2001</ref>). However, lapse trials do not occur randomly in time <ref type="bibr" target="#b81">(Pisupati et al., 2021)</ref>. This temporal structure can be captured with hidden Markov models (HMM), which assume that a system transitions with some probability between states, each with its own generative parameters <ref type="bibr" target="#b97">(Visser, 2011)</ref>. Crucially, they do not just describe the decision strategy per state and the temporal dynamics of transitioning through them (in a so-called 'transition matrix'), but also assign the most probable state to each trial in a session -adding trial-by-trial temporal resolution. These models have a long history in mathematical psychology, where they have mostly been used to capture states that are induced by experimental conditions <ref type="bibr" target="#b1">(Archambeau et al., 2023;</ref><ref type="bibr" target="#b25">Dutilh et al., 2011;</ref><ref type="bibr" target="#b56">Kucharský et al., 2021)</ref>. Recent work has used HMMs to extract the timing of spontaneous state switches, for instance between engaged and disengaged states <ref type="bibr" target="#b3">(Ashwood et al., 2022;</ref><ref type="bibr" target="#b44">Gunawan et al., 2022;</ref><ref type="bibr" target="#b59">Li et al., 2024;</ref><ref type="bibr" target="#b104">Weilnhammer et al., 2024)</ref>. Conceptually similar, a novel Bayesian model by <ref type="bibr" target="#b63">(Maggi et al., 2024)</ref> allows extracting precisely when an animal switches between rulebased and exploratory decision strategies during learning. Promisingly, this model can be fit on small numbers of trials, opening exciting avenues for real-time analysis during an experiment.</p><p>These models have brought several insights. Including disengagement states in model fits improves parameter estimation and cognitive model fitting <ref type="bibr" target="#b59">(Li et al., 2024)</ref>. They may also offer insight into mind-wandering and exploration of internal states with high temporal resolution <ref type="bibr" target="#b4">(Banellis et al., 2024;</ref><ref type="bibr" target="#b88">Schooler et al., 2011)</ref>. HMM-derived engagement states can also be linked to specific neural and physiological signals that may be conserved across species, from rodents to monkeys and humans <ref type="bibr" target="#b10">(Bolkan et al., 2022;</ref><ref type="bibr" target="#b46">Hulsey et al., 2024;</ref><ref type="bibr" target="#b94">Tlaie et al., 2024)</ref>. Lastly, they offer a powerful way to study the (neuro)physiological antecedents of state transitions, which may allow predicting state switches before they occur <ref type="bibr" target="#b46">(Hulsey et al., 2024;</ref><ref type="bibr" target="#b50">Johnson et al., 2024)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Systematic updates and rhythms</head><p>On the most deterministic end of the spectrum, a plethora of update rules (based on properties of either current stimuli or past events) have been used to capture aspects of behavior. Studies of learning and order effects go back more than a century, and an extensive literature (not reviewed here) has documented various such sequential effects <ref type="bibr" target="#b33">(Fischer &amp; Whitney, 2014;</ref><ref type="bibr" target="#b35">Gao et al., 2009)</ref> and learning rules <ref type="bibr" target="#b20">(Collins &amp; Shenhav, 2022)</ref>. One specific form of such an rule is an oscillatory process, creating rhythms in behavior -for instance, between internally and externally directed cognitive processes <ref type="bibr" target="#b105">(Weilnhammer et al., 2023)</ref>. Studies of systematic update rules underlying learning and decision-making often assume that behavior is in some ways optimal <ref type="bibr" target="#b82">(Rahnev &amp; Denison, 2018)</ref>, that any systematic biases or learning rules are stable over time, and that they make a deterministic contribution to behavior.</p><p>If such systematic factors are missing from our model, they will leave variability unexplainedwhich may wrongly be interpreted as behavioral stochasticity or noise. To determine what fraction of choice variability arises from unknown systematic factors instead of random within-trial noise <ref type="figure" target="#fig_0">(Figure 1c</ref>), so-called 'double-pass experiments' show participants the exact same stimulus sequence twice <ref type="bibr" target="#b84">(Ratcliff et al., 2018;</ref><ref type="bibr" target="#b108">Wyart, 2018;</ref>. The consistency of decisions between repeated stimuli then quantifies deterministic biases, the remainder unpredictable noise. These experiments show that around two-thirds of choice variability is accounted for by so-called computational noise in the inference process, rather than from stimulus-specific biases that are consistent across repeats <ref type="bibr" target="#b5">(Beck et al., 2012;</ref><ref type="bibr" target="#b24">Drugowitsch et al., 2016;</ref><ref type="bibr" target="#b32">Findling &amp; Wyart, 2021)</ref>. However, computational noise may include systematic biases that vary across trials, so this is likely an overestimation of the degree of true stochasticity in human choice behavior. Recent work shows that artificial neural networks can be a powerful tool for distinguishing deterministic but unknown biases from true noise in data <ref type="bibr" target="#b37">(Ger et al., 2024)</ref>, with ever-more complex models approaching the noise floor of human choice variability.</p><p>In sum, different models are increasingly used to capture decision variability with specific temporal structure. These models can help avoid false scientific conclusions <ref type="bibr" target="#b98">(Vloeberghs et al., 2024)</ref>, map individual differences in decision strategies <ref type="bibr" target="#b63">(Maggi et al., 2024)</ref> and provide latent variable estimates that can be linked to (neuro)physiological data <ref type="bibr" target="#b94">(Tlaie et al., 2024)</ref>, enriching our understanding of the dynamic nature of perceptual decision-making.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Putting latent variable models into practice</head><p>What is the behavior we fit our models to?</p><p>To compare how well different models can explain decision-making, we first need to define what we mean with 'behavior' and specify a model that describe how it arises. The simplest measurement of decision-making behavior is the binary choice, and its relation to the stimulus (which is usually modelled as a weighted coin flip, <ref type="bibr" target="#b16">(Carandini, 2024)</ref>) -on which a century of psychophysical theory has been built. With modern model-fitting methods, a remarkable amount of trial-to-trial latent structure can be extracted from a simple sequence of stimuli and choices <ref type="bibr" target="#b3">(Ashwood et al., 2022;</ref><ref type="bibr" target="#b13">Bruijns et al., 2023;</ref><ref type="bibr" target="#b21">Cuturela et al., 2024;</ref><ref type="bibr" target="#b45">Gupta &amp; Brody, 2022;</ref><ref type="bibr" target="#b87">Roy et al., 2021;</ref><ref type="bibr" target="#b98">Vloeberghs et al., 2024)</ref>, especially when data is combined across many trials and/or individuals.</p><p>When modelling response times (RTs), a prominent temporal pattern is the 1/f autocorrelation structure: a pattern of long-range serial dependence where the power of fluctuations is inversely proportional to their frequency <ref type="bibr" target="#b38">(Gilden et al., 1995)</ref>. While often hidden in the error bars of condition averages, this 1/f structure can account for a substantial portion of RT variance -on par with the effect of experimental conditions themselves <ref type="bibr" target="#b79">(Perquin et al., 2024)</ref>. While the 1/f structure in RT timeseries has been heralded as revealing the fundamentally dynamical nature of cognition, its existence does not point to a specific generative process. In principle, a mixture of various short-term processes (including regime switching) can lead to long-range dependencies in RT timeseries <ref type="bibr" target="#b101">(Wagenmakers et al., 2004)</ref>. Indeed, a combination of multiple deterministic, short-term memory mechanisms (of past stimuli, choice accuracy and decision fluency) can explain a large fraction of 1/f scaling in response times <ref type="bibr" target="#b70">(Miletic et al., 2024)</ref>.</p><p>Modelling either choices or RT provides a limited read-out of the decision process: more information about trial-to-trial latent structure can be extracted by modelling them jointly.</p><p>Sequential sampling models (also called evidence accumulation models) are the most common observation models that predict choices together with response time (RT) distributions. The most basic of these models assume that across-trial variability is not preset <ref type="bibr" target="#b12">(Brown &amp; Heathcote, 2008)</ref> or is IID <ref type="bibr" target="#b83">(Ratcliff &amp; McKoon, 2008</ref>). More recent model variants have added across-trial variability that follows systematic update rules <ref type="bibr" target="#b29">(Fengler et al., 2022;</ref><ref type="bibr" target="#b69">Miletić et al., 2020;</ref><ref type="bibr" target="#b78">Pedersen et al., 2017)</ref>, autoregressive or switching dynamics <ref type="bibr" target="#b56">(Kucharský et al., 2021;</ref><ref type="bibr" target="#b91">Schumacher, Schnuerch, et al., 2023)</ref>, often with impressive recovery of complex temporal structure. Variance decomposition in sequential sampling models comes with an additional challenge: these models do not predict a specific RT on each trial, but rather a distribution across trials. It is thus difficult to define a single-trial 'goodness of fit' measure, as is more straightforward when counting how many binary choices a model correctly predicts. Instead, as across-trial terms increasingly capture RT variability, cognitive models can quantify the decrease in estimated within-trial variability. This may point to a 'noise floor' of unpredictable variability that cannot be captured by any information about the order of observations in a session <ref type="figure" target="#fig_0">(Figure 1c)</ref>. Quantifying at which point our models no longer explain additional variability can give crucial information about the irreducible sources of stochasticity in the system <ref type="bibr" target="#b85">(Renart &amp; Machens, 2014;</ref>.</p><p>What further measurements may help us approach this noise floor of predicting behavior? Going beyond choices and RT (as well as confidence ratings), arguably the workhorses of decades of psychophysics, a wealth of behavioral information can be extracted from task-unrelated behavior obtained from video recordings <ref type="bibr" target="#b22">(Datta et al., 2019;</ref><ref type="bibr" target="#b73">Musall et al., 2019</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model comparison and misspecification</head><p>Having specified what phenomenon to explain, we face the second choice of determining which model best captures the psychological process generating it -keeping in mind that the models described <ref type="table" target="#tab_1">(Table 1)</ref> are probably all useful and certainly wrong. The models discussed so far are only specific instances of a broader family of ever-complex models that may capture latent temporal structure -it is unlikely that the true model of any cognitive process is included in our overview. Some models do not specify a functional model class (such as reinforcement learning or autoregressive drift) but rather (parametrically or non-parametrically) estimate the shape of decision variability <ref type="bibr" target="#b19">(Cochrane et al., 2023;</ref><ref type="bibr" target="#b44">Gunawan et al., 2022)</ref>, which can help to flexibly fit data when there are few prior hypotheses about the nature of across-trial temporal structure <ref type="bibr" target="#b90">(Schumacher, Bürkner, et al., 2023)</ref>.  <ref type="bibr" target="#b44">(Gunawan et al., 2022;</ref><ref type="bibr" target="#b91">Schumacher, Schnuerch, et al., 2023)</ref> and mice <ref type="bibr" target="#b3">(Ashwood et al., 2022)</ref>. This points to the importance of testing to what extent discrete strategy changes are a fundamental feature of behavior across tasks and species.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fitting increasingly complex cognitive models</head><p>A holy grail of cognitive modelling would be to fit a full model (combining all theoretically interesting candidate models) to behavior, quantify which terms dominate choice variability, and map the trial-to-trial latent variables to neural and physiological data. Increasingly complex models require sufficiently large trials numbers, and model fitting is complicated when likelihoods are intractable or very expensive to evaluate. Recent techniques combine advances in neural networks and simulation-based inference <ref type="bibr" target="#b30">(Fengler et al., 2021;</ref><ref type="bibr" target="#b86">Rmus et al., 2024;</ref><ref type="bibr" target="#b112">Zammit-Mangion et al., 2024)</ref> to improve parameter fitting and latent variable inference <ref type="bibr" target="#b48">(Jaffe et al., 2023;</ref><ref type="bibr" target="#b77">Pan et al., 2024)</ref>. Specifically, amortized simulation-based inference allows training neural networks on simulated data from a generative model with temporal structure ('amortizing' or 'frontloading' the computation), which can then be used to efficiently fit larger families of complex models to empirical data <ref type="bibr" target="#b9">(Boelts et al., 2022;</ref><ref type="bibr" target="#b30">Fengler et al., 2021;</ref><ref type="bibr" target="#b90">Schumacher, Bürkner, et al., 2023</ref>).</p><p>An exciting step for general modelling of across-trial temporal structure is offered by superstatistics approaches. They jointly fit an observation model (specifying how choices and</p><p>RTs are generated from a given decision strategy, e.g. a DDM) and a transition model (specifying how latent decision strategies change over trials, e.g. a hidden Markov model), which can take a specific functional form but imposes minimal constraints on how parameters change over time.</p><p>Neural superstatistics estimation can well recover latent temporal structure in simulated DDM data, where decision variability is either IID, follows a random walk, or switches between discrete values <ref type="bibr" target="#b90">(Schumacher, Bürkner, et al., 2023;</ref><ref type="bibr" target="#b91">Schumacher, Schnuerch, et al., 2023)</ref>. As the efficiency and ease-of-use of these modelling tools grows, flexible superstatistics fits may serve as a general first-pass data analysis to then inspire hypotheses about more specific cognitive and neural models that specify a data-generating mechanism (see Box 1).</p><p>Generally, fitting sequential sampling models requires many analysis choices to arbitrate between specific model variants: "with great flexibility comes a plethora of choices" <ref type="bibr" target="#b91">(Schumacher, Schnuerch, et al., 2023)</ref> This flexibility leads to inaccessibility for the non-specialist user, who may struggle to choose between the many modelling choices, fitting packages and subtleties of model validation. As computational modelling ecosystems mature, community efforts to specify and share computational models in standardized formats <ref type="bibr" target="#b39">(Gleeson et al., 2023)</ref> will be a crucial step towards moving from cottage-industry psychology to benchmarking models on 'big behavioral data' <ref type="bibr" target="#b6">(Binz et al., 2024)</ref>. In an ideal world, papers would not just present a specific combination of a dataset, a model and a fitting method, but systematically fill the space spanned by tasks, datasets, and cognitive models. As in any cognitive models, it is crucial to not rely only on simple model comparison metrics (such as BIC/AIC), but to find diagnostic patterns that falsify certain models <ref type="bibr" target="#b76">(Palminteri et al., 2017)</ref> and to test the predictive power of our models through crossvalidation or additional experiments <ref type="bibr" target="#b110">(Yarkoni &amp; Westfall, 2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Concluding remarks and future perspectives</head><p>Scientific progress unfolds through incorporating ever-more observed phenomena in our models, reducing our uncertainties in predicting the world -to the extent possible <ref type="bibr" target="#b40">(Glimcher, 2005)</ref>. The phenomena inside our models change with new theories, methodologies and data: "one person's noise is another person's signal" <ref type="bibr" target="#b95">(Uddin, 2020)</ref>. One such phenomenon is increasingly escaping from our models' error terms into our description of cognition: structured variability in decisionmaking, unfolding over the course of seconds to minutes and hours.</p><p>To let go of the assumption that decision variability is simply random, stationary noise, recent work has explored ways in which temporal structure can be quantified as arising from drifting parameter values, discrete state switches, or a superposition of deterministic biases and updates.</p><p>This work has shown how cognitive models that continue to assume IID noise run the risk of Cognitive science is increasingly recognizing that not all people behave similarly, nor follow consistent behavioral strategies within a convenient laboratory session. The increasingly sophisticated toolkit of computational models can help us quantify this structured variability as a phenomenon that is crucial to capture for a richer understanding of cognition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Box 1. What neural noise propagates to behavior?</head><p>What neural mechanisms give rise to variability in decision-making? At the single-neuron level, variability arises from stochasticity in vesicle release <ref type="bibr" target="#b11">(Branco &amp; Staras, 2009;</ref><ref type="bibr" target="#b15">Calvin &amp; Stevens, 1968)</ref> and the opening and closing of voltage-gated ion channels in the cellular membrane <ref type="bibr" target="#b106">(White et al., 2000)</ref>. Action potential generation, on the other hand, is very precise <ref type="bibr" target="#b64">(Mainen &amp; Sejnowski, 1995)</ref>. In general, single-neuron spiking noise may not contribute much to behavioral variability <ref type="bibr" target="#b5">(Beck et al., 2012)</ref>. Variability can also arise from the interactions between neurons: a recurrently connected circuit with balanced excitatory and inhibitory activity can produce neural spiking activity that closely resembles a Poisson distribution <ref type="bibr" target="#b0">(Amit &amp; Brunel, 1997;</ref><ref type="bibr" target="#b100">Vreeswijk &amp; Sompolinsky, 1996)</ref>. Networks of neurons can both amplify or dampen input noise, depending on their circuit connectivity <ref type="bibr" target="#b28">(Faisal et al., 2008)</ref>.</p><p>Behavioral variability is also tightly linked to fluctuations in internal state, an umbrella term for states like hunger, arousal, mood and attention <ref type="bibr" target="#b43">(Greene et al., 2023;</ref><ref type="bibr" target="#b95">Uddin, 2020)</ref>. Spontaneous behaviors (beyond task-based keypresses recorded in most psychology experiments) are increasingly used to account for fluctuations in neural data, giving noninvasive read-outs of a wide variety of bodily and physiological processes that shape behavior <ref type="bibr" target="#b53">(Kluger et al., 2024;</ref><ref type="bibr" target="#b73">Musall et al., 2019;</ref><ref type="bibr" target="#b94">Tlaie et al., 2024)</ref>. A biological process long recognized to explain variability in cognitive state is the release of modulatory neurotransmitters, which can Synapses Neural networks Internal state be linked to arousal fluctuations that can be measured non-invasively using the dilation of the pupil <ref type="bibr" target="#b66">(McGinley et al., 2015)</ref>. At the cognitive level, decision variability may arise from the high cost of maintaining cognitive control in tasks with experimenter-defined goals of reward maximization <ref type="bibr" target="#b17">(Castiñeiras &amp; Renart, 2022)</ref>.</p><p>In general, choice variability is unlikely to map one-on-one to (neuro)physiological variability, but may arise from several mechanisms that produce variability across different levels of the nervous system <ref type="bibr" target="#b28">(Faisal et al., 2008;</ref><ref type="bibr" target="#b103">Waschke et al., 2021)</ref>  <ref type="figure" target="#fig_2">(Figure I</ref>). Low-level neural spiking noise could propagate to behavior or it may be averaged out, with deterministic computations then producing indeterminate, unpredictable behavior <ref type="bibr" target="#b32">(Findling &amp; Wyart, 2021;</ref><ref type="bibr" target="#b40">Glimcher, 2005)</ref>. At the moment, we rarely have the data and computational methods to discover how and when low-level noise propagates to higher levels, and at what temporal and spatial scales we need to record the system to fully understand variability in behavior.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Box 2. The role of artificial neural network models</head><p>With ever-more complex models, how much behavioral variability can we ultimately hope to capture? A main disadvantage of classical cognitive models is that they are poorly predictive of observed behavior <ref type="bibr" target="#b27">(Eckstein et al., 2023)</ref>. To alleviate this problem, data-driven approaches using artificial neural networks (ANNs) have recently been proposed not just as fitting tools, but as cognitive models themselves <ref type="bibr" target="#b6">(Binz et al., 2024;</ref><ref type="bibr" target="#b27">Eckstein et al., 2023;</ref><ref type="bibr" target="#b86">Rmus et al., 2024)</ref>. These models exploit all possible sources of variability within the data, improving the predictive accuracy of trial-to-trial choices. ANNs can be a powerful tool in distinguishing deterministic but unmodelled variability from true stochasticity in behavioral data <ref type="bibr" target="#b37">(Ger et al., 2024)</ref>, with ever-more complex models approaching the noise floor of choice variability ( <ref type="figure" target="#fig_0">Figure  1c</ref>). Ultimately, including increasingly complete and high-resolution neural data may greatly improve our prediction of behavioral variability within and across individuals <ref type="bibr" target="#b96">(Urai et al., 2022)</ref>.</p><p>However, in their simplest form ANNs usually lack interpretability, the neural network acting as a "black box." The emergence of disentangled recurrent neural networks is just now making it possible to have the best of both worlds <ref type="bibr" target="#b49">(Ji-An et al., 2023;</ref><ref type="bibr" target="#b71">Miller et al., 2023)</ref>. These models are built with the same structure as classical recurrent neural networks, except that penalties are applied to information as it is passes through time. Effectively, each latent variable can represent a unique source of variability in the data and thus be extracted, interpreted, and tested against specific hypotheses. Rapid development in these interpretable ANNs promises exciting hybrid cognitive models, combining theory-driven constraints with data-driven model building to jointly improve interpretability and predictive accuracy <ref type="bibr" target="#b110">(Yarkoni &amp; Westfall, 2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Glossary</head><p>• Variability. A description of the degree and kind of variation in a dataset.</p><p>• Noise. Variability in a dataset that is not captured by the 'signal' in our models. May arise from unmodelled deterministic factors, deterministic unpredictability (chaos), or stochasticity. • Noise floor. The baseline level of variability that remains after accounting for known sources of structured variability. It represents the lower limit of detectable signal in experimental data and contains truly unpredictable or random fluctuations in decisionmaking. • Stochasticity. Unpredictability in a system's behavior that arises from true randomness or indeterminacy, where processes are governed by probabilistic rules rather than deterministic laws. • Independent, identically distributed (IID). Datapoints are independent of each other and are all drawn from the same statistical distribution. This means there is no temporal structure influencing the sequence. • Stationarity. A process where the statistical properties, like mean and variance, remain constant over time. Stationarity is an important assumption in time series analysis. • Latent variable model. A statistical model that infers unobserved 'latent' variables from observed data. • 1/f Noise. Any signal with a power spectrum that falls off steadily with increasing frequency.</p><p>It is often found in complex systems (including behavioral timeseries), and is also called 'pink noise'. • Autoregressive model. A family of statistical models used for analyzing and forecasting time series data, based on the assumption that a system evolves from some combination of its past states. • Hidden Markov model (HMM). A statistical model that assumes a Markov process (where the distribution of future states depends only on the present state) with unobserved (hidden) states. • Oscillation. Periodic fluctuations in a system, often used to describe rhythmic activity.</p><p>• Simulation-based inference. Using simulation to infer the likely parameters of a model, particularly useful for complex models where traditional inference methods may not be feasible. • Amortized likelihoods. The pre-computation of likelihoods in probabilistic modeling, enabling fast inference by reusing computational results. Amortized likelihoods are usually deployed in machine learning to speed up inference after an initial computational investment.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Variability in decision-making. (a) Timescales (top) and sources of variability (bottom) in behavior; the blue zone indicates the duration of a typical experimental session. (b) Mapping the structure of decision variability: model classes ranging from stochastic (random white noise, drift, discrete state switches) to deterministic (systematic updates, oscillations) have all been linked to trial-to-trial choice variability. Code to generate time courses at https://github.com/anne-urai/decision-variability. (c) As models capture more complex sources of predictable variability, we can estimate the 'noise floor' of unpredictable stochasticity in decision-making behavior.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>missing aspects of behavior that are core to biological cognition. Incorporating various forms of structured decision variability in our models can help avoid false scientific conclusions (for instance when drifting decision parameters can mimic confidence-dependent learning), capture between-and within-person variability in decision-making, and provide time-resolved latent variable estimates that can be linked to fluctuations in (neuro)physiological data. However, the models reviewed are currently largely descriptive, capturing patterns in data that were previously hidden in error bars. An important avenue for future research is to examine what insights about cognition may change when we take structured variability into account in our models of decisionmaking.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure I .</head><label>I</label><figDesc>Noise in single neurons arising from vesicle release and synaptic stochasticity; noise in circuits from excitation/inhibition balance; and variability in behavior from mixtures of cognitive strategies, mind-wandering and spontaneous bodily and physiological states. Dashed lines between each stage highlight the challenge of determining how variability propagates between levels of spatial and temporal scale. Created in BioRender, https://BioRender.com/p13s394</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>in brain and behaviour b. Classes of decision variability modelsc. Approaching the noise floor</head><label></label><figDesc></figDesc><table><row><cell>adaptation a. Timescales random noise Scale (s)</cell><cell>drift</cell><cell>sequential effects state switches</cell><cell>arousal session motivation fatigue, unexplained systematic updates oscillations</cell><cell>variability</cell><cell>circadian rhythms noise floor</cell><cell>8 development, aging deterministic (predictable) stochastic (unpredictable)</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>model complexity</cell><cell></cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Table 1 .</head><label>1</label><figDesc>Cataloguing latent variable models to account for trial-to-trial structure in decision-making data.</figDesc><table><row><cell>Drift</cell></row><row><cell>The parameters governing decision-making may not only vary randomly from trial-to-trial, but also</cell></row><row><cell>include a short-term memory of its past state. For instance, time-varying arousal levels will affect</cell></row><row><cell>our attention to the visual stimulus, leading to slow changes in perceptual sensitivity over multiple</cell></row><row><cell>trials. Recent models have implemented such time-varying parameters of a cognitive model as</cell></row><row><cell>an autoregressive (AR) process, where the state of the system is a linear function of its previous</cell></row><row><cell>state(s) and some noise. Response times (RT) timeseries are often modelled using</cell></row><row><cell>autoregressive models, showing that the structured variability in RTs is a stable individual trait</cell></row><row><cell>with high test-retest reliability across sessions (Perquin et al., 2023).</cell></row><row><cell>Autoregressive models can also be used on sequences of choices to reveal how parameters of</cell></row><row><cell>the decision process fluctuate over trials. For instance, the autoregressive model PsyTrack</cell></row><row><cell>assumes that the weights of a psychometric function (of e.g. stimuli, bias and previous choices)</cell></row><row><cell>evolve over trials according to a Gaussian random walk -a special case of an AR model where</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head></head><label></label><figDesc><ref type="bibr" target="#b87">Roy et al., 2021)</ref> (Table 1). This model can recover the trial-to-trial weights of each regressor from behavioral timeseries and has been used to track the dynamics of choice strategies in multiple species. For example, in mice that show seemingly stable performance on a decision-making, this model reveals time-varying phases of bias towards specific choice options<ref type="bibr" target="#b113">(Zhu &amp; Kuchibhotla, 2024)</ref>: what might seem random errors or poor task engagement may instead reflect active and adaptive exploration of the environment. This highlights the importance of modeling temporal dynamics to uncover adaptive strategies that may otherwise be hidden in apparently suboptimal decision-making.So far, it remains an important open question how much choice biases and other decision-making parameters fluctuate in humans during a typical decision-making experiment, and when such drifts affect scientific conclusions. Multiple factors may lead to more stable psychometric parameters in humans as opposed to rodents</figDesc><table><row><cell>= 1 (</cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell></cell><cell>state,</cell></row><row><cell></cell><cell></cell><cell></cell><cell>strategy switches</cell></row><row><cell>Systematic</cell><cell>Learning, adaptation,</cell><cell>! = ( !"# )</cell><cell>Reinforcement learning,</cell></row><row><cell>updates</cell><cell>oscillations</cell><cell></cell><cell>sequential effects,</cell></row><row><cell></cell><cell></cell><cell></cell><cell>attentional and circadian</cell></row><row><cell></cell><cell></cell><cell></cell><cell>rhythms -whereby the</cell></row><row><cell></cell><cell></cell><cell></cell><cell>function is itself stable</cell></row><row><cell></cell><cell></cell><cell></cell><cell>over time.</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4"><head></head><label></label><figDesc>It would also be naïve to assume that any single latent variable model can capture all behavioral variability -mixtures are likely necessary to understand variability within and between individuals.So far, models are commonly contrasted with a 'baseline' of IID noise, which can be easily obtained by shuffling trials. Direct comparison of different model classes is rare, and sometimes complex. When models are directly compared, the comparison is usually restricted to one or a</figDesc><table /><note>handful of models. A few studies highlight the importance of direct model comparison to disentangle candidate mechanisms. In studies that compared discrete state switches (HMMs or mixture random walks), with drifting (autoregressive or random) models, state switches best explained strategy fluctuations in both humans</note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Model of global spontaneous activity and local structured activity during delay periods in the cerebral cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Amit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Brunel</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/cercor/7.3.237</idno>
+		<ptr target="https://doi.org/10.1093/cercor/7.3.237" />
+	</analytic>
+	<monogr>
+		<title level="j">Cerebral Cortex</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="237" to="252" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Non-parametric mixture modeling of cognitive psychological data: A new method to disentangle hidden strategies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Archambeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Couto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Van Maanen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="2232" to="2248" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-022-01837-0</idno>
+		<ptr target="https://doi.org/10.3758/s13428-022-01837-0" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Mice alternate between discrete strategies during perceptual decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">C</forename><surname>Ashwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">R</forename><surname>Stone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pillow</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41593-021-01007-z</idno>
+		<ptr target="https://doi.org/10.1038/s41593-021-01007-z" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Body-wandering reveals an embodied dimension of thought with distinct affective and neural signatures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Banellis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Nikolova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Braendholdt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vejlø</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fardo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Smallwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Allen</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2024.10.25.620252</idno>
+		<ptr target="https://doi.org/10.1101/2024.10.25.620252" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note>p. 2024.10.25.620252</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Not Noisy, Just Wrong: The Role of Suboptimal Inference in Behavioral Variability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Beck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Pitkow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2012.03.016</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2012.03.016" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="30" to="39" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Binz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Akata</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bethge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Brändle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Coda-Forno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Demircan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Éltető</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Haridi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Jagadish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ji-An</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kipnis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ludwig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mathony</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mattar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/arXiv.2410.20268</idno>
+		<idno type="arXiv">arXiv:2410.20268</idno>
+		<ptr target="https://doi.org/10.48550/arXiv.2410.20268" />
+		<title level="m">Centaur: A foundation model of human cognition</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Estimating across-trial variability parameters of the Diffusion Decision Model: Expert advice and recommendations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Boehm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Annis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kellen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Krypotos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">D</forename><surname>Logan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Palmeri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Van Ravenzwaaij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Servant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Singmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Starns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Matzke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page" from="46" to="75" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2018.09.004</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2018.09.004" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Flexible and efficient simulation-based inference for models of decision-making. eLife, 11, e77220</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Boelts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Lueckmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Macke</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.77220</idno>
+		<ptr target="https://doi.org/10.7554/eLife.77220" />
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Opponent control of behavior by dorsomedial striatal pathways depends on task demands and internal state</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Bolkan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">R</forename><surname>Stone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pinto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">C</forename><surname>Ashwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Garcia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Herman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bandi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Zimmerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Engelhard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pillow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">B</forename><surname>Witten</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41593-022-01021-9</idno>
+		<ptr target="https://doi.org/10.1038/s41593-022-01021-9" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="345" to="357" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">The probability of neurotransmitter release: Variability and feedback control at single synapses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Branco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Staras</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nrn2634</idno>
+		<ptr target="https://doi.org/10.1038/nrn2634" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Reviews Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">The simplest complete model of choice response time: Linear ballistic accumulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cogpsych.2007.12.002</idno>
+		<ptr target="https://doi.org/10.1016/j.cogpsych.2007.12.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Psychology</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="153" to="178" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Bruijns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">B</forename><surname>Laboratory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Bougrova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">C</forename><surname>Laranjeira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">Y P</forename><surname>Lau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">T</forename><surname>Meijer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Miska</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-P</forename><surname>Noel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pan-Vazquez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Roth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Z</forename><surname>Socha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<title level="m">Dissecting the Complexities of Learning With Infinite Hidden Markov Models</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note>p. 2023.12.22.573001</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1101/2023.12.22.573001</idno>
+		<ptr target="https://doi.org/10.1101/2023.12.22.573001" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Synaptic noise and other sources of randomness in motoneuron interspike intervals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Calvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">F</forename><surname>Stevens</surname></persName>
+		</author>
+		<idno type="DOI">10.1152/jn.1968.31.4.574</idno>
+		<ptr target="https://doi.org/10.1152/jn.1968.31.4.574" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neurophysiology</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="574" to="587" />
+			<date type="published" when="1968" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Sensory choices as logistic classification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carandini</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2024.06.016</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2024.06.016" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">17</biblScope>
+			<biblScope unit="page" from="2854" to="2868" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Control Limited Perceptual Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Castiñeiras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Renart</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2022.06.24.497481</idno>
+		<ptr target="https://doi.org/10.1101/2022.06.24.497481" />
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note>p. 2022.06.24.497481). bioRxiv</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">A crossspecies framework for investigating perceptual evidence accumulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chakravarty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Delgado-Sallent</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Kane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">H</forename><surname>Do</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Senne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">B</forename><surname>Scott</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2024.04.17.589945</idno>
+		<ptr target="https://doi.org/10.1101/2024.04.17.589945" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note>p. 2024.04.17.589945</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Multiple timescales of learning indicated by changes in evidence-accumulation processes during perceptual decision-making. Npj Science of Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cochrane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Sims</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">R</forename><surname>Bejjanki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bavelier</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41539-023-00168-9</idno>
+		<ptr target="https://doi.org/10.1038/s41539-023-00168-9" />
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="1" to="10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Advances in modeling learning and decision-making in neuroscience</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shenhav</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41386-021-01126-y</idno>
+		<ptr target="https://doi.org/10.1038/s41386-021-01126-y" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="104" to="118" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Internal states emerge early during learning of a perceptual decision-making task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">I</forename><surname>Cuturela</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">I B</forename><surname>Laboratory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pillow</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2024.11.30.626182</idno>
+		<idno>11.30.626182</idno>
+		<ptr target="https://doi.org/10.1101/2024.11.30.626182" />
+		<imprint>
+			<date type="published" when="2024" />
+			<biblScope unit="page">2024</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Computational Neuroethology: A Call to Action</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Datta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Branson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Perona</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Leifer</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2019.09.038</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2019.09.038" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="11" to="24" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">An intention-activation account of residual switch costs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>De Jong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Control of Cognitive Processes</title>
+		<editor>S. Monsell &amp; J. Driver</editor>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2000" />
+			<biblScope unit="page" from="357" to="376" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Computational Precision of Mental Inference as Critical Source of Human Choice Suboptimality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-D</forename><surname>Devauchelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">92</biblScope>
+			<biblScope unit="page" from="1" to="14" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">A Phase Transition Model for the Speed-Accuracy Trade-Off in Response Time Experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Dutilh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Visser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van Der</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">L J</forename><surname>Maas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="211" to="250" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1111/j.1551-6709.2010.01147.x</idno>
+		<ptr target="https://doi.org/10.1111/j.1551-6709.2010.01147.x" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title level="m" type="main">Predictive and Interpretable: Combining Artificial Neural Networks and Classic Cognitive Models to Understand Human Learning and Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Summerfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2023.05.17.541226</idno>
+		<idno>p. 2023.05.17.541226</idno>
+		<ptr target="https://doi.org/10.1101/2023.05.17.541226" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Noise in the nervous system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Faisal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P J</forename><surname>Selen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Wolpert</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nrn2258</idno>
+		<ptr target="https://doi.org/10.1038/nrn2258" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Reviews Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="292" to="303" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Beyond Drift Diffusion Models: Fitting a Broad Class of Decision and Reinforcement Learning Models with HDDM</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fengler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Bera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Pedersen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/jocn_a_01902</idno>
+		<ptr target="https://doi.org/10.1162/jocn_a_01902" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cognitive Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1780" to="1805" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Likelihood approximation networks (LANs) for fast inference of simulation models in cognitive neuroscience. eLife</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fengler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">N</forename><surname>Govindarajan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">65074</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.7554/eLife.65074</idno>
+		<ptr target="https://doi.org/10.7554/eLife.65074" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Computation noise in human learning and decision-making: Origin, impact, function. Current Opinion in Behavioral Sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Findling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cobeha.2021.02.018</idno>
+		<ptr target="https://doi.org/10.1016/j.cobeha.2021.02.018" />
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page" from="124" to="132" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Serial dependence in visual perception</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Whitney</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nn.3689</idno>
+		<ptr target="https://doi.org/10.1038/nn.3689" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="738" to="743" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Quantifying the effect of intertrial dependence on perceptual decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Fründ</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Wichmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Macke</surname></persName>
+		</author>
+		<idno type="DOI">10.1167/14.7.9</idno>
+		<ptr target="https://doi.org/10.1167/14.7.9" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Vision</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="9" to="9" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Sequential Effects in Two-Choice Reaction Time Tasks: Decomposition and Synthesis of Mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wong-Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Holmes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Simen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="2407" to="2436" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Optimality and heuristics in perceptual neuroscience</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Gardner</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41593-019-0340-4</idno>
+		<ptr target="https://doi.org/10.1038/s41593-019-0340-4" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">Using recurrent neural network to estimate irreducible stochasticity in human choice behavior. eLife, 13, RP90082</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shahar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Shahar</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.90082</idno>
+		<ptr target="https://doi.org/10.7554/eLife.90082" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">1/f Noise in Human Cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Gilden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Thornton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Mallon</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.7892611</idno>
+		<ptr target="https://doi.org/10.1126/science.7892611" />
+		<imprint>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Integrating model development across computational neuroscience, cognitive science, and machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gleeson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Crook</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mantel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Raunak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Willke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2023.03.037</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2023.03.037" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1526" to="1530" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Indeterminacy in Brain and Behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Glimcher</surname></persName>
+		</author>
+		<idno type="DOI">10.1146/annurev.psych.55.090902.141429</idno>
+		<ptr target="https://doi.org/10.1146/annurev.psych.55.090902.141429" />
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Psychology</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="25" to="56" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">The Life of Behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gomez-Marin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Ghazanfar</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2019.09.017</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2019.09.017" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="25" to="36" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title level="m" type="main">Signal Detection Theory and Psychophysics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Swets</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1966" />
+			<publisher>John Wiley and Sons</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Why is everyone talking about brain state?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Greene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Horien</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Barson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Scheinost</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Constable</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tins.2023.04.001</idno>
+		<ptr target="https://doi.org/10.1016/j.tins.2023.04.001" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Neurosciences</title>
+		<imprint>
+			<biblScope unit="issue">0</biblScope>
+			<biblScope unit="page">0</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Time-evolving psychological processes over repeated decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gunawan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kohn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-N</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/rev0000351</idno>
+		<ptr target="https://doi.org/10.1037/rev0000351" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="438" to="456" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">Limitations of a proposed correction for slow drifts in decision criterion. Neurons, Behavior, Data Analysis, and Theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Brody</surname></persName>
+		</author>
+		<idno type="DOI">10.51628/001c.35908</idno>
+		<ptr target="https://doi.org/10.51628/001c.35908" />
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page" from="1" to="19" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Decision-making dynamics are predicted by arousal and uninstructed movements</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hulsey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Zumwalt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mazzucato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Mccormick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Jaramillo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cell Reports</title>
+		<imprint>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">43</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.celrep.2024.113709</idno>
+		<ptr target="https://doi.org/10.1016/j.celrep.2024.113709" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Modelling human behaviour in cognitive tasks with latent dynamical systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">I</forename><surname>Jaffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Poldrack</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Schafer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G</forename><surname>Bissett</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-022-01510-8</idno>
+		<ptr target="https://doi.org/10.1038/s41562-022-01510-8" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="986" to="1000" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">Automatic Discovery of Cognitive Strategies with Tiny Recurrent Neural Networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ji-An</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Benna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Mattar</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2023.04.12.536629</idno>
+		<idno>04.12.536629</idno>
+		<ptr target="https://doi.org/10.1101/2023.04.12.536629" />
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="page">2023</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Pupil dynamics preceding switches in task engagement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nieuwenhuis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Urai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2024" />
+			<biblScope unit="page">46</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Interindividual Differences in Cognitive Variability Are Ubiquitous and Distinct From Mean Performance in a Battery of Eleven Tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Judd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Aristodemou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Klingberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kievit</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cognition</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.5334/joc.371</idno>
+		<ptr target="https://doi.org/10.5334/joc.371" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Brain-body states embody complex temporal dynamics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Kluger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Allen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gross</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2024.05.003</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2024.05.003" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="695" to="698" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Krakauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Ghazanfar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gomez-Marin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Maciver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Poeppel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Neuroscience Needs Behavior: Correcting a Reductionist Bias</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page" from="480" to="490" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.neuron.2016.12.041</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2016.12.041" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Hidden Markov Models of Evidence Accumulation in Speeded Decision Tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Š</forename><surname>Kucharský</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N.-H</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Veldkamp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Raijmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Visser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Brain &amp; Behavior</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="416" to="441" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1007/s42113-021-00115-0</idno>
+		<ptr target="https://doi.org/10.1007/s42113-021-00115-0" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">Reinforcement biases subsequent perceptual decisions when confidence is low</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hueske</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hirokawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Masset</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">H</forename><surname>Donner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carandini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tonegawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Uchida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kepecs</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.49834</idno>
+		<ptr target="https://doi.org/10.7554/eLife.49834" />
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">9</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Dynamic noise estimation: A generalized method for modeling noise fluctuations in decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page">102842</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2024.102842</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2024.102842" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Intra-individual variability in behavior: Links to brain structure, neurotransmission and neuronal activity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">W S</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Nyberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bäckman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Neurosciences</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="474" to="480" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.tins.2006.06.011</idno>
+		<ptr target="https://doi.org/10.1016/j.tins.2006.06.011" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<monogr>
+		<title level="m" type="main">Tracking subjects&apos; strategies in behavioural choice experiments at trial resolution. eLife, 13, e86491</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Maggi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Hock</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>O'neill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Buckley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Bast</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Humphries</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.86491</idno>
+		<ptr target="https://doi.org/10.7554/eLife.86491" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">Reliability of Spike Timing in Neocortical Neurons</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">F</forename><surname>Mainen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Sejnowski</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.7770778</idno>
+		<ptr target="https://doi.org/10.1126/science.7770778" />
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">268</biblScope>
+			<biblScope unit="issue">5216</biblScope>
+			<biblScope unit="page" from="1503" to="1506" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Executive control fluctuations underlie behavioral variability in anthropoids</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Mansouri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Kievit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Buckley</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2024.10.012</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2024.10.012" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Mcginley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vinck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Reimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Batista-Brito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Zagha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Cadwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Tolias</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Cardin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Mccormick</surname></persName>
+		</author>
+		<title level="m">Waking State: Rapid Variations Modulate Neural and Behavioral Responses</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.1016/j.neuron.2015.09.012</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2015.09.012" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1143" to="1161" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title level="a" type="main">Human Inferences about Sequences: A Minimal Transition Probability Model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Meyniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Maheu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dehaene</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1005260</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1005260" />
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title level="a" type="main">Mutual benefits: Combining reinforcement learning with sequential sampling models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miletić</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Boag</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuropsychologia.2019.107261</idno>
+		<ptr target="https://doi.org/10.1016/j.neuropsychologia.2019.107261" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychologia</title>
+		<imprint>
+			<biblScope unit="volume">136</biblScope>
+			<biblScope unit="page">107261</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<monogr>
+		<title level="m" type="main">Explaining Multi-Scale Choice Dynamics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miletic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Eidels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Matzke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/m5s93</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/m5s93" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Kurth-Nelson</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2023.06.23.546250</idno>
+		<ptr target="https://doi.org/10.1101/2023.06.23.546250" />
+		<title level="m">Cognitive Model Discovery via Disentangled RNNs</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note>p. 2023.06.23.546250</note>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<monogr>
+		<title level="m" type="main">Rapid, systematic updating of movement by accumulated decision evidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Molano-Mazón</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Garcia-Duran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pastor-Ciurana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hernández-Navarro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bektic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lombardo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rocha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>De La</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hyafil</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2023.11.09.566389</idno>
+		<idno>11.09.566389</idno>
+		<ptr target="https://doi.org/10.1101/2023.11.09.566389" />
+		<imprint>
+			<date type="published" when="2024" />
+			<biblScope unit="page">2023</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<analytic>
+		<title level="a" type="main">Harnessing behavioral diversity to understand neural computations for cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Musall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sussillo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">58</biblScope>
+			<biblScope unit="page" from="229" to="238" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.conb.2019.09.011</idno>
+		<ptr target="https://doi.org/10.1016/j.conb.2019.09.011" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<monogr>
+		<title level="m" type="main">Parameter inference from a non-stationary unknown process</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">S</forename><surname>Owens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Fulcher</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2407.08987</idno>
+		<ptr target="http://arxiv.org/abs/2407.08987" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note>Version 1</note>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title level="a" type="main">The Importance of Falsification in Computational Cognitive Modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2017.03.011</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2017.03.011" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="425" to="433" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<monogr>
+		<title level="m" type="main">Latent Variable Sequence Identification for Cognitive Models with Neural Bayes Estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T.-F</forename><surname>Pan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/arXiv.2406.14742</idno>
+		<idno type="arXiv">arXiv:2406.14742</idno>
+		<ptr target="https://doi.org/10.48550/arXiv.2406.14742" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b78">
+	<analytic>
+		<title level="a" type="main">The drift diffusion model as the choice rule in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Pedersen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Biele</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-016-1199-y</idno>
+		<ptr target="https://doi.org/10.3758/s13423-016-1199-y" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1234" to="1251" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b79">
+	<analytic>
+		<title level="a" type="main">Variance (un)explained: Experimental conditions and temporal dependencies explain similarly small proportions of reaction time variability in linear models of perceptual and cognitive tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Perquin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Heed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kayser</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xge0001630</idno>
+		<ptr target="https://doi.org/10.1037/xge0001630" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General, No Pagination Specified-No Pagination Specified</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b80">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Perquin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Van Vugt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hedge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bompas</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s42113-022-00162-1</idno>
+		<ptr target="https://doi.org/10.1007/s42113-022-00162-1" />
+		<title level="m">Temporal Structure in Sensorimotor Variability: A Stable Trait, But What For? Computational Brain &amp; Behavior</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b81">
+	<monogr>
+		<title level="m" type="main">Lapses in perceptual decisions reflect exploration. eLife, 10, e55490</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pisupati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Chartarifsky-Lynn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Khanal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.55490</idno>
+		<ptr target="https://doi.org/10.7554/eLife.55490" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b82">
+	<analytic>
+		<title level="a" type="main">Suboptimality in Perceptual Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Denison</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/S0140525X18000936</idno>
+		<ptr target="https://doi.org/10.1017/S0140525X18000936" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="107" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b83">
+	<analytic>
+		<title level="a" type="main">The diffusion decision model: Theory and data for two-choice decision tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/neco.2008.12-06-420</idno>
+		<ptr target="https://doi.org/10.1162/neco.2008.12-06-420" />
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="873" to="922" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b84">
+	<analytic>
+		<title level="a" type="main">Internal and external sources of variability in perceptual decisionmaking</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Voskuilen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/rev0000080</idno>
+		<ptr target="https://doi.org/10.1037/rev0000080" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="33" to="46" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b85">
+	<analytic>
+		<title level="a" type="main">Variability in neural activity and behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Renart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">K</forename><surname>Machens</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.conb.2014.02.013</idno>
+		<ptr target="https://doi.org/10.1016/j.conb.2014.02.013" />
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page" from="211" to="220" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b86">
+	<analytic>
+		<title level="a" type="main">Artificial neural networks for model identification and parameter estimation in computational cognitive models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rmus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T.-F</forename><surname>Pan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1012119</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1012119" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b87">
+	<analytic>
+		<title level="a" type="main">Extracting the dynamics of behavior in sensory decision-making experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Bak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Akrami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Brody</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pillow</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2020.12.004</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2020.12.004" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="597" to="610" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b88">
+	<analytic>
+		<title level="a" type="main">Meta-awareness, perceptual decoupling and the wandering mind</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Schooler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Smallwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Christoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">C</forename><surname>Handy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Reichle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Sayette</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="319" to="326" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b89">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.tics.2011.05.006</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2011.05.006" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b90">
+	<analytic>
+		<title level="a" type="main">Neural superstatistics for Bayesian estimation of dynamic cognitive models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Schumacher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-C</forename><surname>Bürkner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Köthe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Radev</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41598-023-40278-3</idno>
+		<ptr target="https://doi.org/10.1038/s41598-023-40278-3" />
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">13778</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b91">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Schumacher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schnuerch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Radev</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/2401.08626v3" />
+		<title level="m">Validation and Comparison of Non-Stationary Cognitive Models: A Diffusion Model Application. arXiv.Org</title>
+		<imprint>
+			<date type="published" when="2023-12-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b92">
+	<analytic>
+		<title level="a" type="main">Dynamic computational phenotyping of human cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Schurr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Reznik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Hillman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bhui</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-024-01814-x</idno>
+		<ptr target="https://doi.org/10.1038/s41562-024-01814-x" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="15" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b93">
+	<analytic>
+		<title level="a" type="main">Behavioral Variability through Stochastic Choice and Its Gating by Anterior Cingulate Cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G R</forename><surname>Tervo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Proskurin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Manakov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kabra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vollmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Branson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Y</forename><surname>Karpova</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.1226518</idno>
+		<ptr target="https://doi.org/10.1126/science.1226518" />
+	</analytic>
+	<monogr>
+		<title level="j">Cell</title>
+		<imprint>
+			<biblScope unit="volume">159</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="21" to="32" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b94">
+	<monogr>
+		<title level="m" type="main">Thoughtful faces: Inferring internal states across species using facial features</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tlaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">Y A E</forename><surname>Hay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-A</forename><surname>Ferracci</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Shapcott</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Glukhova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pillow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Havenith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schölvinck</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2024.01.24.577055</idno>
+		<ptr target="https://doi.org/10.1101/2024.01.24.577055" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note>p. 2024.01.24.577055). bioRxiv</note>
+</biblStruct>
+
+<biblStruct xml:id="b95">
+	<analytic>
+		<title level="a" type="main">Bring the Noise: Reconceptualizing Spontaneous Neural Activity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">Q</forename><surname>Uddin</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2020.06.003</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2020.06.003" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="734" to="746" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b96">
+	<analytic>
+		<title level="a" type="main">Large-scale neural recordings call for new insights to link brain and behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Doiron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Leifer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41593-021-00980-9</idno>
+		<ptr target="https://doi.org/10.1038/s41593-021-00980-9" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="9" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b97">
+	<analytic>
+		<title level="a" type="main">Seven things to remember about hidden Markov models: A tutorial on Markovian models for time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Visser</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2011.08.002</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2011.08.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="403" to="415" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b98">
+	<monogr>
+		<title level="m" type="main">A Bayesian Hierarchical Model of Trial-To-Trial Fluctuations in Decision Criterion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vloeberghs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Urai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">W</forename><surname>Linderman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note>p. 2024.07.30.605869</note>
+</biblStruct>
+
+<biblStruct xml:id="b99">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1101/2024.07.30.605869</idno>
+		<ptr target="https://doi.org/10.1101/2024.07.30.605869" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b100">
+	<analytic>
+		<title level="a" type="main">Chaos in Neuronal Networks with Balanced Excitatory and Inhibitory Activity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Vreeswijk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Sompolinsky</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.274.5293.1724</idno>
+		<ptr target="https://doi.org/10.1126/science.274.5293.1724" />
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">274</biblScope>
+			<biblScope unit="issue">5293</biblScope>
+			<biblScope unit="page" from="1724" to="1726" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b101">
+	<analytic>
+		<title level="a" type="main">Estimation and interpretation of 1/fα noise in human cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Farrell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/BF03196615</idno>
+		<ptr target="https://doi.org/10.3758/BF03196615" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="579" to="615" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b102">
+	<analytic>
+		<title level="a" type="main">Abstract Concepts Require Concrete Models: Why Cognitive Scientists Have Not Yet Embraced Nonlinearly Coupled, Dynamical, Self-Organized Critical</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">L J</forename><surname>Van Der Maas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Farrell</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/j.1756-8765.2011.01164.x</idno>
+		<ptr target="https://doi.org/10.1111/j.1756-8765.2011.01164.x" />
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="87" to="93" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>Exquisitely Context-Sensitive, Interaction-Dominant, Multifractal, Interdependent Brain-Body-Niche Systems</note>
+</biblStruct>
+
+<biblStruct xml:id="b103">
+	<analytic>
+		<title level="a" type="main">Behavior needs neural variability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Waschke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Kloosterman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Obleser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Garrett</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2021.01.023</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2021.01.023" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="751" to="766" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b104">
+	<analytic>
+		<title level="a" type="main">Dynamic predictive templates in perception</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Weilnhammer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Murai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Whitney</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cub.2024.07.087</idno>
+		<ptr target="https://doi.org/10.1016/j.cub.2024.07.087" />
+	</analytic>
+	<monogr>
+		<title level="j">Current Biology</title>
+		<imprint>
+			<biblScope unit="issue">0</biblScope>
+			<biblScope unit="page">0</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b105">
+	<analytic>
+		<title level="a" type="main">Sensory processing in humans and mice fluctuates between external and internal modes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Weilnhammer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Stuke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Standvoss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sterzer</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pbio.3002410</idno>
+		<ptr target="https://doi.org/10.1371/journal.pbio.3002410" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Biology</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b106">
+	<analytic>
+		<title level="a" type="main">Channel noise in neurons</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rubinstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Kay</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/S0166-2236(99)01521-0</idno>
+		<ptr target="https://doi.org/10.1016/S0166-2236(99)01521-0" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Neurosciences</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="131" to="137" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b107">
+	<analytic>
+		<title level="a" type="main">The psychometric function: I. Fitting, sampling, and goodness of fit</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Wichmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Hill</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; Psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">63</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1293" to="1313" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b108">
+	<analytic>
+		<title level="a" type="main">Leveraging decision consistency to decompose suboptimality in terms of its ultimate predictability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/S0140525X18001504</idno>
+		<ptr target="https://doi.org/10.1017/S0140525X18001504" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b109">
+	<analytic>
+		<title level="a" type="main">Choice variability and suboptimality in uncertain environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cobeha.2016.07.003</idno>
+		<ptr target="https://doi.org/10.1016/j.cobeha.2016.07.003" />
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Behavioral Sciences</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="109" to="115" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b110">
+	<analytic>
+		<title level="a" type="main">Choosing Prediction Over Explanation in Psychology: Lessons From Machine Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Yarkoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Westfall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1100" to="1122" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b111">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1177/1745691617693393</idno>
+		<ptr target="https://doi.org/10.1177/1745691617693393" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b112">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zammit-Mangion</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sainsbury-Dale</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Huser</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/arXiv.2404.12484</idno>
+		<idno type="arXiv">arXiv:2404.12484</idno>
+		<ptr target="https://doi.org/10.48550/arXiv.2404.12484" />
+		<title level="m">Neural Methods for Amortised Inference</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b113">
+	<analytic>
+		<title level="a" type="main">Performance errors during rodent learning reflect a dynamic choice strategy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">V</forename><surname>Kuchibhotla</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cub.2024.04.017</idno>
+		<ptr target="https://doi.org/10.1016/j.cub.2024.04.017" />
+	</analytic>
+	<monogr>
+		<title level="j">Current Biology</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="2107" to="2117" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

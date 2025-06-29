@@ -1,0 +1,2195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Heuristics for meta-planning from a normative model of information search</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ionatan</forename><surname>Kuperwajs</surname></persName>
+							<email>ikuperwajs@nyu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Center for Neural Science</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+							<email>mark.ho@nyu.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wei</forename><forename type="middle">Ji</forename><surname>Ma</surname></persName>
+							<email>weijima@nyu.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Heuristics for meta-planning from a normative model of information search</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:44+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Planning, the process of evaluating the future consequences of actions, is typically formalized as search over a decision tree. More search means higher expected rewards, but tree search is computationally expensive. Most approaches designed to mitigate the costs associated with tree search have been driven by researcher-specified heuristics, and only recently have normative solutions been applied to the domain of planning. An open question is how people approximate the values associated with potential plans while they are planning. In this work, we propose to abstract planning as an information search problem to produce heuristics for meta-planning, or to determine which action to plan for. Specifically, we model a metacognitive process where evaluating candidate actions is viewed as gaining noisy measurements of the value of each action. This statistical estimate is then combined with prior experience in a Bayesian manner to decide whether and in which direction to continue sampling. This Bayesian meta-planner makes intuitive predictions across a range of parameters and acts as a more valuable, informed method for guiding search when compared to best-first and breadth-first search. Additionally, the Bayesian meta-planner qualitatively accounts for response time trends in a complex planning task. Thus, we provide a principled framework for information search that directs simulations towards the most promising actions, deriving heuristics that generalize to people&apos;s behavior while planning.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>From spatial navigation to organizational strategy to playing games like chess and Go, planning is ubiquitous in many aspects of daily life. Planning involves the mental simulation of future actions and their consequences in order to make a decision, and planning problems can often be formalized as search over a decision tree in both cognitive science <ref type="bibr">[1]</ref><ref type="bibr">[2]</ref><ref type="bibr">[3]</ref> and artificial intelligence <ref type="bibr">[4,</ref><ref type="bibr">5]</ref>. In such a scheme, an agent builds a tree of possible future trajectories where every decision is represented by a branching point ( <ref type="figure">Figure 1A)</ref>. The agent then gains information by traversing the decision tree, which is used to approximate the long-term expected reward of each currently available action ( <ref type="figure">Figure 1B</ref>). Tree search algorithms generally lead to better decisions than ones reached without planning, but can be costly to run. Additionally, the breadth and depth of decision trees in real-world tasks are likely too large for an agent to evaluate each possible sequence.</p><p>Therefore, a growing body of literature has focused on developing ways to mitigate the computational costs associated with planning. One approach is to introduce heuristics that circumvent the intractability of an exponentially growing search tree. Such heuristics include pruning initially unpromising courses of action <ref type="bibr">[6]</ref>, limiting the depth of planning <ref type="bibr">[7,</ref><ref type="bibr">8]</ref>, relying on the uncertainty or accuracy of forward search and model-free reinforcement learning methods in tandem <ref type="bibr">[9]</ref><ref type="bibr">[10]</ref><ref type="bibr">[11]</ref>, or leveraging simulated experience to further expedite the transition from goal-directed to habitual behavior <ref type="bibr">[12]</ref>. Meanwhile, simpler choice models of human sequential decision-making often do not explore the tradeo↵s between the costs of </p><formula xml:id="formula_0">U 1 U 2 V 1 Fig. 1</formula><p>Comparing planning and meta-planning. (A) A planning problem, where nodes represent states and arrows possible actions that an agent could make. The decision is whether to make action a 1 or a 2 , each of which will ultimately lead to di↵erent future rewards. (B) Planning as tree search, where candidate actions are iteratively simulated by expanding from the current state. The values of future states (V ) are approximated by a heuristic that informs which action will lead to the highest expected reward. In environments with many states, the tree quickly becomes costly to exhaustively search over. The shaded out nodes, arrows, and rewards here and in panel (C) represent unknown parts of the planning problem to the agent. (C) Meta-planning, which aims to reduce the costs associated with planning by guiding the metalevel decision of whether to stop planning and, if it is worth continuing, selecting which action to plan for. In our model, this is accomplished by framing a simulation as ultimately providing more information about the true value of an available action. This information search process quickly computes the expected utility gain (U ) associated with making an additional measurement for each action.</p><p>planning and decision quality <ref type="bibr">[13,</ref><ref type="bibr" target="#b13">14]</ref>. While each of these models provides insight into how people plan e ciently, the selected heuristics are generated via researcher intuition. That is to say, they do not provide a formal analysis of why humans might use such heuristics during planning that generalizes across environments. Ultimately, such an analysis would produce heuristics derived from first principles for when to stop planning, which actions to consider, and the role that uncertainty and past experiences play in shaping these decisions. More recently, a few exceptions to the heuristics-driven approach have made progress on providing normative accounts of human planning. These accounts address the metalevel problem, which is to determine in which direction the search tree should be expanded ( <ref type="figure">Figure 1C</ref>). From a metacognitive perspective, an agent might ask "is planning worthwhile, and if so in which direction?" when it becomes intractable to evaluate every sequence of possible actions. The plan-until-habit scheme computes the value of information gained by planning in a principled manner, reducing the number of search iterations by relying on a habitual system to estimate values at the frontier of the decision tree <ref type="bibr" target="#b14">[15]</ref>. This results in an expansion metric that is cheap to compute, but relies on cached values that summarize past experiences. Such a method may not scale well to complex tasks where an agent almost exclusively encounters unique states, thus hindering the development of informative habits. An alternative is to frame the problem as one of resource rationality, where the agent has to minimize the cognitive operations required to make a plan while maximizing the expected utility of executing that plan <ref type="bibr" target="#b15">[16]</ref>. This idea was applied to a deterministic environment with small state spaces, where optimal strategies could be identified and people were encouraged to fully plan before taking any actions. Moreover, the interaction between past experiences and planning is not explicitly defined. Therefore, despite both of these e↵orts, the mechanisms by which people are able to approximate the values associated with potential plans during the actual planning process are not fully understood. In other words, we are looking for a theory that explains the conditions under which people will plan while considering past experiences that scales to large state spaces.</p><p>In this work, we propose an abstraction of meta-planning, or determining which action to plan for, by mapping a planning problem onto one of information search. In an information sampling scheme, the objective is to choose the single most rewarding option given a number of alternatives. Formal models of information gain posit that interventions are made with the goal of decreasing the learner's uncertainty <ref type="bibr" target="#b16">[17,</ref><ref type="bibr" target="#b17">18]</ref>. Additionally, studies on information seeking behavior have shown that human strategies for solving these problems are adaptive <ref type="bibr" target="#b18">[19]</ref> and driven by a variety of factors such as rewards and uncertainty <ref type="bibr" target="#b19">[20]</ref>. The information that is sampled can be perceptual or value-based, and there is growing evidence that planning and information seeking share similar neural mechanisms <ref type="bibr" target="#b20">[21]</ref>. Both information search and planning are fundamentally about improving the selection of future actions, with the distinction that sampling information is an overt action in the real world while planning requires mental simulation. That is to say, planning is a form of internal information search that combines past experiences with forward thinking. We leverage the similarity of these problems to derive a tractable Bayesian model of information search that, in turn, produces heuristics for how people plan. Related work has claimed that simple decisions are made by integrating noisy evidence that is sampled over time in a Bayesian manner <ref type="bibr" target="#b21">[22,</ref><ref type="bibr" target="#b22">23]</ref>, and our framework shares many features with these models. Conceptually, the main di↵erence is in domain application, as prior work has explained fixation data in choice tasks with few alternatives while our model aims to derive intuitive rules to guide planning. Overall, our approach is akin to that of toy models in physics, where it is commonplace to derive a deliberately simplistic model with details of the real-world problem removed such that the core mechanism can be explained concisely <ref type="bibr" target="#b23">[24]</ref>. The advantage of such an approach is that it becomes possible to more easily control every aspect of the model, and in turn produce insights that scale to the original problem.</p><p>The premise underlying the model is to sacrifice the structure of a tree search algorithm in favor of a simpler, task-general statistical description that estimates the e↵ects of planning. This is achieved by framing planning as a process of gaining noisy information about the values of the available actions. With this framing, we forego the sequential nature of actions and consequences present in traditional planning tasks. In turn, analytical approaches become feasible and we can derive normative solutions for when and how an agent should plan. Under our framework, the agent considers which action to sample on each iteration of search by computing the expected utility of sampling each action. Our approach is designed to facilitate online decision-making, as the metalevel algorithm is significantly less expensive than running a full tree search algorithm and can be further reduced to simple heuristics. We show that the model makes intuitive predictions in a variety of environments, highlighting the importance of the gap between value estimates, retrospective information, and uncertainty while replicating findings from the planning literature. We also compare our model directly against canonical search methods. Finally, we apply the model to a complex planning task, where it captures human response time trends that previous models cannot account for.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model</head><p>We design a simple, tractable information search model intended to be analogous to meta-planningi.e. selecting whether and in which direction to plan. We subsequently refer to the model as a Bayesian meta-planner and to the process of gaining new information as sampling, providing additional context for the link between information search and planning as needed. Thus, the goal of our Bayesian metaplanner is to provide a decision rule over which of the currently available actions, if any, should be sampled. A more detailed specification of the model is available in the methods section.</p><p>Given a state s and a set of actions a 1 , ..., a N , we assume that each state-action pair has a theoretical long-running expected reward Q a . We assume that the agent does not know these values but can </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Current value of the state</head><formula xml:id="formula_1">M = max a a hypothesized Q 1 C hypothesized Q 2 hypothesized Q 3 2 3 1 M 3 Q a , 2 retro Q a , 2 B [M 3 ] Fig. 2</formula><p>Formalizing meta-planning as information search. (A) The agent receives noisy measurements of the underlying Q-value for a given state-action pair. These measurements can come from retrospective experience or a prospective planner, each with the same mean Qa and di↵erent variances 2 retro and 2 . (B) The agent performs inference over Qa, producing a probability distribution that combines retrospective and prospective information. (C) The maximum of posterior means M is the highest-value choice that can be made without any additional sampling. (D) The agent computes the value of sampling each action. The posterior and thus the mean remain unchanged for actions that are not sampled (here a 1 and a 2 ). For the sampled action (here a 3 ), the posterior after sampling is unknown and as such, the mean follows a distribution. To combine across actions, the agent computes the distribution of the maximum M 0 3 of the means of each action. Then, the utility U 3 is the di↵erence between the expected value of M 0 3 and M . The agent repeats this process for all possible actions to sample and uses an update rule to decide whether it is worthwhile to keep sampling. If the maximum utility across possible samples is less than a fixed cost c, then no more sampling is done. Otherwise, the agent samples the action that maximizes utility and updates the posterior for that action accordingly. make noisy measurements, or samples, of them. As a result, the agent maintains a posterior distribution over each Q a . The problem that the model addresses is deciding which action, if any, to select for better approximation. Our model bases this decision on the expected utility of making an additional measurement of each Q a . This di↵ers from information gain models, as those use a reduction in uncertainty as the objective, while following the standard for models of metareasoning which explore how systems should rationally spend limited computational resources <ref type="bibr" target="#b24">[25]</ref>. We note that <ref type="bibr" target="#b14">[15]</ref> apply similar ideas to planning in decision trees, and we take a more general approach which allows us to expand the set of heuristics we derive as a result. In practice, the samples that the Bayesian meta-planner utilizes can come from a prospective planner, but we remain agnostic to the form that algorithm should take. The main idea is that planning for any action results in a better estimate of that action's underlying value, and the Bayesian meta-planner samples with the goal of ultimately selecting the highest-valued action.</p><p>The agent must iterate over the available actions and compute the value of each action conditioned on sampling a single action. To do this, we assume that the true Q-value for an action follows a distribution p(Q a ) and that new measurements of Q a are noisy and conditionally independent. These measurements can come from either retrospection and prospection. Cognitive science has traditionally thought about retrospection and prospection as dual systems, often referred to as model-free and model-based decisionmaking. By labeling these as separate processes, we reference this literature and explicitly make the point that, while measurements can be gained from di↵erent sources, they fundamentally serve the same purpose of providing additional information regarding the value of an action. In the former case, we assume that the agent can have numerous experiences with state-action pairs, each resulting in a measurement of Q a :</p><formula xml:id="formula_2">q retro,a ⇠ N Q a , 2 retro .<label>(1)</label></formula><p>In the latter case, we assume that search can be similarly represented:</p><formula xml:id="formula_3">q a ⇠ N Q a , .<label>(2)</label></formula><p>Each generative model is accompanied by a corresponding likelihood, denoted as L(Q a ; q retro,a ) and L(Q a ; q a ) respectively, where q retro,a refers to a vector of all retrospective measurements n retro,a and q a refers to a vector of all prospective measurements n a . As such, the outcome of both retrospection and prospection is simply additional noisy measurements of each action's value <ref type="figure" target="#fig_3">(Figure 2A</ref>). To relate back to planning, a key concept of this statistical model is that an iteration of a search algorithm that starts with a produces a new, independent measurement of Q a . The retrospective and prospective likelihoods are a product of the individual likelihoods associated with each measurement, and the posterior is the normalized product of a prior and two likelihoods ( <ref type="figure" target="#fig_3">Figure 2B</ref>). We compute the posterior for each action with all currently available information:</p><formula xml:id="formula_4">p(Q a |q retro,a , q a ) / p(Q a )L(Q a ; q retro,a )L(Q a ; q a ).<label>(3)</label></formula><p>Since we are interested in the utility gained from an additional planning operation, we compute the current value of the state, or the value before making an additional measurement, as the maximum of posterior means M across all actions ( <ref type="figure" target="#fig_3">Figure 2C</ref>). Next, we consider the future posterior if the agent were to sample and receive another measurement for a, q 0 a , which is unknown and has to be marginalized over. Conceptually, we are interested in the distribution over the prospective measurement one step into the future ( <ref type="figure" target="#fig_3">Figure 2D</ref>). The Bayesian meta-planner is myopic in order to be cognitively plausible, but the additional measurement gained represents a planning process that can be many steps further into the future. We compute the future distribution for a, p(q 0 a ), by marginalizing over the current possible values of Q a :</p><formula xml:id="formula_5">p(q 0 a |q retro,a , q a ) = Z p(q 0 a |Q a )p(Q a |q retro,a , q a )dQ a .<label>(4)</label></formula><p>To combine across N total actions, we need to compute the expected utility of making this additional measurement. Importantly, the agent can only consider sampling from one action at a time, so the expected value of the remaining actions is known exactly. This expected value is another maximum of posterior means over N 1 point estimates for the actions that are fixed and a distribution for the single action that is being marginalized over. We compute this value after making the additional measurement of action a:</p><formula xml:id="formula_6">M 0 a ⌘ max ✓ E [Q a |q retro,a , q a , q 0 a ] , max b6 =a E [Q b |q retro,b , q b ] ◆ .<label>(5)</label></formula><p>Note that this is a random variable because q 0 a is unknown to the agent. However, we can take the expected value E q 0 a [M 0 a ]. Within our framework, the reason why sampling is beneficial is that the expected value of a maximum is greater than the maximum of the expected values. The expected utility of making another measurement of action a, which we call the utility of sampling, is then:</p><formula xml:id="formula_7">U a = E q 0 a [M 0 a ] M.<label>(6)</label></formula><p>This computation has to be repeated across all possible actions to sample. Then, we propose that the agent chooses to sample if the maximal U a exceeds a fixed cost c. That is to say, the agent samples if doing so yields a higher expected value of the maximum of the means of each action while taking a cost into account. A new noisy measurement of the action that maximizes U a is generated by, for example, running a search policy, and in turn is used to calculate the updated posterior for the sampled action. All other actions keep the same posterior. At this point, the Bayesian meta-planner can use the updated values to repeat the inference process on the next iteration and decide if it is worth continuing to sample.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model simulations reveal heuristics for meta-planning</head><p>In simulations, we ran the model forward to validate that it makes intuitive predictions. The primary goal of this section is to characterize the underlying principles that drive the Bayesian meta-planner to continue sampling. We first considered the case where the agent has no prior experience and relies purely on prospective evaluations to decide how far into the future to simulate. This mimics real-world planning environments where an agent has uninformed priors over their retrospective system, such as in novel tasks or tasks in which states may not repeat often. As a proof of concept, we first verified that the utility of sampling decreases exponentially as the number of prospective samples increases ( <ref type="figure" target="#fig_0">Figure  3A</ref>). This occurs regardless of the number of alternatives, and intuitively reflects that sampling is less valuable the more samples an agent has already taken. Note that, while we report results as a utility of sampling, it is straightforward to implement a cost per evaluation and compute the probability that the Bayesian meta-planner will sample further. In <ref type="figure">Figure S1A</ref> we computed sampling probability across a wide variety of costs, showing that the utility function shifts as more samples are taken.</p><p>One of the primary factors driving the shape of this utility curve is the gap in value between the top two actions. This concept has been referenced in reinforcement learning <ref type="bibr" target="#b25">[26,</ref><ref type="bibr" target="#b26">27]</ref>, and here we make use of it in the context of human cognition. Suppose that the agent's objective is to decide between two actions while planning. If the gap between the values of these two actions is small, should the agent plan further ahead in hopes of determining which action is actually better? Or, should the agent avoid wasting resources planning, since it will be unclear which action is best regardless? And conversely, if the gap between two evaluations is large, should the agent plan more or less? In <ref type="figure" target="#fig_0">Figure 3B</ref>, we show that as the number of actions increases, the distribution of the di↵erence between the top two actions, which we refer to as the action gap, shifts to the left and becomes narrower. In other words, small action gaps are more common when there are more actions to consider, and the size of the top gap becomes more varied with fewer alternatives. <ref type="figure" target="#fig_0">Figure 3C</ref> then highlights the relationship between top gap size and utility of sampling: sampling is more beneficial when the action gap is smaller, and this e↵ect occurs more often and is more pronounced with a higher number of alternatives. In <ref type="figure">Figure S1B</ref>, we show the entire range of sampling utilities for di↵erent combinations of action gaps and number of actions, as well as the frequency of each. In <ref type="figure" target="#fig_3">Figure S2</ref> we visualize the utility of sampling for di↵erent numbers of alternatives and top gap sizes, highlighting how the shape of these curves change over time.</p><p>Next, we examined environments where the agent does have retrospective information. In principle, planning should be modulated by the total amount of past experience accumulated by the agent as well as the uncertainty of those estimates. These correlate directly to well-studied mechanisms in the planning literature: the transition from model-based to model-free control over time <ref type="bibr" target="#b27">[28]</ref> and uncertainty-based arbitration between prospective and retrospective systems <ref type="bibr" target="#b28">[29]</ref>. We simulated total experience by varying the average number of past measurements for each action. Environments where the agent has more retrospective experience resulted in lower utilities for sampling another measurement, once again irrespective of the number of actions that the agent considers ( <ref type="figure" target="#fig_0">Figure 3D</ref>). The rationale behind this is that environments with lower amounts of retrospective information require more planning compared to when the agent solely relies on prospection, and the amount of planning should decrease as the agent gains more experience. With more experience, the agent can spend less resources planning and instead rely more heavily on cost-e↵ective retrospective experiences. We then directly varied the amount of uncertainty for both the retrospective and prospective measurements, finding that increased uncertainty with either or both sources of information leads to higher sampling utilities ( <ref type="figure" target="#fig_0">Figure 3E</ref>). After the initial increase in sampling utility with prospective uncertainty, high amounts of prospective uncertainty made sampling no longer as worthwhile. This results in an asymmetry, since sampling utility strictly increases as retrospective uncertainty increases. The interpretation is that planning is generally beneficial in gaining high-value estimates under uncertainty, but if the uncertainty attached to prospective measurements is too high then it is no longer worthwhile to obtain these costly measurements. This is, however, a global perspective about the uncertainty of the measurements themselves that is dependent on selected parameters that are fixed over the course of all simulations. In prior work on uncertainty arbitration <ref type="bibr" target="#b28">[29]</ref>, control over decision-making is governed by the expected inaccuracy of the value function estimates given by approximate Bayesian implementations of two reinforcement learning systems. Specifically, these are a tree system that computes long-term reward probabilities via iterative searching and a caching system such as temporal-di↵erence learning that estimates long-term values directly from experience. Since this type of uncertainty changes over the course of the task, we verified that our model also provides reasonable estimates in this case. In <ref type="figure">Figure S1C</ref>, we used the number of retrospective and prospective measurements as a proxy for uncertainty from the agent's perspective, finding that utility of sampling decreases with additional information from either source. The simulations in Figures S1C and S2 together address the aforementioned intuition that if the action gap is very small it may not be worth sampling at all. In such scenarios, sampling utility is high even if the action gap appears to be small because few prospective samples have been taken and thus uncertainty about the true value of the actions is also high. Once the agent samples and reduces this uncertainty, then it becomes significantly less worthwhile to sample and utility quickly decreases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model comparison with canonical search algorithms</head><p>Beyond looking at the conditions under which the Bayesian meta-planner samples, we are interested in the actions that it tends to sample from and how those compare with canonical algorithms for search. In this section, we relate our model to best-first and breadth-first search, as these are sensible rules for expansion that have been studied in the context of human planning <ref type="bibr">[3,</ref><ref type="bibr" target="#b29">30,</ref><ref type="bibr" target="#b30">31]</ref>. Perhaps the simplest method for comparison is to examine the distribution of samples that the model makes conditioned on each action's rank, where the rank of an action corresponds to its sorted order in terms of the model's computed utility for the action. The Bayesian meta-planner most often sampled from the second highestranked action, with a decreasing number of samples for actions ranked beneath it ( <ref type="figure">Figure 4A</ref>). This contrasts with best-first search, which always samples from the highest-ranked action, and with breadthfirst search, which samples uniformly across actions. The intuition underlying the observed distribution is that the Bayesian meta-planner is most often interested in ascertaining whether the value of the second highest-ranked action could overtake the value of the highest-ranked action. The same logic can be applied to the remaining actions, with the highest-ranked action only being sampled from minimally A B D C <ref type="figure">Fig. 4</ref> Comparing the Bayesian meta-planner with canonical search algorithms. (A) Fraction of samples made by the Bayesian meta-planner (left), best-first search (middle), and breadth-first search (right) for each action rank. Note that by best-first and breadth-first search, we refer to algorithms that always sample from the highest-valued action or sample from actions uniformly within our information search scheme. The number of actions used is set to N = 5 unless otherwise stated. (B) Utility of sampling as a function of the gap between the top two actions for di↵erent action ranks. (C) Utility of sampling at each step of the planning process, for the Bayesian meta-planner and either the highest-ranked action that would be favored by a best-first search algorithm or a uniformly sampled action that would be favored by a breadth-first search algorithm. (D) Choice value at 5 actions (left) and 20 actions (right) as a function of the number of prospective samples for the Bayesian meta-planner, best-first search, and breadth-first search.</p><p>to reduce uncertainty about its value. To show that the distribution of samples the Bayesian metaplanner makes is closely related to the previous action gap result, we plot the utility of sampling as a function of this gap split by action rank ( <ref type="figure">Figure 4B</ref>). Higher-ranked actions are usually sampled when the gap between the top two actions is small, and these measurements have high utility because they are more likely to reveal information about which action should be taken. Alternatively, the Bayesian metaplanner samples more broadly when the gap between the top two actions is large. In these scenarios, lower-ranked actions are sampled from but new information generally has less utility since the best action is unlikely to change. Note that the highest-ranked action sharply decays to low utility as the gap increases, while all other action ranks follow a more gradual decay in order of rank.</p><p>To more directly compare the Bayesian meta-planner with best-first and breadth-first search, we tracked the development of the utility of sampling within the Bayesian meta-planner's simulations ( <ref type="figure">Figure 4C</ref>). In general, the action that the Bayesian meta-planner sampled from had higher utility than the highest-ranked action that either search algorithm would select. As more samples are taken and the true value of each action is more closely approximated, the di↵erence between the Bayesian meta-planner and the two alternative selection rules decreased. Finally, we computed choice value, or the value of the highest-ranked action if no more samples were to be taken, for our model alongside both best-first and breadth-first search ( <ref type="figure">Figure 4D</ref>). The distinction between utility of sampling and choice value is that in the former case we are simply interested in the utility gained from receiving another measurement associated with the action that each algorithm would select. In the latter case, we now allow each algorithm to sample from actions independently and report the value that the agent would receive if it stopped sampling and chose the highest-valued action. We found that, regardless of the number of alternatives, our Bayesian meta-planner consistently makes the highest-value choices while best-first search does reasonably well but plateaus earlier. Meanwhile, breadth-first search performs well with few actions that allow it to gain many samples for every action, but scales poorly as the number of alternatives increases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Application to complex planning</head><p>Our simulation results suggested a set of heuristics for determining whether and in which direction to plan: the gap in value between the top two actions, retrospective experience, and uncertainty. Since the Bayesian meta-planner foregoes search in the service of our proposed abstraction, there is no guarantee that these heuristics would be present in people's behavior in a real planning task. To validate that the model's predictions align with human behavior, we conducted a set of analyses in a complex planning task. Our task is a variant of tic-tac-toe, in which two players alternate placing tokens on a 4-by-9 board ( <ref type="figure" target="#fig_1">Figure 5A</ref>). The objective is to get four tokens in a row horizontally, vertically, or diagonally. This task, which we call 4-in-a-row, is at a level of complexity that far exceeds tasks commonly used in psychology, providing rich human behavior for which computational modeling is still tractable <ref type="bibr" target="#b31">[32]</ref>. In previous work, we developed a cognitive model of human planning that provided evidence that people think multiple steps ahead while playing 4-in-a-row <ref type="bibr">[3]</ref>. Additionally, we partnered with Peak, a mobile app company, to implement a visually enriched version of 4-in-a-row on their platform (https://www.peak.net), which users play at their leisure in their daily environment ( <ref type="figure" target="#fig_0">Figure S3</ref>). We are currently collecting data at a rate of approximately 1.5 million games per month, and here we used a subset consisting of 82, 761, 594 moves from 10, 874, 547 games and 1, 234, 844 unique users collected between September 2018 and April 2019. In this version of the task, users always move first against an AI agent implementing the aforementioned model of human planning, with parameters adapted from fits on previously collected human-versus-human games <ref type="bibr">[3]</ref>. We first wanted to replicate the action gap predictions from <ref type="figure" target="#fig_0">Figure 3B</ref>-C in 4-in-a-row. Since the action gap is an internal quantity that is not accessible via simply analyzing behavior, we used the cognitive model of human planning to approximate the gap. This model combines a heuristic evaluation function, which is a weighted linear combination of board features <ref type="bibr" target="#b32">[33,</ref><ref type="bibr" target="#b33">34]</ref>, with the construction of a decision tree via best-first search, which iteratively expands nodes on the sequence of actions that lead to the best outcome for both players given the current decision tree <ref type="bibr" target="#b34">[35]</ref>. The full model includes additional mechanisms to make it more human-like which are described in detail in the original work <ref type="bibr">[3]</ref>. Because the model fitting process is computationally taxing, we fit the model to human choices in a sample of 100 pseudo-randomly selected users. We estimated the log probability of a move in a given board position with inverse binomial sampling <ref type="bibr" target="#b35">[36]</ref>, and optimized the log-likelihood function with Bayesian adaptive direct search <ref type="bibr" target="#b36">[37]</ref>. Additionally, we accounted for potential overfitting by utilizing 5fold cross-validation, which results in a set of model parameters per user. To investigate the action gap, we computed the di↵erence in the top two initial heuristic evaluations for every board position that each user encountered. The model assigns a node a value of positive or negative infinity if the board contains a win or loss for the current player, so we excluded positions with such nodes from our analysis. As a sanity check, we correlated this value di↵erence with move number in the game. This correlation should be positive, as move number within the game has an inverse relationship to number of alternatives, and a lower number of alternatives indicates a larger gap. In <ref type="figure" target="#fig_1">Figure 5B</ref> we show that the correlation is indeed positive for an example user (⇢ = 0.621, p = 2.79 • 10 16 ), and in general we observe this across all users in the data set ( <ref type="figure" target="#fig_1">Figure 5C</ref>). This indicates that the heuristic gap estimated by the model of planning is a reasonable proxy for the gap in utility values used by the Bayesian meta-planner. Then, we were interested in the correlation between the amount of planning done by each user and the gap across di↵erent move numbers. For this, we used human response times as an indirect measure as is standard in the study of human planning <ref type="bibr" target="#b37">[38]</ref>. We also use logarithmic rather than raw response time values here because human time perception and production approximately obey Weber's law <ref type="bibr" target="#b38">[39]</ref><ref type="bibr" target="#b39">[40]</ref><ref type="bibr" target="#b40">[41]</ref>, but this decision does not a↵ect the results. <ref type="figure" target="#fig_1">Figure 5D</ref> shows a decreasing trend in response times across all positions and users in the data as a function of gap (move 12: ⇢ = 0.197, p = 6.27 • 10 10 ; move 18: ⇢ = 0.283, p = 7.65 • 10 8 ; move 24: ⇢ = 0.328, p = 3.59 • 10 5 ). We repeated this analysis for 3 di↵erent move numbers that span the middle game, finding that the correlation is stronger further into gameplay. This validates one of the Bayesian meta-planner's predictions, namely that people think less when the value of the best action is significantly larger than the second-best alternative. Next, we wanted to examine the e↵ects of retrospection on response times in 4-in-a-row as suggested by the Bayesian meta-planner. A motivating observation is that while people's response times correlate on individual trials with the number of planning model iterations, they di↵er considerably on average in early gameplay ( <ref type="figure" target="#fig_2">Figure 6A</ref>). Given the importance of retrospection in the Bayesian meta-planner, a potential mechanism to explain this mismatch is that in situations where the board is fairly empty and no player can immediately win the game, there is a faster retrospective process that takes place before prospective planning begins. This also explains why response time trends in the middle and late game roughly follow the planning model's predictions, and we tested whether the Bayesian meta-planner can account for this trend ( <ref type="figure" target="#fig_2">Figure 6B</ref>). Since positions earlier in the game are seen more often, we set the number of retrospective samples in the Bayesian meta-planner to a value that quickly decays as move number increases. We simulated the number of samples taken by the Bayesian meta-planner using the number of alternatives available at each turn in the game. The Bayesian meta-planner is then able to correctly account for the shape of people's response time curves, something that it is not able to do without any retrospective information ( <ref type="figure" target="#fig_6">Figure S4A</ref>). Intuitively, this is because additional retrospective information decreases the utility of sampling. There is a slight deviation in the first data point, reflecting slower human response times at the start of a game. We speculate that this can be attributed to perceiving a new visual display that the user has to process before beginning the game. Another limitation of the planning model in 4-in-a-row is that it is purely prospective, and thus cannot account for decreased response times as a function of experience. To examine this, we considered people's response times in repeated board positions. In <ref type="figure" target="#fig_2">Figure 6C</ref>, we show that human third move response times decrease as they experience repeated board positions. The Bayesian meta-planner can also account for this trend. We selected third moves because board positions repeat often enough without defaulting to an empty board like on the opening move. However, we tested that the Bayesian meta-planner can indeed account for a similar response time trend in this board position that users encounter in every game ( <ref type="figure" target="#fig_6">Figure S4B</ref>).</p><p>Moving beyond qualitative descriptions of human response times, we examined the concept of uncertainty in human decisions. Specifically, we used the Bayesian meta-planner to hypothesize that gaining retrospective experience reduces uncertainty about the values of actions, and this should lead to di↵erential response times in positions where retrospective experience is more readily available. We analyzed the subset of 34, 810 users who had played at least 50 games, verifying that their overall response times reliably decreased and then plateaued in this extended experience horizon ( <ref type="figure" target="#fig_2">Figure 6D</ref>). Then, we computed the decrease in average response times from users' first game to their 50th, split into early, middle, and late game moves ( <ref type="figure" target="#fig_2">Figure 6E</ref>). This decrease was much greater in the early game compared to the middle game (t = 3.07, p = 0.009), suggesting that the first few moves where board positions are more likely to repeat drive response times down. There is also a significant e↵ect between the middle and late game which is not captured by retrospection (t = 2.43, p = 0.03), but rather by the fact that uncertainty is low in the last few moves of a game that will almost certainly result in a draw. Furthermore, third move response times decreased significantly when users encountered repeated 2-piece board states ( <ref type="figure" target="#fig_2">Figure 6F</ref>). This could be a confounded result, since on average users move faster after playing multiple games regardless of which states occurred. To address this, we ran a control in which we sampled the average response times of other users that had played the same number of games, explaining some of the e↵ect but not all. Together, these results provide further evidence for the Bayesian meta-planner's predictions, namely that prior experience and uncertainty play a role in decreasing the amount of planning that people do. <ref type="figure" target="#fig_6">Figure S4C</ref>-D provide additional evidence for retrospective response times in 4-in-a-row, and <ref type="figure" target="#fig_1">Figure S5</ref> shows how people's actions in the early game are influenced by game outcomes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>In this paper, we introduced a normative model for meta-planning by framing planning as an information search problem. By utilizing this abstraction, we derived a model that iteratively computes the value of sampling per action via Bayesian inference and decides whether and in which direction it is informative to continue sampling. We can consider the end result of a search process as gathering additional noisy measurements about the true value of each currently available action, which in turn allows us to systematically manipulate parameters and uncover heuristics for meta-planning. Importantly, these heuristics are a direct result of a principled framework rather than being generated by researcher intuition. We showed that this model makes intuitive predictions about the probability of sampling as a function of di↵erent parameters. Then, we investigated how the value of the actions that the Bayesian meta-planner samples compared to those explored by canonical search algorithms. Finally, we demonstrated that the principles underlying the model's behavior can be applied to a complex planning task and account for previously unexplained trends in human response times. Ultimately, our framework provides a mathematically rigorous method for guiding search that maximizes utility. On the basis of these results, we claim that people may indeed be reasoning about which actions to plan for using principles suggested by our model as a means of reducing the computational costs of thinking ahead.</p><p>An important consideration is how this framework might interact with a prospective planner in real tasks, and if there is any evidence for meta-planning in the brain. In this work we deliberately introduced the theory and used it to generate testable predictions that we find evidence for in human data. This simplicity is a strength of the model in that it allows us to precisely control the Bayesian meta-planner's mathematical properties, but also a limitation in its applicability. Thus, we hope to extend the framework to fit behavior directly. The first step towards this could be to investigate how our model scales to problems where the decision tree structure is preserved, to get an intuition for how the model's predictions deal with such environments. In terms of model fitting, one viable approach is to extend an existing planning algorithm with heuristics derived from the Bayesian meta-planner. For example, in 4-in-a-row we could implement more sophisticated stopping and expansion rules to replace the simple heuristics that are currently being used. A search algorithm that utilizes the action gap, number of alternatives, retrospective information, and uncertainty to make more informed decisions about whether to plan and which actions to plan for should provide a better fit to human choices and improve response time predictions. Since we have conceptualized this as a metacognitive algorithm, another natural extension is that an agent actually uses a Bayesian meta-planner to quickly make judgements about whether to run another iteration of a prospective algorithm. In this case, the mind would actually be implementing such an algorithm alongside decision tree search. Practically, this approach might require an amended Bayesian meta-planner containing task-specific features in order to be incorporated into the model's evaluations. In the supplementary information for this paper, we also provide a detailed mathematical comparison between our Bayesian meta-planner and the optimal information sampler in <ref type="bibr" target="#b21">[22]</ref>, since this is particularly relevant to the form that our model will take when interacting with a forward search algorithm. Adapting the Bayesian meta-planner to directly fit behavior in both well-characterized and novel, complex planning tasks is challenge that we leave for future work.</p><p>Our analyses showing that the Bayesian meta-planner's predictions are reflected in human response times in 4-in-a-row are closely related to a recent article on chess <ref type="bibr" target="#b37">[38]</ref>. Specifically, players seemed to spend more time thinking in board positions where planning was more beneficial, and this e↵ect was greater in stronger players. This paper combined the Stockfish chess engine (https://stockfishchess.org) to estimate the benefit of applying planning computations for each board position occurring in 12.5 million games from the Lichess database (https://lichess.org). This benefit of computation is the increase in board position advantage, where players can make the maximum utility move with no planning or perform a planning computation which leads to a more accurate utility function and then select the new maximum utility move. Note that this is distinct from our notion of action gap, since it is the di↵erence between the value of the best move at a depth 15 search and at a depth 1 search rather than the di↵erence in value between the two best options. We view our work as complementary, highlighting distinct principles that cause people to plan further into the future. In our case, these are derived from a normative account of meta-planning rather than from taking a resource rational perspective on thinking ahead. However, both approaches use response times as a proxy for number of planning computations made in a combinatorial planning task while methodologically combining task-specific models with large-scale data.</p><p>In addition to the information sampling literature, the method by which our model approximates the e↵ects of search can be linked to a few di↵erent fields. One such association is that our abstracted framing of planning can be interpreted as a multi-armed bandit (MAB). In such problems, people must choose between a set of alternatives that each have unknown reward in order to maximize total expected reward. This kind of task is typically used to study sequential decision-making under uncertainty and captures the tension between exploration and exploitation <ref type="bibr" target="#b41">[42]</ref>. Historically, MAB tasks have been studied across many domains including statistics <ref type="bibr" target="#b42">[43]</ref><ref type="bibr" target="#b43">[44]</ref><ref type="bibr" target="#b44">[45]</ref>, reinforcement learning <ref type="bibr" target="#b45">[46,</ref><ref type="bibr" target="#b46">47]</ref>, and psychology and neuroscience <ref type="bibr" target="#b47">[48,</ref><ref type="bibr" target="#b48">49]</ref>. Further, Bayesian analyses of bandit problems exist, albeit typically providing a closed-form solution <ref type="bibr" target="#b49">[50]</ref>. Since optimal solutions are intractable for humans to compute, it is thought that people employ heuristics for directed search <ref type="bibr" target="#b50">[51]</ref><ref type="bibr" target="#b51">[52]</ref><ref type="bibr" target="#b52">[53]</ref><ref type="bibr" target="#b53">[54]</ref>. However, human reasoning in a MAB and planning di↵er in that the goal in the former is to maximize the sum of rewards obtained over time, while in the latter all that matters is the value of the decision made after all simulations are completed. In other words, MAB tasks provide real rewards at every step, while planning is an internal process used to determine a single rewarding action. Our framework is specifically built to focus solely on selecting high-value actions to plan for rather than on the tradeo↵ between exploration and exploitation.</p><p>Another connection can be made between our Bayesian meta-planner and Monte Carlo tree search (MCTS), since MCTS is also designed to conduct search towards the most promising regions of the state space. MCTS is a rollout algorithm, meaning that a search tree is incrementally constructed by approximating state-action values as the average returns across many simulated trajectories <ref type="bibr" target="#b54">[55,</ref><ref type="bibr" target="#b55">56]</ref>. This approach has been deeply influential in artificial intelligence, extending superhuman performance to complex games like Go in the field <ref type="bibr" target="#b56">[57]</ref> and having broader applications to general game playing <ref type="bibr" target="#b57">[58]</ref>. More recently, work on MCTS has been combined with artificial neural networks in order to achieve superhuman performance in a wide variety of complex games including chess and Go <ref type="bibr" target="#b58">[59]</ref>. Importantly, MCTS is a tree search model, and we remain agnostic to the specific form that a planning algorithm takes in relation to our framework. Our model instead maps the essential components of a planning problem onto one of information search and iteratively converges to the true values of actions in this abstracted space. In fact, it has been demonstrated that MCTS also converges to optimality <ref type="bibr" target="#b59">[60]</ref>. MCTS additionally employs a tree policy, the most popular of which is an application of a MAB algorithm Upper Confidence Bound 1 (UCB) called Upper Confidence Bound 1 applied to Trees (UCT). UCB1 assigns scores to actions using their expected value, number of visits, and an exploration bonus, and UCT applies this recursively to action selection in decision trees. Our Bayesian meta-planner di↵ers from UCT in two fundamental ways. The first is in how the values of actions are computed, which for UCT is based on a balance between expected returns and an exploration coe cient. In our case, this is approximated via Bayesian inference over the expected utility gained by taking another prospective sample combined with retrospective information. Second, as with MAB problems, UCT's focus is to ensure high net simulated value across actions, often overlooking expansions with low rewards even though they might result in a better final decision <ref type="bibr" target="#b60">[61,</ref><ref type="bibr" target="#b61">62]</ref>. To show that this is indeed the case within our framework, we implemented a UCT rule and compared it to our Bayesian meta-planner in simulations ( <ref type="figure" target="#fig_2">Figure S6</ref>). This revealed that UCT tends to sample the highest-ranked action while occasionally sampling from other action ranks, and that the utility of the actions that UCT selects is lower than the utility of those chosen by the Bayesian meta-planner. In sum, simulating further for specific actions is only valuable while planning because it helps select the best action, something that our Bayesian meta-planner explicitly takes into account.</p><p>Over the past few years, our collective knowledge of human planning has progressed significantly. Beyond the shift from heuristics that reduce the costs of building large decision trees to normative models of how people think ahead, recent work has uncovered how planning depth changes with expertise <ref type="bibr">[3]</ref>, the link between hippocampal replay and future decisions <ref type="bibr" target="#b62">[63]</ref>, task decomposition and computational representations while planning <ref type="bibr" target="#b63">[64,</ref><ref type="bibr" target="#b64">65]</ref>, and machine learning methods for improving models of planning <ref type="bibr" target="#b65">[66]</ref>. These findings, coupled with the movement towards naturalistic tasks and large-scale data sets in psychology <ref type="bibr" target="#b66">[67]</ref><ref type="bibr" target="#b67">[68]</ref><ref type="bibr" target="#b68">[69]</ref><ref type="bibr" target="#b69">[70]</ref>, promise to eventually yield more precise characterizations of the cognitive processes underlying planning. Normative approaches for deriving heuristics for how people plan might contribute to this cause.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Detailed model specification</head><p>Here we provide the full derivation for the model of information search. As in the main text, we refer to the model as a Bayesian meta-planner, providing clarifying rationale for the mapping between information search and planning as needed.</p><p>We assume that a state-action pair s, a has a theoretical long-running expected reward Q a . This value is not known and therefore has to be approximated. In our model, we take an inference view, where Q a is unknown to the agent, and the agent tries to build a probability distribution over each Q a .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Generative model</head><p>We begin by describing the generative model for our framework, meaning the set of underlying assumptions that generate the measurements the agent has available to them prior to making a decision.</p><p>Distribution of Q values. We assume that the true Q-value for an action follows a distribution p(Q a ). We assume a normal distribution as follows:</p><formula xml:id="formula_8">Q a ⇠ N µ 0 , 2 0 .<label>(1)</label></formula><p>The Q-values per action are independently drawn from this distribution. Note that this distribution is the same across all actions, although in principle this can be altered such that each action has its own distribution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Retrospection.</head><p>We model an experience with action a in state s as a noisy measurement of the true Q value:</p><formula xml:id="formula_9">q retro,a ⇠ N Q a , 2 retro .<label>(2)</label></formula><p>The agent can have numerous experiences with each state-action pair, and we denote n retro,a as the number of past experiences with action a in state s. Together, these measurements form a vector q retro,a that has n retro,a entries.</p><p>Prospection. Next, we assume that a tree expansion can be represented as another noisy measurement q a of the true value Q a of action a in state s:</p><formula xml:id="formula_10">q a ⇠ N Q a , 2 .<label>(3)</label></formula><p>In a search algorithm, this noisy measurement may be obtained through a heuristic value function.</p><p>It is an open question to what extent heuristic values obtained in practice follow the normal distribution above and, in particular, if they are unbiased. The core part of our framework is a statistical model maintained by the agent of the e↵ects of search, without actually performing any search. Additionally, it is assumed within this statistical model that an iteration of a search algorithm that starts with action a produces a new, independent measurement of Q a .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Inference</head><p>The overarching goal of this framework is to allow the agent to decide whether and in which direction to sample. We take a normative approach, where the agent makes a decision by calculating the expected gain obtained from making an additional measurement of each action and selecting the action that maximizes this gain. The algorithm uses Bayesian inference and works as follows:</p><p>1. The agent has the constraint of only being able to consider the e↵ects of sampling for a single action at a time. Thus, we consider the problem to be deciding which action to sample another measurement of the underlying value from. The agent iterates over actions and computes the value of each action conditioned on sampling a specific action: this results in no change in the value of the mean for actions that aren't sampled, and a distribution over the mean of the action that is sampled. 2. To combine across actions N , the agent computes the max distribution over the possible means (which now has N 1 point estimates and a single distribution) of each action given the new sample, and U a is the expected value of this max distribution. This is the utility of sampling, and the process is repeated for all possible actions to sample. 3. Finally, an update rule is used to decide whether it is worthwhile to keep sampling. If the maximum utility across possible samples is less than a fixed cost c, then no more sampling is necessary. Otherwise, the agent samples the action that maximizes utility and updates the posterior for that action accordingly.</p><p>Retrospective likelihood. The retrospective likelihood captures the information that the agent has about the Q-values based on previous experiences. The likelihood we are interested in is over Q a based on the data q retro,a :</p><formula xml:id="formula_11">L(Q a ; q retro,a ) = p q retro,a |Q a , 2 retro = nretro,a Y i=1 p q retro,ai |Q a , 2 retro = nretro,a Y i=1 N q retro,ai ; Q a , 2 retro / N ✓ Q a ;q retro,a , 2 retro n retro,a ◆ ,<label>(4)</label></formula><p>whereq retro,a ⌘ nretro,a</p><formula xml:id="formula_12">X i=1</formula><p>q retro,ai n retro,a . To reiterate, n retro,a refers to the number of past experiences with action a in state s. This likelihood function captures all the information that the agent can gain from previous experiences.</p><p>Prospective likelihood. After n a measurements are taken for each action a, the agent has a vector of measurements q a with n a entries. The prospective likelihood over Q a is then a product of the likelihoods associated with the individual measurements, similar to the retrospective likelihood:</p><formula xml:id="formula_13">L(Q a ; q a ) / N ✓ Q a ;q a , 2 n a ◆ ,<label>(5)</label></formula><p>whereq a ⌘ na X j=1 q aj n a . For now, we assumeq a to be known. Later, we will marginalize over all possible values ofq a .</p><p>Posterior. The posterior is the normalized product of a prior and two likelihoods. We compute the posterior for each action with all currently available information:</p><formula xml:id="formula_14">p(Q a |q retro,a , q a ) = p(Q a )p(q retro,a |Q)p(q a |Q a ) = N Q a ; µ a , 2 a µ a = J 0 µ 0 + J retro n retro,aqretro,a + Jn aqa J a 2 a = 1 J a<label>(6)</label></formula><p>where we define the following precision quantities:</p><formula xml:id="formula_15">J retro ⌘ 1 2 retro J ⌘ 1 2 J 0 ⌘ 1 2 0 J a ⌘ J 0 + n retro,a J retro + n a J.<label>(7)</label></formula><p>Expected value. Next, we rewrite the future posterior if the agent were to make an additional measurement q 0 a . Under this assumption, the mean and variance of the posterior would be</p><formula xml:id="formula_16">µ 0 a = J 0 µ 0 + J retro n retro,aqretro + J(n aqa + q 0 a ) J 0 a 0 2 a = 1 J 0 a (8) where J 0 a = J a + J.<label>(9)</label></formula><p>We can rewrite the future posterior:</p><formula xml:id="formula_17">µ 0 a = k 1 q 0 a + k 0<label>(10)</label></formula><p>where</p><formula xml:id="formula_18">k 0 ⌘ J a µ 0 a J 0 a k 1 ⌘ J J 0 a .<label>(11)</label></formula><p>Distribution of the future mean measurement. Now, the new measurement q 0 a , which the agent receives if they sample another measurement for that action, is unknown and has to be marginalized over. Conceptually, this is the distribution over prospective measurements one step into the future for a given current information. We compute this by marginalizing over the current possible values of Q a :</p><formula xml:id="formula_19">p(q 0 a |q a , q retro,a ) = Z p(q 0 a |Q)p(Q|q a , q retro,a )dQ a = Z N q 0 a ; Q a , 2 N Q a ; µ a , 2 a dQ a = N q 0 a ; µ a , 2 + 2 a .<label>(12)</label></formula><p>Finally, we know that the expected value of µ 0 a given q retro,a , q a must be a normal distribution with the following mean and variance:</p><formula xml:id="formula_20">E[µ 0 a ] = k 1 µ a + k 0 = Jµ a + J a µ a J 0 a = µ a (J + J a ) J 0 a = µ a J 0 a J 0 a = µ a ; Var[µ 0 a ] = k 2 1 2 + 2 a = J 2 J 2 a ✓ 1 J + 1 J a ◆ = J J 0 a J a = J J a (J + J a ) = 1 J a (1 + Ja J ) .<label>(13)</label></formula><p>Thus, given an additional sample, the expected value of the posterior mean stays at µ a while its variance decreases. Note that E[µ 0 a ] must be equal to µ a by the martingale property of Bayesian updating. Expected utility of making another measurement. To combine across actions, we need to compute the expected utility of making another measurement of a. First, we compute the current value of the state, or the maximum of posterior means before making an additional measurement:</p><formula xml:id="formula_21">M ⌘ max a µ a .<label>(14)</label></formula><p>The maximum of posterior means after making an additional measurement of action a is</p><formula xml:id="formula_22">M 0 a ⌘ max ✓ µ 0 a , max b6 =a µ b ◆ .<label>(15)</label></formula><p>This is a random variable because we don't know µ 0 a exactly. However, we can take the expected value E µ 0 a [M 0 a ]. We know this distribution from Equation <ref type="bibr">(13)</ref>, and can evaluate the expected value of this quantity via two methods: (1) analytically, by computing the max distribution (as outlined in the next section) over all actions and taking the mean of the resultant distribution, and (2) using Monte-Carlo simulation, where E µ 0 a is normally distributed. These methods produce identical solutions, with the analytical method having a run time advantage of about an order of magnitude over sampling. Within our framework, the mathematical reason why sampling is beneficial is that the expected value of a maximum is greater than the maximum of the expected values. Following <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b21">22]</ref>, we define the expected utility of making another measurement of a</p><formula xml:id="formula_23">U a = E µ 0 a [M 0 a ] M.<label>(16)</label></formula><p>We call this the utility of sampling, but the same idea has also been referred to as the value of uncertainty reduction or the value of computation. This utility computation has to be repeated across all actions. Then, we propose that the agent chooses to sample if the maximum utility exceeds a fixed cost c:</p><formula xml:id="formula_24">sample if max a U a &gt; c.<label>(17)</label></formula><p>If this holds true, then the agent makes a measurement of the action that maximizes U a . Denoting this measurement by q 0 a , we calculate the parameters of the updated posterior for a, µ 0 a and 02 a :</p><formula xml:id="formula_25">µ 0 a = J a µ a + Jq 0 a J a + J 02 a = 1 J a + J .<label>(18)</label></formula><p>All other actions keep the same posterior. Once again, note that here we are using the terms associated with a new prospective measurement for a rather than any terms that are computed virtually in the inference procedure. At this point the agent has selected an action and sampled it, and the Bayesian meta-planner can use the updated values to repeat the inference process to decide if it is worth continuing to sample.</p><p>Distribution of the maximum of random variables. The distribution of the maximum of random variables can in general be computer semi-analytically, and we briefly recap this derivation in a general form here. We are interested in the distribution of the maximum variable M = max i X i , where the independent, real-valued random variables X i have densities p i (x) and cumulative distribution functions F i (x). We know that M  m if and only if M  m i for all i. Thus, we can calculate the cumulative distribution function of M as:</p><formula xml:id="formula_26">F M (m) = P (M  m) = P (X 1  m, . . . , X n  m) = n Y i=1 P (X i  m) = n Y i=1 F i (m).<label>(19)</label></formula><p>The density of M is obtained by di↵erentiation:</p><formula xml:id="formula_27">p M (m) = dF M dm = n X j=1 p j (m) 0 @ Y i6 =j F i (m) 1 A = n Y i=1 F i (m) ! n X j=1 p j (m) F j (m) .<label>(20)</label></formula><p>We use this expression to compute the max distribution and to compare with the equivalent sampling solution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model simulations</head><p>In all model simulations, we ran the model forward by selecting the range of parameters we were interested in. The modifiable parameters were as follows: the number of actions N , the fixed cost per sample c, the variances attached to the prospective and retrospective measurements 2 and 2 retro respectively, and the average number of retrospective experiences per action . For all simulations, we drew the underlying true Q-values for each action from a normal distribution with mean 0 and variance 1, and conducted the analytical computation of the max distribution with 1, 000 samples. We also ran enough simulations per analysis so that there was no noise in the results averaged across simulations, typically either 1, 000 or 10, 000. For the simulations with retrospection, we drew the number of retrospective experiences, n retro,a , independently per action from a Poisson distribution:</p><formula xml:id="formula_28">p(n retro,a ) =</formula><p>nretro,a e n retro,a ! <ref type="bibr" target="#b20">(21)</ref> where is the expected value over the number of retrospective experiences desired.</p><p>Heuristics for meta-planning from a normative model of information search </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Mathematical comparison to information sampling</head><p>Having derived the Bayesian meta-planner, here we compare its mathematical formulation to the optimal information sampling model from <ref type="bibr">[1]</ref>. At a high level, these models are formulated to achieve di↵erent goals: our Bayesian meta-planner aims to decide which action it is worthwhile to plan further with respect to, while the optimal information sampler aims to describe simple choice behavior governed by visual attention. However, both problems can be framed as value-guided sequential information sampling, and indeed the two frameworks share remarkable similarities. In addition to serving as a detailed comparison, we hope that this section further validates the decision to frame planning as a problem of information search. Broadly speaking, in either scenario an agent is tasked with a set of options they must choose between. Speaking from the perspective of the optimal information sampling model we are comparing to, each item is associated with an unknown true value which can be thought of as the utility that would be gained by selecting that option. Making noisy measurements of an option provides a small amount of information about that underlying value while incurring a small cost. The agent integrates new samples into a posterior, choosing the highest-valued posterior when sampling is terminated. The agent's current belief about each option is approximated by a normal distribution, and the belief state is updated after each additional sample is received in accordance with Bayesian inference. The final payo↵ is the utility of the chosen option minus a cost, which is a free parameter as well as a switching cost for when the agent samples from an item other than the one sampled on the last timestep. Note that sampling is beneficial only when it a↵ects the final decision, unlike in a multi-armed bandit. Thus, the frameworks are nearly identical so far, with the exception of some details regarding the cost function such as the switching penalty.</p><p>Given this setup, the problem is now to approximate the optimal policy, ⇡ ⇤ , which selects the next cognitive operation to execute given the current belief state such that it maximizes the expectation over final payo↵. This is achieved by leveraging rational metareasoning and casting the model as a metalevel Markov decision process <ref type="bibr">[2,</ref><ref type="bibr">3]</ref>. The important variable here is the value of computation (VOC), formally defined as the expected increase in total metalevel reward if the agent executes a single computation, c, and continues optimally rather than making a choice immediately: c t ⇠ ⇡ ⇤ (b t ) is the solution to the metalevel MDP, which takes the form of a Markov policy that stochastically selects which computation to take next given the current belief state. Thus, rather than making a choice based on current beliefs, the VOC for sampling an option b in a belief state is the expected improvement in the value of the chosen option minus the cost of sampling and the expected cost of all future samples. The optimal policy is then to select computations with maximal VOC. Note that c is the variable used to denote a single computation applied to an option. In our framework, c refers to the fixed cost of sampling. In small discrete state spaces, this optimal metalevel policy can be computed via dynamic programming methods such as value iteration or backwards induction <ref type="bibr">[4]</ref>. Since the authors of <ref type="bibr">[1]</ref> consider a trinary choice case, they instead approximate the VOC as a linear combination of features <ref type="bibr">[5]</ref>:</p><formula xml:id="formula_29">VOC(b t , c) = cost(b t , c) + E " max i µ (i) T T 1 X t 0 =t+1 cost(b t 0 , c t 0 )|c t 0 ⇠ ⇡ ⇤ (b t 0 ) # max i µ (i) t .<label>(1</label></formula><formula xml:id="formula_30">[ VOC(b, c; w) = w 1 VOI myopic (b, c) + w 2 VOI item (b, c) + w 3 VOI full (b) (cost(c) + w 4 ).<label>(2)</label></formula><p>where the value of information (VOI) <ref type="bibr">[6]</ref>, is defined as the expected improvement in the utility of the action selected based on additional information rather than the current belief state. Intuitively, the first term denotes the expected improvement in choice utility from drawing one additional sample from option c before making a choice, the second term denotes the expected improvement from learning the true value of option c, and the third term denotes the improvement from learning the true value of every option. In contrast, when online meta-planning with many alternatives, we assume that the agent will not consider more than just the next sample. As such, VOI myopic can be compared to what we call the utility of sampling U a in our framework, with [ VOC taking into account our fixed cost c. VOI myopic is formally defined as:</p><formula xml:id="formula_31">VOI myopic (b t , c) = E µt+1|µt, t h max i µ (i) t+1 i max i µ (i) t .<label>(3)</label></formula><p>This is the expected value of the option that will be chosen after taking an additional sample minus the expected value of an item chosen based on current beliefs, where µ t+1 di↵ers from µ t only for option c. It is possible to then derive an analytical expression for the previous equation by computing the distribution over the posterior mean after taking a sample much in the same way that we do in prior sections. The same as in (A), but for the gap between the top two actions the Bayesian meta-planner is considering with 5 actions.</p><p>The purpose of this section is to explicitly highlight the similarities between these models to show how viewing distinct cognitive processes through a shared mathematical lens can contextualize seemingly disparate findings. For example, a main result from the paper is reasoning about how uncertainty regarding the true values and di↵erences in value estimates are reflected in the optimal policy, which tends to fixate on options that are uncertain and have estimated values similar to the other items. We find similar results in our work, but while considering many more than two or three alternatives simultaneously and while accounting for the integration of prospective and retrospective information. In turn, we don't explore the role of the prior distribution, which is crucial to reproducing classic e↵ects of attention on choice and less understood in the context of planning. Another distinction that accompanies the domain di↵erence is the source of the samples, which are real in the fixation context but simulated in the mind of the agent while planning. In sum, we view these approaches as complementary, and hope that this comparison demonstrates how meta-planning and visual attention might share underlying computational properties in the form of information sampling.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Additional model simulations</head><p>To visualize the Bayesian meta-planner's sampling probability, we computed its predictions as a function of both cost of sampling c, number of actions N , and action gap. In <ref type="figure">Figure S1A</ref>, we show that sampling is more beneficial with low costs and when less samples have already been taken. We elected to not include the simulations highlighting the role of cost in the main text, since its e↵ect on sampling is straightforward. In <ref type="figure">Figure S1B</ref>, we replicated our analysis regarding the action gap from the main text to emphasize that sampling is beneficial when more actions are available and thus the action gap is smaller. Note that this analysis also includes the proportion of simulations that the model encountered for each combination of action gap and N . In <ref type="figure">Figure S1C</ref>, we considered the interaction between number of retrospective and prospective measurements as an indicator of uncertainty from the agent's perspective. More information from either source, which can be interpreted as a method of reducing overall uncertainty about the true value of the available actions, led to decreased sampling utility. In <ref type="figure" target="#fig_3">Figure S2</ref> we investigated the progression of the action gap, namely that utility of sampling increased with number of alternatives and decreased with gap. This additionally shows how sampling is almost always valuable regardless of these two quantities on the first model iteration, and then shifts to the expected trend as more samples are taken.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Large-scale 4-in-a-row data</head><p>In collaboration with the mobile app company Peak (https://www.peak.net), we designed a large-scale study of people playing 4-in-a-row. When signing up for the app, users consented to a privacy policy, which included a provision that aggregated and anonymized data might be shared with third parties such as universities. The Institutional Review Board of New York University determined that no further consent was required and approved the research protocol as exempt.</p><p>Overall, we collected 11, 529, 163 games where users always play first and the board itself is vertically oriented and gamified. Users play at-will against a computer opponent. We filtered the data to remove games where the user times out of any move, since timing out creates games where the computer opponent plays first or makes two consecutive moves. This procedure resulted in 82, 761, 594 moves from 10, 874, 547 games and 1, 234, 844 unique users. In order to generate the computer opponents, we made slight modifications to the cognitive model of planning described briefly in the main text and in more detail in previous work <ref type="bibr">[7]</ref>: (1) we used a pruning rule that keeps only the K highest-value children in each node of the search tree, (2) we added a scaling constant that multiplies the weights of features belonging to the opponent and for features of di↵erent orientation, and (3) we artificially added a delay to each computer move to simulate thinking times, which monotonically increased with the number of search iterations that the computer performed on each move. This ensured that the computer played faster in easy positions compared to hard ones. We created 7 classes of computer opponents of varying strength by specifying distinct parameter ranges that corresponded to estimated Elo ratings <ref type="bibr">[8]</ref>, and matched users with an opponent on each game based on their track record of game results.</p><p>In the places we utilized the cognitive model of human planning for 4-in-a-row, we used the standard implementation from <ref type="bibr">[7]</ref>. This model has 10 parameters: the 5 feature weights, the active-passive scaling constant C, the pruning threshold ✓, the stopping probability , the feature drop rate , and the lapse rate . Unfortunately, deriving the log-likelihood analytically for this model is intractable. Instead, we estimated the log probability in a given board position with inverse binomial sampling (IBS) <ref type="bibr">[9]</ref>, which compares the data to simulated data generated from the model. IBS is unbiased but its estimates are noisy. Additionally, we cannot calculate gradients of the log-likelihood, so we optimized the log-likelihood function with Bayesian adaptive direct search <ref type="bibr">[10]</ref>. To reduce overfitting, we used 5-fold cross-validation. This fitting pipeline is computationally expensive, and therefore we conducted analyses requiring these model parameters on 100 pseudo-randomly selected users from the data set. We performed the model fits on the NYU high-performance computing cluster (Intel Xeon E5-2690v2 CPUs 3.0GHz). All of our code is implemented in parallel, including data loading and IBS. On our hardware, fitting takes up to a day for one user.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Additional 4-in-a-row analyses</head><p>We conducted a set of additional analyses to show that response times in early stages of a 4-in-a-row game follow patterns predicted by retrospective learning. We first highlight the importance of retrospection in the Bayesian meta-planner's qualitative description of human response times as a function of move number. Specifically, we show that removing the exponential decay function for past experiences altogether leads to a monotonically decreasing prediction for response times ( <ref type="figure" target="#fig_6">Figure S4A</ref>). This is expected in the context of the Bayesian meta-planner, as less alternatives to consider will typically lead to smaller action gaps and number of samples. For the exponential decay function, we selected a formulation that would roughly mimic human experiences in the task:</p><formula xml:id="formula_32">= a(1 r) i ,<label>(4)</label></formula><p>where we fixed the rate of decay r to 0.25 and the initial value a to 10 while varying the time interval i with move number. This results in a quickly decreasing , which we use to dictate the number of past experiences that the Bayesian meta-planner has, that starts at 10 on the first move of the game and decreases to less than 1 within a few moves. We also repeated our analysis which captured the fact that D C B A human third move response times are indistinguishable from the Bayesian meta-planner's predictions with more experience, validating that it holds for other move numbers ( <ref type="figure" target="#fig_6">Figure S4B</ref>). In <ref type="figure" target="#fig_6">Figure S4C</ref>, we show that user response times across the first 7 moves were, on average, longer after losses rather than wins. Furthermore, we verified that our result from the main text showing that third move response times decreased significantly when users encountered repeated 2-piece board states was not solely due to recent memory of encountered states. To do this, we averaged third move response times based on the number of games in the past that the same 2-piece board state occurred, and found that response times were consistent regardless of how long ago a given state had been seen ( <ref type="figure" target="#fig_6">Figure S4D</ref>). These response times were also drastically lower than for novel 2-piece board states.</p><p>The size of our data set allowed us to uncover clear evidence for retrospective decision-making in early game positions despite using a task with such a large state space where states don't often repeat. We found that users were significantly more likely to repeat their opening moves following wins rather than losses, and that these moves were primarily distributed in the center or corners of the board ( <ref type="figure" target="#fig_1">Figure S5A</ref>). This e↵ect continued on the third move, where users most often elected to play in the center positions closest to the two pieces already on the board ( <ref type="figure" target="#fig_1">Figure S5B</ref>). On the fifth and seventh moves, however, the proportion of move repetitions based on game outcome were not always significant, varying by specific board position ( <ref type="figure" target="#fig_1">Figure S5C-D)</ref>. These population-wide trends suggest that people make decisions partially based on whether or not an opening strategy was successful in previous games in their first two or three moves, and then begin to utilize alternative strategies in subsequent moves when board positions are more likely to be unique. This set of results motivated the derivation of the Bayesian meta-planner, as the need for a framework that flexibly integrates prospective and retrospective information became apparent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model comparison to UCT</head><p>As we stated in the main text, Monte Carlo tree search (MCTS) is another popular tree search algorithm. applied to Trees (UCT) <ref type="bibr">[11,</ref><ref type="bibr">12]</ref>. UCT is an adaptation of a near optimal algorithm for certain multiarmed bandit problems that assigns scores to actions as a combination of their mean returns and exploration coe cients. However, UCT's goal is di↵erent from that of planning, since it is designed to ensure high net simulated value across actions rather than focusing on the real worth of the single action that is ultimately taken after all the simulations have terminated <ref type="bibr">[3,</ref><ref type="bibr">13]</ref>. Even though UCT explicitly utilizes an exploration bonus that favors infrequently visited nodes, it still underestimates how valuable exploration is and thus avoids simulations with potentially low rewards even though they might help select better actions. Since UCT is a simple selection rule, we can verify that these claims hold by implementing it in our framework. To do so, we used the following equation:</p><formula xml:id="formula_33">UCT =X a + r 2 ln N n a<label>(5)</label></formula><p>whereX a is the expected value of action a, N is the total number of samples taken, and n a is the number of samples taken for a. UCT then chooses to sample the action that has the highest value across all actions. Note that there is an essential balance between the first exploitation term and the second exploration term of the equation. We then run simulations as before using this selection rule. When examining the distribution of samples that UCT makes conditioned on each action's rank, we find that it tends to sample the highest-ranked action while occasionally sampling from other action ranks ( <ref type="figure" target="#fig_2">Figure  S6A</ref>). We then tracked the utility of sampling for actions that UCT would take to directly compare with our Bayesian meta-planner ( <ref type="figure" target="#fig_2">Figure S6B</ref>). This again shows that the actions that the Bayesian metaplanner samples from have the highest utility, and the actions that UCT selects lie somewhere between those chosen by best-first and breadth-first search. In other words, UCT tends to initially explore and eventually exploit once the true value of each action is more accurately approximated. Taken together, this provides evidence for the idea that UCT is solving a di↵erent problem since it does not quantify the expected gain of taking another sample.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A B</head><p>Fig <ref type="figure" target="#fig_2">. S6</ref> Comparing the Bayesian meta-planner with UCT. (A) Fraction of samples made by UCT for each action rank.</p><p>The number of actions used is set to N = 5 unless otherwise stated. (B) Utility of sampling at each step of the planning process, for the Bayesian meta-planner and the action that would be favored by UCT.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 3</head><label>3</label><figDesc>Bayesian meta-planner simulations. (A) Utility of sampling for 2, 5, and 10 actions as a function of the number of prospective samples made by the Bayesian meta-planner. Panels (B)-(D) use the same values for N , or total number of actions. (B) Probability distributions for the gap in value between the top two actions. (C) Utility of sampling as a function of the number of prospective samples made by the Bayesian meta-planner, split into small (0 0.5), medium (0.5 1), and large (1 1.5) gap values. (D) Utility of sampling as a function of the number of retrospective measurements per action. (E) The utility of sampling for 5 actions as a function of retrospective and prospective uncertainty.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>BFig. 5</head><label>5</label><figDesc>Human prospection is driven by the action gap. (A) An example board position in 4-in-a-row. Two players, black and white, alternate placing pieces on the board, and the first player to connect four pieces in any orientation wins the game. (B) The gap between the top two heuristic evaluations given by the planning model's initial evaluation as a function of move number for a single user. The data (circles) are shown for every position the user played along with a linear regression (line). (C) The correlation between move number and gap between the top two heuristic evaluations given by the planning model's initial evaluation for 100 users in the data set. (D) Response times in logarithmic space as a function of the initial gap between the top two heuristic evaluations given by the planning model. The data (circles) are shown for each position across all users conditioned on move number along with a linear regression (line).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 6</head><label>6</label><figDesc>Human response times are driven by retrospection and uncertainty. (A) Average human response times and number of planning model iterations taken to make a move throughout gameplay for 100 users in the data set. Response times were normalized via z-scoring here and in panels (B) and (C).(B) Average human response times and number of samples the Bayesian meta-planner makes throughout gameplay. The Bayesian meta-planner is simulated with retrospective experience following a decreasing exponential function with move number. This and all subsequent panels are for all users in the data set unless otherwise stated. (C) Average human response times and number of samples the Bayesian meta-planner makes on the third move of gameplay as a function of the number of past experiences. Number of past experience refers to prior games with the same board position in the human data and retrospective samples in the Bayesian meta-planner. (D) Average human response times across all moves in the data set as a function of the number of games played. This analysis was limited to the 34, 810 users who played at least 50 total games. Error bars and shading denote s.e.m. here and in subsequent panels. (E) Average decrease in response times from the first game to the 50th game as a function of the phase of gameplay. The early game is defined as moves 1 to 5, the middle game moves 6 to 30, and the late game moves 31 to 36. The analysis was limited to the same subset of users as in (D). (F) Average response times on the third move of gameplay as a function of repeated 2-piece board states (blue), and the average response times of 1, 000 randomly sampled users that had previously played the same number of games (red).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. S1 2 -</head><label>2</label><figDesc>dimensional representations of sampling probability and utility. (A) Probability of sampling as a function of the cost per measurement c and the number of prospective samples made by the Bayesian meta-planner with 5 actions. (B) Interaction between the action gap and number of actions N . The color code is two-dimensional: the hue represents utility of sampling and the saturation proportion of total simulations for the combination of top gap size and N . (C) Utility of sampling as a function of the number of retrospective measurements per action as well as the number of prospective samples made by the Bayesian meta-planner with 5 actions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>Progression of the action gap. (A) Utility of sampling as a function of the number of actions available to the agent N . Each line represents a di↵erent number of prospective samples having been taken so far in the sampling process. (B)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>Large-scale 4-in-a-row data. (A) An example board position in 4-in-a-row in the gamified version used on the mobile platform. Two players, yellow circles and green stars, alternate placing pieces on the board, and the first player to connect four pieces in any orientation wins the game. (B) Histogram of the total number of games played by users in the data set. Note that the tail of the distribution, which consists of 20 to 100 total games played, still includes thousands of users.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. S4</head><label>S4</label><figDesc>Evidence for retrospective response times in 4-in-a-row. (A) Average number of samples the Bayesian metaplanner makes throughout gameplay with retrospection and without retrospection. As in the main text, the Bayesian meta-planner is simulated with retrospective experience following a decreasing exponential with move number. This and all subsequent panels are for all users in the data set. (B) Average human response times and number of samples the Bayesian meta-planner makes on the first move of gameplay as a function of the number of past experiences. (C) Average response times across the first 7 moves of a game directly following a loss, draw, or win. Error bars denote s.e.m. (D) Average third move response times as a function of the number of games in the past that the same 2-piece board state occurred compared to novel 2-piece board states. Shading denotes s.e.m.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig</head><label></label><figDesc>In particular, MCTS relies on rollouts as well as a selection rule known as Upper Confidence Bound 1 . S5 Evidence for retrospective decision-making in 4-in-a-row. Each panel contains the probability that all users in the data set that encountered the given board state in subsequent games repeated a move directly after a loss, draw, or win as well as the distribution of the selected moves. Error bars denote s.e.m. The user pieces are in black while the AI pieces are in white.(A) The first move (10, 875, 547 users). (B) The third move following the most frequent 2-piece board states (from left to right: 213, 042, 174, 606, and 171, 314 users). (C) The fifth move following the most frequent 4-piece board states (from left to right: 27, 522 and 25, 452 users). (D) The seventh move following the most frequent 6-piece board states (from left to right: 7, 756 and 7, 319 users).</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>We thank Peak for the task implementation and large-scale data collection. We thank Bas van Opheusden for helpful discussions regarding prospective and retrospective behavior in 4-in-a-row, and Tyler Seip for a reimplementation of the 4-in-a-row model code. This work was supported by grant IIS-1344256 from the National Science Foundation and by grants R01MH118925 and R21MH126269 from the National Institutes of Health to W.J.M., as well as by Graduate Research Fellowship number DGE183930 from the National Science Foundation to I.K.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data availability</head><p>The data set used throughout the current study is not publicly available per the agreement between New York University and Peak. The cognitive model fits and predictions are however available upon request from the corresponding author.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Code availability</head><p>Source code for the Bayesian meta-planner implementation, simulations, and analysis is available at https://github.com/ionatankuperwajs/meta-planning, while source code for the 4-in-a-row model is available at https://github.com/WeiJiMaLab/ninarow. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Author contributions</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Competing interests</head><p>The authors declare no competing interests.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Additional information</head><p>Supplementary information is available for this paper. Correspondence and requests for materials should be addressed to ikuperwajs@nyu.edu.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Multi-step planning in the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J C</forename><surname>Venditto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Behavioral Sciences</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page" from="29" to="39" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Interplay of approximate planning strategies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J M</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Lally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Faulkner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Eshel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Seifritz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Roiser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="3098" to="3103" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Expertise increases planning depth in human gameplay</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Galbiati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Bnaya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="6" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Xxii. programming a computer for playing chess. The London, Edinburgh, and Dublin Philosophical Magazine and</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Shannon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Science</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">314</biblScope>
+			<biblScope unit="page" from="256" to="275" />
+			<date type="published" when="1950" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Mastering the game of go with deep neural networks and tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Maddison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Sifre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">V D</forename><surname>Driessche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schrittwieser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Antonoglou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Panneershelvam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lanctot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dieleman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Grewe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kalchbrenner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Lillicrap</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Leach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Graepel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hassabis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="issue">7587</biblScope>
+			<biblScope unit="page" from="484" to="489" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Bonsai trees in your head: How the pavlovian system sculpts goal-directed choices by pruning decision trees</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J M</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Eshel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>O'nions</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Sheridan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Roiser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Prospective optimization with limited resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Snider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Poizner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gepshtein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Comput Biol</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page">1004501</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Éltető</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2306.05298</idno>
+		<title level="m">Habits of mind: Reusing action sequences for e cient planning</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Cost-benefit arbitration between multiple reinforcementlearning systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kool</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Cushman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page" from="1321" to="1333" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Hamrick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bapst</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sanchez-Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Pfa↵</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Weber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Buesing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Battaglia</surname></persName>
+		</author>
+		<title level="m">Combining q-learning and search with amortized value estimates. arXiv</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Remembrance of inferences past: Amortization in human hypothesis generation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Dasgupta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">178</biblScope>
+			<biblScope unit="page" from="67" to="81" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Evidence integration in model-based tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Solway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">37</biblScope>
+			<biblScope unit="page" from="11708" to="11713" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Optimal policy for multi-alternative decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tajima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Patel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1503" to="1511" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Optimizing the depth and direction of prospective planning using information values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Sezener</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Keramati</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Rational use of cognitive resources in human planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1112" to="1125" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Finding useful questions: on bayesian diagnosticity, probability, impact, and information gain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Nelson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">979</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Seeking confirmation is rational for deterministic hypotheses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Austerweil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="499" to="526" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Strategies to intervene on causal systems are adaptively selected</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Coenen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Rehder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Gureckis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">79</biblScope>
+			<biblScope unit="page" from="102" to="133" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Information-seeking, curiosity, and attention: computational and neural mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gottlieb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-Y</forename><surname>Oudeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lopes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Baranes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="585" to="593" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Formalizing planning and information search in naturalistic decisionmaking</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hunt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kaanders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Maciver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Mugan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Procyk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Redish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Russo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Scholl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Stachenfeld</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1051" to="1064" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Fixation patterns in simple choice reflect optimal information sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">1008863</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Optimal policy for attention-modulated decisions explains human fixation behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">I</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Elife</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">63436</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Understanding (with) toy models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reutlinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hangleiter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hartmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The British Journal for the Philosophy of Science</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Principles of metareasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Wefald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial intelligence</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">1-3</biblScope>
+			<biblScope unit="page" from="361" to="395" />
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Action-gap phenomenon in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Farahmand</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">24</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Increasing the action gap: New operators for reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Bellemare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ostrovski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Munos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">30</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Actions and habits: the development of behavioural autonomy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dickinson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Philosophical Transactions of the Royal Society of London. B</title>
+		<imprint>
+			<date type="published" when="1135" />
+			<biblScope unit="volume">308</biblScope>
+			<biblScope unit="page" from="67" to="78" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="1704" to="1711" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Heuristics and optimal solutions to the breadth-depth dilemma</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moreno-Bote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ramírez-Ruiz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">Y</forename><surname>Hayden</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">33</biblScope>
+			<biblScope unit="page" from="19799" to="19808" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Deep imagination is a close to optimal policy for planning in large decision trees under limited resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mastrogiuseppe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moreno-Bote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific reports</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">10411</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Tasks for aligning human and machine planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Behavioral Sciences</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="127" to="133" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Planning as heuristic search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bonet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ge↵ner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="5" to="33" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Campbell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Hoane</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F.-H</forename><surname>Hsu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Deep blue</title>
+		<imprint>
+			<date type="published" when="2002" />
+			<biblScope unit="volume">134</biblScope>
+			<biblScope unit="page" from="57" to="83" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Generalized best-first search strategies and the optimality of a</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dechter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pearl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the ACM (JACM)</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="505" to="536" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Unbiased and e cient log-likelihood estimation with inverse binomial sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page">1008483</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Practical bayesian optimization for model fitting with bayesian adaptive direct search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Neural Information Processing Systems</title>
+		<meeting>the 31st International Conference on Neural Information Processing Systems</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="1834" to="1844" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">Time spent thinking in online chess reflects the value of computation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Russek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Acosta-Kane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Mattar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gri Ths</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Discrimination of short temporal intervals: A comparison of two models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Getty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="8" />
+			<date type="published" when="1975" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Production of time intervals from segmented and nonsegmented inputs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Grondin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; Psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="345" to="350" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">The failure of weber&apos;s law in time perception and production</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Bizo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Chu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Sanabria</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Killeen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioural processes</title>
+		<imprint>
+			<biblScope unit="volume">71</biblScope>
+			<biblScope unit="issue">2-3</biblScope>
+			<biblScope unit="page" from="201" to="210" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Deconstructing the human algorithms for exploration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">173</biblScope>
+			<biblScope unit="page" from="34" to="42" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Bandit processes and dynamic allocation indices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Gittins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Royal Statistical Society Series B: Statistical Methodology</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="148" to="164" />
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Finite-time analysis of the multiarmed bandit problem</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Auer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Cesa-Bianchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Machine learning</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page" from="235" to="256" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">An empirical evaluation of thompson sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Chapelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning: A survey</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Kaelbling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Moore</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of artificial intelligence research</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="237" to="285" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Reinforcement Learning: An Introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Cortical substrates for exploratory decisions in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>O'doherty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">441</biblScope>
+			<biblScope unit="issue">7095</biblScope>
+			<biblScope unit="page" from="876" to="879" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Should i stay or should i go? how the human brain manages the trade-o↵ between exploitation and exploration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Mcclure</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Yu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">362</biblScope>
+			<biblScope unit="page" from="933" to="942" />
+			<date type="published" when="1481" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">A bayesian analysis of human decision-making on bandit problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="168" to="179" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Psychological models of human and optimal performance in bandit problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Munro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Systems Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="164" to="174" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Risk, unexpected uncertainty, and estimation uncertainty: Bayesian learning in unstable settings</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Payzan-Lenestour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bossaerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">1001048</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Forgetful bayes and myopic planning: Human learning and decision-making in a bandit setting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Yu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Humans use directed and random exploration to solve the explore-exploit dilemma</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Geana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Ludvig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">2074</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">E cient selectivity and backup operators in monte-carlo tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Coulom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Computers and Games</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006" />
+			<biblScope unit="page" from="72" to="83" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">A survey of monte carlo tree search methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Browne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Powley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Whitehouse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Lucas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">I</forename><surname>Cowling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Rohlfshagen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tavener</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Perez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Samothrakis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Colton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Computational Intelligence and AI in games</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="43" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Special issue on monte carlo techniques and computer go</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C.-S</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Teytaud</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Computational Intelligence and AI in Games</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="225" to="228" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+		<title level="m" type="main">Simulation-based approach to general game playing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Finnsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Björnsson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Aaai</publisher>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="259" to="264" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">A general reinforcement learning algorithm that masters chess, shogi, and go through self-play</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schrittwieser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Antonoglou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lanctot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Sifre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kumaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Graepel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">362</biblScope>
+			<biblScope unit="issue">6419</biblScope>
+			<biblScope unit="page" from="1140" to="1144" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Bandit based monte-carlo planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kocsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Szepesvári</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">European Conference on Machine Learning</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006" />
+			<biblScope unit="page" from="282" to="293" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Mcts based on simple regret</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tolpin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shimony</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="570" to="576" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tolpin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Shimony</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1408.2048</idno>
+		<title level="m">Selecting computations: Theory and applications</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Prioritized memory access explains planning and hippocampal replay</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Mattar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1609" to="1617" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">People construct simplified mental representations to plan</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Abel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">G</forename><surname>Correa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">606</biblScope>
+			<biblScope unit="issue">7912</biblScope>
+			<biblScope unit="page" from="129" to="136" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">Humans decompose tasks by trading o↵ utility and computational cost</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">G</forename><surname>Correa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">1011087</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Using deep neural networks as a guide for modeling human planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Schütt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">20269</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">Structured, uncertaintydriven exploration in real-world consumer choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bhui</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Love</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Brier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">T</forename><surname>Todd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="issue">28</biblScope>
+			<biblScope unit="page" from="13903" to="13908" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title level="a" type="main">Inferring latent learning factors in large-scale cognitive training data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Schafer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1145" to="1155" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Brändle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Stocks</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<title level="m">Intrinsically motivated exploration as empowerment</title>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Russek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+		<title level="m">Learning from rewards and social information in naturalistic strategic behavior</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title level="a" type="main">Fixation patterns in simple choice reflect optimal information sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">1008863</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<analytic>
+		<title level="a" type="main">Principles of metareasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Wefald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial intelligence</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">1-3</biblScope>
+			<biblScope unit="page" from="361" to="395" />
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tolpin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Shimony</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1408.2048</idno>
+		<title level="m">Selecting computations: Theory and applications</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<monogr>
+		<title level="m" type="main">A resource-rational analysis of human planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gri Ths</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>CogSci</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<monogr>
+		<title level="m" type="main">Learning to select computations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Gri Ths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1711.06892</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<analytic>
+		<title level="a" type="main">Information value theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on systems science and cybernetics</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="22" to="26" />
+			<date type="published" when="1966" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title level="a" type="main">Expertise increases planning depth in human gameplay</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Galbiati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Bnaya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="6" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<monogr>
+		<title level="m" type="main">The Rating of Chessplayers, Past and Present</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Elo</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1978" />
+			<publisher>Arco Pub</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b78">
+	<analytic>
+		<title level="a" type="main">Unbiased and e cient log-likelihood estimation with inverse binomial sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page">1008483</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b79">
+	<analytic>
+		<title level="a" type="main">Practical bayesian optimization for model fitting with bayesian adaptive direct search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Neural Information Processing Systems</title>
+		<meeting>the 31st International Conference on Neural Information Processing Systems</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="1834" to="1844" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b80">
+	<analytic>
+		<title level="a" type="main">E cient selectivity and backup operators in monte-carlo tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Coulom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Computers and Games</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006" />
+			<biblScope unit="page" from="72" to="83" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b81">
+	<analytic>
+		<title level="a" type="main">A survey of monte carlo tree search methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Browne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Powley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Whitehouse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Lucas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">I</forename><surname>Cowling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Rohlfshagen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tavener</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Perez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Samothrakis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Colton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Computational Intelligence and AI in games</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="43" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b82">
+	<analytic>
+		<title level="a" type="main">Mcts based on simple regret</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tolpin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shimony</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="570" to="576" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

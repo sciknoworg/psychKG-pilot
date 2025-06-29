@@ -1,0 +1,1282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Reinforcement learning and meta-decision making</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pieter</forename><surname>Verbeke</surname></persName>
+							<email>pjverbek.verbeke@ugent.be</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">Ghent University H</orgName>
+								<address>
+									<addrLine>Dunantlaan 2</addrLine>
+									<postCode>9000</postCode>
+									<settlement>Gent</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Verguts</surname></persName>
+							<email>tom.verguts@ugent.be</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">Ghent University H</orgName>
+								<address>
+									<addrLine>Dunantlaan 2</addrLine>
+									<postCode>9000</postCode>
+									<settlement>Gent</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Reinforcement learning and meta-decision making</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:04+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>A key aspect of cognitive flexibility is to efficiently make use of earlier experience to attain one&apos;s goals. This requires learning, but also a modular, and more specifically hierarchical, structure. We hold that both are required but combining them leads to several computational challenges that brains and artificial agents (learn to) deal with. In a hierarchical structure, meta-decisions must be made, of which two types can be distinguished: First, a (meta-)decision may involve choosing which (lower-level) modules to select (module choice). Second, it may consist of choosing appropriate parameter settings within a module (parameter tuning). Further, prediction error monitoring may allow determining the right meta-decision (module choice or parameter tuning). We discuss computational challenges and empirical evidence relative to how these two meta-decisions may be implemented to support learning for cognitive flexibility.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Almost by definition, cognition is flexible: Humans (and to an increasing extent, also machines) are not slaves of their environment, but act adaptively when novel challenges arise.</p><p>Critically, adaptive behavior must depend on earlier experience. For example, a tennis player may quickly adapt to playing badminton, padel, or even more remotely related sports like football. Although the rules, equipment, and playing strategy are not exactly the same, one can profit from the tennis expertise. Thus, a key aspect of cognitive flexibility is to efficiently combine and adapt previously learned knowledge for the current task 1 *.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Modularity</head><p>An important assumption in the previous argument is that the environment contains some type of structure. Indeed, the "no free lunch" theorem holds that across all possible environments, all learning algorithms perform equally well <ref type="bibr" target="#b2">2</ref> . But when the environment contains structure, the agent can gain efficiency by learning about and exploiting that structure <ref type="bibr" target="#b3">3</ref> .</p><p>One type of structure is (statistical) independence between events. As a basic example, suppose that one must open a lock consisting of N binary slots; the brute-force approach is to try all 2 N combinations. If the first and second part of the lock are independent (and the agent receives independent feedback on each part), the number of combinations to check drops to 2*2 N/2 ; and if each slot is independent, the number of combinations drops to a mere 2N. Similarly, in everyday life, there are usually too many states and actions to try and learn about every possible path in action space. Hence, if the environment has relevant independencies, it makes sense to construct cognitive modules, and learn to use and reuse them over time.</p><p>The need to learn modules has been stressed repeatedly across the biological and artificial sciences, using various terms, including modularity 4 , compositionality <ref type="bibr" target="#b5">5,</ref><ref type="bibr" target="#b6">6</ref> *, factorization <ref type="bibr" target="#b8">7,</ref><ref type="bibr" target="#b9">8</ref> , and disentanglement <ref type="bibr" target="#b10">9</ref> . One specific instance of modularity that we focus on is hierarchy, in which some modules are in some sense "higher" than others.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Hierarchical Reinforcement learning 4</head><p>To act adaptively, one needs to learn a policy, that is, a set of rules specifying which action to perform in each (task-relevant) state. The construction of policies is studied in Reinforcement Learning (RL) <ref type="bibr" target="#b11">10</ref> . RL algorithms specify how to learn policies that maximize a goal (reward) function.</p><p>While typical RL algorithms work well in very small state and action spaces, they deteriorate rapidly in larger state and action spaces, for the same combinatorial reasons as described above: Without knowing about relevant environmental structure, learning is hopelessly inefficient. A standard approach to increase efficiency is function approximation, whereby the state space is represented by a smaller number of variables and a (continuous) function is learned to associate states to values (e.g., via a neural network). Also learning modularly (the focus of this paper) makes learning more efficient (either with or without function approximation). One influential modular learning approach is hierarchical reinforcement learning (HRL) <ref type="bibr" target="#b12">11,</ref><ref type="bibr" target="#b13">12</ref> . Here, at a lower level, state-action mappings are learned in task modules. At a higher level, it is decided which task modules to activate in a given context, and how to tune parameter settings within each (lower-level) module ( <ref type="figure" target="#fig_0">Figure 1</ref>). HRL thus naturally relates to meta-decision making: One must decide at a higher level how to use lower-level modules.</p><p>One popular HRL implementation is the options framework <ref type="bibr" target="#b12">11,</ref><ref type="bibr" target="#b13">12</ref> , where a collection of state-action pairs are joined together in a single option (policy), and options are chosen sequentially over time. One learns both which actions to take in a given option (state-action mappings; lower-level) and which options to take in a given context (higher-level). For example, consider an agent who must find its way in a maze consisting of several rooms. Here, multiple state-action pairs (e.g., in location A, go left) can be grouped in an option, with one option for each room. To the extent that the environment exhibits statistical independence (e.g., it does not matter via which door the room is entered; or the same room structure occurs in different contexts), the options can efficiently be reused in later navigation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Meta-decision making: Module choice and parameter tuning</head><p>Making decisions about the available cognitive modules is called meta-decision making. We distinguish two types of meta-decision making: module choice, where one chooses an appropriate collection of modules for the current task (and possibly a sequential order among them, as in the options framework); and parameter tuning, where one knows which module to use, but the parameters still need to be tuned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Module choice</head><p>In the options framework, the agent sequentially chooses between different policies;</p><p>as long as one policy is active, its state-action mappings can be applied and refined (learned).</p><p>Classic learning (e.g., RL) algorithms can be used to learn at each level of the hierarchy (i.e., action and option levels; <ref type="figure" target="#fig_0">Figure 1</ref>). In humans, there is indeed neural evidence that two value functions at distinct levels can be learned simultaneously <ref type="bibr" target="#b14">13</ref> . Note that, different from single actions, options should maintain a temporally extended influence on behavior. This maintenance is thought to be supported by anterior cingulate cortex (ACC) <ref type="bibr" target="#b15">14</ref> . modules to choose in a novel task (e.g., padel, after initially learning other sports like tennis and football), and which parameters to tune (e.g., practice on your backhand; or put more vigor in your backhand). At level 3, it is decided which level 2 meta-decision is made. Decisions on levels 2 and 3 are called meta-decisions. In principle, the same learning algorithms can be applied at each level.</p><p>Alternatively, a task might require recruiting multiple modules in parallel. This can involve a binary (yes/no) selection of modules (hard gating) or a more continuous choice (soft gating). An example of the latter is the mixture of experts framework <ref type="bibr" target="#b16">15</ref> . Here, different modules are trained to become an expert in a particular (sub)task. On top of these lower-level experts, a gating network is trained to learn the extent to which the experts should receive control over behavior, depending on the context. It was recently proposed that the ventrolateral cortex (vlPFC) functions as a gating network <ref type="bibr" target="#b17">16</ref> ; it would learn the weight given to each expert and integrate the weighted contributions of all experts <ref type="bibr" target="#b18">17</ref> . Other areas (like anterior insula <ref type="bibr" target="#b19">18</ref> ) have been implicated in the role as well.</p><p>Adaptive module choice can increase flexibility. For instance, as mentioned before, learning a new skill can often be achieved by adaptively recombining previous knowledge, and this is much easier when knowledge is stored in modules <ref type="bibr" target="#b20">19,</ref><ref type="bibr" target="#b21">20</ref> *. Furthermore, modularization is an effective solution to mitigate catastrophic interference in neural networks <ref type="bibr" target="#b22">21,</ref><ref type="bibr">22</ref> . Catastrophic interference occurs because updating the weights for a novel task interferes with performance on the old tasks <ref type="bibr" target="#b24">23</ref> . By using separate modules for different tasks, neural networks can avoid overwriting old knowledge while learning the novel task. This may be one reason why humans are resistant to catastrophic interference.</p><p>After one or more modules are chosen, the question remains how a biological agent makes sure that only the right (chosen) modules communicate with one another. This is often called the binding problem. Indeed, standard neural network learning rules tend to densely project all input to all output layers; if some layer A projects weights to another layer B, activation from layer A will transfer information to B whenever the units in A are active.</p><p>However, adaptive module choice requires that just a selection of layers should be allowed to communicate (i.e., gating). In Artificial Intelligence (AI), a recent breakthrough (transformers) was to implement learned attention in neural networks (including in large language models) <ref type="bibr" target="#b25">24</ref> . Here, alternating attentional gating and processing layers allows focusing on different parts of the inputs at different times. It is an interesting research question whether transformers create modules in this manner.</p><p>In biological agents, a candidate process that can accomplish such attentional gating is binding-by-synchrony. Brain activity exhibits oscillations <ref type="bibr" target="#b26">25</ref> , which reflect temporal fluctuations in neural excitability <ref type="bibr" target="#b27">26</ref> ; synchronizing oscillations in different neural groups allows efficient communication between these groups and thus can functionally bind them together (e.g., in the gamma frequency band). Computational work demonstrated that this approach can efficiently bind modules together and shield models from catastrophic interference <ref type="bibr">22</ref> . Empirical work suggested that this binding-by-synchrony of different neural modules is orchestrated by ACC theta activity (~4-8 Hz) <ref type="bibr" target="#b28">27</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>7</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter tuning</head><p>In a module, state-action mappings can be learned (e.g., via neural network weights); but learning these weights and finally deciding on an action requires an additional set of parameters. Setting the latter is the second meta-decision problem. Indeed, different tasks and environments might require different parameter settings <ref type="bibr" target="#b29">[28]</ref><ref type="bibr" target="#b30">[29]</ref><ref type="bibr" target="#b31">[30]</ref> . A popular example of an adaptive parameter is the learning rate <ref type="bibr" target="#b29">28</ref> . Several meta-learning frameworks have been proposed to adaptively set learning rates, based on the general idea that it is optimal to learn faster or slower depending on several factors (e.g., noise level) in the environment. These approaches include adding one parameter to classic reinforcement learning rules <ref type="bibr" target="#b32">31</ref> ; Bayesian multilevel learning 32 ; (statistically) mixing learning rules <ref type="bibr" target="#b34">33</ref> ; and even setting a different learning rate for each individual synapse <ref type="bibr" target="#b35">34</ref> . A systematic approach to learning continuous parameter settings is the policy gradient algorithm, a framework originating from Artificial</p><p>Intelligence, but potentially also useful in cognitive science <ref type="bibr" target="#b36">35,</ref><ref type="bibr">36</ref> . As a second example (besides learning rate), agents may determine effort investment in a given module by estimating the value of its successful execution (comparing costs relative to benefits of its execution) <ref type="bibr" target="#b38">[37]</ref><ref type="bibr" target="#b39">[38]</ref><ref type="bibr" target="#b40">[39]</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Computational challenges</head><p>Despite the efficiency of modularity, it also comes with a number of challenges. First, given that adaptation can occur at several levels, an agent should know at which level to adapt in response to a feedback signal (e.g., a prediction error); this is the hierarchical credit assignment problem. In response to such a signal, should they update the module choice or finetune (e.g., increase learning rate in) the current module? This can be considered as a thirdlevel decision-making problem (see <ref type="figure" target="#fig_0">Figure 1)</ref>.</p><p>A large literature in cognitive control has investigated sequential (trial-to-trial) effects, such as what happens after a prediction error, but also in response to a surprising or incongruent stimulus. These studies have consistently stressed the importance of ACC for such (meta) decisions <ref type="bibr" target="#b41">40</ref> . In terms of the current framework, such events (like prediction error) may indicate that a meta-decision is in order <ref type="bibr" target="#b42">41</ref> . Specifically, previous work has argued that humans will interpret small prediction errors as the need to update the currently active module (parameter tuning), but will interpret large prediction errors as the need to switch to other task modules (module choice) <ref type="bibr" target="#b3">3,</ref><ref type="bibr">22,</ref><ref type="bibr" target="#b28">27,</ref><ref type="bibr" target="#b43">42</ref> .</p><p>Neuromodulators such as acetylcholine (Ach) and norepinephrine (NE) support cognitive flexibility <ref type="bibr" target="#b44">43</ref> ; and in particular, they may support implementing this computational solution. ACh is thought to reflect expected uncertainty (e.g., the uncertainty attached to samples from a normal distribution with known mean and variance) <ref type="bibr" target="#b45">44</ref> . Instead, NE may index unexpected uncertainty (e.g., a sudden switch of the mean or variance of the distribution), a signal which may require switching to other modules. Consistently, high levels of NE may cause a network reset <ref type="bibr" target="#b46">45</ref> and tonic NE release might reflect exploration of different strategies <ref type="bibr" target="#b47">46</ref> . Furthermore, NE originates in locus coeruleus, an area that is strongly connected to ACC, consistent with its role in signaling unexpected uncertainty for module choice updating.</p><p>A second computational challenge for the agent is to determine the number of hierarchical levels as well as the number of modules within each level. Some basic modularity, such as the functional organization of the human brain, might result from natural selection <ref type="bibr" target="#b48">47</ref> , but a significant extent of modularity in human cognition likely results from lifetime learning.</p><p>Often, an optimal division of modules can be extracted from structure in the environment <ref type="bibr" target="#b3">3</ref> .</p><p>For example, spatial navigation might be modularized by using landmarks such as a bridge or church. Alternatively, humans may use Bayesian inference to detect latent states in the environment <ref type="bibr" target="#b49">48</ref> . These latent states can group all knowledge ((observable) state-action mappings) that is acquired in this latent state, effectively dividing expertise in modules.</p><p>Finally, there exist also more continuous (neural network) algorithms for module discovery and learning <ref type="bibr" target="#b50">49</ref> .</p><p>The exact number of modules is subject to a generalization-interference tradeoff. On the one hand, a small number of large modules simplifies the search for a module that best aligns with the demands of the novel task and allows to simply generalize all information stored in that module; however, such organization may cause interference to the extent that the novel task's requirements are different. On the other hand, many small modules (high granularity) offer more flexibility (less interference) in the sense that a wider range of combinations is possible to better tailor behavior to current task demands. However, if the same tasks occur repeatedly, such organization may be inefficient due to insufficient generalization between them. To balance this trade-off, modules can follow a hierarchical organization 50 *. For instance, a higher order module might represent all field sports and their commonalities such as a playing field with bounds and the need to run. Instead, at a lower level, a more fine-grained distinction can be made informing the agent that although all are field sports, one can generalize more tennis knowledge to padel than to football. Hence, the agent can store both high and low granular representations to find a fast and flexible solution for any problem.</p><p>While most work considered two or three hierarchical levels <ref type="bibr" target="#b53">51,</ref><ref type="bibr" target="#b54">52</ref> , there is no clear consensus on how many levels the human brain uses. One reason for this lack of consensus is that variability across individuals or tasks may influence the extent of hierarchical processing in humans <ref type="bibr" target="#b55">53</ref> . Thus, further research is needed to extract the levels of hierarchical processing in human cognition and how this relates to task demands.</p><p>Third, introducing modularity (and hierarchy) increases flexibility because it allows to recombine earlier learned chunks of information; but it also holds a challenge if the modules themselves are not flexible. Borrowing the example from 54 , a waiter may structure "coffee making" hierarchically, but a strict hierarchy would not be able to adapt the number of sugar cubes to the customer. A first solution is to keep adaptability within modules (a kind of parameter tuning), but at the risk of interference between tasks that need different implementations of that module (think of the varying number of sugar cubes for each customer). A second solution is to construct general task modules that can be adapted to a wide range of small variations of that task, as is applied in adapter modules in AI <ref type="bibr" target="#b57">55</ref> . In biological agents, this implementation would also require binding the relevant adapter modules depending on the context, potentially via neural synchronization (as described above).</p><p>In sum, there are both empirical and computational reasons to assume a hierarchical modular organization in (human) learning and cognition. Despite computational advantages, such an organization also poses significant meta-decision-making challenges to the cognitive system, including how to choose the levels, the modules, how to switch between them, how to train and tune them, how to make them communicate, and how to adapt them to the task.</p><p>Understanding this organization may require more intensive collaboration between the sciences studying biological and artificial agents.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Hierarchy for cognitive flexibility. At level 1, modules store (sub)policies (state-action mappings; e.g., the different ways to perform a forehand in tennis). At level 2, modules store policies deciding which (level 1)</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>PV and TV were supported by the EOS grant number G0F3818N by Research Foundation Flanders. We thank Senne Braem for his comments on an earlier version of this paper.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflicts of interest statement</head><p>Nothing declared</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Multi-task reinforcement learning in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Tomov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Hum. Behav</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="764" to="773" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">This behavioral study demonstrates that humans will exploit the structure and features of previously learned policies to behave efficiently in novel tasks. Rather than being guided by the value function across multiple tasks</title>
+		<imprint/>
+	</monogr>
+	<note>humans will map features from previous policies to construct a novel policy</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">No free lunch theorems for optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Wolpert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">G</forename><surname>Macready</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Trans. Evol. Comput</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="67" to="82" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Adaptive learning is structure learning in time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">Q</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neurosci. Biobehav. Rev</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page" from="270" to="281" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Modularity and robustness of frontal cortical networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lindsey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Druckmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cell</title>
+		<imprint>
+			<biblScope unit="volume">184</biblScope>
+			<biblScope unit="page" from="3717" to="3730" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Curriculum learning for human compositional generalization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">B</forename><surname>Dekker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Summerfield</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Human-like systematic generalization through a meta-learning neural network</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Lake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Baroni</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41586-023-06668-3</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">• The authors demonstrate that transformer networks, using attentional gating demonstrate remarkable human-like systematic generalization. As we mention in the main text, an interesting research question is whether transformers indeed create modules in this manner</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The Geometry of Abstraction in the Hippocampus and Prefrontal Cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bernardi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cell</title>
+		<imprint>
+			<biblScope unit="volume">183</biblScope>
+			<biblScope unit="page" from="954" to="967" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Modelling continual learning in humans with Hebbian context gating and exponentially decaying task signals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Flesch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Nagy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Summerfield</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Comput. Biol</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Thalamus : a brain-inspired algorithm for biologically-plausible continual learning and disentangled representations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hummos</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">Reinforcement Learning : An Introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Hierarchically organized behavior and its neural foundations: A reinforcement learning perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Barto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page" from="262" to="280" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Hierarchical reinforcement learning with the MAXQ value function decomposition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">G</forename><surname>Dietterich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Artif. Intell. Res</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="227" to="303" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Computational evidence for hierarchically structured reinforcement learning in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page" from="29381" to="29389" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The best laid plans: Computational principles of ACC</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Holroyd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Cogn. Sci</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page" from="316" to="329" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Towards Understanding Mixture of Experts in Deep Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Preprint at</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Why and how the brain weights contributions from a mixture of experts</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>O'doherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neurosci. Biobehav. Rev</title>
+		<imprint>
+			<biblScope unit="volume">123</biblScope>
+			<biblScope unit="page" from="14" to="23" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="1704" to="1711" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Molnar-Szakacs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">Q</forename><surname>Uddin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroscience and Biobehavioral Reviews Anterior insula as a gatekeeper of executive control. Neurosci. Biobehav. Rev</title>
+		<imprint>
+			<biblScope unit="volume">139</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">On the specialization of neural modules</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Jarvis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Klein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Rosman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Saxe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ICLR</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">efficiently generalize between tasks. Moreover, by pre-training an ANN, a similar organization of task knowledge and similar generalization performance could be achieved</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ito</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. Neural Inf. Process. Syst</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page" from="32225" to="32239" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note>Compositional generalization through abstract representations in human and artificial neural networks</note>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">A modeling framework for adaptive lifelong learning with transfer and savings through gating in the prefrontal cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Tsuda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Tye</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">T</forename><surname>Siegelmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Sejnowski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. Natl. Acad. Sci</title>
+		<meeting>Natl. Acad. Sci</meeting>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page" from="29872" to="29882" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Learning to synchronize: How biological agents can couple neural task modules for dealing with the stability-plasticity dilemma</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Verbeke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Comput. Biol</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Catastrophic forgetting in connectionist networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>French</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Cogn. Sci</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="128" to="135" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Attention is All you Need</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">30</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Rhythms in cognition: The evidence revisited</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Keitel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ruzzoli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Dugué</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Busch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S Y</forename><surname>Benwell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Eur. J. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page" from="2991" to="3009" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Rhythms for Cognition: Communication through Coherence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fries</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">88</biblScope>
+			<biblScope unit="page" from="220" to="235" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Learning to synchronize: Midfrontal theta dynamics during rule switching</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Verbeke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ergo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>De Loof</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="1" to="13" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Learning the value of information in an uncertain world</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">E J</forename><surname>Behrens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Woolrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Walton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">F</forename><surname>Rushworth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="1214" to="1221" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Meta-learning environment-specific learning rates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Simoens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Braem</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/ypd45</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/ypd45" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Preprint at</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">The interpretation of computational model parameters depends on the context</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Dual learning processes underlying human decisionmaking in reversal learning tasks: Functional significance and evidence from the model fit to human behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Front. Psychol</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="1" to="8" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">A Bayesian Foundation for Individual Learning Under Uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mathys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Stephan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Front. Hum. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">A Mixture of Delta-Rules Approximation to Bayesian Inference in Change-Point Problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Gold</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Comput. Biol</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">A model of cerebellar metaplasticity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Schweighofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Arbib</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Learn. Mem</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="421" to="428" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Value-free reinforcement learning: policy optimization as a minimal model of operant behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Langdon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Curr. Opin. Behav. Sci</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="114" to="121" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning establishes a minimal metacognitive process to monitor and control motor learning performance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Sugiyama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Schweighofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Izawa</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-023-39536-9</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Commun</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Learning when effort matters: neural dynamics underlying updating and adaptation to changes in performance efficacy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Grahek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Frömer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Prater Fahey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shenhav</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cereb. Cortex</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="2395" to="2411" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">The expected value of control: An integrative theory of anterior cingulate cortex function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shenhav</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">79</biblScope>
+			<biblScope unit="page" from="217" to="240" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Adaptive effort investment in cognitive and physical tasks: A neurocomputational model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Vassena</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Silvetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Front. Behav. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="1" to="17" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Conflict monitoring and anterior cingulate cortex: An update</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Carter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Cogn. Sci</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="539" to="546" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Motivation of extended behaviors by anterior cingulate cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Holroyd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Yeung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Cogn. Sci</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="122" to="130" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Adaptive Learning through Temporal Dynamics of State Representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Razmi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="2524" to="2538" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Neuromodulation of prefrontal cortex cognitive function in primates: the powerful roles of monoamines and acetylcholine</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Cools</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Arnsten</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page" from="309" to="328" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Uncertainty, neuromodulation, and attention</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="681" to="92" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Network reset: a simplified overarching theory of locus coeruleus noradrenaline function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bouret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Sara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page" from="574" to="582" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">An Integrative Theory of Locus Coeruleus-Norepinephrine function: Adaptive Gain and Optimal Performance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Aston-Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annu. Rev. Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page" from="403" to="450" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">The evolutionary origins of modularity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Clune</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Mouret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lipson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proc. R. Soc. B Biol. Sci</title>
+		<imprint>
+			<biblScope unit="volume">280</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Cognitive control over learning: Creating, clustering, and generalizing task-set structure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol. Rev</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page" from="190" to="229" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Hierarchical multiscale recurrent neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Arxiv</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Hierarchical clustering optimizes the tradeoff between compositionality and expressivity of task structures for flexible reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artif. Intell</title>
+		<imprint>
+			<biblScope unit="volume">312</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title level="m" type="main">This work describes an artificial agent who can, using hierarchical reinforcement learning and Bayesian inference, flexibly infer whether whole task representations can be generalized or whether it is more optimal to only generalize specific components</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Frontal Cortex and the Discovery of Abstract Action Rules</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Kayser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Esposito</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="page" from="315" to="326" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Frontal Cortex and the Hierarchical Control of Behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E</forename><surname>Nee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Cogn. Sci</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="170" to="188" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Humans adaptively select different computational strategies in different learning environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Verbeke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2023.01.27.525944</idno>
+		<idno>2023.01.27.525944</idno>
+		<ptr target="https://doi.org/10.1101/2023.01.27.525944" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Doing Without Schema Hierarchies: A Recurrent Connectionist Approach to Routine Sequential Action and Its Pathologies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Plaut</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol. Rev</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">395</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+		<title level="m" type="main">Unsupervised Domain Adaptation with Adapter</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Huang</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/arXiv.2111.00667</idno>
+		<ptr target="https://doi.org/10.48550/arXiv.2111.00667" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Preprint at</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

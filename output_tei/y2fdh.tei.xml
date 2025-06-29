@@ -1,0 +1,765 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Probabilistic models of delay discounting: improving plausibility and performance</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Isaac</forename><surname>Kinley</surname></persName>
+							<email>kinleyid@mcmaster.ca</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">McMaster University</orgName>
+								<address>
+									<settlement>Neuroscience &amp; Behaviour</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joseph</forename><surname>Oluwasola</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">McMaster University</orgName>
+								<address>
+									<settlement>Neuroscience &amp; Behaviour</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Suzanna</forename><surname>Becker</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">McMaster University</orgName>
+								<address>
+									<settlement>Neuroscience &amp; Behaviour</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Probabilistic models of delay discounting: improving plausibility and performance</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:19+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Probabilistic models of delay discounting allow the estimation of discount functions without assuming that these functions describe sharp boundaries in decision making. However, existing probabilistic models allow for two implausible possibilities: first, that no reward might sometimes be preferred over some reward (e.g., $0 now over $100 in 1 year), and second, that the same reward might sometimes be preferred later rather than sooner (e.g., $100 in a year over $100 now). Here we show that probabilistic models of discounting perform better when they assign these cases a probability of 0. We demonstrate this result across a range of discount functions using nonlinear regression. We also introduce a series of generalized linear models that implicitly parameterize various discount functions, and demonstrate the same result for these. The nonlinear regression method we describe is available as an open-source R package called &quot;ddDesidModels&quot; (https://github.com/kinleyid/ddDesidModels).</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Delay discounting and discount functions</head><p>Humans and other animals exhibit a near-universal tendency to subjectively devalue future rewards as a function of their delay, a phenomenon known as "delay discounting." The steepness with which future rewards are discounted has been implicated in a range of psychiatric disorders <ref type="bibr" target="#b1">(Amlung et al., 2019)</ref> and associated with addictive <ref type="bibr" target="#b2">(Amlung et al., 2017;</ref><ref type="bibr" target="#b16">MacKillop et al., 2011)</ref> and otherwise unhealthy <ref type="bibr" target="#b25">(Story et al., 2014)</ref> behaviours.</p><p>A long-standing problem in the delay discounting literature has been to determine the form of the "discount function" describing the decline in a reward's subjective value with respect to its delay, that is, to determine the function f satisfying the following equation:</p><formula xml:id="formula_0">u(D) = v D f (t; p)<label>(1)</label></formula><p>where u(D), the subjective utility of a future reward D, is equal to its face value v D multiplied by a function f of its delay t parameterized by some parameter vector p. For example, if t is equal to 1 year, and f (t; p) = 0.5, then $100 in 1 year has a subjective value of only $50. This means that an agent obeying this discount function would be indifferent between $50 available immediately and $100 available in 1 year. Any function f should satisfy the following constraints: first, for f (0; p) = 1 (i.e., no delay implies no discounting). Second, f (t 2 ; p) &lt; f (t 1 ; p) if t 2 &gt; t 1 , i.e., f should be monotonically decreasing with respect to t.</p><p>A range of functions satisfying these constraints has been proposed. The classical model of <ref type="bibr" target="#b23">Samuelson (1937)</ref> describes exponential discounting:</p><formula xml:id="formula_1">f (t; k) = e −kt<label>(2)</label></formula><p>where k is an individual-difference parameter controlling the rate at which subjective value declines with reward. In the exponential model, discounting compounds at a constant rate, namely 1 − e −k per unit time. However, empirically, people exhibit declining discount rates with increasing delays <ref type="bibr" target="#b26">(Thaler, 1981)</ref>. For example, the subjective value of a reward may decline 10% with a delay of 1 month but only 50% with a delay of 12 months, whereas a constant compound discount rate of 10% per month would mean that the subjective value of the reward is only 0.9 12 ≈ 12% of its face value.</p><p>An alternative function that can account for this declining rate of discounting is the following, describing hyperbolic discounting <ref type="bibr" target="#b17">(Mazur, 1987)</ref>:</p><formula xml:id="formula_2">f (t; k) = 1 1 + kt (3)</formula><p>where k is again a parameter controlling the rate of discounting. It can be rewritten as</p><formula xml:id="formula_3">f (t; k) = e − log(1+kt) t t</formula><p>which describes exponential discounting with a compound discount rate 1 − e − log(1+kt) t that declines with increasing t.</p><p>Hyperbolic discounting is widely used to quantify individual differences in delay discounting <ref type="bibr" target="#b19">(Odum, 2011)</ref>. However, it is argued to not always provide an accurate fit to individual-level data <ref type="bibr" target="#b9">(Franck et al., 2015)</ref> and a wide range of alternative discount functions has been proposed. <ref type="table">Table 1</ref> provides a list of commonly used functions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Name</head><p>Functional form</p><p>Exponential <ref type="bibr" target="#b23">(Samuelson, 1937)</ref> </p><formula xml:id="formula_4">f (t; k) = e −kt</formula><p>Scaled exponential (beta-delta; <ref type="bibr" target="#b13">Laibson, 1997)</ref> </p><formula xml:id="formula_5">f (t; k, w) = we −kt</formula><p>Nonlinear-time exponential <ref type="bibr" target="#b8">(Ebert and Prelec, 2007)</ref> </p><formula xml:id="formula_6">f (t; k, s) = e −kt s</formula><p>Dual-systems exponential (Van den Bos and McClure, 2013)</p><formula xml:id="formula_7">f (t; k 1 , k 2 , w) = we −k1t + (1 − w)e −k2t</formula><p>Inverse q-exponential <ref type="bibr" target="#b10">(Green and Myerson, 2004)</ref> </p><formula xml:id="formula_8">f (t; k, s) = 1 (1+kt) s</formula><p>Hyperbolic <ref type="bibr" target="#b17">(Mazur, 1987)</ref> f (t; k) = 1</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>1+kt</head><p>Nonlinear-time hyperbolic <ref type="bibr" target="#b21">(Rachlin, 2006)</ref> f (t; k, s) = 1 1+kt s <ref type="table">Table 1</ref>: Popular discount functions from the literature. Here, we attempt to standardize parameter names for ease of comparison. The "inverse q-exponential" function is so named because it is equivalent to the inverse of the Tsallis q-exponential function <ref type="bibr" target="#b27">(Tsallis, 1994)</ref> of kt which, for different values of a parameter q, can describe exponential or hyperbolic discounting, or various intermediates <ref type="bibr" target="#b12">(Han and Takahashi, 2012)</ref>. <ref type="bibr" target="#b15">Loewenstein and Prelec (1992)</ref> offer another equivalent model, but the <ref type="bibr" target="#b10">Green and Myerson (2004)</ref> parameterization is used here for simplicity, as each parameter appears only once.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2">Probabilistic models of discounting</head><p>The best-fitting parameters of a given discount function for a given individual decision maker can be obtained by maximum likelihood estimation. We can impose the following general probabilistic model <ref type="bibr" target="#b3">(Becker et al., 1963;</ref><ref type="bibr" target="#b5">Dai and Busemeyer, 2014)</ref>:</p><formula xml:id="formula_9">P (I) = σ [γ(u(I) − u(D))]<label>(4)</label></formula><p>where P (I) is the probability of selecting an immediate reward I, σ[x] = 1 1+e −x is the logistic function, and γ is a parameter controlling the steepness of the logistic function. In this model, the probability of selecting the immediate reward is modelled as a logistic function of the difference between the subjective utility of the immediate reward and that of the delayed reward. u(I), the subjective utility of the immediate reward I, is simply its face value v I . u(D), the subjective value of the delayed reward D, is given by equation 1. Thus equation 4 can be rewritten as</p><formula xml:id="formula_10">p(I) = σ [γ(v I − v D f (t; p)] (5)</formula><p>Maximum likelihood estimation can then be used to obtain a set of parametersp fit to an individual's decisions.</p><p>There are special cases where we can recover a discount function by manipulating the regression coefficients from a generalized linear model of decision behaviour, thereby avoiding nonlinear regression. <ref type="bibr" target="#b29">Wileyto et al. (2004)</ref> introduce this approach for the hyperbolic discounting function, using the following logistic regression equation to model the probability of selecting the immediate reward:</p><formula xml:id="formula_11">P (I) = σ β 1 1 − v D v I + β 2 t<label>(6)</label></formula><p>When P (I) = 1 2 , an individual is indifferent between the immediate and delayed rewards, meaning their subjective values are equal, i.e.:</p><formula xml:id="formula_12">u(I) = u(D) meaning v I = v D f (t; p)</formula><p>Thus, we can set P (I) = 1 2 and replace v I by v D f (t; p), and then rearrange the equation to obtain a discount function parameterized by the regression weights. Because the logistic function σ[•] produces a value of 1 2 only when its input is 0, we write</p><formula xml:id="formula_13">β 1 1 − 1 f (t; p) + β 2 t = 0</formula><p>Solving for f (t; p), we arrive at</p><formula xml:id="formula_14">f (t; p) = 1 1 + β2 β1 t</formula><p>which describes hyperbolic discounting with k = β2 β1 . We can extend this approach to the case of exponential discounting using the following regression equation:</p><formula xml:id="formula_15">P (I) = σ β 1 log v I v D + β 2 t<label>(7)</label></formula><p>Repeating the steps above to solve for f (t; p), we arrive at</p><formula xml:id="formula_16">f (t; p) = e − β 2 β 1 t</formula><p>which describes exponential discounting with k = β2 β1 . Similarly, for scaled exponential discounting <ref type="bibr" target="#b13">(Laibson, 1997)</ref>, we can use the following regression equation:</p><formula xml:id="formula_17">P (I) = σ β 1 log v I v D + β 2 t + β 3 (8) yielding f (t; p) = e − β 3 β 1 e − β 2 β 1 t<label>(9)</label></formula><p>which describes scaled exponential discounting with w = e − β 3 β 1 and k = e − β 2 β 1 . Unfortunately, this approach is not possible for all discount functions. For example, the inverse qexponential discount function <ref type="bibr" target="#b10">(Green and Myerson, 2004)</ref> cannot be written in a form that is linear in parameters (which is necessary for a function to be recoverable from a linear model).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.3">Desiderata for probabilistic models of discounting</head><p>Both the general model described by equation 5 and the special cases using generalized linear regression suffer from the same shortcoming: they make implausible predictions for cases where the immediate reward is nothing (i.e., when v I = 0) and where the immediate and delayed rewards have equal face values (i.e., v I = v D ). For these boundary cases, common sense would suggest that a probabilistic model of discounting should satisfy the following desiderata:</p><p>D1. Something rather than nothing: when the immediate reward has a value of 0, it should never be chosen. I.e., v I = 0 implies P (I) = 0. For example, we would expect someone to never choose $0 now over $100 in a year.</p><p>D2. Sooner rather than later: when the immediate and delayed rewards have equal dollar values, the immediate reward should always be chosen. I.e., v I = v D implies P (I) = 1. For example, we would expect someone to always choose $100 now over $100 in a year.</p><p>For the general probabilistic model described by equation 5, the probability of selecting the immediate reward is always greater than 0 and less than 1, and thus D1 and D2 above are not satisfied.</p><p>Interestingly, for the special generalized linear regression cases, D1 is satisfied. For the case of hyperbolic discounting, the expression that is linear in the β parameters approaches negative infinity as v I approaches 0:</p><formula xml:id="formula_18">lim v I →0 + β 1 1 − v D v I + β 2 t = −∞</formula><p>Therefore, the logistic function of this expression approaches 0 as v I approaches 0:</p><formula xml:id="formula_19">lim v I →0 + σ β 1 1 − v D v I + β 2 t = 0</formula><p>satisfying D1. Similarly, for the case of exponential and scaled exponential discounting:</p><formula xml:id="formula_20">lim v I →0 + β 1 log v I v D + β 2 t = −∞ lim v I →0 + β 1 log v I v D + β 2 t + β 3 = −∞ thus: lim v I →0 + σ β 1 log v I v D + β 2 t = 0 lim v I →0 + σ β 1 log v I v D + β 2 t + β 3 = 0</formula><p>again satisfying D1. However, D2 is not satisfied for any of these models. <ref type="figure">Figure 1</ref> shows that, for a given value of t, at v I = v D there is a nonzero chance of the delayed reward being selected (e.g., of a choice of $100 in 1 year over $100 now). The aim of the current study is to offer probabilistic methods of discounting that satisfy both D1 and D2, and to determine whether these models better describe empirical discounting behaviour. For brevity, we will refer to models that satisfy both desiderata as "D+ models" and models not satisfying both desiderata as "D− models".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Methods</head><p>Data and code for all results presented here are available at https://osf.io/txc4h/. A documented R package implementing the methods described in section 2.2.1 is available at https://github.com/kinleyid/ ddDesidModels.  <ref type="figure">Figure 1</ref>: Probability of selecting the immediate reward as a function of v I v D (the value of the immediate reward as a proportion of the delayed reward) while holding the delay t constant. For each model, the probability of choosing an immediate reward equal to the dollar value of the delayed reward is less than 1, contrary to D2.</p><formula xml:id="formula_21">v I v D P (I) Regression equation σ β 1 log vI vD + β 2 t σ β 1 log vI vD + β 2 t + β 3 σ β 1 1 − vD vI + β 2 t</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Participants and materials</head><p>Data were collected from 421 McMaster University students who completed the study for credit in an undergraduate psychology course, providing consent as approved by the local research ethics board. The experiment was programmed using jsPsych (De Leeuw, 2015; de Leeuw et al., 2023) and hosted on a web server that participants accessed from browsers on their own computers.</p><p>Prior to the task, participants read the following instructions:</p><p>In this task, you will make a series of monetary choices. You will be asked whether you would prefer some amount of money now or another amount later. Please take your time and answer thoughtfully. There are no right or wrong answers; simply select the option that you would choose. Use the "A" key to select the option on the left and the "L" key to select the option on the right. These are hypothetical choices, but please choose your answers as if they were real.</p><p>On each trial, the choices appeared on screen as shown in figure 2. The order (D, I or I, D) was randomized and the dollar value of the delayed reward was drawn from a uniform distribution between $180 and $220 and rounded to the nearest dollar. The value of the immediate reward was set to a proportion of the value of the delayed reward, rounded to the nearest dollar. Proportions used were 1 15 , 2 15 , . . . 14 15 . The delay of the delayed reward was either 1 week, 1 month, 6 months, 2 years, or 10 years. Each participant was presented with each combination of proportion and delay in a random order for a total of 14 proportions × 5 delays = 70 trials. <ref type="figure">Figure 2</ref>: Screenshot of the experimental task. Participants chose between the option on the left and the option on the right using their keyboards.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Model fitting</head><p>For each model, the quality of fit was assessed according to the Akaike information criterion (AIC; <ref type="bibr" target="#b0">Akaike, 1974)</ref> as follows:</p><formula xml:id="formula_22">AIC = 2n − 2 lnL</formula><p>where n is the number of parameters in the model andL is the likelihood of the data under the model. Lower AIC values indicate better model fit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Numerical optimization</head><p>We compared the general probabilistic model in equation 5 to the following model, which satisfies D1 and D2:</p><formula xml:id="formula_23">P (I) = σ γ σ −1 v I v D − σ −1 [f (t; p)]<label>(10)</label></formula><p>where</p><formula xml:id="formula_24">σ −1 [x] = log x 1−</formula><p>x is the logit function, the inverse of the logistic function (figure 3). As v I approaches 0, the logit function approaches −∞ and P (I) approaches 0, satisfying D1. Similarly, as v I approaches v D , the logit function approaches ∞ and P (I) approaches 1, satisfying D2. Moreover, as in the generalized linear models described above, P (I) = 1 2 only when</p><formula xml:id="formula_25">v I = v D f (t; p)</formula><p>, that is, when the face value of the immediate reward is equal to the discounted value of the delayed reward. Thus, the meaning of the discount function in the D− model is preserved in the D+ model.</p><p>However, comparing the D+ and D− models in equations 5 and 10, we can see that they differ in more than their satisfaction of D1 and D2: the D− model accounts for the absolute values of the rewards whereas the D+ model does not. We can see this by rewriting the D− model as:</p><formula xml:id="formula_26">p(I) = σ γv D v I v D − f (t; p)<label>(11)</label></formula><p>Thus, the D− and D+ models differ not only in whether the terms v I v D and f (t; p) are logit-transformed (and thus whether they satisfy D1 and D2), but also whether the sharpness parameter γ is scaled by the face value of the delayed reward. This means that any difference in quality of fit between the models could be a consequence of this difference in scaling rather than a consequence of differential satisfaction of D1 and D2. To create models comparable without any such confound, and to remain agnostic as to whether the sharpness parameter should scale linearly, nonlinearly, or not at all with v D , we performed a second comparison, introducing the following scale factor in both equations:</p><formula xml:id="formula_27">ς(v D ; α, λ) = α ln λ v D + 1<label>(12)</label></formula><p>where by ln λ v D we denote the one-parameter Box-Cox transformation <ref type="bibr" target="#b4">(Box and Cox, 1964)</ref> </p><formula xml:id="formula_28">of v D : ln λ v D =    v λ D − 1 λ , if λ ̸ = 0 ln(v D ), if λ = 0<label>(13)</label></formula><p>As shown in figure 4, ς(v D ; α, λ) allows γ to scale linearly, nonlinearly, or not at all with v D depending on the values of α and λ. Thus, a second set of comparisons were made between the following probabilistic models:</p><formula xml:id="formula_29">P (I) = σ γς(v D ; α, λ) v I v D − f (t; p)<label>(14)</label></formula><p>which does not satisfy D1 and D2, and</p><formula xml:id="formula_30">P (I) = σ γς(v D ; α, λ) σ −1 v I v D − σ −1 [f (t; p)]<label>(15)</label></formula><p>which satisfies both D1 and D2. Maximum likelihood estimation was performed via Nelder-Mead optimization <ref type="bibr" target="#b18">(Nelder and Mead, 1965)</ref> as implemented by the optim function in R v4.2.3 (R Core Team, 2023). To ensure the discount functions were positive and monotonically decreasing, k and s parameters were constrained to be greater than 0 and w parameters were constrained to be between 0 and 1. Moreover, α was constrained to be greater than 0 to ensure that the probability of selecting the immediate reward increased with the value of the immediate reward. These constraints were imposed by reparameterization: for a parameter θ, the constraint θ &gt; 0 was imposed by letting θ = e θ ′ and optimizing over θ ′ . Similarly, the constraint 0 &lt; θ &lt; 1 was imposed by letting</p><formula xml:id="formula_31">α = 30, λ = 0 α = 6, λ = 1 2 α = 0, λ ∈ R α = 1, λ = 1 0 100 200 0 100 200 1 1 v D ς(v D ; α, λ)</formula><formula xml:id="formula_32">θ = σ[θ ′ ], where σ[•]</formula><p>is the sigmoid function, and again optimizing over θ ′ . Each parameter being optimized (θ ′ in the above reparameterizations) had a starting value of −5, 0, or 5 (except for λ, which had starting a starting value of −1, 0, or 1), and each combination of starting values was used to ensure that a wide range of the parameter space was explored. Thus, each optimization was repeated 3 (number of parameters) times.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Linear models</head><p>The D− generalized linear models (equations 6, 7, and 8) were compared to alternative D+ generalized linear models. These D+ models involved a transformation mapping <ref type="figure" target="#fig_0">figure 3)</ref> or the following function:</p><formula xml:id="formula_33">v I v D from [0, 1] to (−∞, ∞), either the logit function σ −1 [x] = log x 1−x (</formula><formula xml:id="formula_34">φ[x] = log 1 log 1 x (16)</formula><p>which is plotted in <ref type="figure" target="#fig_2">figure 5</ref> and is related to the complementary log-log function as follows:</p><formula xml:id="formula_35">φ[x] = −cloglog[1 − x]<label>(17)</label></formula><p>Using these transformations, we can create D+ generalized linear models that allow us to recover the hyperbolic and exponential discount functions, and nonlinear-time variants of these (table 1). These models are summarized in table 2. As before, for each model, we recover a discount function by letting P (I) = 1 2 and letting v I = f (t; p) and solving for f (t; p) in terms of the regression weights.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discount function Model terms Parameters</head><p>Hyperbolic <ref type="table">Table 2</ref>: D+ generalized linear models from which various discount functions can be recovered. The expressions in the "model terms" column were inputs to the logistic function.</p><formula xml:id="formula_36">β 1 σ −1 v I v D + log t + β 2 k = e β 2 β 1 Nonlinear-time hyperbolic β 1 σ −1 v I v D + β 2 log t + β 3 k = e β 3 β 1 , s = β2 β1 Exponential β 1 φ v I v D + log t + β 2 k = e β 2 β 1 Nonlinear-time exponential β 1 φ v I v D + β 2 log t + β 3 k = e β 3 β 1 , s = β2 β1</formula><p>Unfortunately, there is no obvious way to write D+ generalized linear regression equations from which other discount functions are recoverable. Each generalized linear model was fit using the glm function in R, v4.2.3 (R Core Team, 2023).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Numerical optimization</head><p>We first compared the D− model in which γ is scaled by v D (equation 5) with the D− model in which v D is not considered (equation 10). In a linear mixed effects model <ref type="bibr" target="#b24">(Singmann et al., 2023)</ref> with a fixed effect differentiating D+ and D− models and random effects for participant identity and discount function, the D+ models produced significantly better fit, per the AIC (β = −1.61, p &lt; 10 −15 ). <ref type="table" target="#tab_2">Table 3</ref> summarizes the differences in fit between the D+ and D− models, stratified by the specific discount function implemented in the probabilistic models. The D+ models significantly outperformed the D− for all but the exponential discount function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discount function</head><p>Comparison  Comparisons between the D− model in which γ is scaled by v D and the D− model in which v D is not considered. The "comparisons" column lists the percentage of participants for which the D+ model outperformed the D− model, according to the AIC. The "significance" column lists the p value of each comparison computed by the binomial test.</p><p>As noted earlier, these models differ not only in their satisfaction of D1 and D2 but also in whether they consider absolute reward values. Thus, we also compared the D+ and D− models that include the scale function ς(v D ; α, σ) (equations 12, 14, and 15). In another linear mixed effects model with a fixed effect differentiating D+ and D− models and random effects for participant identity and discount function, the D+ models again produced significantly better fit, per the AIC (β = −0.51, p &lt; 10 −5 ). <ref type="table" target="#tab_4">Table 4</ref> summarizes the comparison between the D− and D+ models stratified by discount function. Again, the D+ models outperformed the D− models for all but the exponential discount function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discount function</head><p>Comparison  : Comparisons between D− and D+ models that incorporate the scale function ς(v D ; α, σ). As before, the "comparisons" column lists the percentage of participants for which the D+ model implementing the given discount function outperformed the D− model. p values for these comparisons were computed by the binomial test. Nonlinear-time exponential Scaled exponential 69.12 % p &lt; 10 −14 <ref type="table" target="#tab_5">Table 5</ref>: Comparisons between linear models satisfying D1 and D2 (denoted "D2+ models") and models satisfying D1 but not D2 (denoted "D2− models"). The "comparison" column lists the percentage of participants for which the former models outperformed the latter models, per the AIC. Significance values were computed with the binomial test.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Linear models</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Discussion and future directions</head><p>We have demonstrated that probabilistic models of delay discounting can be improved by a simple alteration to ensure they satisfy commonsense desiderata in boundary cases where the immediate reward is nothing, and where the immediate and delayed rewards have equal face values. We have demonstrated this improvement both for nonlinear regression models and for fast-and-simple generalized linear models. In so doing, we introduced a series of novel models following the approach introduced by <ref type="bibr" target="#b29">Wileyto et al. (2004)</ref> in which a discount function is implied by a generalized linear model and parameterized by its regression weights. The boundary case desiderata (D1 and D2) assume that individuals should always choose some reward over nothing and should always choose the same reward sooner rather than later. These assumptions are normative, and in practice not all participants will conform to them, perhaps even for rationally intelligible reasons. For example, perhaps I know I will spend $100 in a year on something harmful that will become available then and so I instead opt for nothing (i.e., I choose $0 now over $100 in a year). Similarly, perhaps I want something that costs $100 and only becomes available in a year, but I know that if I receive $100 now I will end up spending it too early, and so I opt to postpone the reward (i.e., I choose $100 in a year over $100 now).</p><p>However, idiosyncratic cases like these have to be glossed over in normative models of decision making. Moreover, it seems more likely that choosing nothing over something or choosing the same reward later rather than sooner would reflect inattention or motor error rather than a genuine preference. These sources of noise are fundamentally different from the stochasticity inherent in the decision process assumed by various models of decision making <ref type="bibr" target="#b3">(Becker et al., 1963;</ref><ref type="bibr" target="#b22">Ratcliff, 1978)</ref>. Thus, norm-violating decisions should not be used to estimate normative models of decision making but might instead be taken as indicators of data quality. For example, in a recent study, <ref type="bibr" target="#b14">Lin et al. (2018)</ref> refer to choices between the same reward sooner vs later as "no-brainer" decisions and remove data from participants who made the "wrong" decision in these cases too often.</p><p>There are several ways that future work might extend on the results presented here. First, none of the present models account for the well-known "magnitude effect" in which participants exhibit shallower discounting when absolute reward values are higher <ref type="bibr" target="#b11">(Green et al., 1997)</ref>. One approach here, suggested by <ref type="bibr" target="#b29">Wileyto et al. (2004)</ref>, is to let k = k 0 + mv D , where m quantifies the magnitude effect. We can add a third term to their original regression equation <ref type="formula" target="#formula_11">equation 6</ref>to account for the magnitude effect as follows:</p><formula xml:id="formula_37">P (I) = σ β 1 1 − v D v I + β 2 t + β 3 tv D</formula><p>The following discount function is then recoverable:</p><formula xml:id="formula_38">f (t; p) = 1 1 + β2 β1 + β3 β1 v D t</formula><p>which describes hyperbolic discounting, accounting for the magnitude effect with k 0 = β2 β1 and m = β3 β1 . It is possible that equivalent alterations could be made to the other generalized linear models. For nonlinear models, we could likewise replace k parameters with k 0 + mv D .</p><p>A second direction for future work might be to extend the present models to account for cases in which the earlier reward is not immediate (e.g., in the choice between $50 in 2 months or $100 in a year). In this case, we refer not to immediate and delayed rewards I and D, but instead to sooner and later rewards S and L. The indifference point is then:</p><formula xml:id="formula_39">v S f (t S ; p) = v L f (t L ; p)</formula><p>where v S is the value of the sooner reward S and t S is its delay. v L and t L have equivalent meanings in terms of L. For these cases, we can again extend the model of <ref type="bibr" target="#b29">Wileyto et al. (2004)</ref> as follows:</p><formula xml:id="formula_40">P (S) = σ β 1 1 − v L v S + β 2 t L − t S v L v S</formula><p>where P (S) is the probability of selecting the smaller sooner reward. This reduces to the original equation (6) when t L = 0. If we let P (S) = 1 2 and set v L v S = f (t S ;p) f (t L ;p) (based on the definition of the indifference point), we can derive the following:</p><formula xml:id="formula_41">f (t S ; p) f (t L ; p) = 1 1+ β 2 β 1 t S 1 1+ β 2 β 1 t L</formula><p>which implies hyperbolic discounting with k = β2 β1 . Similarly, for nonlinear regression models, we could compare the following equation:</p><formula xml:id="formula_42">P (S) = σ v S v L − f (t L ; p) f (t S ; p)</formula><p>which satisfies neither D1 nor D2, with the following equation:</p><formula xml:id="formula_43">P (S) = σ σ −1 v S v L − σ −1 f (t L ; p) f (t S ; p)</formula><p>which satisfies both. These models are not derivable from equation 4, but nonetheless ensure that the indifference point P (S) = 1 2 occurs only when the discounted values of the rewards are equal, i.e., when v S f (t S ; p) = v L f (t L ; p). Such extensions of the models presented here may prove to be fruitful avenues for future inquiry.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 3 :</head><label>3</label><figDesc>Plot of the logit functionσ −1 [x] = log x 1−x .As x approaches 0, the logit function approaches negative infinity, and as x approaches 1, the logit function approaches positive infinity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 4 :</head><label>4</label><figDesc>Plot of different possible realizations of the function ς(v D ; α, λ). Depending on the values of α and λ, there might be no scaling (top left), linear scaling (top right), logarithmic scaling (bottom left), or square-root scaling (bottom right), among other possibilities.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 5 :x.</head><label>5</label><figDesc>Plot of the function φ[x] = log 1 log 1 As x approaches 0, φ[x] approaches −∞; as x approaches 1, φ[x] approaches ∞.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 3 :</head><label>3</label><figDesc></figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4"><head>Table 4</head><label>4</label><figDesc></figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5"><head>Table 5</head><label>5</label><figDesc>lists the comparisons between the D+ generalized linear models satisfying (listed in table 2) and D− generalized linear models (equations 6, 7, 8). In some cases, the comparison is confounded, given that the models differ not only in their satisfaction of D2 but also in which discount function is implied by the regression. Nonetheless, it is suggestive that every D+ model outperformed every D− model.</figDesc><table><row><cell>D2+ model</cell><cell>D2− model</cell><cell>Comparison</cell><cell>Significance</cell></row><row><cell>Hyperbolic</cell><cell>Hyperbolic</cell><cell>76.96 %</cell><cell>p &lt; 10 −28</cell></row><row><cell>Hyperbolic</cell><cell>Exponential</cell><cell>69.36 %</cell><cell>p &lt; 10 −14</cell></row><row><cell>Hyperbolic</cell><cell>Scaled exponential</cell><cell>67.46 %</cell><cell>p &lt; 10 −12</cell></row><row><cell>Exponential</cell><cell>Hyperbolic</cell><cell>75.30 %</cell><cell>p &lt; 10 −25</cell></row><row><cell>Exponential</cell><cell>Exponential</cell><cell>67.70 %</cell><cell>p &lt; 10 −12</cell></row><row><cell>Exponential</cell><cell>Scaled exponential</cell><cell>64.61 %</cell><cell>p &lt; 10 −8</cell></row><row><cell>Nonlinear-time hyperbolic</cell><cell>Hyperbolic</cell><cell>83.14 %</cell><cell>p &lt; 10 −44</cell></row><row><cell>Nonlinear-time hyperbolic</cell><cell>Exponential</cell><cell>77.67 %</cell><cell>p &lt; 10 −30</cell></row><row><cell>Nonlinear-time hyperbolic</cell><cell>Scaled exponential</cell><cell>70.55 %</cell><cell>p &lt; 10 −16</cell></row><row><cell>Nonlinear-time exponential</cell><cell>Hyperbolic</cell><cell>79.57 %</cell><cell>p &lt; 10 −35</cell></row><row><cell>Nonlinear-time exponential</cell><cell>Exponential</cell><cell>75.53 %</cell><cell>p &lt; 10 −25</cell></row></table><note></note></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A new look at the statistical model identification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Akaike</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE transactions on automatic control</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="716" to="723" />
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Delay discounting as a transdiagnostic process in psychiatric disorders: A meta-analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Amlung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Marsden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Holshausen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Morris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Patel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Vedelago</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">R</forename><surname>Naish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Reed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Mccabe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JAMA psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1176" to="1186" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Steep delay discounting and addictive behavior: A meta-analysis of continuous associations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Amlung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Vedelago</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Acker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Balodis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mackillop</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Addiction</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="51" to="62" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Stochastic models of choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">M</forename><surname>Becker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">H</forename><surname>Degroot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Marschak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral science</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="41" to="55" />
+			<date type="published" when="1963" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">An analysis of transformations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Box</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Cox</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Royal Statistical Society Series B: Statistical Methodology</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="211" to="243" />
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">A probabilistic, dynamic, and attribute-wise model of intertemporal choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Busemeyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1489</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>De Leeuw</surname></persName>
+		</author>
+		<title level="m">jspsych: A javascript library for creating behavioral experiments in a web browser. Behavior research methods</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page" from="1" to="12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">jspsych: Enabling an open-source collaborative ecosystem of behavioral experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>De Leeuw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Gilbert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Luchterhandt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Open Source Software</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">85</biblScope>
+			<biblScope unit="page">5351</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The fragility of time: Time-insensitivity and valuation of the near and far future</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Ebert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Prelec</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Management science</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1423" to="1438" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Accurate characterization of delay discounting: A multiple model approach using approximate bayesian model selection and a unified discounting measure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">T</forename><surname>Franck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Koffarnus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">L</forename><surname>House</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">K</forename><surname>Bickel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="218" to="233" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">A discounting framework for choice with delayed and probabilistic rewards</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Myerson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological bulletin</title>
+		<imprint>
+			<biblScope unit="volume">130</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">769</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Rate of temporal discounting decreases with amount of reward</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Myerson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Mcfadden</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Memory &amp; cognition</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page" from="715" to="723" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Psychophysics of time perception and valuation in temporal discounting of gain and loss</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Takahashi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Physica A: Statistical Mechanics and Its Applications</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="issue">24</biblScope>
+			<biblScope unit="page" from="6568" to="6576" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Golden eggs and hyperbolic discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Laibson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Quarterly Journal of Economics</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="443" to="478" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Midfrontal theta and pupil dilation parametrically track subjective conflict (but also surprise) during intertemporal choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Saunders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Hutcherson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Inzlicht</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">NeuroImage</title>
+		<imprint>
+			<biblScope unit="volume">172</biblScope>
+			<biblScope unit="page" from="838" to="852" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Anomalies in intertemporal choice: Evidence and an interpretation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Loewenstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Prelec</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Quarterly Journal of Economics</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="573" to="597" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Delayed reward discounting and addictive behavior: a meta-analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mackillop</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">T</forename><surname>Amlung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Few</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Ray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">H</forename><surname>Sweet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Munafò</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">216</biblScope>
+			<biblScope unit="page" from="305" to="321" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Quantitative analyses of behavior: V. The effect of delay and of intervening events on reinforcement value</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Mazur</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1987" />
+			<biblScope unit="page" from="55" to="73" />
+		</imprint>
+	</monogr>
+	<note>An adjusting procedure for studying delayed reinforcement</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">A simplex method for function minimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Nelder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mead</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The computer journal</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="308" to="313" />
+			<date type="published" when="1965" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Delay discounting: I&apos;m ak, you&apos;re ak</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Odum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">96</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="427" to="439" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>R Core Team</surname></persName>
+		</author>
+		<title level="m">R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing</title>
+		<meeting><address><addrLine>Vienna, Austria</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Notes on discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rachlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="425" to="435" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title level="m" type="main">A note on measurement of utility. The review of economic studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Samuelson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1937" />
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="155" to="161" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">afex: Analysis of Factorial Experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Singmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bolker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Westfall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Aust</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Ben-Shachar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note>R package version 1.3-0</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Does temporal discounting explain unhealthy behavior? a systematic review and reinforcement learning perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Story</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Vlaev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Darzi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in behavioral neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">76</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Some empirical evidence on dynamic inconsistency</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Thaler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Economics letters</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="201" to="207" />
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">What are the numbers that experiments provide</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Tsallis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Quimica Nova</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="468" to="471" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Towards a general model of temporal discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Van Den Bos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Mcclure</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the experimental analysis of behavior</title>
+		<imprint>
+			<biblScope unit="volume">99</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="58" to="73" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Using logistic regression to estimate delay-discounting functions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">P</forename><surname>Wileyto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Audrain-Mcgovern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">H</forename><surname>Epstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lerman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods, Instruments, &amp; Computers</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page" from="41" to="51" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,1150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Learning to be confident: How agents learn confidence based on prediction errors</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pierre</forename><surname>Le Denmat</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Brain and Cognition</orgName>
+								<orgName type="institution">KU Leuven</orgName>
+								<address>
+									<settlement>Leuven</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kobe</forename><surname>Desender</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Brain and Cognition</orgName>
+								<orgName type="institution">KU Leuven</orgName>
+								<address>
+									<settlement>Leuven</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Verguts</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">Ghent University</orgName>
+								<address>
+									<settlement>Ghent</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Learning to be confident: How agents learn confidence based on prediction errors</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:31+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Confidence</term>
+					<term>Learning</term>
+					<term>Computational Modeling</term>
+					<term>Drift Diffusion Model</term>
+					<term>Metacognition</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Decision confidence should normatively reflect the posterior probability of making a correct choice, conditional on relevant information. However, how individuals learn to calibrate their sense of confidence to that probability remains unknown. The standard approach to estimate any quantity is to use trial-by trial samples of that quantity to train a function approximator (such as a neural network) based on the prediction errors (quantity minus prediction of the quantity). We tested whether humans learn about confidence using this principle in a perceptual decision-making experiment where participants repeatedly alternated between two manipulated feedback regimes (negative vs positive) every few blocks of trials. As anticipated, confidence ratings tracked feedback, with confidence gradually increasing when participants received overall positive feedback (and thus positive prediction errors), and decreasing when receiving negative feedback (and thus negative prediction errors). These feedback-induced dynamic changes were specific to confidence, as objective performance was unaffected by the manipulation. We propose a single-layer neural network model for confidence which updates the computation of confidence based on trial-level prediction errors, and demonstrate that it provides a good fit to the behavioral data. Taken together, these results show that the computation of confidence is dynamic: humans constantly update how they compute confidence based on prediction errors (feedback minus prediction), in a statistically efficient manner.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>An apprentice pastry chef is not confident that the cake they just made matches the quality standards of their workplace. Unexpectedly, they receive compliments from their mentor telling them the cake is excellent. The low confidence of the apprentice and the positive feedback received from their mentor are in conflict, as they provide opposite opinions about the probability that the cake is of sufficient quality. This mismatch between the internal estimate of that probability <ref type="bibr">(i.e., confidence)</ref> and the external information about that probability (i.e., feedback) generates a prediction error, which likely will result in increased confidence the next time the apprentice is faced with a similar situation.</p><p>With a more well-calibrated sense of confidence, the apprentice pastry chef can now rely more heavily on their sense of confidence as an internal feedback signal to judge the quality of their work, and decide, for example, to start anew (if confidence is low) or put it out for sale (if confidence is high). As this example illustrates, one does not merely have to learn the task at hand (i.e., how to bake cakes).</p><p>Its accompanying confidence needs to be learned in parallel, as it is also relevant for future action (in the example, judging the quality of the cake).</p><p>Remarkably, although there exist several mechanistic explanations regarding the computations underlying decision confidence, its learning process has been neglected in virtually all prior models <ref type="bibr" target="#b0">(Adler &amp; Ma, 2018;</ref><ref type="bibr" target="#b7">Calder-Travis et al., 2024;</ref><ref type="bibr" target="#b13">Drugowitsch et al., 2012;</ref><ref type="bibr" target="#b14">Fleming &amp; Daw, 2017;</ref><ref type="bibr" target="#b20">Khalvati et al., 2021;</ref><ref type="bibr" target="#b21">Kiani &amp; Shadlen, 2009;</ref><ref type="bibr" target="#b25">Le Denmat et al., 2024;</ref><ref type="bibr" target="#b41">Shekhar &amp; Rahnev, 2024)</ref>.</p><p>Instead, focus resided primarily on the definition of decision confidence, which converged on the posterior probability of making a correct choice conditional on relevant information <ref type="bibr" target="#b21">(Kiani &amp; Shadlen, 2009;</ref><ref type="bibr" target="#b27">Meyniel et al., 2015;</ref><ref type="bibr" target="#b40">Sanders et al., 2016)</ref>. Computing that quantity is useful, because confidence is informative about one's accuracy and thus can be used to optimize future actions <ref type="bibr" target="#b1">(Balsdon et al., 2020;</ref><ref type="bibr" target="#b9">Desender et al., 2018</ref><ref type="bibr" target="#b8">Desender et al., , 2019</ref><ref type="bibr" target="#b11">Drugowitsch et al., 2019;</ref><ref type="bibr" target="#b16">Frömer et al., 2021;</ref><ref type="bibr" target="#b26">Lee &amp; Daunizeau, 2021;</ref><ref type="bibr" target="#b32">Pescetelli &amp; Yeung, 2021)</ref>.</p><p>What remains unclear, however, is how agents can learn and dynamically calibrate their feeling of confidence to these probabilities. In this work, we aim to provide a first account of how the mapping from decision-relevant information to confidence is dynamically updated to efficiently track the probability of being correct. We propose that the computation of confidence is learned from environmental feedback, as it represents an external source of information about one's accuracy.</p><p>Similar to how agents use feedback to learn how to perform a task <ref type="bibr" target="#b42">(Skinner, 1938;</ref><ref type="bibr" target="#b44">Sutton &amp; Barto, 2018)</ref>, here, we explore how confidence itself can be learned from feedback. Specifically, we hypothesize that confidence is updated by minimizing the prediction error between external feedback and the current estimate of confidence.</p><p>A first key prediction of this hypothesis is that individuals should dynamically adapt their reporting of confidence in response to environmental feedback. For example, if feedback is overly positive or overly negative for a given decision, this should affect the computation of confidence for the next decision within the same task. A second key prediction is that this dynamic confidence computation can be independent of changes in objective performance. Indeed, whereas performance and confidence should naturally be linked, biased feedback signals (e.g., as generated in our experiment), can in principle cause dissociations between the two quantities. We tested these predictions in a perceptual decision-making experiment where two feedback regimes (positive vs negative) alternate every 126 trials. We expected that confidence gradually increases over the course of positive feedback phases, whereas it should gradually decrease over the course of negative feedback phases.</p><p>To model these dynamics, we build on the recently proposed low-dimensional confidence (LDC) model (Le . Like many models of confidence <ref type="bibr" target="#b7">(Calder-Travis et al., 2024;</ref><ref type="bibr" target="#b21">Kiani &amp; Shadlen, 2009;</ref><ref type="bibr" target="#b28">Moran et al., 2015;</ref><ref type="bibr" target="#b29">Moreno-Bote, 2010;</ref><ref type="bibr" target="#b34">Pleskac &amp; Busemeyer, 2010)</ref>, the LDC model is built on top of the influential drift diffusion model (DDM) <ref type="bibr" target="#b38">(Ratcliff, 1978)</ref>, and describes how the amount of accumulated evidence and the associated reaction times are used to compute confidence.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>4</head><p>This model offers a tractable starting point for a learning model, because it explains confidence and its deviations from optimality using only two confidence-specific scaling parameters. The first parameter is called the subjective evidence reliability (α) and weighs the importance of accumulated evidence in the computation of confidence. The second parameter is a confidence bias (β) and accounts for stimulus-independent over-(β &gt; 0) and underconfidence (β &lt; 0).</p><p>Here, we extend the LDC model to a dynamic model (further referred to as DLDC) where confidence is learned by updating its parameters in a trial-by-trial manner. Specifically, we implemented the DLDC model as a neural network comprising a single layer of units, which takes as input the readout of the decision process as modeled by the DDM (i.e., total accumulated evidence and elapsed time, <ref type="figure" target="#fig_0">Figure 1</ref>) and returns a confidence estimate. The two parameters of LDC, α and β, are now weights on the evidence and bias inputs of our neural network, respectively. They can therefore be updated via gradient descent to minimize the prediction error between the external feedback provided and the model-predicted confidence. In the next sections, we first report our behavioral experiment, followed by computational modelling results. Confidence is considered to represent the Bayesian probability of a choice being correct. Under DDM assumption, this probability is calculated conditional on the total accumulated evidence, elapsed time and choice (represented by the color on the heatmap). B. The DLDC model is a learning model of confidence implemented as a single layer neural network model. The network takes the readout of the decision process (i.e. accumulated evidence and elapsed time) as well as a bias as input. These are then combined and passed through a logistic activation function, resulting in a confidence estimate between 0 and 1. To minimize the prediction error between estimated confidence and feedback, the computation of confidence dynamically evolves by updating its weights, α and β, via gradient descent. 5</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Participants</head><p>Sixty-eight participants (10 men, age: M = 18.81, SD = 1.71, range = 17-30) took part in the experiment in return for course credit. All participants read and signed a written informed consent form at the start of the experiment. All procedures were approved by the KU Leuven ethics committee.</p><p>Nine participants were excluded from analysis due to chance level performance on at least one repetition of any feedback condition. Two participants with more than 90% of their confidence ratings on the same level were additionally removed from data analysis, as they did not follow the instruction of using the whole confidence scale.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Procedure</head><p>Each trial started with a fixation cross for 500 ms. Next, 80 colored dots (a mix of red and blue) appeared for 200 ms within a white squared frame in the middle of a computer screen. Participants were tasked to judge as quickly and accurately as possibly which color of dots was the most numerous by pressing C or N with one of their thumbs. Trial difficulty was determined by the number of dots belonging to the prominent category: 44 for hard trials, 47 for medium trials and 53 for easy trials.</p><p>There was no response deadline for this decision. Next, participants reported the confidence in their decision on a 6-point scale with the following labels: "sure error", "probably error", "guess error", "guess correct", "probably correct" and "certainly correct" (reversed order for half of the participants), using the keys 1, 2, 3, 8, 9 and 0 with the ring, middle and index finger of both hands. There was no response deadline for the confidence report. Finally, feedback about the correctness of their primary decision was given by a continuous value ranging from 0 (certainly wrong) to 100 (certainly correct) presented centrally on the screen for 1000 ms. The feedback value was additionally visually represented by means of a filled horizontal scale with labels "sure error", "probably error", "random chance", "probably correct" and "sure correct" at the 0, 25, 50, 75 and 100 tick marks respectively.</p><p>Participants were told that this number represented the probability that their response was correct.</p><p>In reality, the feedback was model-generated. To compute the model-based feedback, single trial values for the inputs (evidence and time) of our model were required. While time is directly available by summing decision and confidence RT, accumulated evidence is a latent variable. We therefore estimated the latent evidence accumulation process of single trials using average drift rate and decision boundary estimates obtained from previous experiments with the same task and difficulty levels (this estimation procedure is described in full detail in the model fitting section). Feedback for a</p><p>given trial corresponded to model-predicted confidence from pre-determined values of α and β.</p><p>Critically, unknown to participants every 3 blocks of 42 trials the value of β that was used to generate the feedback switched between 2 possible values (β =1, high vs β = -1, low feedback condition), while the value for α was fixed to 18 throughout the experiment (see supplementary material for the behavioral results from an experiment where feedback was manipulated according to α instead). In total, there were 3 repetitions of both feedback conditions. The feedback condition order was counterbalanced across participants.</p><p>At the end of the experiment, participants were asked a series of four questions to assess their perception and understanding of feedback, as well as their awareness of the feedback manipulation.</p><p>The first question was an open-ended question inviting participants to share anything unusual they noticed about the experiment. We considered that participants were aware of the feedback manipulation if they at least reported that feedback values were sometimes high, and sometimes low.</p><p>The next two questions prompted how much participants felt feedback helped them assess how well they performed, and how much they felt feedback closely tracked their performance. Answers for these two questions were made on a 5-point Likert scale. Lastly, we checked the level of understanding of feedback by showing an example feedback of 81%. Participants were instructed to select all true propositions within a list. We considered that participants correctly understood feedback if they acknowledged that the response associated to the example feedback is potentially correct, although the true accuracy of the decision is uncertain. presented patch of colored dots was mostly composed of red or blue dots. They then rated their confidence on a six-point scale ranging from "sure error" to "sure correct". Finally, model-generated feedback was presented, framed as the probability that the decision was correct. B. Feedback alternated between two conditions (high vs low) throughout the experiment.</p><p>Feedback values were generally higher in the high condition, independently of trial accuracy and difficulty. Error bars are SEM, although most of them are too small to be visible.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Statistical analysis</head><p>Outlier trials with reaction times (RTs) below 200 ms or above 5000 ms were removed from the analysis. Trials with confidence RTs above 5000 ms were filtered out as well. Confidence ratings and RT analyses were performed using linear mixed models, for which we report type-III F statistics using Satterthwaite's approximation for degrees of freedom. Since accuracy is a binary outcome variable, generalized mixed models were used for its analysis, for which we report Х 2 statistics. All models comprised feedback condition (high vs low), trial difficulty (easy, medium, hard) and trial counts within a feedback phase (1-126) as fixed effects as well as all interactions. Trial accuracy (correct vs incorrect) and its interaction with other factors were also included as fixed effects when analyzing confidence ratings. To determine the random effect structure for each model, we first fitted a model with random intercepts for participants only. We then added random slopes for each fixed effect if the model fits were significantly improved until reaching the most complex random effect structure possible for this dataset. All mixed models were fitted in R using the "lme4" package <ref type="bibr" target="#b6">(Bates et al., 2015)</ref>, p-values were obtained by using Satterthwaite's method for approximating degrees of freedom, as implemented in the "lmerTest" package <ref type="bibr" target="#b23">(Kuznetsova et al., 2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Objective performance</head><p>We first examined the overall effect of feedback on objective performance, excluding the factor of time, to determine if this experiment replicates the selective influence of feedback on confidence found in previous studies (Le <ref type="bibr" target="#b45">Van Marcke et al., 2024)</ref>. Consistent with prior findings, the feedback manipulation did not affect accuracy, χ²(1) = 0.16, p = .688 ( <ref type="figure" target="#fig_2">Figure 3A</ref>, left panel).</p><p>However, a small effect on RTs was observed, with slower RTs in the low feedback condition compared to the high feedback condition, F(1,57) = 6.03, p = .017 ( <ref type="figure" target="#fig_2">Figure 3B</ref>, left panel). Trial difficulty significantly influenced both RTs, F(2, 34860) = 343.44, p &lt; .001, and accuracy, χ²(2) = 2074.08, p &lt; .001.</p><p>No interaction was found between trial difficulty and feedback conditions for RTs (F(2,34861) = 0.79, p = .453) or accuracy (χ²(2) = 1.80, p = .407).</p><p>Next, we examined the dynamics of the effect of feedback on objective performance by adding the within-phase trial number as a fixed effect in the mixed models ( <ref type="figure" target="#fig_2">Figure 3A</ref> and 3B, right panel). As anticipated, we found no interaction between feedback condition and within-phase trial in RTs, F(1, 34862) = 0.52, p = .472, nor in accuracy, χ² = 1.40, p = .236. remained constant over the course of a feedback phase. C. Confidence was higher overall for high feedback phases. In contrast with the effect on RTs, confidence ratings gradually increased (resp. decreased) after 10 switching into a high (resp. low) feedback phase, for both correct and incorrect trials. This finding was successfully captured by our learning model. For visualization purposes, the x-axis on the right panel of A-C shows time as means over successive (non-overlapping) groups of 7 trials. D. The influence of feedback on confidence over the course of the experiment can also be appreciated on the unaggregated confidence ratings (correct trials only).</p><p>For visualization purposes, the data was smoothed by applying a rolling mean with a window size of 25 trials. On this plot, participants were split according to which feedback condition they experienced first. Grey dashed lines represent the feedback condition switches. The two curves crossed after each switch, highlighting the fact that confidence gradually increased for participants who entered a high feedback phase, and respectively decreased for participants who entered a low feedback phase. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Confidence</head><p>We next turned to the effect of feedback on confidence ratings. Similar to previous section, we initially fitted a model without the factor of time to determine if the current experiment replicates previous findings. Overall, confidence was higher in the high feedback condition than in the low feedback condition, F(1, 60) = 9.39, p = .003 ( <ref type="figure" target="#fig_1">Figure 2B)</ref>. No Feedback*Trial accuracy interaction was found, F(1,66) = 0.38, p = .540, indicating that the effect of feedback on confidence was similar for correct and incorrect trials. An interaction between trial difficulty and trial accuracy was also found in confidence ratings, F(2, 40561) = 537.40, p &lt; .001, showing higher confidence in correct trials and lower confidence in incorrect trials with easier difficulty levels. There was no interaction between trial difficulty and feedback conditions for confidence, F(2,39512) = 0.19, p = .824.</p><p>Next, we looked at the evolution of confidence over time (trials). If participants learned how to compute confidence from the feedback provided, then we should observe a gradual increase in confidence from the start to the end of a high feedback phase. Similarly, a gradual decrease in confidence is expected in a low feedback phase. To examine this, we added the within-phase trial number as a fixed effect in our mixed models. As predicted, we observed a significant (within-phase)</p><p>Trial*Feedback condition interaction on confidence, F(1, 42699) = 12.27, p &lt; .001. As can be seen in <ref type="figure" target="#fig_2">Figure 3C</ref>, confidence for both correct and incorrect decisions gradually increased over time during high feedback phases, and similarly decreased during low feedback phases. The same finding can be appreciated in the unaggregated data in <ref type="figure" target="#fig_2">Figure 3D</ref>. The fact that this gradual change in the computation of confidence initiated by feedback was not mediated by a change in objective performance suggests that participants selectively updated their confidence computation based on trial-by-trial feedback.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Computational modelling</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1.">Dynamical low-dimensional confidence model (DLDC)</head><p>The DLDC model is an extension of the LDC model (Le , which describes how the outcomes of the DDM process (i.e. evidence and time) are mapped to a confidence estimate. More specifically, confidence in the LDC model is computed according to the following equation:</p><formula xml:id="formula_0">= 1 1 + exp (− 1 √ ( + ))<label>(1)</label></formula><p>where is time, ∈ {−1; 1} is the choice and is total accumulated evidence. The computation of confidence is thus under control of and , which are free but static parameters. In the current dynamic extension, and are dynamically updated weights in a network. These are updated on a trial-by-trial basis such that they minimize the cross-entropy between confidence and feedback, resulting in the following update rule:</p><formula xml:id="formula_1">+1 = + ( − ) * √ (2) +1 = + ( − ) * 1 √ (3)</formula><p>where is the value of at trial , is the learning rate of (and similarly for ), is feedback</p><p>given at trial , is model-predicted confidence at trial , is total accumulated evidence at trial , and is total elapsed time (e.g. RT + confidence RT) at trial . The model starts with initial weights 0 and which represent prior beliefs before the start of the learning process. This model thus has a total of four free parameters: initial weights ( 0 , ) and learning rates ( , ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2.">Model fitting procedure</head><p>Model fitting of accuracy, RT and confidence data was performed in two subsequent steps. In a first step, all accuracy and RT data were fitted separately per participant using the standard DDM with 5 free parameters: decision bound, non-decision time, and a separate drift rate for each of the three difficulty levels. Best-fitting parameters were obtained using quantile optimization <ref type="bibr" target="#b39">(Ratcliff &amp; Tuerlinckx, 2002)</ref>, by minimizing the mean squared error (MSE) between the proportion of observed and model-predicted RTs within each quantile group:</p><formula xml:id="formula_2">= ∑ ∑( , − , )² (4)</formula><p>where , is the proportion of observed trials with accuracy ∈ {correct, error} within the RT quantile and , represents the proportion of predicted trials within the same RT quantiles. The RT distributions were divided in 6 groups formed by quantiles .1, .3, .5, .7 and .9. This optimization step was performed via a differential evolution algorithm implemented in the DEoptim R package <ref type="bibr" target="#b31">(Mullen et al., 2009)</ref>. The algorithm stopped once no improvement of the objective function was obtained for the last 100 generations or until reaching 1000 generations (this latter criterion was never reached).</p><p>The population size was set to 10 times the number of parameters to estimate.</p><p>In a second step, the initial states ( 0 , 0 ) and learning rates ( , ) of our confidence learning model were fit to observed confidence ratings. Since α and β are updated every trial according to the feedback received, single trial values for the inputs of our model (evidence and time) are required. The time input in the model was determined as the sum of decision and confidence RT. As a latent variable, the true amount of accumulated evidence is unknown. We estimated it using the decision bound and drift rates obtained from fitting the DDM to accuracy and RT data in the previous step. By definition, the amount of accumulated evidence at the time of the decision is equal to the decision bound. The total amount of accumulated evidence for a given trial can thus be decomposed as:</p><formula xml:id="formula_3">= + (5)</formula><p>, where ∈ {−1; 1} is the choice, is the decision bound and is the post-decisional accumulated evidence. Note that in the current implementation of DDM, evidence accumulation starts at 0 and continues until reaching boundary or − , hence total evidence at the time of the decision is equal to . Assuming that individuals kept on accumulating evidence until they reported their confidence with no change in drift rate, we obtain <ref type="bibr" target="#b13">(Drugowitsch et al., 2012;</ref><ref type="bibr" target="#b29">Moreno-Bote, 2010;</ref><ref type="bibr" target="#b38">Ratcliff, 1978)</ref>:</p><formula xml:id="formula_4">~ ( , 2 )<label>(5)</label></formula><p>where is the drift rate, is confidence RT and is the DDM accumulator noise (fixed to .1 here).</p><p>Total evidence for each trial is thus estimated by randomly sampling from the normal distribution described in Eq. <ref type="formula" target="#formula_4">5</ref>and adding that to the boundary hit on that trial.</p><p>The meta-parameters (learning rates and starting points) of our model are estimated for each subject by minimizing the MSE between observed and model-predicted confidence ratings of all trials:</p><formula xml:id="formula_5">= ∑( − )² (6)</formula><p>where is the observed confidence judgment at trial and is the model-predicted confidence judgment at trial . Similar to the DDM fitting described in step 1, the fitting of our confidence learning was performed via differential evolution. A new value of for every trial was drawn on every generation to prevent the fitting procedure from depending too much on a specific estimate of .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.3.">Modelling results</head><p>If the behavioral findings are indeed caused by participants learning how to compute confidence from feedback, then these should be well accounted for by the DLDC model which implements this learning process. To verify this, we fitted the learning rates and starting weights of the DLDC model to confidence ratings, separately for each participant. As can be visually appreciated in <ref type="figure" target="#fig_2">Figure 3C</ref>, model fits closely tracked observed confidence ratings. Specifically, our model successfully captured the gradual increase (and respective decrease) in confidence after entering a high (respectively low) feedback block. We tested our learning model's ability to capture the behavioral data by performing the same analysis on model predictions. We generated confidence ratings for each subject using the estimated parameters from their best-fitting model obtained in the model comparison. We first looked at the overall effect of feedback on confidence in both experiments. Model fits fully reproduced the pattern observed in behavioral data, with a main effect of feedback on predicted confidence, F(1,60) = 6.27, p = .015, and no feedback*accuracy interaction, F(1,61) = 1.05, p = .310. We next turned to the dynamics of the effect of feedback on predicted confidence within switch blocks by adding trial to the model. Similarly to behavioral data, there was a significant feedback*trial interaction, F(1,42774) = 103.92, p &lt; .001. Overall, predictions from our learning model reproduced the main behavioral findings, showing that the computation of confidence was dynamically adapted to track feedback.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.4.">Model comparison</head><p>If participants learned how to compute confidence from feedback, then a learning model such as the DLDC model should provide a better fit than a non-learning model. We tested this prediction by comparing the empirical fit of several variants of the DLDC model, including a non-learning model. Given that our model allows for the updating of confidence computation according to two distinct parameters (α and β), there are three possible ways for individuals to change their confidence computation: update α, update β, or update both. Initial values 0 and 0 are estimated in all models, but when α and/or β is updated, we additionally estimated the learning rate of α and/or β (otherwise, learning rates were fixed to 0). In a model recovery analysis, we found that these three dynamic variants are hard to distinguish (due to evidence being an unknown, latent variable; see supplementary results for full details). Nonetheless, learning vs no-learning models can be reliably recovered (despite a general bias towards the no-learning model). For this reason, we grouped all three learning models (α, β, and both) together for the sake of model comparison, and compared learning models versus a non-learning model. In the no learning model, the learning rate for α and β was fixed to 0 (i.e. making it equivalent to the LDC model, (Le Denmat et al., 2024)).</p><p>When looking at the mean Bayesian information criterion (BIC) over participants ( <ref type="figure" target="#fig_4">Figure 4A)</ref>, the no learning model performed considerably worse than the learning models (ΔBIC between no learning and each learning model ranged between 10.29 and 14.64). However, when examining per participant which model provided the best fit ( <ref type="figure" target="#fig_4">Figure 4B</ref>), most participants' data were best explained by the no learning model (34 participants, i.e. 60%). These divergent results between mean BIC and best model per participant suggest that when the learning models won over the non-learning model, they did so by a significantly larger margin than when the non-learning model won. Given the greater complexity of learning models (i.e. more free parameters), the non-learning model would win over the learning models in BIC for equivalently good empirical fits. In contrast, a substantial win by the learning models over the non-learning model can only mean that they better captured some aspects of the data. We thus reasoned that there were two qualitatively different groups of participants, namely those who were best explained by the nolearning model (the static group), and those who were best explained by the one of the learning models (the dynamic group). We hypothesized that participants in the static group showed little to no dynamic change in confidence according to feedback, whereas the confidence of participants in the dynamic group closely tracked feedback. To test this, we reanalyzed the confidence ratings by adding a three-way fixed effect interaction between feedback condition, trial within a feedback block and best-fitting model (learn vs. no learn model) in the mixed model. This three-way interaction was significant, F(2, 1634) = 22.79, p &lt; .001, suggesting that the learning effect of feedback on confidence differed according to the best-fitting model. Further analysis by splitting the dataset according to the best-fitting model revealed no Trial*Feedback condition interaction within the static group, F(1, 25559) = 0.36, p = .549, meaning that these participants did not dynamically adapt their computation of confidence according to feedback. Conversely, we found a highly significant Trial*Feedback condition interaction within the dynamic group, F(1, 16888) = 19.64, p &lt; .001. The disparity between both groups as well as the predictions from both model categories are visually represented in <ref type="figure" target="#fig_4">Figure 4C</ref>-F. The dynamic group showed a strong trend in confidence ratings, uniquely captured by the learning models ( <ref type="figure" target="#fig_4">Figure 4C</ref>), while the static group did not learn from feedback, making the non-learning model sufficient to explain their behavior ( <ref type="figure" target="#fig_4">Figure 4F</ref>).</p><p>To understand better why some participants adapted their computation of confidence based on the feedback while others did not, we analyzed the responses to the post-experiment questionnaire.</p><p>Four questions were asked at the end of the experiment, assessing: (1) how aware participants were of the feedback manipulation, (2) how much they felt feedback helped them assess how well they performed, (3) how much they felt feedback closely tracked their performance and (4) whether they properly understood the feedback they received. We found no difference between the static and dynamic groups in awareness of the manipulation, X²(1) = 0.01, p = .943. However, participants in the dynamic group reported that feedback helped them better assess how well they performed X²(1) = 9.33, p = .002, and reported that feedback better tracked their performance, X²(1) = 9.62, p = .002.</p><p>Finally, more participants in the static group did not properly understand the feedback they received, X²(1) = 464.94, p &lt; .001. 354</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Discussion</head><p>An overlooked aspect about the computation of confidence is that it needs to be learned. In the current work, we reasoned that individuals calibrate their sense of confidence in a statistically efficient manner, by minimizing the prediction error between external feedback and confidence. We tested this hypothesis in a behavioral experiment where two manipulated feedback conditions repeatedly alternated throughout the experiment. As predicted, we found that participants' confidence ratings dynamically tracked feedback, with participants gradually becoming more confident when faced with positive feedback and less confident with negative feedback. To capture these results, we proposed a learning model of confidence in which the parameters underlying the computation of confidence were dynamically updated based on the mismatch (prediction error) between feedback and confidence.</p><p>Model comparison between learning and non-learning models revealed that roughly half of participants dynamically updated their computations of confidence based on the feedback while the other did not. These individual differences were linked to the general understanding of the feedback as well as the perceived pertinence and helpfulness of feedback.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Prediction errors shape confidence</head><p>The current behavioral findings align with previous studies on the effect of feedback on confidence <ref type="bibr" target="#b4">(Baranski &amp; Petrusic, 1994;</ref><ref type="bibr" target="#b17">Haddara &amp; Rahnev, 2022;</ref><ref type="bibr" target="#b19">Katyal et al., 2023;</ref><ref type="bibr" target="#b25">Le Denmat et al., 2024;</ref><ref type="bibr" target="#b43">Soto et al., 2024;</ref><ref type="bibr" target="#b45">Van Marcke et al., 2024)</ref>. In our study, we alternated between more positive and more negative feedback blocks to reveal the rapid time scale of confidence updating. Earlier research instead manipulated feedback through a single training phase (where feedback is presented) followed by a single testing phase (where feedback is no longer presented) <ref type="bibr" target="#b19">(Katyal et al., 2023;</ref><ref type="bibr" target="#b25">Le Denmat et al., 2024;</ref><ref type="bibr" target="#b45">Van Marcke et al., 2024)</ref>. These studies found that feedback during training selectively influenced confidence during testing without affecting objective performance. Our experiment largely replicates these findings, showing that feedback uniquely impacts confidence. Although RTs were overall slightly longer in the low feedback condition, this was not due to a dynamic adaptation to 20 feedback. Instead, confidence gradually increased during high feedback phases and gradually decreased during low feedback phases. This suggests that the influence of feedback on confidence is not due to a change in response strategy but rather results from continuous learning from the feedback received.</p><p>Since our model-generated feedback reflected a model-based estimate of the probability of being correct (rather than a binary label), we essentially investigated the influence of feedback on confidence by inducing confidence biases in different directions. A different approach to studying the effect of feedback on confidence is to manipulate the probability of presenting (always accurate) feedback <ref type="bibr" target="#b4">(Baranski &amp; Petrusic, 1994;</ref><ref type="bibr" target="#b17">Haddara &amp; Rahnev, 2022;</ref><ref type="bibr" target="#b43">Soto et al., 2024)</ref>. This research has generally shown that metacognitive biases can be reduced by providing feedback <ref type="bibr" target="#b4">(Baranski &amp; Petrusic, 1994;</ref><ref type="bibr" target="#b17">Haddara &amp; Rahnev, 2022;</ref><ref type="bibr">but see Soto et al., 2024</ref> for contradicting evidence in children). This result aligns with the current findings and supports the hypothesis that confidence is learned from prediction errors with feedback. Just as we demonstrated that humans progressively bias their confidence in a direction consistent with the biased feedback they receive, our confidence learning hypothesis similarly predicts that they become less biased when learning from unbiased feedback.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">From static to dynamic models of confidence</head><p>Our behavioral findings were successfully accounted for by the DLDC model, a learning model of confidence framed as a single-layer neural network. The dynamic nature of the model was key to capturing the observed patterns in confidence over the course of feedback phases, indicating that the computation of confidence should be treated as a dynamically evolving process. Understanding the computation of confidence in increasingly realistic situations is one of the main goals identified in the field <ref type="bibr" target="#b17">(Rahnev et al., 2022)</ref>. Realistic environments are often volatile (i.e., contingencies change) or completely new. As a result, adaptive agents (including humans) need to constantly question and adjust their confidence to keep it well-calibrated to their performance.</p><p>Although we have to our knowledge provided the first account of trial-by-trial learning of confidence, we are not the first to describe a model of confidence in which learning plays a pertinent role. <ref type="bibr" target="#b47">(Webb et al., 2023)</ref> proposed a deep learning model where the computation of confidence is learned separately from the decision. Specifically, their model takes as input naturalistic images which is passed to a deep neural network encoder. The output of this encoder is then sent to two separate output layers: one designed to produce a decision and the other to predict the probability of that decision being correct (i.e. confidence). By doing so, Webb and colleagues found that their model displayed the same confidence biases as humans, thus pinpointing natural statistics of stimuli as the origin of these biases (as opposed to biased computations of confidence). However, given the complexity of the model and the large number of parameters to optimize, the learning of confidence took place over thousands of trials, which is a very different timescale than the dynamic adjustments of confidence revealed in the current experiment. Future work shall investigate whether we can also scale up our modeling approach to realistic inputs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Extension for the model and future directions</head><p>With the DLDC model, we formalized how individuals learn the posterior probability of making a correct choice by minimizing the prediction error between external feedback and their current confidence. However, individuals do not always have access to feedback. One might thus wonder whether and how that probability can be updated in the absence of feedback. A potential solution is to consider a kind of temporal difference learning rule where instead of feedback, the target would be average past confidence ratings. Such learning mechanism, initially proposed by <ref type="bibr" target="#b36">(Rahnev et al., 2015)</ref> to explain the confidence leak effect (whereby confidence on a given decision influences confidence on the following decision), would allow agents to detect and adapt to changes in the environment. For instance, a context shift from an easy to a hard decision difficulty context would create a mismatch between previously experienced confidence, generally high in an easy context, and confidence in the current decision, which is likely to be lower in a hard context. Individuals would then adapt and learn that they should be less confident in that harder context. Another question that can be explored by our model is the nature of the effective goal function used to learn confidence. It is commonly assumed that the probability of making the correct decision is the optimal computation for confidence, because it is maximally informative about the accuracy of decisions <ref type="bibr" target="#b7">(Calder-Travis et al., 2024;</ref><ref type="bibr" target="#b35">Rahnev &amp; Denison, 2018)</ref>, and can thus be optimally used to adapt behavior <ref type="bibr" target="#b11">(Drugowitsch et al., 2019)</ref>. However, this is not the only functional role of confidence. For instance, in social settings, confidence is also used to enforce one's opinion and push the group towards deciding one's chosen option <ref type="bibr" target="#b48">(Zarnoth &amp; Sniezek, 1997)</ref>. As a result, in a collaborative context it is optimal to match the level of confidence with that of a (potentially biased) collaborator <ref type="bibr" target="#b2">(Bang et al., 2017)</ref>, whereas in a competitive context there can be value in being overconfident <ref type="bibr" target="#b18">(Johnson &amp; Fowler, 2011)</ref>. One could thus consider a more instrumental approach to the learning of confidence, where confidence is dynamically updated to maximize reward instead of matching the probability of making the correct choice. Our model, while still anchored on the probability of making the correct decision, takes a step in that direction by updating its parameters with a computational approach that can be used to optimize any potential confidence function.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Learning model of confidence. A.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Experimental procedure and manipulation. A. Time course of a trial. Participants judged whether a briefly</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Effect of feedback manipulation on behavior. A. Accuracy was unaffected by our feedback manipulation. B. Participants showed overall faster RTs when receiving feedback of higher value, this effect</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>Note: Error bars reflect SEM. Shaded bars on the right panel of C represent SEM of model predictions. Shaded areas of D reflect SEM of behavioral data.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 4 :</head><label>4</label><figDesc>Model comparison. A. Difference in mean BIC over participants with the best-fitting model (lower ∆BIC means more evidence for that model). For learning models, the best ∆BIC over all three models is represented. B. Number of participants best explained by each model in BIC. C-F. Aggregated confidence ratings over the course of a feedback phase using the same conventions asFigure 3C. Behavioral data is split according to the best-fitting model groups (rows). The full learning model (C, E) accurately accounted for the data of both groups, while the non-learning model (D, F) failed to capture the gradual updating of confidence according to feedback in the dynamic group.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>The research was supported by a starting grant from the KU Leuven (STG/20/006, https://www.kuleuven.be/kuleuven/), a Francqui Start-Up Grant from the Francqui</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Foundation</head><p>(PXF-D8830, https://www.francquifoundation.be/) and two grants from the Research Foundation Flanders, Belgium (FWO-Vlaanderen, https://www.fwo.be/) (G0B0521N and G010419N).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Declaration of generative AI and AI-assisted technologies in the writing process</head></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>During the preparation of this work the authors used Microsoft Copilot in order to improve the readability and language of the manuscript. After using this tool, the authors reviewed and edited the content as needed and take full responsibility for the content of the published article.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Code and data availability</head><p>All raw data and code used for this manuscript are openly available here: https://osf.io/cjgz3/?view_only=f6fbf227fd57420abb591498fc8a414c.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Comparing Bayesian and non-Bayesian accounts of human confidence reports</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Adler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1006572</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1006572" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Confidence controls perceptual evidence accumulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Balsdon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mamassian</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-020-15561-w</idno>
+		<ptr target="https://doi.org/10.1038/s41467-020-15561-w" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">1753</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Aitchison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Herce Castanon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Rafiee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mahmoodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y F</forename><surname>Lau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bahrami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Summerfield</surname></persName>
+		</author>
+		<title level="m">Confidence matching in group decision-making</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.1038/s41562-017-0117</idno>
+		<ptr target="https://doi.org/10.1038/s41562-017-0117" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1" to="7" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">The calibration and resolution of confidence in perceptual judgments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">V</forename><surname>Baranski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">M</forename><surname>Petrusic</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; Psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="412" to="428" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/BF03205299</idno>
+		<ptr target="https://doi.org/10.3758/BF03205299" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Fitting Linear Mixed-Effects Models Using lme4</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bates</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mächler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bolker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<idno type="DOI">10.18637/jss.v067.i01</idno>
+		<ptr target="https://doi.org/10.18637/jss.v067.i01" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Software</title>
+		<imprint>
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="page" from="1" to="48" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Bayesian confidence in optimal decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Calder-Travis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bogacz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Yeung</surname></persName>
+		</author>
+		<ptr target="https://ora.ox.ac.uk/objects/uuid:f5696994-8d91-472e-a7a0-" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Confidence predicts speed-accuracy tradeoff for subsequent decisions. eLife, 8, e43499</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Boldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">H</forename><surname>Donner</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.43499</idno>
+		<ptr target="https://doi.org/10.7554/eLife.43499" />
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Subjective Confidence Predicts Information Seeking in Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Boldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Yeung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="761" to="778" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1177/0956797617744771</idno>
+		<ptr target="https://doi.org/10.1177/0956797617744771" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Learning optimal decisions with confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Mendonça</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">F</forename><surname>Mainen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the National Academy of Sciences</title>
+		<meeting>the National Academy of Sciences</meeting>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page" from="24872" to="24880" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1073/pnas.1906787116</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1906787116" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">The Cost of Accumulating Evidence in Perceptual Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moreno-Bote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.4010-11.2012</idno>
+		<ptr target="https://doi.org/10.1523/JNEUROSCI.4010-11.2012" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="3612" to="3628" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Self-evaluation of decision-making: A general Bayesian framework for metacognitive computation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Fleming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page" from="91" to="114" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1037/rev0000045</idno>
+		<ptr target="https://doi.org/10.1037/rev0000045" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Responsebased outcome predictions and confidence regulate feedback processing and learning. eLife, 10, e62825</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Frömer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bruckner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Stürmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Sommer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Yeung</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.62825</idno>
+		<ptr target="https://doi.org/10.7554/eLife.62825" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">The Impact of Feedback on Perceptual Decision-Making and Metacognition: Reduction in Bias but No Change in Sensitivity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Haddara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/09567976211032887</idno>
+		<ptr target="https://doi.org/10.1177/09567976211032887" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="page">9567976211032887</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The Evolution of Overconfidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fowler</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nature10384</idno>
+		<ptr target="https://doi.org/10.1038/nature10384" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">477</biblScope>
+			<biblScope unit="page" from="317" to="320" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Distorted learning from local metacognition supports transdiagnostic underconfidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Katyal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Fleming</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/qcg92</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/qcg92" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Bayesian inference with incomplete knowledge explains perceptual confidence and its deviations from accuracy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Khalvati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P N</forename><surname>Rao</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-021-25419-4</idno>
+		<ptr target="https://doi.org/10.1038/s41467-021-25419-4" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Representation of Confidence Associated with a Decision by Neurons in the Parietal Cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">324</biblScope>
+			<biblScope unit="issue">5928</biblScope>
+			<biblScope unit="page" from="759" to="764" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1126/science.1169405</idno>
+		<ptr target="https://doi.org/10.1126/science.1169405" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">lmerTest Package: Tests in Linear Mixed Effects Models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kuznetsova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Brockhoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H B</forename><surname>Christensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Software</title>
+		<imprint>
+			<biblScope unit="volume">82</biblScope>
+			<biblScope unit="page" from="1" to="26" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.18637/jss.v082.i13</idno>
+		<ptr target="https://doi.org/10.18637/jss.v082.i13" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">A low-dimensional approximation of optimal confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Le</forename><surname>Denmat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Verguts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1012273</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1012273" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Trading mental effort for confidence in the metacognitive control of value-based decision-making. eLife, 10, e63282</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.63282</idno>
+		<ptr target="https://doi.org/10.7554/eLife.63282" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Meyniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sigman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">F</forename><surname>Mainen</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2015.09.039</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2015.09.039" />
+	</analytic>
+	<monogr>
+		<title level="m">Confidence as Bayesian Probability: From Neural Origins to Behavior</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">88</biblScope>
+			<biblScope unit="page" from="78" to="92" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Post choice information integration as a causal determinant of confidence: Novel data and a computational account</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Teodorescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cogpsych.2015.01.002</idno>
+		<ptr target="https://doi.org/10.1016/j.cogpsych.2015.01.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Psychology</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="page" from="99" to="147" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Decision Confidence and Uncertainty in Diffusion Models with Partially Correlated Neuronal Integrators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moreno-Bote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1786" to="1811" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1162/neco.2010.12-08-930</idno>
+		<ptr target="https://doi.org/10.1162/neco.2010.12-08-930" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">DEoptim: An R Package for Global Optimization by Differential Evolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mullen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ardia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Gil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Windover</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cline</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>SSRN Scholarly Paper 1526466</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">The role of decision confidence in advice-taking and trust formation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Pescetelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Yeung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">150</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="507" to="526" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1037/xge0000960</idno>
+		<ptr target="https://doi.org/10.1037/xge0000960" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Two-stage dynamic signal detection: A theory of choice, decision time, and confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Pleskac</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0019737</idno>
+		<ptr target="https://doi.org/10.1037/a0019737" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Suboptimality in perceptual decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Denison</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/S0140525X18000936</idno>
+		<ptr target="https://doi.org/10.1017/S0140525X18000936" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Confidence Leak in Perceptual Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Koizumi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">Y</forename><surname>Mccurdy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1664" to="1680" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1177/0956797615595037</idno>
+		<ptr target="https://doi.org/10.1177/0956797615595037" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295X.85.2.59</idno>
+		<ptr target="https://doi.org/10.1037/0033-295X.85.2.59" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="59" to="108" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Estimating parameters of the diffusion model: Approaches to dealing with contaminant reaction times and parameter variability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Tuerlinckx</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/BF03196302</idno>
+		<ptr target="https://doi.org/10.3758/BF03196302" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="438" to="481" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Signatures of a Statistical Computation in the Human Sense of Confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Sanders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hangya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kepecs</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2016.03.025</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2016.03.025" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">90</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="499" to="506" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">How do humans give confidence? A comprehensive comparison of process models of perceptual metacognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shekhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xge0001524</idno>
+		<ptr target="https://doi.org/10.1037/xge0001524" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">153</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="656" to="688" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title level="m" type="main">The Behavior of Organisms: An Experimental Analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">F</forename><surname>Skinner</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1938" />
+			<publisher>Appleton-Century-Crofts</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">Performance Feedback Triggers Liberal Detection and Perceptual Confidence Biases in Early Childhood: Implications for metacognitive training</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Soto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lallier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Elosegi</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/8u7b5</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/8u7b5" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">526</biblScope>
+		</imprint>
+	</monogr>
+	<note>2nd ed (pp. xxii</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Manipulating Prior Beliefs Causally Induces Under-and Overconfidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Van Marcke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Denmat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="358" to="375" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1177/09567976241231572</idno>
+		<ptr target="https://doi.org/10.1177/09567976241231572" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Natural statistics support a rational account of confidence biases</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Webb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Miyoshi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">Y</forename><surname>So</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Rajananda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lau</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-023-39737-2</idno>
+		<ptr target="https://doi.org/10.1038/s41467-023-39737-2" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">3992</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">The Social Influence of Confidence in Group Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Zarnoth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Sniezek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="345" to="366" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1006/jesp.1997.1326</idno>
+		<ptr target="https://doi.org/10.1006/jesp.1997.1326" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

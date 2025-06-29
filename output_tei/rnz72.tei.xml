@@ -1,0 +1,1005 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Human decision making balances reward maximization and policy compression</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lucy</forename><surname>Lai</surname></persName>
+							<email>lucylai@g.harvard.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Program in Neuroscience</orgName>
+								<orgName type="institution">Harvard University</orgName>
+								<address>
+									<settlement>Cambridge</settlement>
+									<region>MA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Theoretical Sciences Visiting Program</orgName>
+								<orgName type="institution">Okinawa Institute of Science and Technology Graduate University</orgName>
+								<address>
+									<settlement>Onna</settlement>
+									<region>Okinawa</region>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Samuel</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Psychology and Center for Brain Science</orgName>
+								<orgName type="institution">Harvard University</orgName>
+								<address>
+									<settlement>Cambridge</settlement>
+									<region>MA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Human decision making balances reward maximization and policy compression</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:49+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>policy compression</term>
+					<term>action selection</term>
+					<term>reinforcement learning</term>
+					<term>resource rationality</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Policy compression is a computational framework that describes how capacitylimited agents trade reward for simpler action policies to reduce cognitive cost. In this study, we present behavioral evidence that humans prefer simpler policies, as predicted by a capacity-limited reinforcement learning model. Across a set of tasks, we find that people exploit structure in the relationships between states, actions, and rewards to &quot;compress&quot; their policies. In particular, compressed policies are systematically biased towards actions with high marginal probability, thereby discarding some state information. This bias is greater when there is redundancy in the rewardmaximizing action policy across states, and increases with memory load. These results could not be explained qualitatively or quantitatively by alternative models that did not make use of policy compression under a capacity limit. We also confirmed the prediction that time pressure should further reduce policy complexity and increase action bias, based on the hypothesis that actions are selected via time-dependent decoding of a compressed code. These findings contribute to a deeper understanding of how humans adapt their decision-making strategies under cognitive resource constraints. Author summary. Decision making taxes cognitive resources. For example, when shopping for groceries on a budget, we must evaluate which brand of milk offers the best value for the price. But time constraints or mental fatigue can often steer us towards familiar choices, such as sticking to the same brand. As illustrated here, our behavior is undeniably shaped by constraints, or limits, on our cognitive resources. To understand how this resource limitation affects human decision making, we conducted experiments where we manipulated factors such as the number of optimal choices and the time limit within which choices were made. Across three tasks, we found that people effectively utilize structure in the environment and choice-value relationships to condense the amount of information factored into their decision making. This information &quot;compression&quot; biases people towards their past choices. This bias persists even when multiple optimal choices are available, and intensifies under cognitive load and time pressure, as illustrated in our initial example. A mathematical model of decision making under cognitive constraints accurately describes the experimental data. Our findings may have the potential to inform the design of choice environments that better accommodate and align with human decision biases.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Good decisions consume cognitive resources, and therefore the quality of decisions is bounded by the availability of those resources. The concept of "bounded rationality" (doing the best with what one has) has been used as a framework for thinking about how the provision of cognitive resources affects decision making, sometimes leading to decisions that deviate from the idealized behavior of an unbounded agent <ref type="bibr" target="#b0">[1,</ref><ref type="bibr" target="#b1">2,</ref><ref type="bibr" target="#b2">3,</ref><ref type="bibr" target="#b3">4]</ref>. The closely related concept of "resource rationality" interprets bounded rationality through the lens of computational algorithms, where the resources can be formalized in terms of the machine running the algorithms <ref type="bibr" target="#b4">[5,</ref><ref type="bibr" target="#b5">6]</ref>. For example, all machines have physical constraints that limit their capacity to store and transmit information. This capacity limit has important implications for decision making.</p><p>Information theory provides a formalism for understanding storage and transmission capacity limits. The capacity of a channel is defined as the maximal mutual information between its inputs and outputs (also known as the rate), where the maximum is taken over all possible input distributions. In the context of decision making, we can think of the inputs as states (assumed to be observable to the agent) and outputs as actions ( <ref type="figure" target="#fig_0">Fig 1A)</ref>. The state-action mapping is the agent's policy. We refer to the mutual information between states and actions as the agent's policy complexity; the capacity of the action selection channel is thus the maximal policy complexity achievable for that agent. Intuitively, the channel capacity determines the state-dependence of ac-tion selection: more flexible state-action mappings allow an agent to attain greater performance, but the channel capacity limits the agent's ability to discriminate between states by forcing it to encode states with limited fidelity. This implies a trade-off between channel capacity and task performance. Limited capacity forces the agent to "compress" action policies (i.e., reduce their state-dependence), thereby reducing performance <ref type="bibr" target="#b6">[7]</ref>.</p><p>Recent work has used policy compression to explain a wide range of decision making phenomena, such as perseveration <ref type="bibr" target="#b7">[8]</ref>, cognitive deficits in schizophrenia <ref type="bibr" target="#b8">[9]</ref>, mouse navigation <ref type="bibr" target="#b9">[10]</ref>, and undermatching <ref type="bibr" target="#b10">[11]</ref>, among other examples. However, all of these studies have relied on post hoc analyses of data from previously published research. In the current study, we use theory to guide experimental design in order to directly test the unique, key predictions of the policy compression framework. This approach also allows us to explore previously untested hypotheses about learning under cognitive constraints. For example, while some previous work focused on applying policy compression to understand set size effects (a decrease in performance with the number of distinct stimuli to remember; <ref type="bibr" target="#b7">[8,</ref><ref type="bibr" target="#b8">9]</ref>), we ask whether policy compression can systematically vary even when set size is held fixed. Furthermore, <ref type="bibr" target="#b7">[8]</ref> used policy compression to provide a normative explanation for perseveration, the tendency to produce the same action policy across states, irrespective of the reward outcome. By intentionally designing the distribution of rewarded actions, we can directly test the prediction that individuals with low complexity will perseverate "optimally"-that is, in a way that specifically aligns with the distribution of frequently used actions.</p><p>More generally, we hypothesize that structure in the relationships between states, actions, and rewards will shape how agents compress their policies. To test this hypothesis, we design tasks that manipulate the distribution of states and actions. Across three tasks, we show that people adjust their policy complexity in response to the characteristics of their environment. We find that people consistently prefer simpler policies, exploiting structure in the distribution of states and the redundancy of actions across states to compress their policies. As a result, choice behavior is systematically biased towards actions with higher marginal action probabilities, as predicted by policy compression models. Moreover, we show that individuals reduce their policy complexity under time pressure, providing evidence for the hypothesis that actions are selected through time-sensitive decoding of a compressed code <ref type="bibr" target="#b6">[7]</ref>. Our results cannot be explained by alternative models that do not compress policies under a capacity constraint, including those that consider working memory contributions to reinforcement learning <ref type="bibr" target="#b11">[12]</ref>. Taken together, these results provide strong support for policy compression models, illuminating how individuals leverage the structure of the environment to simplify their policies. A state distribution P (s) generates states s that are encoded into memory via an encoder, e(s), yielding a codeword c. The codeword is then mapped onto an action a according to P (a|c). Together, encoding and action selection produce the policy π(a|s) that maps states to actions. Adapted from <ref type="bibr" target="#b6">[7]</ref>. (B) The optimal policy combines state-action values Q(s, a) with a marginal action probability term P (a) that biases the policy towards actions that are chosen frequently across all states. The final term, β, determines the relative contribution of state-action values Q(s, a) and the marginal action probability P (a), thereby controlling how state-dependent action selection is. Example distributions are shown to depict action selection in one example state. (C) A limit on the channel capacity results in a trade-off between reward and complexity, as reflected in (B). The β parameter increases monotonically with policy complexity. Two example policies with different complexities are shown, along with the agent's theoretical capacity limit, C, and aspiration level, R. The light green point on the curve illustrates a low complexity policy (low β), resulting in a distribution of actions that closely resembles the marginal distribution P (a). The dark green point on the curve illustrates a high complexity policy (high β), resulting in a distribution of actions that more closely resembles the state-action values Q(s, a).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Results</head><p>The theoretical framework of policy optimization under an information-theoretic capacity limit along with the actor-critic process model that learns cost-sensitive policies were originally developed in <ref type="bibr" target="#b6">[7]</ref> and <ref type="bibr" target="#b8">[9]</ref>. We review them here for completeness.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Policy compression via capacity-limited reward optimization</head><p>We assume that the optimal policy for an unbounded agent maximizes expected reward:</p><formula xml:id="formula_0">π * = argmax π V π ,<label>(1)</label></formula><p>where V π is the expected reward under policy π:</p><formula xml:id="formula_1">V π = s P (s) a π(a|s)Q(s, a).<label>(2)</label></formula><p>Here P (s) is the probability of state s, and Q(s, a) is the expected reward in state s after taking action a.</p><p>A capacity-limited agent faces the additional constraint that its policy complexity (information rate) cannot exceed its capacity C. Behavioral evidence shows that people are subject to a capacity limit even in simple instrumental learning tasks <ref type="bibr" target="#b11">[12,</ref><ref type="bibr" target="#b7">8]</ref>. Policy complexity is formally defined as the mutual information between states and actions, which measures the average number of bits necessary to encode a policy:</p><formula xml:id="formula_2">I π (S; A) = s P (s) a π(a|s) log π(a|s) P (a) ,<label>(3)</label></formula><p>where P (a) = s P (s)π(a|s) is the marginal probability of choosing action a. Policy complexity is higher when the policy depends strongly on the state: it is maximized when each state maps to a unique action, and it is minimized when the distribution over actions is the same in each state ( <ref type="figure" target="#fig_0">Fig 1B)</ref>. A capacity-limited agent is faced with the optimization problem of maximizing expected reward subject to its capacity limit, C:</p><formula xml:id="formula_3">argmax π V π subject to I π (S; A) = C. (4)</formula><p>Two other necessary constraints (P (a) must be non-negative and sum to 1) are left implicit.</p><p>Another way to view the same problem is to minimize policy complexity subject to a fixed aspiration level R (desired reward rate; see <ref type="bibr" target="#b12">[13]</ref>).</p><formula xml:id="formula_4">argmin π I π (S; A) subject to V π = R.<label>(5)</label></formula><p>The two optimization problems can lead to the same optimal policy if the aspiration level R is chosen to be the highest expected reward achievable under capacity C ( <ref type="figure" target="#fig_0">Fig 1C)</ref>. Both constrained optimization problems can be equivalently expressed and solved in a Lagrangian form:</p><formula xml:id="formula_5">π * = argmax π βV π − I π (S; A) + s λ(s) a π(a|s) − 1 ,<label>(6)</label></formula><p>with Lagrange multipliers β ≥ 0 and λ(s) ≥ 0 (the 3rd term ensures proper normalization, and we will leave it implicit in subsequent equations). Solving Eq. 6 leads to the optimal policy, π * ( <ref type="figure" target="#fig_0">Fig 1B)</ref>  <ref type="bibr" target="#b13">[14,</ref><ref type="bibr" target="#b14">15,</ref><ref type="bibr" target="#b12">13]</ref>:</p><formula xml:id="formula_6">π * (a|s) ∝ exp[βQ(s, a) + log P * (a)],<label>(7)</label></formula><p>which is a softmax function with an added term P * (a) = s P (s)π * (a|s) that biases the policy towards actions that are chosen frequently across all states. The Lagrange multiplier β acts as the familiar "inverse temperature" parameter that regulates the exploration-exploitation trade-off via the amount of stochasticity in the policy <ref type="bibr" target="#b15">[16]</ref>. It also indexes how state-dependent a policy is: When β is close to 0, the policy will be state-independent, driven by actions that are overall chosen more frequently (the P * (a) term). As β increases, the policy will select actions that yield the most reward, conditional on the current state (the Q(s, a) term). The policy also becomes more state-dependent with increasing β, thus increasing policy complexity. Finally, β is also implicitly related to the capacity constraint-its inverse is the slope of the reward-complexity trade-off curve evaluated at the capacity constraint I(S; A) = C:</p><formula xml:id="formula_7">β −1 = dV dI(S; A) .<label>(8)</label></formula><p>In general, there is no analytical form for the mapping from C to β, which means that an agent with access to its capacity may not be able to specify the inverse temperature corresponding to the optimal policy. In previous work <ref type="bibr" target="#b7">[8]</ref>, we have used a variant of the Blahut-Arimoto algorithm <ref type="bibr" target="#b16">[17]</ref>, which iterates between updating π(a|s) according to Eq. 7 and updating P (a) under the current policy, to find the optimal policy. By performing this optimization for a range of β values, we can identify the point on the reward-complexity curve that characterizes the optimal policy for a given capacity constraint, C or a fixed attainable reward, R ( <ref type="figure" target="#fig_0">Fig 1C)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">A process model for learning under constraints</head><p>The Blahut-Arimoto algorithm requires direct knowledge of the state-action value function and is computationally intractable when the state space is large (because it requires marginalization over all states). We therefore derived a tractable process model based on a reinforcement learning (RL) formulation (see also <ref type="bibr" target="#b8">[9]</ref>, <ref type="bibr" target="#b6">[7]</ref>). We can cast the optimization problems in Eqs. 4 and 5 in a form amenable to RL by rewriting the Lagrangian in Eq. 6 (dropping the normalization term for simplicity):</p><formula xml:id="formula_8">π * = argmax π E βr − log π(a|s) P (a) .<label>(9)</label></formula><p>To find the optimal policy π * , the cost-sensitive agent must find the policy parameters θ * that maximize expected reward relative to the policy complexity cost. Throughout this paper, we will use the term policy cost to refer to log π(a|s) P (a) , and policy complexity to refer to its expectation, I π (S; A).</p><p>We define the space of policies by adopting the following functional form:</p><formula xml:id="formula_9">π θ (a|s) ∝ exp[βθ sa + log P (a)],<label>(10)</label></formula><p>where θ sa can be understood as an action "propensity" (the degree to which action a tends to be selected in state s). By modifying the policy parameters θ to follow the gradient of Eq. 9, we obtain a "policy gradient" algorithm <ref type="bibr" target="#b15">[16]</ref>:</p><formula xml:id="formula_10">∆θ =    α θ δ[1 − π θ (a|s)]β</formula><p>for the chosen action −α θ δπ θ (a|s)β for unchosen actions <ref type="bibr" target="#b10">(11)</ref> where α θ is the "actor" (policy) learning rate and</p><formula xml:id="formula_11">δ = βr − log π θ (a|s) P (a) −V (s),<label>(12)</label></formula><p>is the prediction error of the "critic"V (s), which is updated according to:</p><formula xml:id="formula_12">∆V (s) = α V δ,<label>(13)</label></formula><p>where α V is a learning rate. We incrementally estimate the marginal action probabilities with an exponential moving average:</p><formula xml:id="formula_13">∆P (a) = α P [π θ (a|s) − P (a)],<label>(14)</label></formula><p>with learning rate α P . This results in a roughly uniform marginal action distribution and a monotonic rewardcomplexity trade-off. (Left) In this condition, all states share the same rewarded action. This causes the marginal action distribution to be heavily biased towards one action, and results in a non-monotonic reward-complexity trade-off. Note that in this condition, agents could achieve the highest average reward value with a variety of policy complexities. The example points on each plot show different suboptimal policies that can move in the reward-complexity space depending on how β is being updated using the capacity limit C, aspiration level R, or a combination of both.</p><p>Finally, the trade-off parameter β can either be fixed (we call this the "Fixed" model) or adaptively optimized through learning. This can be done in several ways. First, β can be optimized so that policy complexity meets the capacity constraint, C:</p><formula xml:id="formula_14">∆β = α β (C − ξ) ,<label>(15)</label></formula><p>where ξ is the agent's estimate of its own policy complexity, updated with an exponential moving average:</p><formula xml:id="formula_15">∆ξ = α ξ log π θ (a|s) P (a) − ξ ,<label>(16)</label></formula><p>with learning rate α ξ (we fixed α ξ = 0.01). We call this the "Adaptive: Capacity" model. The second way to adaptively optimize β is to target a desired "reward aspiration" level, R:</p><formula xml:id="formula_16">∆β = α β (R − ρ) ,<label>(17)</label></formula><p>where ρ is the agent's current estimate of the average reward, also updated via moving average:</p><formula xml:id="formula_17">∆ρ = α ρ (r − ρ),<label>(18)</label></formula><p>with learning rate α ρ (we fixed α ρ = 0.01). We call this the "Adaptive: Value" model. Finally, we considered a third, hybrid model which combines elements of the first two adaptive models. In this "Adaptive: Capacity-Value" model, the agent considers both capacity and aspiration levels when adaptively optimizing β:</p><formula xml:id="formula_18">∆β = α β C − ξ R − ρ − β .<label>(19)</label></formula><p>This model variant assumes that the dynamics of learning are driven by both the agent's capacity limit and its desired aspiration level. When the current policy complexity ξ deviates from the capacity constraint C more than the current reward ρ deviates from the aspiration level R (i.e., the numerator is larger), β increases in value to increase complexity, as the agent has not yet utilized all of its capacity <ref type="figure" target="#fig_1">(Fig 2, left)</ref>. But when the deviation between current reward and aspiration level is greater than the deviation between policy complexity and capacity (i.e., the denominator is larger), the current policy is suboptimal and lies below the optimal trade-off curve <ref type="figure" target="#fig_1">(Fig 2, right)</ref>. As a result, β decreases in value to decrease complexity and move closer to the optimal rewardcomplexity trade-off. This method of optimizing β allows the agent to flexibly adapt to a variety of environments with different reward-complexity trade-off landscapes. In the Discussion, we give more context for how aspiration levels might factor into decision making.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Linking policy cost to response time</head><p>In previous work <ref type="bibr" target="#b6">[7]</ref>, we argued that response time (RT) should be a linear function of policy complexity, which can be manipulated even when the number of states is held fixed <ref type="bibr" target="#b17">[18]</ref>. Consistent with this prediction, we found that lower policy complexity significantly predicted shorter response times in a contextual multi-armed bandit task <ref type="bibr" target="#b6">[7,</ref><ref type="bibr" target="#b18">19]</ref>. By explicitly relating trial-by-trial policy cost to RT, we are able to further test this prediction in a fine-grained way.</p><p>To build response time predictions into our model, we make two assumptions. First, we assumed that RT is monotonically related to the policy cost, log π θ (a|s) P (a) . Second, we assumed that RT is monotonically related to the entropy of the policy on a given trial:</p><formula xml:id="formula_19">H = − a π θ (a|s) log π θ (a|s).<label>(20)</label></formula><p>This assumption is based on the idea that greater "action uncertainty" (i.e., more dispersed policies) should produce slower RTs <ref type="bibr" target="#b19">[20,</ref><ref type="bibr" target="#b20">21,</ref><ref type="bibr" target="#b21">22]</ref>. For example, if the action probabilities are all similar (i.e., if π(a|s) is roughly uniform), we should expect high uncertainty and a slow RT. This assumption captures the overall decrease in RT due to learning, as policies tend to become more "peaked," or lower in entropy, over the course of the task. Note that policy complexity alone cannot capture this pattern, because in some conditions policy complexity increases over the course of learning while RTs continue to decline. Using these two quantities, we can specify a simple linear regression model relating policy cost and entropy to response time (in milliseconds) <ref type="bibr" target="#b22">[23]</ref>:</p><formula xml:id="formula_20">log RT = log t 0 + b 1 log π θ (a|s) P (a) + b 2 H + ϵ (21)</formula><p>where t 0 is non-decision time and ϵ ∼ N (0, σ 2 ) is Gaussian random noise. We found a good fit with t 0 = 150ms and σ = 0.9.</p><p>To account for the hypothesized effects of time pressure on choice behavior, we chose to fit one separate parameter in the Adaptive models that was specific to Task 3. This parameter (C reduced for the Capacity and Capacity-Value models and R reduced for the Value model) assumes that time pressure would compress agents' policies via a decrease their capacity limit C or aspiration level R for that condition.</p><p>To summarize, we consider the following policy compression model variants: the Fixed model (with free parameters β, α θ , α V , α P , b 1 , b 2 ), the Adaptive: Capacity model (with free parameters</p><formula xml:id="formula_21">C, C reduced , β 0 , α β , α θ , α V , α P , b 1 , b 2 ), the Adaptive: Value model (with free parameters R, R reduced , β 0 , α β , α θ , α V , α and the Adaptive: Capacity-Value model (with free parameters C, C reduced , R, β 0 , α β , α θ , α V , α P , b 1 , b 2 ).</formula><p>We also considered one additional variant of the Fixed model, which fit one β value to each task condition (see Methods for more details).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Alternative models</head><p>Our policy compression models make the key assumption that human choice behavior and RT are sensitive to the marginal action probability and policy complexity. To test this claim, we compared our cost-sensitive models to several alternative models that do not penalize policy complexity. First, we consider a standard RL model of choice <ref type="bibr" target="#b15">[16]</ref>, where an agent learns action-values for each state, Q(s, a), by updating it's estimate on each trial using a delta rule <ref type="bibr" target="#b23">[24]</ref>:</p><formula xml:id="formula_22">∆Q(s, a) = α Q δ,<label>(22)</label></formula><p>where</p><formula xml:id="formula_23">δ = r − Q(s, a)<label>(23)</label></formula><p>is the reward prediction error, α Q is the learning rate, and r is the reward received on the current trial after taking action a in state s. These state-action values are then transformed into choice probabilities via a softmax function:</p><formula xml:id="formula_24">π(a|s) ∝ exp[βQ(s, a)],<label>(24)</label></formula><p>where β is the inverse temperature parameter. We call this the "No Cost" model. We also considered a version of the reinforcement learning working memory (RLWM) model that has been studied extensively by Collins and colleagues <ref type="bibr" target="#b11">[12,</ref><ref type="bibr" target="#b24">25,</ref><ref type="bibr" target="#b18">19,</ref><ref type="bibr" target="#b25">26]</ref>. This model captures the parallel recruitment of working memory (WM) and reinforcement learning (RL) by simultaneously training two learning modules. The RL module is characterized by Eqs. 22 and 23. The WM module learns stimulus-response associations W (s, a) with a fixed learning rate α W M = 1:</p><formula xml:id="formula_25">∆W (s, a) = α W M [r − W (s, a)],<label>(25)</label></formula><p>which means that it has the advantage of perfect learning of the observed outcome, in contrast to a gradual RL process. However, because working memory is vulnerable to short-term forgetting, the WM module also includes trial-by-trial decay of W :</p><formula xml:id="formula_26">∆W = ϕ(W 0 − W )<label>(26)</label></formula><p>where ϕ draws W (over all stimuli and actions) toward their initial values W 0 = 1 n A , and n A is the number of actions. Additionally, to capture the asymmetrical effects of learning from positive and negative feedback, the learning rates in Eqs. 22 and 25 are scaled whenever the agent receives "incorrect" feedback on a given trial: α = γα <ref type="bibr" target="#b26">(27)</ref> where γ controls the degree of perseveration (with lower values causing more perseveration).</p><p>The WM and RL policies (π RL and π W M ) are computed using the respective softmax functions:</p><formula xml:id="formula_27">π RL (a|s) ∝ exp[β RL Q(s, a)] π W M (a|s) ∝ exp[β W M W (s, a)].<label>(28)</label></formula><p>We set both β RL and β W M to 50. The two policies are then combined in the final policy π via a weighted sum:</p><formula xml:id="formula_28">π(a|s) = wπ W M (a|s) + (1 − w)π RL (a|s),<label>(29)</label></formula><p>where w represents the contribution of WM to choice behavior and is itself modulated by two additional parameters, the working memory capacity C, and the initial WM weighting ρ:</p><formula xml:id="formula_29">w = ρ • min 1, C n S ,<label>(30)</label></formula><p>where n S is the set size, or number of unique stimuli (in our study, set size is always fixed at n S = 3).</p><p>Note that while both the policy compression and RLWM models have a capacity parameter C, the interpretation is slightly different. In the policy compression model, C defines an upper bound on mutual information, while in the RLWM model, C is the number of items that can be held in working memory. Therefore, if the set size exceeds the capacity C, the influence of WM on action selection is reduced.</p><p>To build RT predictions into both the "No Cost" and "RLWM" model, we borrow from <ref type="bibr" target="#b21">[22]</ref> who used an evidence accumulation model, the Linear Ballistic Accumulator (LBA), to link choice probabilities to trial-by-trial response times. Specifically, there are individual evidence accumulators for each action that "race" and terminate at an upper bound. In the basic LBA model, the drift rate of each accumulator v i on each trial is scaled proportionally by its associated action probability from the policy π:</p><formula xml:id="formula_30">v i = ηπ(a i |s)<label>(31)</label></formula><p>where η is a scaling parameter. The RT is the time it takes for the winning accumulator to reach the terminating threshold, and therefore also determines the selected action. This model of RT is consistent with assumptions from the actor-critic framework, where state-action weights in the striatum govern decision latency. Similar to our RT model, <ref type="bibr" target="#b21">[22]</ref> additionally assume that prior uncertainty over actions would influence decision time. This prior uncertainty term H prior was modeled by computing an average policy ⃗ π µ that averages action weights for each action over each state and across all states:</p><formula xml:id="formula_31">⃗ π µ = 1 n S s π(a|s)<label>(32)</label></formula><p>This vector represents the probability of choosing each of the three actions prior to encoding the current trial's stimulus. The degree of uncertainty over this prior on each trial is then computed via the Shannon entropy:</p><formula xml:id="formula_32">H prior = − ⃗ π µ log 2 ⃗ π µ (33)</formula><p>This quantity is then used to scale down the drift rates of each accumulator by the degree of uncertainty associated with taking any particular action in that trial:</p><formula xml:id="formula_33">v i = η π(a i |s) H prior<label>(34)</label></formula><p>To generate RTs in the No Cost and RLWM models, we draw each accumulator's starting point k i from a uniform distribution on the interval [0, A]. The drift rate of each accumulator</p><formula xml:id="formula_34">d i is drawn from a normal distribution, N (v i , s v ),</formula><p>where v i is calculated from Eq. 34 using the respective π for each model (i.e., Eq. 24 for the No Cost model and Eq. 29 for the RLWM model). On each trial, each accumulator's time to threshold T i can be computed via:</p><formula xml:id="formula_35">T i = t 0 + B − k i d i ,<label>(35)</label></formula><p>where B is the LBA threshold bound. The agent's choice and corresponding RT is determined by the accumulator that reaches threshold first (thereby generating the minimum RT):</p><formula xml:id="formula_36">a = min(T )<label>(36)</label></formula><p>The RLWM model was originally developed to capture behavior in an instrumental learning task that examined the effects of memory load on learning and action selection (by varying the set size over blocks). Collins and Frank <ref type="bibr" target="#b11">[12]</ref> showed that the trade-off between RL and WM is influenced by set size, where lower set sizes lead to more WM-driven learning and higher set sizes lead to more RL-driven learning. While the RLWM model successfully captures a wide range of behavioral effects, there is no mechanism for optimizing a trade-off between reward and policy complexity. In our study, we used a simple instrumental learning task to show that human choice behavior conforms to the unique predictions of our policy compression model, and that alternativee models that do not penalize policy complexity cannot adequately capture our results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Experimental Tasks</head><p>Subjects completed a series of three instrumental learning tasks that all shared the same experimental structure <ref type="figure" target="#fig_2">(Fig 3)</ref>. Subjects were instructed to learn which of three key press responses was associated with a particular image stimulus to maximize reward. On each trial, subjects saw a single stimulus and were required to respond with a key press in under 2 seconds (with the exception of Task 3). Each stimulus was associated with one or more optimal (highest probability of reward) response. After making a response, subjects were given probabilistic feedback indicating whether Example experiment structure for one subject. The order of the three tasks, as well as the conditions within each task, were randomized across subjects. their response was "correct" (a reward of +1 is earned) or "incorrect" (no reward is earned). If no response was made, the trial would be counted as "incorrect" and the next trial would begin. Subjects were told to maximize their payout, proportional to the number of "correct" responses made over the entire task. Each stimulus was presented 20 times in each task block (with the exception of Task 1).</p><p>Each task consisted of two block conditions, which we refer to as Q1 and Q2. In Task 1, both conditions shared the same reward function, but differed in their stimulus distribution (some stimuli appeared more frequently than others). In Task 2, the two conditions differed in their reward functions and the number of optimal responses per state. We carefully designed Q1 and Q2 to have the same average and maximum reward values to control for motivational effects. In Task 3, both conditions again shared the same reward function, but differed in the time limit within which subjects were required to make their response. Task order and block condition order within tasks were randomized across subjects. We encouraged independent learning of responses across stimuli by informing the subjects that multiple stimuli could share the same optimal response, or that a single state could have more than one optimal response. Finally, we ensured that subjects would not be biased towards any particular key on the keyboard by randomizing the mapping between stimuli and optimal responses, as well as the physical location of optimal responses in each task and condition. However, for the purpose of standardizing our data analysis, we remapped both stimuli and subjects' responses to be consistent with the depicted reward functions in Figs 4, 5, and 7.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.1">Model fitting and comparison</head><p>We used maximum likelihood estimation to jointly fit choice and response time data for each subject. We fit one set of parameters per subject to capture their performance across all three tasks. In our quantitative model comparison, we found that many of the policy compression models scored very close in BIC (see <ref type="figure" target="#fig_0">S1 Fig for more details)</ref>. As a result, we focus on qualitative model predictions to adjudicate between models. We simulated data from all candidate models and compared the dynamics of policy complexity, average reward, and response time during learning to determine the overall winning model. We also plotted the dynamic reward-complexity tradeoff plot for each model, which shows on average, how subjects' policy complexity and reward evolve together over the course of each task. Lastly, we analyzed the correlation between RT and policy complexity (S2 <ref type="figure" target="#fig_2">Fig, S3 Fig, S4 Fig)</ref>.</p><p>Across all three tasks, the "Adaptive: Capacity-Value" model came closest to capturing the dynamics of learning in subjects' data in all three tasks. Though this model scored close to the "Adaptive: Capacity" and "Adaptive: Value" models in quantitative model comparison metrics, the other two adaptive models could not capture key aspects of the learning dynamics in Tasks 2 and 3 (S3 <ref type="figure" target="#fig_8">Fig, S4 Fig)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.2">State frequency biases action selection</head><p>In Task 1, we asked whether an asymmetric state distribution, P (s), would bias behavior in line with predictions of our policy compression model <ref type="figure">(Fig 4)</ref>. To do this, we varied the number of stimulus presentations in each condition. In Q1, all three stimuli were presented an equal number of times (20 presentations/stimulus, P (s) = 0.33 for all stimuli), while in Q2, one randomly chosen stimulus appeared three times more frequently than the others (60 presentations or P (s) = 0.6 for the chosen stimulus, 20 presentations or P (s) = 0.2 for the other two). Each stimulus had one unique optimal response that delivered the highest probability of reward (bolded), and two suboptimal responses that were equal in reward probability (green, orange, and purple boxes).</p><p>As a result of this stimulus frequency manipulation, the marginal distribution over actions, P (a), should differ in Q1 and Q2 ( <ref type="figure">Fig 5A)</ref>. In Q1, all three actions should be chosen roughly equally, while in Q2, the optimal action A 1 should be overall chosen more frequently than the other two actions, simply because S 1 appears more often. The policy compression model, but not the standard RL or RLWM models, predicts that this increased action frequency should bias action selection overall because of how the marginal action distribution enters into the optimal policy (Eq. 10). As a result, subjects should show a preference for A 1 even in other states, and <ref type="figure">Figure 4</ref>: Action selection is biased by the state distribution. (A) Task 1 consisted of two conditions, Q1 and Q2, that shared the same reward function but differed in their state distribution (optimal actions for each state are in bold). As a result, the marginal action probability, P (a), in Q2 is biased towards the optimal action of the state that appears most frequently (e.g., A 1 for S 1 ). (B) (Top) Policy complexity, average reward, stochasticity, and response time (RT) as a function of the two task conditions. (Middle) Qualitative behavioral predictions of the policy compression model. (Bottom) Qualitative behavioral predictions shared by the standard RL and RLWM models. (C) The proportion of suboptimal actions chosen in each state. The marginal action probability resulting from the asymmetrical state distribution causes subject's behavior to be biased towards A 1 despite both suboptimal actions sharing the same expected reward value. The policy compression model alone predicts this action preference, and this bias does not appear for the suboptimal actions in condition Q1. All error bars indicate standard error. over other suboptimal actions with equal reward probability. This action preference should only be present in Q2 and not in Q1. Finally, the policy compression model predicts overall higher expected reward values than the standard RL and RLWM models because of how the relationship between policy complexity and reward changes with the state distribution ( <ref type="figure">Fig 5B, second row</ref>; see also <ref type="bibr" target="#b13">[14]</ref>). This reward advantage should be greater for individuals with low complexity.</p><p>In <ref type="figure">Fig 4B,</ref>  As predicted, there was no systematic action preference in Q1, where both the state and marginal action distribution was uniform <ref type="figure">(Fig 4C, left)</ref>. However, in Q2 subjects significantly preferred A 1 over the other suboptimal action in states S 2 and S 3 , despite the probability of reward for both actions being equal [∆P (A) for S 2 : t(199)=3.541, p&lt;0.001; Cohen's d=0.250 and ∆P (A) for S 3 : t(199)=2.182, p=0.030; Cohen's d=0.154], although the size of this effect is relatively small <ref type="figure">(Fig 4C, right)</ref>. There was no difference in the proportion of suboptimal actions chosen in the high-frequency state S 1 [t(199)=0.125, p=0.900; Cohen's d=0.009].</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.3">Action frequency biases action selection</head><p>In Task 2, we directly tested the prediction that the marginal action distribution, P (a), biases subjects' behavior ( <ref type="figure">Fig 5)</ref>. To do this, we designed task conditions to vary in the number of shared optimal responses across stimuli. In Q1, each stimulus was associated with one unique optimal response that delivered deterministic reward, but in Q2, states S 2 and S 3 each had two optimal responses that both delivered deterministic reward <ref type="figure">(Fig 5A)</ref>. Critically, one of these optimal responses, A 1 , was shared across all three states. We predicted that in Q2, subjects would be more likely to choose the shared action over the other optimal action, despite both actions delivering deterministic reward. Additionally, we predicted that policy complexity would be lower and average reward higher in Q2 than in Q1, as the reward function in Q2 encourages policy compression via reliance on the marginal action distribution. This essentially means that in Q2, subjects can earn more reward than in Q1 with a less complex policy.</p><p>In <ref type="figure" target="#fig_2">Fig 3B,</ref> we show aggregated subject data and compare it to the qualitative predictions of each model. As predicted, policy complexity was lower in Q2 [t(199)=2.8213, p=0.0052; Cohen's d=0.199], yet average reward earned was higher [t(199)=-12.5759, p&lt;0.0001; Cohen's d=-0.889]. Stochasticity was significantly lower in Q2 [t(199)=9.8321, p&lt;0.0001; Cohen's d=0.695], as well as response time [t(199)=7.1026, p&lt;0.0001; Cohen's d=0.502]. Note that for this task, the policy compression model makes very similar qualitative predictions on most behavioral measures as <ref type="figure">Figure 5</ref>: Action selection is biased by the marginal action distribution. (A) Task 2 consisted of two conditions, Q1 and Q2, that differed in the number of optimal actions per state (bolded). As a result, the marginal action probability, P (a), in Q2 is biased towards the optimal action that is shared across all states (e.g., A 1 ). (B) (Top) Policy complexity, average reward, stochasticity, and response times (RT) as a function of the two task conditions. (Middle) Qualitative behavioral predictions of the policy compression model. (Bottom) Qualitative behavioral predictions shared by the standard RL and RLWM models. (C) The proportion of actions with the same reward probability chosen in each state. The biased marginal action probability causes subjects to prefer A 1 over another optimal action that is equally rewarding. The policy compression model alone predicts this action preference. This biased preference does not appear for actions that share the same reward probability in condition Q1. All error bars indicate standard error. the standard RL and RLWM models. However, key differences are revealed when looking at subjects' action preferences in each condition <ref type="figure">(Fig 5C)</ref>.</p><p>As predicted, there was no systematic action preference in Q1 where the marginal action distribution was uniform <ref type="figure">(Fig 5C, left)</ref>. However, in Q2 subjects again significantly preferred A 1 over the other optimal action in states S 2 and S 3 , despite the both actions delivering deterministic reward [∆P (A) for S 2 : t(199)=4.350, p&lt;0.001; Cohen's d=0.308 and ∆P (A) for S 3 : t(199)=4.763, p&lt;0.001; Cohen's d=0.337] <ref type="figure">(Fig 5C, right)</ref>. There was no difference in the proportion of suboptimal actions chosen in the state with only one optimal action, S 1 [t(199)=-0.698, p=0.486; Cohen's d=-0.049]. This behavioral bias is a clear deviation from the predictions of the standard RL and RLWM models, in which both optimal actions should be chosen equally. Notably, the size of this action bias is much larger in Task 2 than in Task 1: directly manipulating the action distribution produces a stronger action biases than attempting to manipulate it through state frequency.</p><p>We have focused our current analysis of action bias within one set size condition. However, a natural follow-up question is whether this bias increases as a function of set size. In previous work, we have shown that average policy complexity does not vary monotonically across set sizes, indicating a roughly constant resource constraint <ref type="bibr" target="#b8">[9]</ref>. We interpreted this finding as consistent with the hypothesis that set size effects reflect the redistribution of a fixed resource across more states, resulting in lower precision per state <ref type="bibr" target="#b26">[27]</ref>. Therefore, we should expect signatures of policy compression (in this case, a bias towards actions that are high in marginal probability) to increase with set size.</p><p>We confirmed this prediction by re-analyzing data from <ref type="bibr" target="#b25">[26]</ref>, which used a similar instrumental learning task to study learning across various set sizes with deterministic rewards (N = 40, <ref type="figure">Fig 6)</ref>. By taking block conditions where optimal actions were shared across 2 or more states, we computed the difference between suboptimal actions in states for which the optimal action was not high in marginal probability ( <ref type="figure">Fig 6A)</ref>. In <ref type="figure">Fig 6B,</ref> we first show that across all set sizes, suboptimal actions that have high marginal probability are chosen more frequently over other suboptimal actions (p&lt;0.001 for all set size conditions). We then show that the action bias, or the difference between the proportion of suboptimal actions chosen, ∆P (A) = P (A 1 ) − P (A 2 ), does increase slightly as a function of set size, though this increase is non-linear and possibly non-monotonic ( <ref type="figure">Fig 6C)</ref>. This may be due to averaging across various block conditions within one set size. For example, some blocks by design may have produced a stronger influence of the marginal probability on choice (i.e., optimal actions were shared across a majority of the states), while others may have produced less of an effect.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.4">Time pressure compresses policies</head><p>Now that we have shown that choice behavior aligns uniquely with the predictions of the policy compression model, we turn our attention to the hypothesis that actions are generated by time- <ref type="figure">Figure 6</ref>: Bias scales with set size. (A) An example of our analysis method from a condition where the set size, or number of states (nS), was 4. We averaged the proportion of suboptimal actions in states for which the optimal action was not high in marginal probability. (B) The average proportion of suboptimal actions that aligned with the high marginal probability (A 1 ), and those that did not (A 2 ) for each set size condition. (C) The difference between the proportion of suboptimal actions chosen as a function of set size. Error bars indicate standard error. Data source: <ref type="bibr" target="#b25">[26]</ref>. dependent decoding. To perfectly decode an action from a state, the optimal policy complexity required is log N , where N is the number of actions <ref type="bibr" target="#b19">[20,</ref><ref type="bibr" target="#b6">7]</ref>. In a Huffman code, the policy complexity corresponds to the number of bits that need to be inspected to reveal the coded action. If bits are inspected at a constant rate, response time should be a linear function of policy complexity, which can vary even when the number of states is held fixed (such as in our tasks).</p><p>We reasoned that time pressure should further reduce policy complexity in a capacity-limited agent by limiting the amount of time allowed for decoding actions from states. This is also the assumption that we built into our model linking trial-by-trial RT to policy cost. In Task 3, we tested this hypothesis by designing two task conditions that shared the same reward function but differed in the time allowed for subjects to make their response <ref type="figure">(Fig 7A)</ref>. In Q1, subjects were allowed 2 seconds to make their key press response (as in the other two tasks), while in Q2, they were only given 1 second. If subjects failed to respond within the 1 second time window, they were shown a warning message that encouraged them to respond faster or risk having their bonus for the task withheld. Importantly, the marginal action probability was concentrated on one action, as two out of the three states shared an optimal action that delivered deterministic reward. We predicted that under time pressure (Q2), subjects would further compress their policies, reducing policy complexity and choosing suboptimal actions more often <ref type="figure">(Fig 7A, boxed.</ref> Here, we define suboptimal action as the action with the second highest reward probability). In particular, we predicted that subjects would be biased to choose A 1 in S 3 more often than when not under time pressure (purple box), but that there would be no difference in the expression of suboptimal action A 2 in S 1 and S 2 (green and orange boxes) across conditions. This is because the marginal action distribution is concentrated on A 1 rather than A 2 .</p><p>In <ref type="figure">Fig 7B,</ref> we show aggregated subject data and compare it to the qualitative predictions of each model. As predicted, policy complexity was significantly lower in the time pressure condition (Q2) [t(199)=7.082, p&lt;0.001; Cohen's d=0.501], as well as average reward [t(199)=6.948, <ref type="figure">Figure 7</ref>: Policies are compressed under time pressure. (A) Task 3 consisted of two conditions, Q1 and Q2, that shared the same reward function (optimal actions in bold) but differed in the time allowed for subjects to make their response. In this task, the marginal action probability, P (a), is the same for both conditions, and is biased towards one action, A 1 . (B) (Top) Policy complexity, average reward, stochasticity, and response times (RT) as a function of the two task conditions. (Middle) Qualitative behavioral predictions of the policy compression model. (Bottom) Qualitative behavioral predictions shared by the standard RL and RLWM models. (C) The proportion of suboptimal actions chosen in each state. Under time pressure (condition Q2), there is a greater influence of the marginal action probability on choice behavior. Subjects choose suboptimal action A 1 in S 3 more often than they did when given more time to respond. The policy compression model alone predicts this action preference. All error bars indicate standard error. In the standard RL and RLWM models, there is no mechanism for how time pressure should change subjects' policies, and therefore no predicted qualitative differences between Q1 and Q2.</p><p>As predicted by the policy compression model, there was no difference in the proportion of suboptimal actions chosen between conditions in S 1 and S 2 [∆P (A) for S 1 : t(199)=-1.181, p=0.239; Cohen's d=-0.0835 and ∆P (A) for S 2 : t(199)=-1.061, p=0.290; Cohen's d=-0.075] <ref type="figure">(Fig 7C)</ref>. However, in Q2 subjects were biased to choose A 1 in S 3 more often than in Q1, indicating greater policy compression and an increased reliance on the marginal action probability when under time pressure. [∆P (A) for S 3 : t(199)=4.488, p&lt;0.001; Cohen's d=0.317]. This increased influence of the marginal action distribution is not predicted by the standard RL and RLWM models, in which suboptimal actions should be chosen equally across conditions in all states, regardless of time limits on response.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Complexity, redundancy, and bias</head><p>We now summarize and follow up the key results from our within-subject analyses with betweensubject analyses that highlight systematic differences in individuals' behavior across all three tasks. First, the state distribution affects the relationship between reward and policy complexity in the compression framework. An asymmetrical state distribution makes it possible for subjects to earn more reward with the same policy complexity <ref type="figure">(Fig 4B, middle)</ref>. This reward advantage is more pronounced at low complexities, since it is more efficient to focus one's limited cognitive resources on states that appear most frequently. In line with this prediction, we found that subjects' action bias (i.e., the bias towards choosing a suboptimal action with high marginal probability over another suboptimal action with the same reward probability) decreased as a function of policy complexity, although this effect is small [Pearson's correlation (pooled across Q1 and Q2): r=-0.179, p=0.011] <ref type="figure" target="#fig_5">(Fig 8A)</ref>. In other words, subjects-and especially those with low complexity-are able to take advantage of their action bias to earn more reward under a policy compression strategy. This pattern of choice bias is distinct from a standard RL or RLWM strategy where action selection in each state is treated independently.</p><p>Second, this perseverative action bias is even greater when there is redundancy in the rewardmaximizing policy across states. Even when there was more than one optimal action per state, subjects consistently preferred the optimal action with a higher marginal action probability. This action bias was, again, more pronounced for individuals with low complexities. We found a strong negative correlation between action bias and policy complexity [Pearson's correlation (pooled across Q1 and Q2): r=-0.714, p&lt;0.001] <ref type="figure" target="#fig_5">(Fig 8B)</ref>.</p><p>Finally, we provided evidence for a strong relationship between time pressure and policy com- pression: with less time to decode actions from states, subjects reduce their policy complexity and sacrifice reward, overall relying more on their action history to make choices under a tight time constraint. Notably, subjects' decrease in policy complexity under time pressure was was correlated with their increase in choosing suboptimal actions with high marginal probability [Pearson's correlation (pooled across Q1 and Q2): r=0.630, p&lt;0.001] <ref type="figure" target="#fig_5">(Fig 8C)</ref>. The relationship between response time and policy complexity is not only present in Task 3; indeed, there is a strong positive correlation between RT and complexity in all three tasks [Task 1: Pearson's correlation: r=0.513 for Q1, r=0.609 for Q2, both p&lt;0.001; Task 2: Pearson's correlation: r=0.591 for Q1, r=0.669 for Q2, both p&lt;0.001; Task 3: Pearson's correlation: r=0.638 for Q1, r=0.563 for Q2, both p&lt;0.001], a feature that can only be replicated by the policy compression models <ref type="figure" target="#fig_1">(Fig S2 Fig, Fig S3, and Fig S4)</ref>. On the other hand, both the standard RL ("No Cost") and RLWM models predict a negative relationship between policy complexity and RT, which is a clear deviation from the data (see panels E and F of <ref type="figure" target="#fig_1">Fig S2, Fig S3, and Fig S4)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Discussion</head><p>In this paper, we tested the hypothesis that humans prefer simpler policies, as predicted by a capacity-limited reinforcement learning model. Across three tasks, we found that human subjects utilize structure in the relationship between states, actions, and rewards to "compress" their policies. This strategy allows subjects to discard some state information (i.e., reduce their policy complexity) without sacrificing reward. As a consequence of policy compression, people are systematically biased towards actions they have chosen most frequently in the past. This bias persists even when multiple optimal actions are available, and increases under both time pressure and memory load. These results are uniquely explained by models that balance between two computational goals: reward maximization and policy compression under a capacity limit. We found that the "Adaptive: Capacity-Value" model best described our data on both quantitative and qualitative measures. This model assumes that the dynamics of learning are driven both by the agent's capacity limit as well as a desired aspiration level. We found that this method of optimizing the policy allowed agents to flexibly adapt to a variety of environments with different reward-complexity trade-off landscapes, such as in our different task conditions. Recall that the policy compression theory assumes that learned policies have complexities that equal an agent's capacity limit. However, there may be situations where agents choose instead to "satisfice" at some aspiration level (for example, an agent might be content with an average reward value of 0.8) and not make use of all their computational resources. In fact, previous work has shown sensitivity of human decision to aspiration level, in simple as well as in more complex behaviors such as financial investing <ref type="bibr" target="#b27">[28,</ref><ref type="bibr" target="#b28">29,</ref><ref type="bibr" target="#b29">30]</ref>. Future models should consider the effects of a desired aspiration level on the dynamics of learning and decision making.</p><p>Our study is the first designed to directly test the unique behavioral predictions of the policy compression framework, which has already enjoyed success in explaining a range of behavioral phenomena. A key distinguishing feature of our model from others that consider both RL and memory capacity (such as the RLWM model <ref type="bibr" target="#b11">[12]</ref>) is the application of rate-distortion theory <ref type="bibr" target="#b30">[31,</ref><ref type="bibr" target="#b31">32]</ref> to reinforcement learning to characterize decision-making under a capacity limit. This framework allows us to derive the form of an optimal policy and the accompanying process model that optimizes the trade-off between reward and policy complexity <ref type="bibr" target="#b13">[14,</ref><ref type="bibr" target="#b7">8,</ref><ref type="bibr" target="#b6">7]</ref>.</p><p>Our modeling framework allows us to interpret well-studied phenomena through a new, normative lens. For instance, though many previous studies have examined the influence of time constraints on choice behavior <ref type="bibr" target="#b32">[33,</ref><ref type="bibr" target="#b33">34]</ref>, policy compression offers a normative rationale for the relationship between response time and policy complexity. Time pressure reduces an agent's capacity limit, shortening the expected codelength that determines how long it takes to decode actions from state representations. This, in turn, leads to an even greater bias towards previous actions according to the optimal form of the policy.</p><p>Our framework also incorporates ideas previously proposed in models combining response time and choice. For example, <ref type="bibr" target="#b21">[22]</ref> reasoned that the uncertainty over actions prior to encoding the current stimulus should affect decision time, a term that they added into their joint model of RT and choice. This prior uncertainty enters into choice by scaling down the drift rates of each action equally. If one action is used more frequently than the others, the prior uncertainty over actions is smaller, and drift rates are faster. While our model shares the similar approach of considering how prior information influences aspects of action selection, it differs in that the prior distribution over actions affects not only RT but the choice itself (which is why the RLWM model cannot capture our result).</p><p>While our study provides compelling evidence for several key predictions of the policy compression model, it also has several limitations. First, while our modeling procedure was able to distinguish between models that do and do not penalize policy complexity, it was unable to unambiguously identify the correct model variant within the class of policy compression models. Designing specific experiments to distinguish between fixed and adaptive policy compression models is a potential area for further research. Second, we relied on a previously published dataset to test the prediction that compression increases with memory load. While we found a relationship between set size and action bias, the dataset used was not explicitly designed to investigate whether bias increases monotonically with set size, or if there is indeed a "plateau" effect for higher memory loads. Exploring how memory load influences compression and perseverative action biases remains an avenue for future investigation. Finally, we note that a majority of subjects' behavior deviated from the optimal reward-complexity trade-off curve, which indicates additional sources of error and bias that are not due to the marginal action probability. While we do not analyze these suboptimal biases here, it may be important to understand how they arise and whether they occur in a systematic way.</p><p>This study adds to a larger body of research that focuses on how agents can utilize environmental structure to compress or simplify behavior, which may facilitate generalization in novel situations <ref type="bibr" target="#b34">[35,</ref><ref type="bibr" target="#b35">36]</ref>. Understanding the relationship between policy compression and generalization to new tasks is an interesting direction for future research, with potential implications for designing artificial learning agents with human-like inductive biases.</p><p>While our finding that people are biased towards past choices is not new, our study suggests ways to accommodate or leverage these biases. Understanding how individuals behave under cognitive constraints can inform the creation of decision environments that align with these behavioral tendencies, promoting more effective decision making. For example, consider our result from Task 1, where individuals with lower complexity benefited the most from the asymmetric state distribution. The "design" of this choice environment enabled them to leverage their biases to earn more reward, compared to an environment with a uniform state distribution. In the same vein, knowing how people adapt their choice behavior under time pressure can shape the way information is presented to busy, time-poor individuals facing important decisions.</p><p>These ideas fall under the umbrella of "libertarian paternalism," the philosophy that societal structures and policies can be thoughtfully designed to positively influence people's choices <ref type="bibr" target="#b36">[37]</ref>. For instance, the "choice architecture" of decision environments, such as default options, can be strategically selected to impact group or individual decision-making. Examples include automatic enrollment in retirement savings plans <ref type="bibr" target="#b37">[38]</ref> or setting renewable energy sources as the default option <ref type="bibr" target="#b38">[39]</ref>, both of which have been shown to positively influence people's choices. These default settings take advantage of people's perseverative biases, especially when they don't have the time or cognitive resources to properly evaluate their options before deciding. Some have even sug-gested that these choice environments should be "engineered" by using quantitative models such as ours to shape choice behavior <ref type="bibr" target="#b39">[40]</ref>. We believe that computational models of policy compression (and its accompanying biases) may be powerful tools for choice architecture design.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Subjects</head><p>Our study involved human subjects and was approved by the Harvard Institutional Review Board, number IRB15-2048. All subjects gave electronic consent before beginning the study. We preregistered our study and analyses at https://aspredicted.org/blind.php?x=ZZY_QBZ. As planned, two-hundred (N=200) subjects completed our study on Amazon Mechanical Turk and received monetary compensation. Subjects were paid a base pay of $4 and a performance bonus of up to $4 for completing the task. On average, the payout was $6.66. No subjects were excluded.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Additional experiment details</head><p>All subjects completed 2 practice blocks of 30 trials each before beginning the actual experiment to familiarize them with the structure of the task. The practice blocks were identical to the experimental blocks in their trial-by-trial procedure, and the reward functions were designed to expose subjects to probabilistic reward and different stimulus-response contingencies. Each practice block had three unique stimuli and three unique key press responses (same as the experiment). Each stimulus was presented 10 times in one block. In one practice block, there was one optimal response for each stimulus, while in the other, all three stimuli shared one optimal action. They were allowed to return to this practice block as many times as they wanted throughout the study. We did not analyze data from these practice blocks.</p><p>In general, we tried to encourage independent learning of actions across states by informing the subjects that multiple states could share the same optimal action, or that one state could have more than one optimal action.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Model details 4.3.1 Model variants</head><p>In addition to the five models described in the main text (the Fixed, Adaptive: Capacity, Adaptive: Value, Adaptive: Capacity-Value, Standard RL or "No Cost", and RLWM models), we considered 2 more that are variants of the existing models. For the No Cost model described in the text, we fit only a single β parameter across all tasks and conditions. We added one variant of this model, No.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model</head><p>β update rule</p><formula xml:id="formula_37">Parameters 1 RLWM n/a C, α RL , ϕ, ρ, γ, A, B 1 , B 2 , η 2 No Cost: 1β n/a β, α, A, B 1 , B 2 , η 3 No Cost: 6β n/a β 11 , β 12 , β 21 , β 22 , β 31 , β 32 , α, A, B 1 , B 2 , η 4 Fixed: 1β n/a β, α θ , α V , α P , b 1 , b 2 5 Fixed: 6β n/a β 11 , β 12 , β 21 , β 22 , β 31 , β 32 , α θ , α V , α P , b 1 , b 2 6</formula><p>Adaptive:</p><formula xml:id="formula_38">Capacity ∆β = α β [C − I] C, C reduced , β 0 , α β , α θ , α V , α P , b 1 , b 2 7</formula><p>Adaptive:</p><formula xml:id="formula_39">Value ∆β = α β [R − ρ] R, R reduced , β 0 , α β , α θ , α V , α P , b 1 , b 2 8</formula><p>Adaptive: where we fit a unique β parameter for each condition in each task (3 tasks × 2 conditions per task = 6βs). We refer to these as the "No Cost: 1β" model and the "No Cost: 6β" model, respectively. Similarly, we also fit one more variant of the Fixed model. For the Fixed model described in the main text, we fit a single β parameter across all tasks and conditions. We also considered a variant where we fit 6 β parameters, one for each condition in each task. We refer to these as the "Fixed: 1β" model and the "Fixed: 6β" model, respectively.</p><formula xml:id="formula_40">Capacity-Value ∆β = α β C−ξ R−ρ − β C, C reduced , R, β 0 , α β , α θ , α V , α P , b 1 , b 2</formula><p>All model variants that we considered, along with their free parameters, are described in <ref type="table" target="#tab_0">Table  1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.2">Model fitting</head><p>We used maximum likelihood estimation to jointly fit the choice and response time data for each subjects. The No Cost and RLWM models were fit according to the methods described in <ref type="bibr" target="#b21">[22]</ref>. Parameter constraints were defined according to <ref type="table">Tables 3 and 2</ref>. In general, all learning rates were constrained in the range [0, 1] and the non-decision time t 0 was fixed to 150ms for all models.</p><p>We chose to fix several parameters. For the RLWM and No Cost models, the s v parameter was fixed at 0.1. Fixing this parameter has been shown to significantly improve LBA model identifiability <ref type="bibr" target="#b40">[41,</ref><ref type="bibr" target="#b21">22]</ref>. For the RLWM model, the inverse temperatures β RL and β W M were fixed at 50, consistent with previous studies <ref type="bibr" target="#b25">[26,</ref><ref type="bibr" target="#b21">22]</ref>. For the policy compression (Fixed and Adaptive) models, σ was fixed to 0.9 for all models.</p><p>As mentioned in the Results, we chose to fit one separate parameter specific to Task 3, to account for the hypothesized effects of time pressure on choice behavior. In the RLWM and No Cost models, we assumed that time pressure would decrease the threshold bound of the accumulation process, and therefore we fit a separate bound parameter B 2 − A (to ensure that B 2 &gt; A) for the time pressure condition in Task 3. For the Adaptive models, we hypothesized that time pressure  <ref type="table">Table 2</ref>: Parameter bounds for the RLWM and standard RL ("No Cost") models.</p><p>would compress agents' policies via a decrease their capacity limit C for that condition. We therefore fit a separate capacity parameter C reduced for the time pressure condition (Q2) in Task 3. All free parameters that we fit for each model are indexed in <ref type="table">Tables 2 and 3</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.3">Parameter and model recovery</head><p>We validated our modeling procedure in two ways. First, we assessed parameter recovery by refitting the data simulated from the winning "Adaptive: Capacity-Value" model and comparing the resulting parameter estimates to their ground truth. All 10 of the parameters exhibited reasonable parameter recoverability, with correlations ranging from 0.25 to 0.944 (mean r=0.595; all statistically significant, p&lt;0.0001).</p><p>Second, we assessed model recovery by fitting the eight total model variants to the simulated data from the winning model and computing the Bayesian Information Criterion (BIC) and the protected exceedance probability (PXP) using Bayesian model comparison <ref type="bibr" target="#b41">[42]</ref>. We first observed that the BICs of the three models that did not penalize policy complexity (RLWM, No Cost (1β), and No Cost (6β)) was significantly greater than the BICs of the policy compression models (mean ∆ BIC=7863.4), indicating a clear distinction between compression and non-compression models (S1 <ref type="figure">Fig)</ref>. However, the policy compression model variants (Fixed (1β), Fixed (6β), Adaptive: Capacity, Adaptive: Value, and Adaptive: Capacity-Value) are less quantitatively distinguishable from one another, with the top 3 models within a BIC difference of only 71.7. Additionally, we found that the PXP could not accurately identify the data-generating model among the compression models. Regardless, we note that the BICs of the data-generating model were the most internally consistent (with a standard deviation of 281, compared to a mean SD=561.56 for the other policy compression variants).  <ref type="table">Table 3</ref>: Parameter bounds for the policy compression models.</p><p>From this analysis, we can conclude that our modeling procedure is able to accurately distinguish between compression and non-compression models, but is less suited for identifying the correct model variant within the class of policy compression models. Designing experiments to distinguish between fixed and adaptive policy compression models is an avenue for further research.   </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Capacity-limited action selection. (A) The policy as a communication channel.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Example Task Conditions. Two task conditions illustrating how the reward function affects the distribution of actions and changes the reward-complexity trade-off. (Right) In this example condition, there is one unique rewarded action for each state.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Instrumental learning task. (A) Example state-action space. Each task block comprised of three unique states (stimuli) and three possible actions. Each state was associated with one or more optimal action(s). (B) The experimental trial structure. Subjects made their response under 2 seconds and received negative (red) or positive (green) feedback in the form of a border around the image. (C) Each task used unique stimulus sets to prevent learning across tasks. (D)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>we show aggregated subject data and compare it to the qualitative predictions of each candidate model. Policy complexity did not change between conditions [t(199)=-0.829, p=0.408; Cohen's d=-0.059]. However, average reward earned was higher in Q2 [t(199)=-4.853, p&lt;0.001; Cohen's d=-0.343], consistent with the unique predictions of the policy compression model. Stochasticity was significantly lower in Q2 [t(199)=5.641, p&lt;0.001; Cohen's d=0.399], as well as response time [t(199)=5.036, p&lt;0.001; Cohen's d=0.356].</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>p&lt;0.001; Cohen's d=0.491]. Stochasticity significantly increased under time pressure [t(199)=-5.536, p&lt;0.001;Cohen's d=-0.391], and response time decreased as expected to stay within the new time constraint [ t(199)=12.4826, p&lt;0.001; Cohen's d=0.883].</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 8 :</head><label>8</label><figDesc>Action bias decreases with policy complexity. (A) Negative correlation between action bias and policy complexity in Task 1. (B) The negative relationship between action bias and policy complexity was much stronger in Task 2. (C) The decrease in policy complexity under time pressure is correlated with an increase in choosing suboptimal actions high marginal probability.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure S2 :</head><label>S2</label><figDesc>Dynamics of learning in Task 1. (A) From left to right: The dynamic reward complexity trade-off, averaged across all subjects. Solid dot indicates the start, while open dot indicates the end of learning. Policy complexity, average reward, and response time as a function of trials. Response time as a function of policy complexity. (B) Same as (A) but data simulated from the winning policy compression model (Adaptive: Capacity-Value). (C) Same as (A) but data simulated from the Adaptive: Value model. (D) Same as (A) but data simulated from the Adaptive: Capacity model. (E) Same as (A) but data simulated from the RLWM model. (F) Same as (A) but data simulated from the No Cost (1β) model. All shaded error bars indicate standard error.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure S3 :</head><label>S3</label><figDesc>Dynamics of learning in Task 2. (A) From left to right: The dynamic reward complexity trade-off, averaged across all subjects. Solid dot indicates the start, while open dot indicates the end of learning. Policy complexity, average reward, and response time as a function of trials. Response time as a function of policy complexity. (B) Same as (A) but data simulated from the winning policy compression model (Adaptive: Capacity-Value). (C) Same as (A) but data simulated from the Adaptive: Value model. (D) Same as (A) but data simulated from the Adaptive: Capacity model. (E) Same as (A) but data simulated from the RLWM model. (F) Same as (A) but data simulated from the No Cost (1β) model. All shaded error bars indicate standard error.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure S4 :</head><label>S4</label><figDesc>Dynamics of learning in Task 3. (A) From left to right: The dynamic reward complexity trade-off, averaged across all subjects. Solid dot indicates the start, while open dot indicates the end of learning. Policy complexity, average reward, and response time as a function of trials. Response time as a function of policy complexity. (B) Same as (A) but data simulated from the winning policy compression model (Adaptive: Capacity-Value). (C) Same as (A) but data simulated from the Adaptive: Value model. (D) Same as (A) but data simulated from the Adaptive: Capacity model. (E) Same as (A) but data simulated from the RLWM model. (F) Same as (A) but data simulated from the No Cost (1β) model. All shaded error bars indicate standard error.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc>List of models and their free parameters. Models vary in whether they penalize policy complexity and how they update β.</figDesc><table /><note></note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>We are thankful to Roey Schurr and other members of the Computational Cognitive Neuroscience Laboratory for helpful comments. This research was supported by a Harvard Brain Science Initiative Bipolar Disorder Seed Grant, the NSF Graduate Research Fellowship, and the Harvey Fellowship. It was partially conducted while visiting the Okinawa Institute of Science and Technology (OIST) through the Theoretical Sciences Visiting Program (TSVP).</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Supporting Information</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Models of Man</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Simon</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1957" />
+			<publisher>Wiley</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Modeling bounded rationality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rubinstein</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Bounded Rationality: The Adaptive Toolbox</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gigerenzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Selten</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Maps of bounded rationality: Psychology for behavioral economics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kahneman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American Economic Review</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page" from="1449" to="1475" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Resource-rational analysis: Understanding human cognition as the optimal use of limited computational resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behav Brain Sci</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Resource-rational decision making. Current Opinion in Behavioral</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bhui</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sciences</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="15" to="21" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Policy compression: An information bottleneck in action selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<ptr target="https://www.sciencedirect.com/science/article/pii/S0079742121000049" />
+	</analytic>
+	<monogr>
+		<title level="j">The Psychology of Learning and Motivation</title>
+		<editor>Federmeier KD</editor>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="page" from="195" to="232" />
+			<date type="published" when="2021" />
+			<publisher>Academic Press</publisher>
+		</imprint>
+	</monogr>
+	<note>of Psychology of Learning and Motivation</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Origin of perseveration in the trade-off between reward and complexity. Cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">204</biblScope>
+			<biblScope unit="page">104394</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The Reward-Complexity Trade-off in Schizophrenia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="38" to="53" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Value-complexity tradeoff explains mouse navigational learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Amir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Suliman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shifman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Tishby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Nelken</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Comput Biol</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page">1008497</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Undermatching Is a Consequence of Policy Compression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Bari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="447" to="457" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">How much of reinforcement learning is working memory, not reinforcement learning? A behavioral, computational, and neurogenetic analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">European Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page" from="1024" to="1035" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">An information-theoretic approach to curiosity-driven reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Still</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Precup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Theory Biosci</title>
+		<imprint>
+			<biblScope unit="volume">131</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="139" to="148" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Dopaminergic Balance between Reward Maximization and Policy Complexity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Parush</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Tishby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bergman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Front Syst Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">22</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Information Theory of Decisions and Actions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Tishby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Polani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Computation of channel capacity and rate-distortion functions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Blahut</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE transactions on Information Theory</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="460" to="473" />
+			<date type="published" when="1972" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Stimulus information as a determinant of reaction time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Hyman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="188" to="196" />
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The tortoise and the hare: Interactions between reinforcement learning and working memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cognitive Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="page" from="1422" to="1432" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">On the rate of gain of information</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">E</forename><surname>Hick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Quarterly Journal of Dxperimental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="11" to="26" />
+			<date type="published" when="1952" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Hick&apos;s law for choice reaction time: A review</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Proctor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schneider</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Quarterly Journal of Experimental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">71</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1281" to="1299" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Modeling the influence of working memory, reinforcement, and action uncertainty on reaction time and choice during instrumental learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Mcdougle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Age</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychon Bull Rev</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="20" to="39" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Joint modeling of reaction times and choice improves parameter identifiability in reinforcement learning models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">C</forename><surname>Ballard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Mcclure</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J Neurosci Methods</title>
+		<imprint>
+			<biblScope unit="volume">317</biblScope>
+			<biblScope unit="page" from="37" to="44" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">A theory of Pavlovian conditioning: Variations in the effectiveness of reinforcement and nonreinforcement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Rescorla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Wagner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Classical conditioning: current research and theory</title>
+		<imprint>
+			<publisher>Appleton-Century-Crofts</publisher>
+			<date type="published" when="1972" />
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="64" to="99" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Working memory load strengthens reward prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ciullo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="4332" to="4342" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Within-and across-trial dynamics of human EEG reveal cooperative interplay between reinforcement learning and working memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Age</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proc Natl Acad Sci U S A</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="2502" to="2507" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Changing concepts of working memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Husain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Bays</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="347" to="356" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Level of aspiration and decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Siegel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol Rev</title>
+		<imprint>
+			<biblScope unit="volume">64</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="253" to="262" />
+			<date type="published" when="1957" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Aspiration Adaptation Theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Selten</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J Math Psychol</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="issue">2/3</biblScope>
+			<biblScope unit="page" from="191" to="214" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Satisficing in financial decision making -a theoretical and experimental approach to bounded rationality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Fellner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Güth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Maciejovsky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J Math Psychol</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="26" to="33" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Rate Distortion Theory: A Mathematical Basis for Data Compression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Berger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">NJ</title>
+		<imprint>
+			<date type="published" when="1971" />
+			<publisher>Prentice-Hall</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Rate-distortion theory and human perception</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Sims</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page" from="181" to="198" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Oops, I did it again-relapse errors in routinized decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Betsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Haberstroh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Molter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Glöckner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Organ Behav Hum Decis Process</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="62" to="74" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Time pressure changes how people explore and respond to uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Pleskac</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Speekenbrink</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sci Rep</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4122</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Saanum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Éltető</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Binz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Reinforcement Learning with Simple Sequence Priors. arXiv</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">A Unified Theory of Dual-Process Control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Moskovitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sahani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<idno>arXiv. 2022</idno>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H</forename><surname>Thaler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Sunstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Nudge</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Yale University Press</publisher>
+			<pubPlace>New Haven, CT and London</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">The Importance of Default Options for Retirement Saving Outcomes: Evidence from the USA</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Beshears</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Laibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Madrian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Lessons from Pension Reform in the Americas</title>
+		<editor>Kay SJ, Sinha T</editor>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="page" from="59" to="87" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Green defaults: Information presentation and proenvironmental behaviour</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pichert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">V</forename><surname>Katsikopoulos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J Environ Psychol</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="63" to="73" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">From choice architecture to choice engineering</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Dan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Loewenstein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat Commun</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">2808</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Dynamic models of choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">S</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reynolds</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Strickland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gretton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Matzke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behav Res Methods</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="961" to="985" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studiesrevisited</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rigoux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="971" to="985" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

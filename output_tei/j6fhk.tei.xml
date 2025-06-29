@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">A reinforcement-learning meta-control architecture based on the dual-process theory of moral decision-making</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Maximilian</forename><surname>Maier</surname></persName>
+							<email>m.maier@ucl.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">University College London London</orgName>
+								<address>
+									<postCode>WC1H 0DS</postCode>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vanessa</forename><surname>Cheung</surname></persName>
+							<email>vanessa.cheung.14@ucl.ac.uk</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">University College London London</orgName>
+								<address>
+									<postCode>WC1H 0DS</postCode>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Falk</forename><surname>Lieder</surname></persName>
+							<email>falk.lieder@psych.ucla.edu</email>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of California</orgName>
+								<address>
+									<postCode>90095</postCode>
+									<settlement>Los Angeles Los Angeles</settlement>
+									<region>CA</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">A reinforcement-learning meta-control architecture based on the dual-process theory of moral decision-making</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<note type="submission">Manuscript accepted at the NeurIps Workshop AI Meets Moral Philosophy and Moral Psychology https://aipsychphil.github.io/</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:14+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Deep neural networks are increasingly tasked with making complex, real-world decisions that can have morally significant consequences. But it is difficult to predict when a deep neural network will go wrong, and wrong decisions can cause significantly negative outcomes. In contrast, human moral decision-making is often remarkably robust. This is partly achieved by relying on both moral rules and cost-benefit reasoning. In this paper, we reverse-engineer people&apos;s capacity for robust moral decision-making as a cognitively inspired reinforcement-learning (RL) architecture that learns how much weight to give to following rules vs. cost-benefit reasoning. We confirm the predictions of our model in a large online experiment on human moral learning. We find that our RL architecture can capture how people learn to make moral decisions, suggesting that it could be applied to make AI decision-making safer and more robustly beneficial to society.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>"We're already surrounded by autonomous agents that have the capacity to destroy all human life, but most of the time operate completely safely. Those autonomous agents are of course human beings. So that raises an interesting question: how is it that we're able to create human compatible humans? Answering this question might give us some insights that are relevant to building human compatible AI systems."</p><p>-Tom Griffiths <ref type="bibr" target="#b0">1</ref> What should a self-driving car do in an unavoidable collision -should it swerve into five pedestrians to save the one passenger inside the vehicle, or sacrifice the passenger to protect the pedestrians <ref type="bibr" target="#b0">[1]</ref>?</p><p>As artificial intelligence (AI) becomes more autonomous and powerful, moral issues like these are increasingly important.</p><p>The rapid development of AI also comes with increasing concerns about its limitations and risks. The extreme sensitivity of deep neural networks' decisions to imperceptible differences <ref type="bibr" target="#b1">[2]</ref> casts doubt on their safety and robustness. This issue has also been demonstrated for ChatGPT's position on various moral issues <ref type="bibr" target="#b2">[3]</ref>. Consequently, in specific scenarios, the ethical decisions of large-language models systematically differ from human preferences <ref type="bibr" target="#b3">[4]</ref>, rendering their moral advice more harmful than helpful <ref type="bibr" target="#b2">[3]</ref>.</p><p>AI is also susceptible to error in other ways. For example, its accuracy can be compromised when it is trained on a dataset that is erroneous or limited [e.g., <ref type="bibr" target="#b4">5,</ref><ref type="bibr" target="#b5">6]</ref>). When this occurs in applications that make crucial decisions (e.g., medical applications), it can have a significant negative impact. In addition, AI agents optimizing a specified reward function without considering the risk that it might be misspecified or taking human instructions too literally may engage in actions that their human creators did not intend (i.e., specification gaming, which could lead to catastrophic failures in high stakes environments; <ref type="bibr" target="#b6">[7,</ref><ref type="bibr" target="#b7">8]</ref>). Recently, a group of leading industry figures and AI researchers even issued a statement emphasizing that advances in AI could result in human extinction ("Mitigating the risk of extinction from AI should be a global priority alongside other societal-scale risks such as pandemics and nuclear war.") <ref type="bibr" target="#b1">2</ref> One promising approach to AI safety and preventing these catastrophic failures of AI systems in important decisions is to mimic the moral architecture of the human brain <ref type="bibr" target="#b8">[9,</ref><ref type="bibr" target="#b9">10]</ref> by equipping AI systems with inbuilt principles of moral reasoning and moral rules that act as safeguards against catastrophic errors in perception or reasoning. Human moral decision-making, though also prone to errors, is robust to changes in irrelevant or small details of the environment. It is also robust to incomplete or misspecified objectives, even though people also have to contend with imperfect and sparse training data in the real world <ref type="bibr" target="#b10">[11,</ref><ref type="bibr" target="#b11">12]</ref>.</p><p>In this paper, we propose that human moral decision-making is more robust than that of deep neural networks partly because human learning does not start from a blank slate. Instead, the brain's modular architecture includes two partly pre-configured systems that contribute to moral decision-making: a model-based decision system that weights the costs and benefits of an action's expected outcomes and a model-free decision system that applies intuitive moral rules <ref type="bibr" target="#b8">[9,</ref><ref type="bibr" target="#b12">13,</ref><ref type="bibr" target="#b13">14]</ref>. This paper formalizes this idea as a reinforcement learning (RL) architecture. We argue that this architecture could be used to make AI moral decision-making safer and more beneficial.</p><p>2 Psychological background: Dual-process theory of moral decision-making</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Decision-making in sacrificial dilemmas</head><p>Moral decision-making is commonly studied using moral dilemmas involving two conflicting choices favored by two competing moral perspectives. There is almost always one option that is identified as utilitarian, and one as deontological [for a review, see 15]. According to utilitarianism, actions should be evaluated by their expected effects on everyone's well-being. Conversely, deontological theories pose that actions should be evaluated only by whether they follow moral rules or norms. One of the most commonly studied moral dilemmas is the "trolley problem" <ref type="bibr" target="#b15">[16,</ref><ref type="bibr" target="#b16">17]</ref>, where the reader must decide whether to sacrifice one person to save more lives. In one variation of the problem, one must choose between letting a runaway trolley run over five people or pushing a large man off a footbridge to stop the trolley <ref type="bibr" target="#b16">[17]</ref>. In this case, the utilitarian option is to push the man (i.e., kill one person to save a greater number of people), whereas the deontological option is not to push the man (i.e., follow the principle of doing no harm).</p><p>However, the simple dissociation between utilitarian and deontological options also neglects a central feature of moral decision-making: the presence of uncertainty. If the above scenario existed in the real world, pushing the man may be the worse option, even from a utilitarian standpoint. For example, the man's body may not be able to stop the trolley from killing the others (indeed, there is no compelling evidence that a single individual is able to stop a running trolley), or you may miss the tracks when pushing him (thus harming the man yet not saving anyone). For this reason, it may be that our deontological intuitions in these dilemmas are actually inclined to maximize utility in real-world scenarios, as violating them could also lead to worse outcomes in utilitarian terms. In other words, following a rule may often lead to better outcomes even from a utilitarian perspective <ref type="bibr" target="#b17">[18]</ref>. Deontological rules can thus be viewed as heuristics that bring about the best utilitarian outcomes under normal real-world conditions. Therefore, the defining feature of the sacrificial action is that it is based on explicit cost-benefit reasoning (CBR), and not that it would necessarily lead to better ("utilitarian") outcomes. For this reason, in the remainder of the article, we will label the choices "CBR-based" vs. "rule-based", rather than utilitarian vs. deontological. When making moral decisions, agents would need to know when they can rely on CBR and when more norm-based decision mechanisms will achieve better outcomes. Rational models of strategy selection <ref type="bibr" target="#b18">[19]</ref> and metacognitive control <ref type="bibr" target="#b19">[20]</ref> predict that people will learn to rely on rules over CBR in situations where rules worked well in the past, and learn to rely on CBR over rules in situations where CBR worked well in the past.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Theories of moral decision-making</head><p>Some of the most prominent accounts of how people make decisions in trolley-type dilemmas are based on a dual-process theory. These approaches usually distinguish between "emotional" and "rational/cognitive" decision-making <ref type="bibr" target="#b20">[21,</ref><ref type="bibr" target="#b21">22]</ref>. For instance, Greene et al. <ref type="bibr" target="#b21">[22]</ref> proposes a dual-process theory of how moral decision-making is shaped by both intuitive, emotional responses and deliberative cognitive processes. In this view, the former drives "deontological" (i.e., rule-based) moral judgments, whereas the latter drives "utilitarian" (i.e., CBR-based) moral judgments.</p><p>More recently, researchers have formalized Greene's dual-process theory of morality using models from neuroscientific literature on RL. Cushman <ref type="bibr" target="#b12">[13]</ref> and Crockett <ref type="bibr" target="#b13">[14]</ref> independently theorized that moral decisions are informed by RL from past experiences. According to this theory, people use two systems when making moral decisions: an intuitive model-free system that selects actions based on their average consequences in the past (linked to rule-based decision-making), and a model-based system that builds a model of the world to reason about potential future consequences of an action in a specific situation (linked to CBR-based decision-making). Both systems assign values to potential actions based on a person's past experiences, but they do so in different ways.</p><p>The two systems interact closely in moral decision-making, and each has its own limitations. The model-free system's automatic affective responses (e.g., aversion) to actions associated with negative past experiences lead to moral condemnation of actions that break certain rules <ref type="bibr" target="#b13">[14,</ref><ref type="bibr" target="#b22">23]</ref>. However, depending on one's learning history, emotional responses alone can be unreliable guides to moral judgment <ref type="bibr" target="#b23">[24]</ref>. The more computationally intensive model-based system allows the decision-maker to engage in CBR, comparing the consequences of the different actions. However, this type of CBR may sometimes lead to worse outcomes in real-world situations -where consequences are not always as expected -than relying on simple rules <ref type="bibr" target="#b17">[18,</ref><ref type="bibr" target="#b24">25]</ref>. The decision-maker must, therefore, rely on both systems and learn to arbitrate between them based on the situation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Meta-control in human decision making</head><p>Established theories of meta-decision-making in other domains [e.g. <ref type="bibr">, 19]</ref> propose that people select decision-making mechanisms based on their learning history of which mechanisms led to good versus bad decisions in the past. This is crucially different from operant conditioning <ref type="bibr" target="#b25">[26]</ref>, which directly reinforces specific actions rather than flexible decision mechanisms that can select various actions in different situations. We suggest that this type of learning also shapes how people make moral decisions. Concretely, we propose that a meta-control system selects which decision mechanism will be employed to make a moral decision (most prominently relying on rules vs. CBR; however, other mechanisms would also be possible). This selection process is likely shaped by learning from having tried different decision mechanisms in similar situations (i.e., whether relying on CBR led to worse ethical missteps than following the rules or vice versa).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">A RL architecture based on the dual-process theory of morality</head><p>Inspired by the psychological theories of moral decision-making reviewed above, we developed a learning architecture that uses RL to adaptively select between two decision processes: a model-based decision system that performs utilitarian reasoning and a model-free decision system with intuitive moral rules. We refer to this architecture as the model of RL-based meta-control over moral decision-making (RLMC-MD model).</p><p>The basic idea is that decision-makers rely on their learning history with the cues present in a given situation to determine how much weight to put on the judgments produced by CBR vs. rules. In other words, people decide whether to select the action that seems to maximize expected utility (vs. following rules) in the present situation (e.g., "I save five people by pushing the man") based on how well the decision mechanism of expected utility calculation (vs. following a rule) worked in similar situations in the past <ref type="bibr" target="#b26">[27]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Model of RL-based meta-control over moral decision-making (RLMC-MD)</head><p>The unique characteristic of learning-induced changes in meta-control is shifting how often, when, and how much people rely on different decision mechanisms. We postulate that meta-control is based on an RL mechanism that estimates the expected return of relying on alternative decision mechanisms (i.e., CBR vs. following rules). We will refer to this RL mechanism as mechanism selection learning <ref type="bibr" target="#b18">[19,</ref><ref type="bibr" target="#b19">20]</ref>. We formalize this idea as a Q-learning model of how people solve the meta-control problem of deciding when to rely on moral rules vs. CBR. This model learns to predict the anticipated moral value Q meta (s, CBR) of relying on CBR in the current situation s and the corresponding Q-value Q meta (s, rules) for relying on moral rules instead. The value estimate is updated based on the prediction error and the learning rate:</p><formula xml:id="formula_0">Q meta t (s, CBR) = Q meta t−1 (s, CBR) − α × PE t−1 ,<label>(1)</label></formula><formula xml:id="formula_1">PE t−1 = Q t−1 (s, CBR) − R t−1 ,<label>(2)</label></formula><p>where Q meta t (s, CBR) denotes the predicted value of following a decision mechanism (here CBR), R denotes the experienced reward (i.e., moral value), PE denotes the prediction error, α denotes the learning rate, and t denotes time. The learned values for the different choices are then transformed into a decision using a softmax choice rule. Equation 3 specifies this softmax decision rule regarding the probability of employing the CBR-based decision mechanism. p t (s, CBR) = e τ ×Q meta t (s,CBR) e τ ×Q meta t (s,CBR) + e τ ×Q meta t (s,rules) .</p><p>The parameter τ (softmax decision temperature) controls how deterministically the values assigned to the two options relate to the decisions. Larger values of τ imply more deterministic decision-making, whereas lower values of τ imply more random decision-making. In the extreme, τ = ∞ would imply always choosing the option with the higher expected value, while τ = 0 would imply always choosing each of the two options with 50% probability, independent of the values assigned to the options.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Prior distributions</head><p>As prior distribution on the temperature parameter τ , we use lognormal(0, 1.4). This way we assign 90% of prior mass to values of τ between 1 10 and 10. The prior on the learning rate is a uniform distribution on the interval [0, 1]. This prior reflects the belief that learning rates larger than 1 (i.e., changing your belief by more than the prediction error) and learning rates smaller than 0 (i.e., learning the opposite of what the prediction error suggests) are impossible.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiment</head><p>The RLMC-MD model predicts that when people experience that relying on moral rules leads to better outcomes, they become more likely to rely on moral rules again in the future, but if relying on CBR leads to better outcomes, they will be more likely to rely on CBR in the future. In addition, in line with Q-learning, we would expect a decelerating learning curve, where participants learn a lot when confronted with the outcomes of their first decisions and then adapt their decision-making increasingly less in response to the outcomes of later decisions. To test these predictions, we fit our model to the data of an experiment on moral RL <ref type="bibr" target="#b26">[27]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Experimental Design</head><p>In this experiment, participants (N = 387) read the descriptions of 13 realistic moral dilemmas and afterward received feedback about the outcomes. The experiment had two conditions ("CBR Success" and "Rule Success"). In the CBR Success condition (N = 195), the CBR-based action (i.e., breaking a moral rule to save more people) consistently led to good outcomes, whereas the rule-based action (i.e., following the moral rule) consistently led to bad outcomes. This contingency was reversed in the Rule Success condition (N = 192).</p><p>This study used realistic, historical, moral dilemmas based on materials by <ref type="bibr" target="#b27">[28]</ref> (as classic trolley-type dilemmas are often criticized for being unrealistic; <ref type="bibr" target="#b28">[29]</ref>). An example dilemma is included below:</p><p>It is 1987 and you are on a ferry from Belgium to England. Suddenly, the ferry starts tilting and water begins to pour in. You and some other passengers are trying to get to the deck by a rope ladder. You are currently halfway up the ladder. Directly below you, a man who seems frozen into immobility by fear or cold is blocking the ladder. You try to speak to him, but he does not react. People behind you are jostling. The ship seems to be sinking fast and the man is still blocking the ladder. From the crowd below, someone shouts that you should push the man off. If you push the man off the ladder, he will probably die, but you and the other people will be able to climb on deck. If you do not push the man off the ladder, he will probably continue blocking the way so that many of the people behind you will not be able to get on deck and therefore will drown.</p><p>How morally right is it for you to push the man off the ladder? (0 = Not at all morally right, 100 = Completely morally right) Do you push the man off the ladder? (Yes/No)</p><p>Participants then saw one of the four possible outcomes. This outcome was fully determined by their decision (Yes vs. No) and the condition they were in (CBR Success vs. Rule Success). In this example, participants in the CBR Success condition would see one of the following outcomes depending on their choice:</p><p>Yes Success: You push the man off the ladder. He falls off the boat and you hear a loud splash as he enters the water. The people behind you start to climb on deck.</p><p>In the end, your decision saves all of the remaining passengers -but the man dies in the process. No Failure: You do not push the man off the ladder. He remains frozen and continues to block the way for all the other passengers. In the end, your decision does not save anyone: you watch as the man and all of the remaining passengers die.</p><p>Participants in the Rule Success condition would see one of the following outcomes:</p><p>Yes Failure: You push the man off the ladder. However, his foot catches onto the ladder and as he falls, the ladder also falls down with him. You hear a loud splash as the man and ladder enter the water. Without the ladder, the remaining passengers have no way of making their way up to the deck. In the end, your decision does not save anyone: you watch as the man and all of the remaining passengers die. No Success: You do not push the man off the ladder. Shortly after, he attempts to move, but is not physically able so he stumbles and falls off. You hear a loud splash as he enters the water. The people behind you start to climb on deck. In the end, your decision saves all of the remaining passengers -but the man dies in the process.</p><p>After reading the outcome, participants answered the following question:</p><p>How good or bad is this outcome? (-100 = Extremely bad, 0 = Neutral, 100 = Extremely good)</p><p>Unlike previous studies where CBR is usually related to action (e.g., pushing the man to save five people from a trolley) and following rules to inaction (e.g., not pushing the man), in Maier et al. <ref type="bibr" target="#b26">[27]</ref> both the CBR-based and rule-based options were framed as the choice action in different vignettes.</p><p>Eight vignettes asked participants whether they would perform the CBR-based action (e.g., "Do you push the man off the ladder?"), and five asked whether they would perform the rule-based action (e.g., "Do you protect your employee?").</p><p>Overall, the experiment included 13 different dilemmas, which pertained to different types of norms being broken. In eight dilemmas, the moral norm was relevant to killing (e.g., killing one person to save many), two were related to crime (e.g., taking money from the rich to help someone in need), one was related to disrespect (disrespecting a crime victim), one to animal suffering (using animals for medical research), and one to violating body autonomy (conducting an unnecessary surgical operation). We can see that the results are qualitatively in line with the model predictions outlined above: participants learn flexibly to rely more on CBR when CBR leads to better outcomes and more on rules when rules lead to better outcomes. In addition, as predicted, we see decelerating learning, where most learning occurs in early trials, and the rate of change decreases afterward.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Results summary</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Fitting the RLMC-MD model to the full dataset of Maier et al. (2023)</head><p>We implemented the RLMC-MD model in the probabilistic programming language Stan. All parameters are identical to the model description in Section 3.1. We use each participant's response to the question asking them to evaluate the outcomes as the reward R. We assume each participant's learning rate α and decision temperature τ are constant throughout the experiment.  .3 indicates that the people's choice frequency was somewhat closer to 50% than the model predicted. In other words, the model predicts stronger learning than we observed in humans. One potential explanation is that only a subset of participants engaged in RL-based meta-control over the decision mechanism (CBR vs. following the rule), whereas other participants learned about which action (i.e., action vs. inaction) led to better outcomes through operant conditioning. Our experimental paradigm can discern between these distinct learning mechanisms because it includes trials in which CBR recommends inaction and others in which CBR recommends action. Note. PI = prediction interval. <ref type="figure" target="#fig_1">Figure 4</ref>.5 visualizes the model predictions vs. the observed data for only those participants whose data was more likely under the RLMC-MD model than under the operant conditioning model. The plot reveals that when only selecting those participants that show evidence for RLMC-MD, the learning is somewhat faster. Participants' choices are also no longer closer to 50% than predicted by the model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5">Fitting the RLMC-MD model only to metacognitive learners</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Discussion</head><p>Our findings show that the RLMC-MD model can capture people's learning trajectory across 13 dilemmas. This suggests that our RLMC-MD model is a promising RL architecture for enabling AI systems to acquire human-level competence in moral learning and moral decision-making. We, therefore, propose that AI systems with the power to make morally significant decisions should be equipped with built-in modules for rule-based and CBR-based decision-making and use RL to learn when to rely on rules and when to rely on CBR.</p><p>The RLMC-MD model likely allows for broad generalization to new situations involving new moral norms in a way that mirrors human moral learning. The reason is that by learning about decision mechanisms rather than specific scenarios, it will be able to generalize more easily if, for example, a similar decision mechanism is likely to perform well in a very different type of situation. Therefore, this approach could prevent errors in situations requiring moral norms that were never, or only rarely, applicable during training.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Future research</head><p>First, to further corroborate that the RLMC-MD model is a suitable model to describe human moral decision-making, our future work will compare it directly to a wider range of alternative candidate models. The most straightforward alternative in addition to the model-free conditioning model are model-based models of moral learning. We are currently working on extending the moral RL task to more complex designs. In particular, we aim to increase the number of trials and experimentally manipulate additional features of the decision situation, such as the precise number of people at Note. PI = prediction interval. stake in each of the two choice options. This will allow us to conduct sufficiently powered model comparisons for more complex models.</p><p>Second, our model comparison shows that some participants only learned shallowly about action vs. inaction (operant conditioning), whereas others learned to adapt their moral reasoning. Future research is needed to understand the origin of these profound differences in moral learning.</p><p>Third, one of our key predictions based on moral psychology is that the proposed RLMC-MD architecture is more robust at generalizing to new situations and more robust to irrelevant features of the choice situation. Future research should test this prediction by evaluating this architecture against deep-neural network-based approaches on benchmarks of moral decision-making. This could, for example, be done by training a GPT-based model on a subset of the moral dilemmas in our experiment and then comparing how well the trained model makes decisions in a sacrificial dilemma in a different domain using a different norm (i.e., the proportion of runs where it chooses the option reinforced before) and comparing this to the meta-RL implied decision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Implications and applications</head><p>Our work has significant implications for ethical decision-making in AI agents. One such example is autonomous vehicles that need to make a moral decision between prioritizing the safety of passengers or sacrificing them for the greater good. Autonomous vehicles rely on pre-programmed collision algorithms that decide whose safety should be prioritized, including "selfish" (deontological) algorithms that prioritize not harming the passengers above everything else and "utilitarian" algorithms that prioritize saving more lives and minimizing overall harm to both passengers and pedestrians <ref type="bibr" target="#b31">[32]</ref>.</p><p>Neither of these simple solutions is morally good in all scenarios. Instead, the ethically correct approach requires choosing adaptively between these two modes of moral decision-making according to specific features of the emergency situation, such as the amount of time until collision and the number of potential victims inside and outside the car <ref type="bibr" target="#b32">[33]</ref>. The optimal meta-control policy for choosing between these algorithms could be pre-trained in a simulator and then continuously updated based on the outcomes of real-life accidents. This could be, for example, a promising avenue for developing ethical autonomous vehicles.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Conclusion</head><p>Human moral decision-making is remarkably robust despite the imperfect and sparse training data in the real world. In this paper, we tested a model that describes how humans may achieve this: the RLMC-MD model. This model can be used as an RL architecture, which arbitrates adaptively between relying on rules and relying on CBR based on the reinforcement learning history. Applying this approach to AI agents would likely lead to more robust and reliable AI moral decision-making in the real world.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 4 . 3 (</head><label>43</label><figDesc>black dots) shows the observed proportion of CBR-based choices as a function of trial number as well as the fit of a logistic regression, which predicts participants' choices from the log trial number (dotted line).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 4 .</head><label>4</label><figDesc>3 visualizes the fit of our model to the empirical data. It shows the predicted proportion of CBR-based choices compared to the observed proportion of CBR-based choices in both the CBR Success condition (left panel) and the Rule Success condition (right panel). As shown in the figure, the model qualitatively captures the pattern in the data: in the CBR Success condition, it indicates an increase roughly proportional to the logarithm of the trial number, while in the Rule Success condition, it indicates a proportional decrease.4.4 RL-based meta-control vs. operant conditioning</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4</head><label>4</label><figDesc>Figure 4.3 indicates that the people's choice frequency was somewhat closer to 50% than the model predicted. In other words, the model predicts stronger learning than we observed in humans. One potential explanation is that only a subset of participants engaged in RL-based meta-control over the decision mechanism (CBR vs. following the rule), whereas other participants learned about which action (i.e., action vs. inaction) led to better outcomes through operant conditioning. Our experimental paradigm can discern between these distinct learning mechanisms because it includes trials in which CBR recommends inaction and others in which CBR recommends action.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 1 :</head><label>1</label><figDesc>Predicted vs. Empirical Proportion of CBR Choices for Full Data</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 2 :</head><label>2</label><figDesc>Predicted vs. Empirical Proportion of CBR Choices for Metacognitive Learners</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">Conversation with Tom Griffiths, AI Impacts https://tinyurl.com/5xx78839 37th Conference on Neural Information Processing Systems (NeurIPS 2023).</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">https://www.safe.ai/statement-on-ai-risk</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3">It would be surprising to see strong evidence for a lot of participants given that we only had 13 trials. We used fewer trials in comparison to typical RL experiments as our study is heavily text-based and reading the materials takes considerable time.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We estimated the probability of the data under the RLMC-MD model and a model of operant conditioning for each participant. Hierarchical model comparison using Bayesian model-selection for group studies <ref type="bibr" target="#b29">[30,</ref><ref type="bibr" target="#b30">31]</ref> indicates that 68.07% of participants in the CBR Success condition and 54.70% of participants in the Rule Success condition were best described by RLMC-MD. For 20.16% of participants, the RLMC-MD model was three or more times as likely as operant conditioning, and the reverse was true for 12.67%. <ref type="bibr" target="#b2">3</ref> These findings demonstrate that 1) RLMC-MD is distinct from operant conditioning, 2) RL shapes the meta-control over moral decision-making in at least some people, and 3) there are pronounced individual differences in moral learning.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">The social dilemma of autonomous vehicles</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jean-François</forename><surname>Bonnefon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Azim</forename><surname>Shariff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Iyad</forename><surname>Rahwan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">352</biblScope>
+			<biblScope unit="page" from="1573" to="1576" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Intriguing properties of neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Szegedy</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/arXiv.1312.6199</idno>
+		<ptr target="https://doi.org/10.48550/arXiv.1312.6199" />
+	</analytic>
+	<monogr>
+		<title level="m">ArXiv Preprint</title>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">ChatGPT&apos;s inconsistent moral advice influences users&apos; judgment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sebastian</forename><surname>Krügel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andreas</forename><surname>Ostermaier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthias</forename><surname>Uhl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">4569</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Exploring differences in ethical decision-making processes between humans and ChatGPT-3 model: a study of trade-offs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Farkhund</forename><surname>Umair Rehman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Muhammad Umair</forename><surname>Iqbal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Shah</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AI and Ethics</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="11" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Advances, challenges and opportunities in creating data for trustworthy AI</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Weixin</forename><surname>Liang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Machine Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="669" to="677" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Sensitivity of neural networks to corruption of image classification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shimon</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Doron</forename><surname>Handelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amir</forename><surname>Handelman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AI and Ethics</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="10" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">The alignment problem: Machine learning and human values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Brian</forename><surname>Christian</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<publisher>WW Norton &amp; Company</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Human-compatible artificial intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stuart</forename><surname>Russell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Human-like machine intelligence (2021)</title>
+		<imprint>
+			<biblScope unit="page" from="3" to="23" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Moral tribes: Emotion, reason, and the gap between us and them. Penguin</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Joshua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Greene</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">How (and where) does moral judgment work?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Joshua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><surname>Greene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Haidt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">In: Trends in cognitive sciences 6</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="517" to="523" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Aspects of the Theory of Syntax</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Noam</forename><surname>Chomsky</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>MIT Press</publisher>
+			<biblScope unit="volume">11</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">The Poverty of the Moral Stimulus</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><surname>Mikhail</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Moral Psychology: The Evolution of Morality: Adaptations and Innateness</title>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">353</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Action, outcome, and value: A dual-system framework for morality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Fiery</forename><surname>Cushman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Personality and social psychology review</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="273" to="292" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Models of morality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Molly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Crockett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="363" to="366" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">What makes moral dilemma judgments &quot;utilitarian&quot; or &quot;deontological&quot;?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bertram</forename><surname>Gawronski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jennifer</forename><forename type="middle">S</forename><surname>Beer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">In: Social Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="626" to="632" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">The problem of abortion and the doctrine of the double effect</title>
+		<imprint>
+			<date type="published" when="1967" />
+		</imprint>
+	</monogr>
+	<note>Philippa Foot</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Killing, letting die, and the trolley problem</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Judith</forename><forename type="middle">Jarvis</forename><surname>Thomson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Death, Dying and the Ending of Life, Volumes I and II. Routledge</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="2" to="17" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">The costs and benefits of calculation and moral rules</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Will</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bennis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel M</forename><surname>Douglas L Medin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bartels</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="187" to="202" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Strategy selection as rational metareasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Falk</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page">762</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Rational metareasoning and the plasticity of cognitive control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Falk</forename><surname>Lieder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page">1006043</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">An fMRI investigation of emotional engagement in moral judgment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Joshua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Greene</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">293</biblScope>
+			<biblScope unit="page" from="2105" to="2108" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Cognitive load selectively interferes with utilitarian moral judgment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Joshua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Greene</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="page" from="1144" to="1154" />
+			<date type="published" when="2008" />
+			<publisher>Elsevier</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Emotion-based learning systems and the development of morality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Blair</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">167</biblScope>
+			<biblScope unit="page" from="38" to="45" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">The rat-a-gorical imperative: Moral intuition and the limits of affective learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Joshua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Greene</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">167</biblScope>
+			<biblScope unit="page" from="66" to="77" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Moral learning: Conceptual foundations and normative relevance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Railton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Cognition</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">167</biblScope>
+			<biblScope unit="page" from="172" to="190" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Operant behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Burrhus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Skinner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American psychologist</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page">503</biblScope>
+			<date type="published" when="1963" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Learning from Consequences Shapes Reliance on Moral Rules vs. Cost-Benefit Reasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Maximilian</forename><surname>Maier</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/gjf3h</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/gjf3h" />
+	</analytic>
+	<monogr>
+		<title level="m">PsyArXiv peprint</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Deontology and utilitarianism in real life: A set of moral dilemmas based on historic events</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anita</forename><surname>Körner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Roland</forename><surname>Deutsch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Personality and Social Psychology Bulletin</title>
+		<imprint>
+			<biblScope unit="page">01461672221103058</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Revisiting external validity: Concerns about trolley problems and other sacrificial dilemmas in moral psychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Christopher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bauman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Social and Personality Psychology Compass</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="536" to="554" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stephan</forename><surname>Klaas Enno</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuroimage.2009.03.025</idno>
+		<ptr target="https://doi.org/10.1016/j.neuroimage.2009.03.025" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="1004" to="1017" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies-revisited</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lionel</forename><surname>Rigoux</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuroimage.2013.08.065</idno>
+		<ptr target="https://doi.org/10.1016/j.neuroimage.2013.08.065" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="971" to="985" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Selfish but socially approved: The effects of perceived collision algorithms and social approval on attitudes toward autonomous vehicles</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yeon</forename><surname>Kyoung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joo</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Banya</forename><surname>Kim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Human-Computer Interaction</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="11" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Moral decision making frameworks for artificial intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vincent</forename><surname>Conitzer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">31</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

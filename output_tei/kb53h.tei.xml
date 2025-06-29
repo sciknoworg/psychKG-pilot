@@ -1,0 +1,1348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Representing and Predicting Everyday Behavior</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2020-10-07">October 7, 2020</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Malhar</forename><surname>Singh</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Russell</forename><surname>Richie</surname></persName>
+						</author>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sudeep</forename><surname>Bhatia</surname></persName>
+							<email>bhatiasu@sas.upenn.edu.</email>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Pennsylvania Philadelphia</orgName>
+								<address>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Pennsylvania</orgName>
+								<address>
+									<settlement>Philadelphia</settlement>
+									<region>PA</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Representing and Predicting Everyday Behavior</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2020-10-07">October 7, 2020</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:20+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>transformer models</term>
+					<term>machine learning</term>
+					<term>distributed semantics</term>
+					<term>decision making</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>The prediction of everyday human behavior is a central goal in the behavioral sciences. However, efforts in this direction have been limited, as (1) the behaviors studied in most surveys and experiments represent only a small fraction of all possible behaviors, and (2) it has been difficult to generalize data from existing studies to predict arbitrary behaviors, owing to the difficulty in adequately representing such behaviors. Our paper addresses each of these problems. First, by sampling frequent verb phrases in natural language and refining these through human coding, we compile a dataset of nearly 4,000 common human behaviors. Second, we use distributed semantic models to obtain vector representations for our behaviors, and combine these with demographic and psychographic data, to build supervised, deep neural network models of behavioral propensities for a representative sample of the US population. Our best models achieve high accuracy rates when predicting propensities for novel (out-of-sample) participants as well as novel behaviors. This work lays the foundation for new predictive theories of everyday behavior, improving the generality and naturalism of research in the behavioral sciences.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>People engage in thousands of complex actions and behaviors over the course of the day.</p><p>They may read the news in the morning, send emails in the afternoon, play with their children in the evening, and worry about the future at night. These behaviors are the causes and the consequences of mental activity, of social, economic, and political reality, and of human wellbeing and flourishing. For this reason, the study of everyday behavior is of special interest to cognitive, behavioral, and social scientists, and a central focus of academic disciplines such as psychology.</p><p>However, established theories and methodologies in psychology and other fields have difficulty predicting the occurrence of everyday behaviors, and are unable to formally relate these behaviors to the abstracted variables observed in artificial laboratory environments (see <ref type="bibr" target="#b9">Bhatia &amp; Stewart, 2018;</ref><ref type="bibr" target="#b8">Bhatia, Richie, &amp; Zou, 2019</ref> for a discussion). Of course, many surveybased methods and theories do use common behavioral patterns as stimuli, for example, items in personality <ref type="bibr" target="#b22">(Goldberg, 1990)</ref> and risk <ref type="bibr" target="#b10">(Blais &amp; Weber, 2006)</ref> questionnaires. However, these stimuli are hand-picked by experimenters and restricted to narrow domains of human psychology. Thus, results from questionnaire-based studies cannot easily be generalized to the thousands of everyday behaviors that could be of interest to researchers.</p><p>Ultimately, the complexity and wide scope of naturalistic behavior makes it especially difficult to study. We do not currently have a way of formally representing the nearly infinite set of everyday behaviors, and are thus unable to formulate scientific theories capable of predicting and explaining these behaviors.</p><p>In this paper, we propose and test a new approach to quantifying naturalistic behavior.</p><p>Specifically, we suggest that common behaviors can be represented as verb phrases (e.g. read the news, send email, play with children, or worry about the future), and that recent advances in natural language processing, such as transformer-based language models <ref type="bibr" target="#b16">(Cer et al., 2018;</ref><ref type="bibr" target="#b19">Devlin, Chang, Lee, &amp; Toutanova, 2018)</ref>, can be used to give these phrases high-dimensional vector representations that preserve their meanings. Such representations can be obtained for nearly any natural language phrase, which implies that it is possible to develop formal models that can take arbitrary human behaviors (in the form of vector representations) as inputs or alternatively produce these behaviors as outputs, facilitating more naturalistic behavioral theorizing.</p><p>Although we consider a number of ways in which researchers can use vector representations of behaviors, our focus in this paper is on the predictive modeling of behavioral propensities, that is, on building machine learning models capable of predicting how likely different people are to perform thousands of everyday behaviors. To facilitate such an analysis, we first compile a very large dataset of common behaviors based on the natural language occurrence frequencies of hundreds of thousands of verb phrases. We then offer a subset of these phrases to human participants to measure self-reported behavioral propensities. Finally, we use the vector representations of the verb phrases (in combination with demographic and psychographic data) as inputs in machine learning models, to predict the behavioral propensities of our participants. Our aim is to make such predictions for out-of-sample behaviors as well as for out-of-sample participants <ref type="bibr">(i.e. participants, behaviors, and participant-behavior</ref> combinations, that our model is not trained on), in order to test the generalizability of our approach. <ref type="figure">Figure 1</ref> outlines the key computational and empirical steps performed in the current paper. <ref type="figure">Figure 1</ref>. Core components of our study. Blue boxes refer to the analysis performed in the section titled "Corpus Analysis to Obtain Common Behaviors", the yellow box refers to data collection described in the section titled "Survey of Behavioral Propensities", and the green box refers to the analysis in the section "Predictive Modeling of Behavioral Propensities". P&amp;D refers to participant psychographic and demographic data.</p><p>The study of behavioral propensity and attitude is a key focus of research in psychology, especially in subfields like judgment and decision making, moral psychology, personality research, and clinical psychology (e.g. Bruine de <ref type="bibr">Bruin, Parker, &amp; Fischoff, 2007;</ref><ref type="bibr" target="#b15">Cacioppo &amp; Petty, 1982;</ref><ref type="bibr" target="#b10">Blais &amp; Weber, 2006;</ref><ref type="bibr" target="#b22">Goldberg, 1990;</ref><ref type="bibr">Lovibond &amp; Lovibund, 1995;</ref><ref type="bibr" target="#b38">Patton, Stanford, &amp; Barratt, 1995;</ref><ref type="bibr" target="#b44">Rushton, Chrisjohn, &amp; Fekken, 1981;</ref><ref type="bibr" target="#b45">Schwartz, Ward, Monterosso, Lyubomirsky, White, &amp; Lehman, 2002)</ref>. For these reasons, scholars in other fields, such as marketing, management, policy, and economics are also interested in describing and understanding how likely people are to engage in different behaviors. The success of our model will provide strong evidence for the applicability of transformer models to the study of naturalistic behavior in these diverse domains, and form the basis of future research that uses transformer models in order to better understand behavior and its psychological correlates.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Transformer Models of Language</head><p>The past few years have seen impressive technological breakthroughs in computational linguistics: Computer models are now able to achieve unprecedented levels of performance in question answering, semantic entailment, machine translation, sentiment analysis, and other natural language understanding tasks. Perhaps the most impressive advances have come from a new type of deep, feed forward neural network known as the transformer <ref type="bibr" target="#b16">(Cer et al., 2018;</ref><ref type="bibr" target="#b19">Devlin et al., 2018;</ref><ref type="bibr" target="#b43">Radford, Narasimhan, Salimans, &amp; Sutskever, 2018;</ref><ref type="bibr">Vasvani et al., 2017;</ref><ref type="bibr">Brown et al., 2020)</ref>. The details of transformer models are complex (see <ref type="bibr" target="#b6">Alammar, 2018</ref> for an accessible, illustrated introduction to the transformer), but in brief, a transformer is a stack of encoders followed by a stack of decoders, where inside each encoder/decoder is a feedforward neural network and a self-attention mechanism, with decoder modules having one additional self-attention mechanism ( <ref type="figure">Figure 2</ref>). The self-attention mechanism itself is also sophisticated, but essentially, as a transformer processes each word in a phrase or sentence, self-attention enables the transformer to look at other positions in the input phrase/sentence for information about how to best encode the current word. When trained on appropriately large amounts of text data, transformers can produce vector representations that approximate key elements of sentence meaning, and can subsequently be used as inputs in secondary machine learning models that fine-tune the vector representations for down-stream tasks.</p><p>Transformer models that encode phrases and sentences as vectors are, in a sense, an evolution of older models that produce vectors for words, like LSA <ref type="bibr">(Landauer &amp; Dumais, 1997)</ref>, BEAGLE <ref type="bibr">(Jones &amp; Mewhort, 2007)</ref>, Word2Vec <ref type="bibr" target="#b36">(Mikolov, Sutskever, Chen, Corrado, &amp; Dean, 2013)</ref>, or GloVe <ref type="bibr" target="#b42">(Pennington, Socher, &amp; Manning, 2014)</ref>, based on the distributional statistics of words in large collections of texts. In both word vector models and phrase and sentence encoders, vectors for linguistic units are obtained such that similar words, phrases, or sentences occupy nearby positions in semantic space. In addition, our application of transformer-derived sentence vector representations to predicting complex, real-world behaviors is largely inspired by various applications of word vector models in psychology. These applications include list and category recall, similarity and relatedness judgments, and free association (for review see <ref type="bibr" target="#b8">Bhatia et al., 2019;</ref><ref type="bibr" target="#b30">Jones, Willits, &amp; Dennis, 2015;</ref><ref type="bibr">Lenci, 2018;</ref><ref type="bibr" target="#b33">Mandera, Keuleers, &amp; Brysbaert, 2017</ref>), but perhaps most relevant for the present work are applications of word vector models to judgments about the psychological properties of words and phrases, e.g., the 'riskiness' of potential risk sources like smoking or skydiving <ref type="bibr" target="#b27">(Hollis, Westbury, &amp; Lefsrud, 2016;</ref><ref type="bibr" target="#b8">Bhatia, 2019;</ref><ref type="bibr" target="#b8">Richie, Zou, &amp; Bhatia, 2019;</ref><ref type="bibr" target="#b46">Utsumi, 2020)</ref>. In this work, ratings for a particular kind of judgment (e.g., riskiness) are directly linearly regressed onto the vectors for words (e.g. potential risk sources). This approach can explain about half of the variation in out-of-sample subjectaveraged judgment ratings, and strongly outperforms an association/similarity baseline that merely measures the similarity between a target word (e.g. smoking), and words representing the judgment dimension (e.g. risky or unsafe; Richie et al., 2019). We will take a similar approach when predicting propensities of behavior phrases. The advantage of using transformer models to obtain phrase vectors, over simply, say, averaging GloVe or Word2Vec vectors in a phrase, is that such models will take into account the order and identity of all words within a phrase when computing a vector. Obviously, the order of words within a phrase or sentence, and not just their identity, is a critical component of meaning (cf dog bites man vs man bites dog). <ref type="figure">Figure 2</ref>. Transformer model architectures. The transformer contains a stack of encoders and a stack of decoders. Inside each encoder/decoder is an attention mechanism (or two, for decoders) and a feed-forward network. While a typical transformer, with both encoders and decoders, can be used for sequence-to-sequence prediction, as in the visualized English-French translation example, BERT and USE make use of only the encoder stack (in different ways) to obtain phrase representations. Transformers have grown in popularity and variety since their introduction, but in this work, we will focus on two prominent transformers, USE (Universal Sentence Encoder, <ref type="bibr" target="#b16">Cer et al., 2018)</ref> and <ref type="bibr">BERT (Bidirectional Encoder Representations from Transformers, Devlin et al., 2018</ref>), due to their accessibility via off-the-shelf tools and their high performance on semantically nuanced natural language understanding tasks. We describe each briefly.</p><p>Whereas a complete transformer model is a sequence-to-sequence model, i.e., maps from strings of text to other strings of text, USE utilizes only the encoding subgraph of the transformer architecture. Thus, the final output of this subgraph is a real-valued vector representation for each word of a phrase or sentence, which are simply summed 1 , element-wise, to obtain a fixed-length vector for the entire phrase or sentence. The model used in the current paper has 512-dimensional vectors which can be obtained from the TensorFlow implementation of USE <ref type="bibr" target="#b16">(Cer et al., 2018;</ref><ref type="bibr">Abadi et al., 2015)</ref>. This model was trained using next sentence prediction on text from Wikipedia, web news, web question-answer pages and discussion forums. This model also received training on the Stanford Natural Language Inference (SNLI) corpus <ref type="bibr" target="#b11">(Bowman, Angeli, Potts, &amp; Manning, 2015)</ref>. Pre-trained on these tasks, USE generalizes very well to related tasks, including sentiment analysis, question classification, and sentence similarity <ref type="bibr" target="#b16">(Cer et al., 2018)</ref>.</p><p>A major shortcoming of USE and similar transformers is that it is 'unidirectional', in the sense that every token can only attend to the previous tokens in the self-attention layers of the transformer. To resolve this problem, <ref type="bibr" target="#b19">Devlin et al. (2018)</ref> developed BERT, the Bidirectional Encoder Representations from Transformer, which does allow the representation for a token to vary by what comes before and after it. As with USE, fixed-length representations of sentences can be obtained by aggregating (e.g., summing) over the token representations at various hidden layers of the network. The BERT model used in this paper was trained using masked word prediction (in which the modeler randomly masks some of the tokens from the input, and the objective is to predict the original vocabulary ID of the masked word based only on its context)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>1</head><p>The sum is also divided by the square root of the length of the phrase or sentence, to normalize for sequence length. and next sentence prediction, on text from Wikipedia and Google Books. After being fine-tuned on additional task-specific data, this model demonstrated (at the time) state-of-the-art performance in many NLP tasks, including question answering, sentiment analysis, and sentence acceptability. The primary application in this paper will not be fine-tuning the full BERT model but rather use the 768-dimensional out-of-the-box vectors offered by the bert-as-a-service Python package <ref type="bibr" target="#b50">(Xiao et al., 2018)</ref>.</p><p>We acknowledge that, of course, vector representations obtained from the above models are not always able to accurately capture sentence meaning: They sometimes generate errors in syntactically complex sentences and fail at common sense reasoning (e.g. <ref type="bibr">McCoy, Pavlic, &amp; Linzen, 2019)</ref>. There is also a philosophical debate about whether semantics can be inferred purely from the statistics of natural language. Nonetheless, the success of transformer models in tasks involving simpler sentence structure and limited high-level reasoning implies that these models may have practical utility for quantifying simple phrases and sentences corresponding to common human behaviors. We would expect phrases and sentences that pertain to similar behaviors to be given similar vector representations by these models.</p><p>Consider, for example, the verb phrases p1 = paint a house, p2 = decorate a room, and p3 = rent a room. p1 and p2 are highly similar behaviors despite having different verbs and nouns: both would likely be involved in home renovation. p2 and p3 share a word (room) but are otherwise quite different, as they concern different events (decorating vs renting; in linguistic terminology, the verbs are the 'head' of the verb phrases and thus typically contribute more to its meaning than the direct object or other dependents of the verb). Transformer models are useful for quantifying behaviors as they are able to correctly represent the emergent meanings of the word combinations in such phrases. To illustrate this, we passed these phrases through the Universal Sentence Encoder (USE) <ref type="bibr" target="#b16">(Cer et al., 2018)</ref>, to generate representations that preserve the semantic similarity of sentences. The USE model gave us 512-dimensional vector representations x1, x2, and x3, for the three phrases. We found that there is a cosine similarity of 0.77 between x1 and x2, but only 0.64 between x2 and x3, indicating that the USE model judges p1 and p2 to be more similar despite these phrases not sharing any words. Note that the previous generation of vector representation models, like Word2Vec <ref type="bibr" target="#b36">(Mikolov et al., 2013)</ref>, are unable to capture this pattern, as they cannot represent novel 2 multi-word phrases except by averaging, which does not respect the centrality of the verb phrase head that we indicated above. Indeed, performing the above tests with a Word2Vec bag-of-words model gives a cosine similarity of 0.71 between x1 and x2, and 0.77 between x2 and x3, suggesting that this model incorrectly judges p2 and p3 to be more similar.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Predictive Modeling of Behavior</head><p>If verb phrases that describe naturalistic behaviors can be quantified with vector representations, then it is possible to build predictive models that take vector representations of behavior as inputs and produce, as outputs, predictions regarding other variables associated with these behaviors.</p><p>One such variable could be an individual's propensity to engage in the behavior.</p><p>Consider, for example, a dataset with a set of behaviors as well as (self-reported or observed) 2 It is possible to detect strong collocations like New York City in a collection of texts, and then tokenize such collocations as a single unit, and learn vectors for that unit. Of course, this does not help the generation of vectors for novel phrases that were not treated as a single unit in the tokenization (like paint a house). measurements of how likely an individual is to engage in the behaviors relative to others. We can use a standard linear regression to regress the behavioral propensity variable on the vectors for the behaviors obtained from transformer models like BERT or USE. Such a regression will learn a relationship between points in the vector space of behaviors and the behavioral propensity variable, and thus implicitly characterize how different behaviors vary in terms of behavior propensity. Such a model would also be able to make predictions when given a novel out-ofsample behavior; i.e. a behavior that is not in its training dataset. If such predictions are accurate, then the model could, in principle, be applied to thousands of additional behaviors that can be expressed as verb phrases and be given vector representations, allowing us to extrapolate behavioral propensities from the training data, in order to better understand the individual in consideration.</p><p>We could also use a similar approach on a dataset with behavioral propensities of multiple individuals. Such an approach may also benefit from individual-level variables (e.g. those involving demographics and psychographics), which could be introduced as covariates into the above regression. Of course, more sophisticated machine learning techniques may yield better predictions. One promising approach is a multilayer perceptron, that projects the input variables (in our case, the vector representations for behaviors and possibly demographic and psychographic variables for individuals) onto one or more intermediary, hidden layers. Hidden layers of this type can be used to learn interactions between behaviors and various individuallevel characteristics, thus describing behavioral propensities on the group level, as well as sources of individual-level variability. Thus, a predictive model that accommodates interactions between individual-level characteristics and aspects of the behavior would be able to predict that an extraverted individual is more likely to engage in sociable behaviors (go to a party) and less likely to engage in solitary behaviors (read a book), while an introverted individual is likely to display the reverse pattern. Such models may also succeed at making predictions for out-ofsample individuals (in addition to out-of-sample behaviors). In this paper we use both (regularized) linear regression models and neural network models to map behavior vectors and individual-level data onto behavioral propensity ratings from large numbers of participants.</p><p>These models are summarized in <ref type="figure" target="#fig_1">Figure 3</ref>. Behavioral propensity predictive models. To predict behavioral propensity scores, we used phrase representationsfrom BERT, USE, or Word2Vecand participant demographic and psychographic variables. We tried L2-regularized linear regression (left), as well as multilayer perceptrons, which can capture interactions among our features (right).</p><p>The approach introduced here is not just limited to behavioral propensities. Any variable associated with a behavior could be predicted in a similar manner. For example, a dataset of human ratings of the riskiness of different behaviors (e.g. <ref type="bibr" target="#b10">Blais &amp; Weber, 2006)</ref> can be used to train the above models, and subsequently predict how (potentially out-of-sample) individuals would evaluate the riskiness of (potentially out-of-sample) behaviors. Similar techniques would also work for other judgments, e.g. those involving the moral appropriateness of behaviors or the gender stereotypicality of behaviors. These, and other extensions of our framework, are examined in detail in the discussion section of this paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Building a Set of Common Behaviors</head><p>Of course, any predictive modeling analysis that uses large numbers of variables to make predictions requires a large amount of training data. In our case, we require not only ratings from a large and diverse group of participants (the details of which we will provide in the subsequent section), but also ratings of a large and diverse set of common behaviors. In this section, we describe the collection of a novel dataset of thousands of phrases describing human behaviors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Obtaining Initial Dataset of Verb Phrases</head><p>We began by extracting the 1,000 most frequent verbs in the Corpus of Contemporary American Literature (COCA; <ref type="bibr" target="#b18">Davies, 2009)</ref>. We then used Google Books' n-gram dataset <ref type="bibr" target="#b35">(Michel et al., 2011)</ref> to construct verb phrases to populate our dataset of human behaviors. For each of the 1,000 COCA verbs, we obtained the 100 most frequent 3-gram, 4-gram, and 5-gram phrases from the n-gram dataset beginning with the given verb. This resulted in the creation of a list of ~300,000 n-grams. Notably, many of the resulting n-grams in the dataset were not valid verb phrases. For example, say that the is the second most common 3-gram beginning with the verb say, likely because it is a common prefix of other complete phrases that have the verb say.</p><p>As an initial attempt to prune these cases from our dataset, we performed part-of-speech (POS) tagging with the natural language processing package spaCy <ref type="bibr" target="#b28">(Honnibal &amp; Montani, 2017)</ref>, to produce a POS sequence for each verb phrase. We then examined the 150 most frequent POS sequences, and manually selected 16 sequences that consistently produced complete and grammatically correct verb phrases (see our OSF repository for a complete list). We selected these POS sequences by first randomly sampling 20 verb phrases from the 100 most frequent POS sequences, and then randomly sampling 10 verb phrases from the 101 st to 150 th most frequent POS sequences. We reviewed the sampled verb phrases and chose 16 POS sequences whose sampled verb phrases were valid at least 50% of the time, and that we did not expect would consistently produce invalid behaviors. Using only n-grams with POS sequences matching these 16 sequences, we reduced the dataset to 31,942 n-grams. While POS tagging significantly helped reduce the number of invalid verb phrases, many n-grams that either did not constitute complete verb phrases, or were not valid human behaviors, remained in the dataset. To solve these issues, we turned to human coding.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Human Coding and Validation Study</head><p>To ensure that the dataset of n-grams contained valid behaviors, we needed to remove all phrases that were not (1) complete and grammatically correct verb phrases or (2) plausible for an individual to perform. We thus designed an annotation study where participants were tasked with coding the phrases from our dataset based on these criteria.</p><p>Participants. We recruited 438 participants (51% female, Mage = 36, SDage =12) through Prolific Academic to participate in coding our list of phrases. Data collection was limited to participants from the US whose first language was English. Participants were only allowed to participate once in this task and were paid approximately $10 per hour.</p><p>Procedure. Participants were given a set of instructions explaining our criteria for behavioral plausibility and grammatical correctness. Participants were provided multiple examples of complete phrases that are valid human behaviors, as well as strategies that could be used to evaluate how well a phrase met these criteria. For example, one strategy for testing whether or not a verb phrase is complete is by checking whether or not it can be said in response to a question like, "What does the person/animal/thing/etc. do?". Further details of these instructions, examples, strategies, and criteria can be found in our OSF repository.</p><p>Participants then moved to a training section to develop a stronger sense of how phrases might or might not meet the validation criteria. Participants were given eight predetermined phrases and asked to rate these phrases on a scale from 1 (definitely not a valid human behavior)</p><p>to 5 (definitely a valid human behavior) on the criteria provided. After rating a phrase, an explanation would appear on the screen explaining why the participant's rating was correct or incorrect. Following this training section, participants moved to the main portion of the study.</p><p>Further details of the training section can be found in our OSF repository.</p><p>For the main portion of the study, participants were randomly assigned to evaluate a subset of approximately 250 phrases from the 31,942 n-grams remaining from the POS-based filtering. On average, each phrase received 3.125 ratings (SD = 0.77). We also utilized attention checks: randomly placed, researcher-generated phrases that obviously met or did not meet the criteria listed in the instructions. For example, kick the ball meets the validation criteria, while eat the very does not.</p><p>Results. We ignored data from participants that did not correctly evaluate at least 75% of the attention checks, leading to 406 of 438 participants being retained. Inter-annotator agreement was measured by taking a phrase's average score, noting the direction (&gt;3 or &lt;3), and then dividing the number of annotators that rated the phrase in that direction by the total number of annotators for that phrase. If the phrase score did not have a direction (i.e. total number of ratings was even between &lt;3 and &gt;3, or all =3) then the score given was a 0. We thus observed an average inter-annotator agreement score of 0.71 across all phrases, indicating that participants were effectively evaluating phrases. Using the data from these 406 human-coders, we removed all phrases from our dataset that received an average score below 4.5. This reduced the total size of the dataset to ~6,500 n-grams constituting complete verb phrases that describe valid human behaviors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Additional Cleaning and Similarity Reduction</head><p>The human validation study was useful in removing the majority of phrases that did not meet our criteria for a valid human behavior. However, due to the difficulty of this task, some phrases that did not fully meet the criteria remained in the dataset. Human-error along with inconsistent structure between the phrases, specifically with determiners and pronouns, prompted a need to further clean and code the dataset.</p><p>To address both of these issues, we developed a data coding procedure, the details of which can be found in our OSF repository. Phrases were deemed valid if they were complete verb phrases, had a clear direct object (if one existed), were plausible for an individual to perform, and were able to inform us about a clear and meaningful behavior an individual would likely engage in. All pronouns in valid phrases were replaced with the appropriate form of someone or my such that the phrase made sense from the participant's perspective, (e.g., kiss her</p><p>cheek became kiss someone's cheek). To fix phrases that were missing a direct object, either something or someone was inserted in the appropriate location in the phrase (e.g. push over the edge became push someone over the edge). To ensure consistency among determiners, all instances of the were replaced by a or an or were removed entirely (e.g. arrange the flowers became arrange flowers and drink the soda became drink a soda) unless the the was necessary for the phrase's meaning to remain the same (e.g., live in the wilderness). The phrases in the dataset were first coded and cleaned by the researchers, and then reviewed by a research assistant to ensure all phrases were coded correctly.</p><p>Further, many phrases were nearly synonymous with each other (e.g. throw the ball vs. throw the balls). Therefore, we used the pre-trained BERT model to extract feature vectors for our phrases and used these vectors to cluster semantically similar phrases. We clustered phrases whose vectors had cosine similarities of over 0.9, looked through each cluster of phrases, and kept any phrase within a cluster that had a unique meaning. If multiple phrases were synonymous in a cluster, we chose the phrase that had the most general meaning as the one to keep. Two researchers performed this task separately and all disagreements were resolved by consensus.</p><p>This procedure led to the removal of 951 phrases yielding a final dataset of 3,938 verb phrases describing plausible human behaviors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Modeling Grammaticality and Behavioral Validity</head><p>While human coding was useful in further refining the set of valid human behavior phrases, it also provided valuable annotations of tens of thousands of n-grams on their grammatical correctness and whether or not they described plausible human behaviors for an individual to perform. Using these annotations, we can train classifiers on vectors of these ngrams to predict whether or not an n-gram is a complete verb phrase referring to a plausible human behavior. N-grams in the finalized dataset were labeled as valid, and n-grams that received an average rating less than or equal to 2.5 from the validation study were labeled as invalid. This resulted in a dataset containing 3,938 valid behaviors, and 12,215 invalid behaviors.</p><p>We trained such classifiers with BERT representations of n-grams on this dataset, in two different ways. In our first approach, we used logistic regression from Scikit-learn <ref type="bibr" target="#b40">(Pedregosa, et al., 2011)</ref> with L2 regularization, 5-fold cross-validation, and a grid search over alpha (set to 20 values evenly spaced on a log scale between e -5 and e 5 ) with the BERT vectors as our input features, to predict the assigned labels for the phrases.</p><p>For our second approach, we fine-tuned the full BERT model for performance in our task. In related applications, this approach has been particularly effective because it uses the current task data (here, the n-grams and their labels) to finely tune the bottom layers of the network while using the outputs of this network as features for the classification task. For this approach, we used the BertForSequenceClassification class provided by the Hugging Face package for fine-tuning <ref type="bibr" target="#b49">(Wolf et al., 2019)</ref>. This model is a regular BERT model with an added softmax layer on top that is used for phrase and sentence classification. As input data is fed to the model, the pre-trained BERT and the untrained classification layer are both tuned to our specific task. This model was trained over 4 epochs with 299 batches of phrases per epoch.</p><p>As a baseline, we also tested L2-regularized logistic regression with averaged 300dimensional Word2Vec vectors (continuous bag-of-words; <ref type="bibr" target="#b36">Mikolov et al., 2013)</ref> as the feature vector rather than BERT vectors. We used the same hyperparameter set as in our logistic regression with BERT. All three models reserved 10% of the dataset for testing. Results on this 10% of the dataset, for each of these three approaches, are summarized in <ref type="figure" target="#fig_2">Figure 4</ref>, and Table 1.   <ref type="table">Table 1</ref> show that both models utilizing BERT outperformed the model using averaged Word2Vec vectors across all metrics. The fine-tuned BERT model was able to predict participant labels with a high degree of accuracy (93%), more so than either of the other two models (91% for logistic regression with BERT, and 80% for logistic regression with Word2Vec). Because of the predominance of invalid behaviors in the annotated dataset, all models had better performance across all metrics when classifying the invalid class than the valid class. Finally, we note that Word2Vec's 80% accuracy rate is not much higher than the 75% base rate of the Invalid class, suggesting averaged Word2Vec vectors cannot adequately represent behavior phrases.</p><p>The success of BERT, and particularly the fine-tuned BERT model, suggests that accurate predictions can be given for novel behaviors. Thus, these models could be used to validate the addition of thousands of potential behavior phrases to our dataset, improving its comprehensiveness. We return to this issue of the comprehensiveness of our behavior phrases in the discussion.  <ref type="table">Table 1</ref>. Precision, recall, F1 score, and accuracy for L2-regularized logistic regression using Word2Vec, L2-regularized logistic regression using BERT, and the fine-tuned BERT model on the test dataset. Each metric, except accuracy, is split by class for each model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Class Precision</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Describing the Content of Behavior Phrases</head><p>As our final set of valid behavior phrases is very large and very rich, it is worthwhile exploring the distribution of syntactic structures and semantic content within them, especially with an eye toward detecting types of behaviors that are over-or under-represented in our dataset.  <ref type="table" target="#tab_1">Table 2</ref>. The ten most frequent part-of-speech sequences contained within our final set of valid behavior phrases. Also indicated are randomly selected examples of each sequence, and the frequency of the part-of-speech sequence.</p><p>To explore semantic content (as opposed to semantic structure) in a more direct way, we performed two analyses. First, we conducted a dictionary-based analysis with the well-known LIWC dictionary <ref type="bibr" target="#b41">(Pennebaker et al., 2015)</ref>, which contains lists of words in various categories, like work, home, and leisure. For example, LIWC's list of leisure-related words includes alcohol, mall, and yoga. For each of these categories (excluding syntactic categories like articles or conjunctions; see our OSF repository for all LIWC categories), we counted the total number of words, across all behavior phrases, falling into a given category.  Again, our phrases span a variety of categories, but some appear (much) more frequently than . This gender bias, and the absence of sexual words, may be a result of our usage of the Google Books n-grams dataset in particular, or even generic corpora in general. We return to this issue in the discussion.</p><p>For our second analysis to better understand the semantic content of our phrase set, we performed clustering of phrase vectors. First, we extracted 512-dimensional vectors for each behavior phrase using the Universal Sentence Encoder. We used this language model instead of, e.g., BERT, because USE obtains state-of-the-art performance on sentence similarity without fine-tuning, and clustering is similarity-driven <ref type="bibr" target="#b16">(Cer et al., 2018)</ref>. We then performed k-means clustering on all 3,938 behavior phrase vectors, with k=8. To determine a word's importance to a cluster, we performed the following procedure. First, we lower-cased all words and removed stop words and non-alphabetic tokens. Then, we counted the frequency of all words, and divided a word's frequency in a cluster by the sum of its frequency in all clusters, to obtain a word's relative importance to a cluster. <ref type="figure" target="#fig_6">Figure 6</ref> shows word clouds for each cluster of the foregoing 3</p><p>We do acknowledge that it is not altogether clear how often we should expect phrases of a certain topic to appear. Moreover, it is not clear that the token frequency of a topic in the phrase set has to reflect the centrality or frequency of a type of behavior in human life. Still, having only 7 of ~4000 phrases concern sexuality strikes us as severe underrepresentation.</p><p>analysis, with words sized according to their relative importance to a cluster. These clusters appear to span diverse domains including digital actions, money and career-related behaviors, travel and physical activities, household tasks, problem solving, and social activities, suggesting that our approach is able to uncover and quantify a wide range of common human behaviors. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Survey of Behavioral Propensities</head><p>In this section, we describe the methodology for our survey that was used to collect data on participants' propensity to commit certain behaviors, as well as their psychographic and demographic data. Our aim was to use this latter data, along with vectors from transformer models of the behavior phrases, to predict propensities to perform behaviors, both for out-ofsample behaviors and out-of-sample participants.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Participants</head><p>We recruited 319 participants on Prolific Academic. Our sample was chosen to be representative of the age, gender, and race distribution of the US. Participants were only allowed to participate once and were paid approximately $10 per hour.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Psychographic Measures</head><p>We collected the following questionnaires to measure psychographic features of our participants: Ten Item Personality Inventory <ref type="bibr" target="#b23">(Gosling et al., 2003)</ref>, Domain-Specific Risk-Taking Scale <ref type="bibr" target="#b48">(Weber et al., 2002)</ref>, Barratt Impulsiveness Scale <ref type="bibr" target="#b38">(Patton et al., 1995)</ref>, Self-Report Altruism Scale <ref type="bibr" target="#b44">(Rushton et al., 1981)</ref>, Grit Scale <ref type="bibr" target="#b20">(Duckworth et al., 2009)</ref>, Satisfaction With Life Scale <ref type="bibr" target="#b7">(Arrindell et al., 1999)</ref>, and Maximization Scale short <ref type="bibr" target="#b37">(Nenkov et al., 2008)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Design and Procedure</head><p>In the first section of our study, participants were randomly assigned to a single block containing a subset of approximately 247 behaviors from the finalized dataset of human behaviors. There were 16 blocks of phrases -15 contained 247 behaviors and 1 contained 233 behaviors. Note that while the sample of participants was representative across multiple demographic variables, each block was not guaranteed to be evaluated by a representative sample. In total there were 78,116 evaluations of individual phrases collected in the study.</p><p>Participants were told that we were interested in understanding how much they agreed with the statement "Relative to others, I am likely to X" where X was one of our behavior phrases. Participants rated how much they agreed with this given statement on a Likert scale from 1 (strongly disagree) to 7 (strongly agree). Participants were told to compare themselves against the general population, rather than solely their peers, while evaluating the statements.</p><p>Participants completed this task for all behaviors in their assigned block before moving on to the next portion of the study.</p><p>In the second section of the study, participants completed the psychographic questionnaires mentioned above. After completing the psychographic questionnaires, participants indicated their education level, race, gender, income level, age, marital status, and employment status, in that order.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Summary of Phrase Ratings</head><p>We briefly report some phrases with high, medium, and low mean ratings, as well as phrases with low and high variability, to give an impressionistic sense of the validity of our dataset. The mean rating for all evaluations of phrases was 4.202, with a standard deviation of 1.886. 24 phrases received a median rating of 7, i.e., participants strongly agreed that they were likely to engage in these behaviors relative to others. Some of these phrases include access the internet, reflect on a subject, consider a question, spell my name, and sleep in a bed. 133 phrases received a median rating of 1, i.e., participants strongly disagreed that they were likely to engage in these behaviors relative to others. Some of these phrases include kill someone, suck my thumb, commit a felony, escape from prison, and condemn someone as a heretic. 772 phrases received a median rating of 4, i.e., participants neither agreed nor disagreed that they were likely to engage in these behaviors relative to others. Some of these phrases include build a model, catch a bus, suppress a sigh, invent a tale, and carry a big stick. Inter-subject variability in phrase ratings also struck us as sensible. The phrase with lowest standard deviation was kill my father (SD = 0.218, Median = 1), while the phrase with the highest standard deviation was grab a cup of coffee (SD = 2.56, Median = 6), reflecting the universal (negative) opinions on murder in the former and high variability in enjoyment of coffee in the latter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Predictive Modeling of Behavioral Propensities</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>The primary goal of this paper was to evaluate the effectiveness of predicting behavioral propensities of individuals from phrase vectors provided by transformer models (BERT and USE). By collecting measurements of how likely individuals are to engage in certain behaviors, we were able to use different machine learning models to regress the behavioral propensity variable onto the vectors for the behaviors obtained from the transformer models. These regressions allowed us to learn the relationships between the vector space of the behaviors and the behavioral propensity variable. Because this regression was being calculated using the behavioral propensities of multiple individuals, we hoped that individual-level psychographic and demographic variables might be useful covariates in this regression in order to predict behavioral propensity on the individual level.</p><p>We evaluated the success of both BERT and USE vectors for this task by training regularized ridge regressions with Scikit-learn <ref type="bibr" target="#b40">(Pedregosa et al., 2011)</ref>, and multilayer perceptions (MLPs) with Keras <ref type="bibr" target="#b17">(Chollet et al., 2015)</ref> and TensorFlow <ref type="bibr">(Abadi et al., 2015)</ref>. As mentioned in the introduction, the hidden layers in the MLP may allow us to model interactions between participant characteristics and behavior phrase characteristics, e.g., the tendency for extraverted individuals to be more likely to perform social behaviors (go to a party) than solitary behaviors (read a book), and introverted individuals to do the reverse.</p><p>We used the phrase vectors, alongside psychographic and demographic data, as input features for the behavioral propensity prediction task. Individual-level psychographic data were given as either aggregated (i.e. each participant received a single scalar score for Grit, Agreeableness, Openness to Experiences, Satisfaction with Life, Risk Taking, Conscientiousness, Altruism, Impulsiveness, Maximization, Extraversion, and Emotional Stability using the scoring methods described in the sources of the questionnaires) or nonaggregated (i.e. each participant's score for each questionnaire item was used individually in the feature set). All ridge regressions were run with a grid search over alpha using 20 evenly spaced values on a log scale between e 5 and e -5 . All multilayer perceptrons (MLP) contained 4 layers:</p><p>the first with 1,000 neurons and a ReLU activation function, a hidden layer with 200 neurons and a ReLU activation function, another hidden layer with 50 neurons and a ReLU activation function, and a final layer with one neuron with a linear activation function to provide a propensity score. Additionally, dropout was set to 50% between each layer. Each MLP was trained using 10-fold cross validation with 100 epochs per fold, where each epoch trained the MLP in batches of 20 items at a time. 10% of the training data was preserved as a validation set in order to avoid overfitting. We also introduced an early stopping method where the model in the current fold would end training early if validation loss did not improve for 10 consecutive epochs to avoid overfitting. As a baseline, we also tested a Word2Vec model with phrase vectors obtained from averaged word vectors (continuous bag-of-words; Mikolov et al., 2013) using the regularized ridge regression and MLP techniques.</p><p>In the following section we show the results of these models under 3 different methods of splitting the dataset. The first is a true random split over all the data, meaning that neither behaviors nor participants are guaranteed to be exclusively represented in either the training or testing dataset. The second splits the data by participants, guaranteeing that the models make behavioral propensity predictions for the test set with out-of-sample participants. The final method splits the data by behaviors, guaranteeing that the models make predictions on out-ofsample behaviors. In order to normalize the data for each participant, each score was z-scored with the given participant's other scores in the current testing or training set of the data and this score was used in the given set instead of the raw score.</p><p>Results <ref type="figure" target="#fig_7">Figure 7A</ref>-7I shows the out-of-sample correlation between actual propensity scores and predicted propensity scores for the ridge regression and multilayered perceptron models, using aggregated vs. non-aggregated psychographic data, USE vs. BERT vs. averaged Word2Vec vectors, and the 3 different types of splits of the dataset. Note that MLP models trained with Word2Vec data were unable to predict behavioral propensity scores regardless of the how the dataset was split. These models are still included in our results, despite their failures, for the sake of consistency.</p><p>In all cases, except when using averaged Word2Vec word vectors as phrase representations, MLPs had more accurate predictions of behavioral propensity ratings than ridge regressions trained on the same dataset with the same input features. For every MLP modelexcluding the models utilizing Word2Vec vectors, which the MLPs were unable to predict behavioral propensity scores fromnon-aggregated psychographic data yielded slightly improved performance (average r = 0.48) over aggregated psychographic data (average r = 0.47)</p><p>as an input in the feature space. This effect did not appear for the ridge regression models (average r = 0.33 vs r = 0.33). Psychographic and demographic data as a whole did not seem to impact model performance (average r = 0.428 vs average r = 0.429 across all models with and without psychographic or demographic data, respectively). Our best performing model, an MLP trained over a random test/train split of the dataset, performed only slightly worse when trained without psychographic data (r = 0.516) than with the psychographic and demographic data (r = 0.524). Without demographic or psychographic data, this model achieved a correlation of 0.506.</p><p>It is notable that models trained with the vectors from transformer models alone still achieved high correlation values. Excluding the models trained with averaged Word2Vec vectors, the models trained on a random test/train split of the dataset ( <ref type="figure" target="#fig_7">Figure 7A</ref> and B) outperformed models trained on splits over participants or behavior phrases. Of course, it must be noted that in a random test/train split of the dataset, the same phrase(s) or participant(s) (but not both) could appear in both the training and testing dataset. The models evaluated on ratings from behaviors that were entirely out-ofsample ( <ref type="figure" target="#fig_7">Figure 7D</ref> and E) performed worse than models evaluated on ratings from participants that were entirely out-of-sample ( <ref type="figure" target="#fig_7">Figure 7G</ref> and H) indicating that is harder to extrapolate to new behaviors than it is to new participants.</p><p>BERT vectors also yielded equal or improved model performance over USE vectors for all models except for the ridge regressions in <ref type="figure" target="#fig_7">Figure 7D</ref> and <ref type="figure" target="#fig_7">Figure 7E</ref>. This difference in performance is most notable in the MLP models in <ref type="figure" target="#fig_7">Figure 7G</ref> and <ref type="figure" target="#fig_7">Figure 7H</ref> where the MLP models trained with USE vectors had correlations that were, on average, 0.055 lower than the MLP models trained with BERT vectors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Vector Representations of Behavior</head><p>The space of naturalistic human behavior is vast, and thus nearly impossible to comprehensively quantify and analyze. This is why most theories in the cognitive and behavioral sciences are parametrized and tested using highly stylized experimental tasks or surveys.</p><p>However, in order to develop formal scientific theories of naturalistic human cognition and behavior, researchers need to be able to quantitatively represent the nearly limitless set of behaviors that people engage in on a day-to-day basis.</p><p>This project addresses this important conceptual and technical challenge. The core insight underlying our approach is as follows: Many naturalistic human behaviors can be described with simple natural language verb phrases and sentences. Using transformer models for natural language processing, the meanings of these phrases and sentences can be quantified as vectors in high-dimensional semantic spaces. Importantly, semantic vectors can be obtained for nearly any phrase or sentence, which implies that quantified representations are feasible for thousands of common human behaviors.</p><p>The ability to quantify naturalistic behaviors using high-dimensional vector representations opens up many new avenues of research in psychology and related disciplines.</p><p>Specifically, it is possible to use quantified representations of behaviors as inputs into formal models that attempt to predict important psychological variables associated with behaviors. To facilitate such an analysis, we collected a dataset of naturalistic behaviors by observing the frequencies of verb phrases in natural language. We extracted hundreds of thousands of such phrases from the Google Books dataset, and then, through part-of-speech tagging, human coding, and manual editing, distilled this dataset into a subset of 3,938 verb phrase that describe common human behaviors. We also trained a machine learning model that is capable of accurately predicting whether a given phrase describes a common behavior, automating this process for future research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Predicting Behavior</head><p>The main test in this paper involved using our dataset of behavior phrases to predict people's propensities in engaging in these behaviors. For this, we collected a large dataset of individual-level behavior propensity ratings, as well as associated psychographic data (e.g.</p><p>responses to personality surveys) and demographic data. We then used both the vector representations of behavior as well as psychographic and demographic variables for our participants as inputs in machine learning models trained to predict the individual's propensity rating. We found that our models successfully predicted out-of-sample behavior propensities, including propensities for individuals not in the training data, and behaviors not in the training data, showing that transformer-based vector representations of behavior can be used to make behavioral predictions for truly out-of-sample individuals and behaviors. We considered both regularized linear regressions and multilayer perceptrons and found that the best performing model turned out to be the multilayer perceptron that used the BERT vectors as inputs. This is not surprising given the computational power of deep neural networks and recent successes of the BERT model in natural language understanding tasks.</p><p>At the same time, our MLP did not grossly out-perform a purely linear model (by no more than approximately r = .05), which is surprising to the extent that we think behavior propensity is an interactive and not merely additive function of the behavior and the individual (that is, we would expect extraverted individuals to endorse going to a party over reading a book, and introverted individuals to do the opposite). Similarly, we were surprised to see that the addition or removal of psychographic and demographic information from the inputs to the models did not have much impact on predictive accuracy (difference in r &lt; .01). We did find participant-level variability in propensity scoresthe mean standard deviation in propensity scores, which had been z-scored within-participant, across all behavior phrases was .80. Thus, there is some participant heterogeneity to explain, and the null effect of participant-level information, and lack of strong interaction between phrase representations and participant characteristics, strikes us as surprising. There are at least a couple possibilities for this pattern of results. First, our MLP may be overly flexible, with too many hidden layers and neurons, relative to the amount of data we have (78,116 participant-behavior combinations), and/or our input representations (phrase vectors and psychographic/demographic survey responses) may be too high-dimensional. Second, it may be that our number of participants per phrase (~20) was simply inadequate for effectively learning how our individual-level characteristics impacted propensity ratings, especially given that, as stated above, we expected interactive and not additive effects, with the former generally being more difficult to learn and requiring more data.</p><p>Finally, it may also just be inherently difficult to predict variability in behavioral tendencies from survey measures. <ref type="bibr" target="#b21">Eisenberg et al. (2019)</ref>, for example, present evidence that surveys predict real-world behavioral outcomes only modestly, and with substantial heterogeneity. On the other hand, our behavioral propensity scores and our psychographic and demographic measures are all self-reported survey measures, and many of the psychographic measures contain items that are very similar to our behavior phrases. For example, one of the items on the DOSPERT asks participants to rate their likelihood of performing the behavior going camping in the wilderness. Further, to the extent that our psychographic scales generally have internal consistency, responses on one item predict responses on other items from the same (sub)scale. It is perhaps therefore surprising that responses to the psychographic measures do not help predict responses to our behavior phrases. One possible explanation for this may be that the behavior phrases simply concern domains of behavior that are generally unrelated to, and therefore cannot be predicted from, the domains of behavior, personality, and demography reflected in our psychographic and demographic surveys.</p><p>In any case, while we acknowledge there may be inherent limits to the premise of our approach, we suspect that the implementation of our approach could be improved. Further refining our predictive models, increasing the number of participant ratings per phrase, restricting analyses to phrases with strong (a priori expectations of) individual-level variation, or collecting additional or different psychographic and demographic information, may all be directions for future research.</p><p>What is abundantly clear, however, is that simply averaging static word vectors, like</p><p>Word2Vec, leads to entirely inadequate behavior phrase representations, as these averaged representations were very poor for predicting behavioral propensities (and for classifying sequences as valid human behaviors). These results underscore the technical advances that transformers present for the representation of language beyond the level of the word.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>New Applications in the Study of Behavior</head><p>Our results show that transformer models of language can provide useful vector representations of behavior phrases. These representations may not capture the entirety of the meaning of the behavior phrase or all of the richness of the physical instantiation of the behavior, but they are accurate enough to predict people's behavior propensities. Importantly, transformer language models can be used to quantitatively represent a wide range of naturalistic human behaviors, allowing for novel applications of cognitive and behavioral research that taxonomize, predict, and explain naturalistic human behavior, using formal computational models.</p><p>One such application could involve a more detailed analysis of BERT and USE vector representations of behavior. Our preliminary tests involving the k-means clustering of behavior phrases (shown in <ref type="figure" target="#fig_6">Figure 6</ref>) reveal that our vector representations capture some intuitive distinctions between different behavioral domains. Further work could examine the dimensions of the vector space of behaviors in more detail, and thus better understand how vector representations of behavior obtained from natural language data represent the content of behavior and the meaning of verb phrases depicting behavior. For example, it might be useful to conduct more systematic tests of the influence of different elements of a verb phrase on the BERT or USE vector, as we did in a preliminary fashion in the introduction with the phrases paint a house, decorate a room, and rent a room.. That is, the verb, as the head of a verb phrase, ought to determine the location in vector space more than other parts of the phrase, except possibly in the case of light verbs in phrases like do a review, in which case do a review perhaps ought to be closer to revise a paper than it is to do the cleaning.</p><p>It may also be possible to use our approach to study sequences of behavior, specifically behaviors performed one after another over the course of the day (and perhaps observed using diary studies). Such sequences can be used to understand complex behavioral schemas and scripts that guide human action (e.g. <ref type="bibr" target="#b5">Abelson, 1981)</ref>. We can analyze these dynamics using transformer models calibrated for "sequence-to-sequence" prediction, as in the French-English translation example of <ref type="figure">Figure 2</ref>. Such models use vector representations of sentences to learn dependencies between different sentences, and have been shown to be successful at nextsentence prediction, machine translation, and other tasks in which an input sentence must be mapped onto an output sentence <ref type="bibr" target="#b19">(Devlin et al., 2018)</ref>. In our case, sequence-to-sequence models can be used learn how behaviors performed at one point in time determine behaviors in the subsequent point in time, providing analytical rigor in the study of behavioral dynamics and cognitive schemas.</p><p>Finally, as we have discussed earlier in this paper, the general paradigm introduced in this paper can be applied to other variables of interest to psychologists. For example, instead of predicting people's propensities for different behaviors, it may be possible to predict people's judgments of behaviors. Such judgments are a key topic of study in domains such as risk perception and moral psychology, and our paradigm offers the promise of extending theories in these fields to the nearly unbounded set of behaviors that could be judged by individuals in the world.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Limitations</head><p>Our approach is of course not without limitations. Perhaps chief among these are the biases in our set of verb phrases resulting from their generation from corpora. For one, we used the Google Books n-gram corpus to extract phrases, which is known to over-represent certain text genres, like scientific publications <ref type="bibr" target="#b39">(Pechenick, Danforth, Dodds, 2015)</ref>. In turn, this may mean that certain scientific behaviors like generate a table are over-represented in our corpus, while more informal behaviors like take a selfie or have sex are under-represented. And of course, since we have used the English version of the Google Books n-gram corpus, our generated behavior phrases may under-represent behaviors important to non-English speaking populations (which, of course, is most of the human population). Finally, we found that male words appeared in our behaviors almost three times as often as female words, despite the set of male words being smaller in our dictionary (LIWC), which may be a bias in not just the Google Books corpus, but many generic corpora <ref type="bibr" target="#b29">(Johns &amp; Dye, 2019)</ref>. Therefore, obtaining more general and representative sets of human behavior phrases is a crucial goal for future research.</p><p>Diary studies, in which participants write out the sets of behaviors they engaged in over the course of the day, may be one way to manually augment our automatically constructed set of behavior phrases. It may also be possible to use phrase structure grammars (or even probabilistic variants thereof), combined with a lexicon of common words with their grammatical class (and possibly semantic features, e.g., POSSIBLE-AGENT), to generate new verb phrases, which could then be filtered down into a set of valid human behaviors with the classifier we have developed here. As the number of possible phrases can be impractically vast with even (a) a relatively small lexicon and grammar and (b) limits on the length of the phrase or number of phrase structure rule applications, it would be important to intelligently sample from the possible productions such that the space of behaviors (e.g., as represented in USE or BERT space, or in terms of LIWC constructs) is efficiently covered with a relatively small number of phrases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>We have proposed a novel approach to studying naturalistic behavior. Our approach is not limited by artificial experimental tasks or narrow aspects of cognition and behavior preselected by psychologists. Rather it embraces the complexity of the real-world, and attempts to study this complexity using novel techniques taken from machine learning and natural language processing. When applied to a large dataset of behavioral propensity ratings, our approach is able to accurately predict how likely individuals are to engage in behaviors in an out-of-sample manner.</p><p>The reader may note that our approach is not grounded in an established theoretical paradigm. The reason for this is that there is no current psychological theory that can accommodate the richness and variety of everyday behaviors. By quantifying and predicting everyday behaviors, and by extracting insights regarding naturalistic behavior in a data-driven manner, this paper lays the groundwork for such a theory (see <ref type="bibr" target="#b51">Yarkoni &amp; Westfall, 2017 and</ref> Hofman et la., 2017 for discussions of the value of prediction in social and behavioral science).</p><p>In doing so it shows the power of computational models trained on large-scale digital data for analyzing and predicting behavioral phenomena <ref type="bibr">(Griffiths, 2017;</ref><ref type="bibr" target="#b25">Harlow &amp; Oswald, 2016)</ref>. We look forward to the use of such an approach in the development of a new scientific paradigm, one that is capable of quantitatively describing the naturally occurring and free-flowing behaviors humans engage in over the course of their everyday lives.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>Figure adaptedfrom<ref type="bibr" target="#b6">Alammar (2018)</ref>.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Behavioral propensity predictive models. To predict behavioral propensity scores, we used phrase representationsfrom BERT, USE, or Word2Vecand participant demographic and psychographic variables. We tried L2-regularized linear regression (left), as well as multilayer perceptrons, which can capture interactions among our features (right).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4 .</head><label>4</label><figDesc>Confusion matrices for L2-regularized logistic regression using Word2Vec, L2regularized logistic regression using BERT, and the fine-tuned BERT model on the test dataset.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 and</head><label></label><figDesc>Figure 4 and Table 1 show that both models utilizing BERT outperformed the model</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Frequency of 15 most and 15 least common LIWC categories in the final set of valid behavior phrases. (Bars can exceed the total number of phrases because a category can appear multiple times in a phrase.) Figure excludes syntactic categories.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 5</head><label>5</label><figDesc>displays the 15 most and least frequent categories across all of our phrases.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 6 .</head><label>6</label><figDesc>Word clouds describing k-means clusters in our set of 3,938 behaviors.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 7 .</head><label>7</label><figDesc>Out-of-sample performance for every (model type, [non-]aggregate psychographic data, vector source) triple for each split of the dataset. Cells in the heatmaps indicate the Pearson correlation between individual evaluations of behavioral propensity and model predictions of behavioral propensity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Table 2</head><label>2</label><figDesc>contains the ten most frequent POS sequences contained with our final set of valid behavior phrases, as well as example phrases of each sequence, and the frequency of the POS sequence. It is apparent that our phrases span a rich variety of syntactic structures, ranging Although we have not performed any automatic semantic parsing or semantic role labeling of our phrases to derive a structured semantic representation or label words in our phrases for semantic roles like agent, patient, theme, etc., we strongly suspect that, to the extent that syntactic structure often follows semantic structure, our behavior phrases also span a great range of semantic structures.</figDesc><table><row><cell>Part-of-Speech Sequence</cell><cell>Example Phrase</cell><cell>Frequency</cell></row><row><cell>VERB-DET-NOUN</cell><cell>avoid a collision</cell><cell>1285</cell></row><row><cell>VERB-ADP-DET-NOUN</cell><cell>complain to the police</cell><cell>589</cell></row><row><cell>VERB-ADP-NOUN</cell><cell>die in battle</cell><cell>337</cell></row><row><cell>VERB-ADJ-NOUN</cell><cell>spread my wings</cell><cell>314</cell></row><row><cell>VERB-NOUN</cell><cell>assemble equipment</cell><cell>251</cell></row><row><cell>VERB-DET-NOUN-ADP-NOUN</cell><cell>restore some semblance of order</cell><cell>206</cell></row><row><cell>VERB-DET-ADJ-NOUN</cell><cell>embrace the christian faith</cell><cell>158</cell></row><row><cell>VERB-ADP-DET-ADJ-NOUN</cell><cell>cook in a double boiler</cell><cell>113</cell></row><row><cell>VERB-NOUN-PART-NOUN</cell><cell>quote someone's words</cell><cell>107</cell></row><row><cell>VERB-PART-DET-NOUN</cell><cell>squeeze out a tear</cell><cell>102</cell></row></table><note>from relatively simple VERB-DETERMINER-NOUN sequences like avoid a collision to more complex structures like VERB-ADPOSITION-DETERMINER-ADJECTIVE-NOUN as in cook in a double boiler.</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head></head><label></label><figDesc>cognitive processing (words like think, know, believe), drives (words like accomplish, command, motivate), and social (words like help, together, talkative). Other categories that strike us as central to human life, like death (words like alive, grieve, war) and sex (words like nude,</figDesc><table><row><cell>abortion, womb), are vanishingly rare, with only seven phrases containing sexual words</cell></row><row><cell>according to LIWC 3 . It is also notable that the'male category appears nearly three times as often</cell></row><row><cell>(43 times) as the female category (15 times), despite LIWC having more words for female than</cell></row><row><cell>male 4</cell></row></table><note>others. The most common categories include space (with words like above, map, within),</note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4">As a particularly striking example of this bias, the phrase admire a man is in our dataset, but admire a woman is not.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Funding: Funding was received from the National Science Foundation grant SES-1847794. Conflicts of interest: The authors have no conflicts of interest to declare</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Availability of data and material: Additional materials can be</title>
+		<ptr target="https://osf.io/93nfb/" />
+		<imprint/>
+	</monogr>
+	<note>Code availability: Code is available from authors upon request. References</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Abadi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Brevdo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Citro</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ghemawat</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">TensorFlow: large-scale machine learning on heterogeneous systems</title>
+		<ptr target="https://www.tensorflow.org" />
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>Software available from tensorflow. org</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Psychological status of the script concept</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Abelson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American Psychologist</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="715" to="729" />
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">The Illustrated Transformer</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Alammar</surname></persName>
+		</author>
+		<ptr target="https://jalammar.github.io/illustrated-transformer/" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">The satisfaction with life scale (SWLS): Appraisal with 1700 healthy young adults in The Netherlands</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Arrindell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Heesink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Feij</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Personality and individual differences</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="815" to="826" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Distributed semantic representations for modelling human judgment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bhatia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Richie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Zou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Behavioral Sciences</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="31" to="36" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Naturalistic multiattribute choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bhatia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Stewart</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">179</biblScope>
+			<biblScope unit="page" from="71" to="88" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">A domain-specific risk-taking (DOSPERT) scale for adult populations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Blais</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">U</forename><surname>Weber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Judgment and Decision making</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="33" to="47" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Bowman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Angeli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Potts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1508.05326</idno>
+		<title level="m">A large annotated corpus for learning natural language inference</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">B</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Subbiah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">Language models are few-shot learners</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Agarwal</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2005.14165</idno>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Individual differences in adult decision-making competence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Bruine De Bruin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Parker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Fischhoff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">92</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="938" to="956" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The need for cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Cacioppo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Petty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="116" to="131" />
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Universal sentence encoder for English</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Cer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">Y</forename><surname>Kong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Limtiaco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>John</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Strope</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of EMNLP</title>
+		<meeting>EMNLP</meeting>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="169" to="174" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">&amp; others</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Chollet</surname></persName>
+		</author>
+		<ptr target="https://github.com/fchollet/keras" />
+	</analytic>
+	<monogr>
+		<title level="j">Keras. GitHub</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The 385+ million word Corpus of Contemporary American English (1990-2008+): Design, architecture, and linguistic insights</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Davies</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Corpus Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="159" to="190" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of NAACL-HLT</title>
+		<meeting>NAACL-HLT</meeting>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Development and validation of the Short Grit Scale (GRIT-S)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Duckworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">D</forename><surname>Quinn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of personality assessment</title>
+		<imprint>
+			<biblScope unit="volume">91</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="166" to="174" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Uncovering the structure of self-regulation through data-driven ontology discovery</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">W</forename><surname>Eisenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G</forename><surname>Bissett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Enkavi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Mackinnon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Marsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Poldrack</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature communications</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="13" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">An alternative&quot; description of personality&quot;: the big-five factor structure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Goldberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">59</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1216" to="1229" />
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">A very brief measure of the Big Five personality domains</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Gosling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Rentfrow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">B</forename><surname>Swann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jr</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Research in Personality</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="504" to="528" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Manifesto for a new (computational) cognitive revolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">135</biblScope>
+			<biblScope unit="page" from="21" to="23" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Big data in psychology: Introduction to the special issue</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">L</forename><surname>Harlow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">L</forename><surname>Oswald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Methods</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">447</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Prediction and explanation in social systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Hofman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Watts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">355</biblScope>
+			<biblScope unit="issue">6324</biblScope>
+			<biblScope unit="page" from="486" to="488" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Extrapolating Human Judgments from Skip-gram Vector Representations of Word Meaning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hollis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Westbury</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lefsrud</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Quarterly Journal of Experimental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1603" to="1619" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">spaCy 2: Natural language understanding with Bloom embeddings</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Montani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note>and incremental parsing</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Gender bias at scale: Evidence from the usage of personal names</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Johns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dye</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior research methods</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1601" to="1618" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Models of semantic memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Willits</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dennis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Townsend</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Eidels</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Oxford Handbook of Computational and Mathematical Psychology</title>
+		<imprint>
+			<publisher>Oxford University Press</publisher>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="232" to="254" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Evaluation of a behavioral measure of risk taking: the Balloon Analogue Risk Task (BART)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Lejuez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Read</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Kahler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Richards</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Ramsey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">L</forename><surname>Stuart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: Applied</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">75</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">The structure of negative emotional states: Comparison of the Depression Anxiety Stress Scales (DASS) with the Beck Depression and Anxiety Inventories</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Lovibond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Lovibond</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behaviour research and therapy</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="335" to="343" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Explaining human performance in psycholinguistic tasks with models of semantic similarity based on prediction and counting: a review and empirical validation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mandera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Keuleers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Brysbaert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Memory and Language</title>
+		<imprint>
+			<biblScope unit="volume">92</biblScope>
+			<biblScope unit="page" from="57" to="78" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Right for the wrong reasons: Diagnosing syntactic heuristics in natural language inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Mccoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pavlick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Linzen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of ACL</title>
+		<meeting>ACL</meeting>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="3428" to="3448" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Quantitative analysis of culture using millions of digitized books</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Michel</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">&amp; Pinker, S.</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">K</forename><surname>Shen</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">&amp; Pinker, S.</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Aiden</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">&amp; Pinker, S.</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Veres</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">&amp; Pinker, S.</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Gray</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">&amp; Pinker, S.</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Pickett</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">&amp; Pinker, S.</orgName>
+			</affiliation>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">331</biblScope>
+			<biblScope unit="issue">6014</biblScope>
+			<biblScope unit="page" from="176" to="182" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">A short form of the Maximization Scale: Factor structure, reliability and validity studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">Y</forename><surname>Nenkov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Morrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hulland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Judgment and Decision making</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="371" to="388" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Factor structure of the Barratt Impulsiveness Scale</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Patton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Stanford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">S</forename><surname>Barratt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Clinical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="768" to="774" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Characterizing the Google Books Corpus: Strong limits to inferences of socio-cultural and linguistic evolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Pechenick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Danforth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Dodds</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pone.0137041</idno>
+		<ptr target="https://doi.org/10.1371/journal.pone.0137041" />
+	</analytic>
+	<monogr>
+		<title level="j">PLoS ONE</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page">137041</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Scikit-learn: Machine learning in Python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title level="m" type="main">The development and psychometric properties of liwc2015</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Boyd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Jordan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Blackburn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Tech. Rep.</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Glove: Global vectors for word representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of EMNLP</title>
+		<meeting>EMNLP</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">Improving language understanding by generative pre-training</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Narasimhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>OpenAI</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">The altruistic personality and the selfreport altruism scale</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Rushton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Chrisjohn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">C</forename><surname>Fekken</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Personality and Individual Differences</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="293" to="302" />
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Maximizing versus satisficing: Happiness is a matter of choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Monterosso</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lyubomirsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Lehman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">83</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1178" to="1197" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Exploring what is encoded in distributional word vectors: A neurobiologically motivated analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Utsumi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">12844</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Attention is all you need</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">A domain-specific risk-attitude scale: Measuring risk perceptions and risk behaviors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">U</forename><surname>Weber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Blais</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">E</forename><surname>Betz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Behavioral Decision Making</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="263" to="290" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Delangue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Moi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Brew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.03771</idno>
+		<title level="m">Transformers: State-of-the-art natural language processing</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title level="m" type="main">bert-as-a-service</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Xiao</surname></persName>
+		</author>
+		<ptr target="https://github.com/hanxiao/bert-as-service" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Choosing prediction over explanation in psychology: Lessons from machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Yarkoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Westfall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1100" to="1122" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

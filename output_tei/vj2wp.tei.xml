@@ -1,0 +1,1636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Applying reinforcement learning to the psychopathology of obsessivecompulsive and gambling disorders: practices and pitfalls in computational model fitting</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shinsuke</forename><surname>Suzuki</surname></persName>
+							<email>shinsuke.szk@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="department">Faculty of Social Data Science</orgName>
+								<orgName type="institution">Hitotsubashi University</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">HIAS Brain Research Center</orgName>
+								<orgName type="institution">Hitotsubashi University</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="department">Centre for Brain, Mind and Markets</orgName>
+								<orgName type="institution">The University of Melbourne</orgName>
+								<address>
+									<country key="AU">Australia</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kentaro</forename><surname>Katahira</surname></persName>
+							<email>k.katahira@aist.go.jp</email>
+							<affiliation key="aff3">
+								<orgName type="institution" key="instit1">Human Informatics and Interaction Research Institute</orgName>
+								<orgName type="institution" key="instit2">National Institute of Advanced Industrial Science and Technology (AIST)</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff4">
+								<address>
+									<addrLine>1-1-1 Higashi, Tsukuba, Ibaraki</addrLine>
+									<postCode>305-8566</postCode>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Applying reinforcement learning to the psychopathology of obsessivecompulsive and gambling disorders: practices and pitfalls in computational model fitting</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Computational modeling is gaining increasing popularity in the field of psychiatry. By applying a machine learning framework known as reinforcement learning (RL), researchers in the domain of computational psychiatry have begun to shed light on the latent decision-making processes that are altered in mental disorders. In this chapter, we first elucidate how RL can be instrumental in estimating the latent processes of decisionmaking and learning. We then focus on studies that employ a basic class of RL, known as model-free RL, to gain insights into the psychopathology of obsessive-compulsive and gambling disorders. Lastly, we review the model-fitting procedure in computational psychiatry research and offer a practical guide, also considering potential pitfalls. This encompasses discussions on estimating model parameters (parameter estimation), comparing multiple models based on their goodness of fits (model comparison), and testing the robustness of model-fitting procedures using synthesized data (model and parameter recovery analyses). Given the rapid growth of this area of study, we believe that these discussions will be of great value to authors, reviewers, and readers of computational psychiatry literature.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Learning to make appropriate decisions is a process vital for our quality of life and survival. Let us consider a simple scenario. Imagine that you have relocated to Australia from another country. Close to your new residence, you find two major supermarket chains: Coles and Woolworths. Which would you select for your regular grocery shopping? Initially, you might not know which supermarket to visit, but with experience, you will learn which one caters to your shopping needs best. This kind of learning is prevalent in diverse scenarios, from animal foraging to human financial decisions, highlighting its crucial role in our life.</p><p>A machine learning framework, known as reinforcement learning (RL), offers an explanation for the process of learning in sequential decision-making <ref type="bibr" target="#b8">(Dayan &amp; Daw, 2008;</ref><ref type="bibr" target="#b43">Rangel et al., 2008;</ref><ref type="bibr" target="#b55">Sutton &amp; Barto, 1998)</ref>. The RL framework posits that an individual assigns "value" to each of the available options and selects one based on that value information. Revisiting the example presented above from the lens of this framework, you would compute the values of Coles and Woolworths and select the supermarket with the higher value. After making a choice, you would update the value of the chosen option based on your experience. For instance, if you choose Coles and have a positive experience there, you would increase the value assigned to Coles. Specifically, the learning process is driven by a reward prediction error: the discrepancy between the amount of reward obtained and the current value of the chosen option. The prediction error is positive and negative for better-and worse-than-expected outcomes, respectively, and the error is zero for fully expected outcomes (see Section 2 for the mathematical description). Crucially, such a learning process enables individuals to estimate the true values of the available options, thus guiding optimal decision-making.</p><p>Accumulating evidence in neuroscience suggests that reward prediction errors are encoded in dopaminergic neural activities in the basal ganglia and other brain regions <ref type="bibr" target="#b19">(Glimcher, 2011;</ref><ref type="bibr" target="#b49">Schultz et al., 1997)</ref>. In humans, functional neuroimaging studies have consistently shown covariations between reward prediction errors and bloodoxygenation-level-dependent (BOLD) signals in the ventral striatum, a major projection site of dopaminergic neurons in the midbrain, as well as other brain loci including the dorsal striatum, medial prefrontal cortex, and anterior insula in diverse contexts <ref type="bibr" target="#b5">(Corlett et al., 2022;</ref><ref type="bibr" target="#b37">O'Doherty et al., 2004;</ref><ref type="bibr" target="#b56">Suzuki et al., 2012)</ref>.</p><p>By relating the formal RL framework to behavior, researchers can infer the latent characteristics of decision-makers that are not directly observable <ref type="bibr" target="#b6">(Daw, 2011;</ref><ref type="bibr" target="#b66">Wilson &amp; Collins, 2019)</ref>. Examples of these characteristics include how new information influences value updating and future behavior, the level of noise in decision-making, and the extent to which past choices (regardless of their outcomes) affect behavior. Specifically, fitting RL models to behavioral data allows for the estimation of model parameters that capture those latent characteristics of decision-makers: for example, the parameters learning rate, inverse temperature, and perseverance reflect the extent of value update in response to new information, the degree of noise, and the effect of choice history, respectively (see Section 2 for details). Recent studies in the field of computational psychiatry have shed light on the latent processes of decision-making that are affected by mental disorders, utilizing RL model fitting <ref type="bibr" target="#b23">(Huys et al., 2016;</ref><ref type="bibr" target="#b34">Montague et al., 2012)</ref>.</p><p>For instance, patients with mood and anxiety disorders have been shown to display a greater degree of noise in decision-making, indicated by a lower inverse temperature (equivalent to reduced reward sensitivity) <ref type="bibr" target="#b24">(Huys et al., 2013;</ref><ref type="bibr" target="#b28">Kunisato et al., 2012)</ref>, as well as higher and lower learning rates for reward and punishment outcomes, respectively <ref type="bibr" target="#b1">(Aylward et al., 2019;</ref><ref type="bibr" target="#b40">Pike &amp; Robinson, 2022)</ref>. These findings offer computational explanations for certain symptoms of mood and anxiety disorders, such as anhedonia.</p><p>In this chapter, we review the procedure of model fitting in computational psychiatry research that utilizes the RL framework to gain a deeper understanding of the psychopathology of obsessive-compulsive disorder (OCD) and gambling disorder (GD).</p><p>We provide a practical guide to conducting model fitting in computational psychiatry research, including discussions on estimating parameters of the models (parameter estimation), comparing each model's goodness of fit (model comparison), and verifying the robustness of fitting procedures. Given the rapid expansion of this research domain, we believe that these discussions will benefit authors, reviewers, and readers of computational psychiatry literature.</p><p>OCD is characterized by intrusive and involuntary thoughts (i.e., obsessions) that lead to repetitive behavioral rituals (i.e., compulsions). GD, previously known as pathological gambling, is characterized by a persistent and recurrent problematic gambling behavior that leads to clinically significant impairment or distress. Remarkably, OCD and GD both exhibit behavioral inflexibility: that is, impairments in the ability to alter behaviors <ref type="bibr" target="#b11">(Figee et al., 2016;</ref><ref type="bibr" target="#b13">Fontenelle et al., 2011;</ref><ref type="bibr" target="#b44">Robbins et al., 2019;</ref><ref type="bibr" target="#b59">Timmeren et al., 2018)</ref>. Here, we focus on computational psychiatry research on OCD and GD using simple model-free RL models, while acknowledging prior research using model-based RL models <ref type="bibr" target="#b16">(Gillan &amp; Robbins, 2014;</ref><ref type="bibr" target="#b17">Gillan et al., 2011;</ref><ref type="bibr" target="#b67">Wyckmans et al., 2019)</ref>, RL models incorporating internal states <ref type="bibr" target="#b47">(Sakai et al., 2022;</ref><ref type="bibr" target="#b48">Sato et al., 2023)</ref>, and Bayesian RL (Kalman filter) models <ref type="bibr" target="#b64">(Wiehler et al., 2021)</ref>. These prior studies have offered considerable insights into the psychopathology of OCD and GD.</p><p>The remainder of this chapter is structured as follows. Initially, we present formal descriptions of the standard model-free RL model and its variants in Section 2.</p><p>Subsequently, in Section 3, we review computational psychiatry literature on studies that have applied model-free RL models to examine the psychopathology of OCD and GD.</p><p>We then discuss common practices and pitfalls associated with RL model fitting in Section 4. The chapter concludes with a summary of the key points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Reinforcement learning as a model of decision-making</head><p>Consider a simple experimental task known as the two-armed bandit task. In this task, participants repeatedly choose between two options, receiving a reward for each choice based on a pre-assigned hidden probability corresponding to the selected option. To maximize their rewards, participants need to learn the reward probability associated with each option from their experiences. The RL framework is believed to offer a reasonable explanation for the latent computational processes underpinning learning and decision-making in such sequential decision-making tasks.</p><p>Conventional RL. The conventional model-free RL model supposes that in each decision-making context, an individual represents values of the two options, ( ) and ( ), and selects the option with a higher value under a certain level of stochastic noise.</p><p>The probability of one option, for instance A, being chosen is often given by the softmax function:</p><formula xml:id="formula_0">( ) = exp+ ( )- exp+ ( )-+ exp+ ( )-<label>(1)</label></formula><p>where the parameter ≥ 0 governs the degree of noise, called inverse temperature.</p><p>The individual then updates the value of the chosen option based on the information about reward delivery. Suppose an option A is chosen and the reward R is delivered, then the value of A is updated by the reward prediction error, d, as follows:</p><formula xml:id="formula_1">( ) ← ( ) +<label>(2)</label></formula><p>where = − ( ). Here, 0 ≤ ≤ 1 denotes the learning rate that controls for how much the value is updated in proportion to the reward prediction error. By fitting this model to the behavioral data, we can estimate the latent characteristics of the individual: that is, learning rate ( ) reflecting the extent of value update in response to new information and inverse temperature ( ) representing the degree of noise in decisionmaking.</p><p>RL with choice perseverance. A straightforward extension of the conventional RL model to account for the behavioral inflexibility would be a model that includes "choice perseverance," which is also called ''choice stickiness'' or ''decision inertia.'' RL models</p><p>with "long-term perseverance" assume that, in decision-making, an individual considers not only the value of each option but also the choice-trace that reflects how often s/he has chosen the corresponding option over the past trials. That is, the probability of A being chosen is given by</p><formula xml:id="formula_2">( ) = exp+ ( ) + ( )- exp+ ( ) + ( )-+ exp+ ( ) + ( )-<label>(3)</label></formula><p>where (•) denotes the choice-trace, and ∈ (−∞, ∞) represents the perseverance controlling the degree to repeat the same choice. The choice-trace for one option, for instance A, is initially set at 0 and updated as follows (same for the other option B):</p><formula xml:id="formula_3">( ) ← ( ) + + ( ) − ( )-,<label>(4)</label></formula><p>where ( ) is 1 if the option A is chosen and 0 otherwise, and 0 ≤ ≤ 1 is the choicetrace decay rate. Individuals with positive perseverance, g, are likely to repeat a recently selected choice, leading to behavioral inflexibility. Some studies have employed a simpler version, termed as "short-term perseverance." RL models with short-term perseverance assume that the choice-trace is derived based solely on a choice in the previous trial (not over the past multiple trials: i.e., = 1). That is, the choice-trace of one option is 1 if that option was chosen in the previous trial and 0 otherwise.</p><p>RL with asymmetric learning rates. Besides the choice perseverance, behavioral inflexibility can be captured also by RL models with asymmetric learning from outcomes above and below expectations. That is, differential learning rates control for the speed of learning from positive and negative reward prediction errors:</p><formula xml:id="formula_4">= C (") if ≥ 0 ($) if &lt; 0 .<label>(5)</label></formula><p>Notably, a higher learning rate for positive reward prediction errors and/or a lower learning rate for negative reward prediction errors can lead to repetitive choice behaviors, indicative of behavioral inflexibility. A higher learning rate for positive prediction errors causes an overestimation of value from positive outcomes, resulting in the chosen option being overvalued after positive experiences. A lower learning rate for negative prediction errors leads to an under-devaluation from negative outcomes, meaning that the chosen option's value is not sufficiently decreased despite negative experiences. These dynamics promote the repetition of current choice behaviors.</p><p>RL with choice perseverance and asymmetric learning rates. We can consider RL models that incorporate both choice perseverance and asymmetric learning rates.</p><p>According to a prior theoretical study <ref type="bibr" target="#b27">(Katahira, 2018)</ref>, to disentangle the computational processes underlying behavioral inflexibility, it is necessary to compare the RL model with perseverance and that with asymmetric learning rates as well as the full model with both perseverance and asymmetric learning rates.</p><p>By fitting these RL models to behavioral data from experiments such as a twoarmed bandit task, we can estimate parameters (e.g., , (") , ($) , , , ) that reflect the latent characteristics of the decision-maker. In computational psychiatry research, these estimated characteristics are compared between patient groups and healthy controls, or correlated with individual differences in continuous measurements of psychiatric symptoms (e.g., psychiatric questionnaire scores).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Reinforcement learning in OCD and GD</head><p>In a typical research program in computational psychiatry, researchers develop various RL models to analyze behavioral and neural data from patients with mental disorders, such as OCD and GD, alongside data from healthy controls. During data collection, dozens of patients and healthy controls perform a sequential decision-making task (e.g., multi-armed bandit task), while undergoing functional Magnetic Resonance Imaging (fMRI) scans. The researchers then fit the RL models to the behavioral data to compare the model fits and estimate the parameters (e.g., learning rates, perseverance).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Subsequent comparisons of the parameter estimates between patients and controls</head><p>provide insights into the computational mechanisms of the mental disorders. Further, by associating fMRI data with latent variables (e.g., reward prediction error) derived from the best-fitting model and its parameters, the researchers pinpoint brain regions that encode these variables differently in patients and healthy controls.</p><p>A pioneering study on RL in OCD patients <ref type="bibr" target="#b21">(Hauser et al., 2017)</ref> evaluated four models in a two-armed bandit task: the conventional model-free RL, RL with short-term perseverance, RL with asymmetric learning rates, and RL with both perseverance and asymmetric learning rates. The findings from this prior study indicated that the RL model incorporating perseverance provided a better explanation of the behavioral data for both OCD patients and healthy controls compared to the other models. Notably, the researchers identified a significant difference in the perseverance parameter (i.e., in equation <ref type="formula" target="#formula_2">3</ref>) between OCD patients and healthy controls, with the OCD patients exhibiting less perseverance. This finding appears paradoxical considering that behavioral inflexibility is a hallmark of OCD. Hauser and colleagues speculated that the reduced perseverance might be linked to the compulsive rechecking behaviors, a key characteristic of OCD, reflecting a pronounced urge to eliminate uncertainty by verifying outcomes of unselected alternatives. While this speculation warrants further investigation, the observed reduction of perseverance in OCD patients has been replicated in subsequent studies <ref type="bibr" target="#b25">(Kanen et al., 2019;</ref><ref type="bibr" target="#b32">Marzuki et al., 2021</ref>  <ref type="formula" target="#formula_4">5</ref>) in OCD patients during reward-seeking decisions, aligning partially with a previous study <ref type="bibr" target="#b32">(Marzuki et al., 2021)</ref> but not with others <ref type="bibr" target="#b21">(Hauser et al., 2017;</ref><ref type="bibr" target="#b25">Kanen et al., 2019)</ref>. No significant differences in the parameters were identified in loss-avoidance decision-making between OCD patients and healthy controls. Furthermore, corresponding to the diminished learning rate from negative reward prediction errors, neural representations of the negative prediction errors in reward-seeking decisionmaking were found to be diminished in the dorsal striatum and dorsomedial prefrontal cortex (dmPFC)-adjacent to the dACC reported in the study by <ref type="bibr" target="#b21">Hauser et al. (2017)</ref>.</p><p>Based on these results, Suzuki and colleagues speculated that OCD patients might exhibit a blunted response to negative reward prediction errors in the dorsal striatum and dmPFC, potentially contributing to the behavioral inflexibility characteristic of the disorder. <ref type="bibr" target="#b58">Suzuki et al. (2023)</ref> also examined GD patients using the same experimental task and analyzed the data with the RL models. They found that in reward-seeking scenarios, GD patients exhibited altered learning rates for positive and negative reward prediction errors ( (") and ($) respectively in equation <ref type="formula" target="#formula_4">5</ref>  <ref type="bibr" target="#b3">(Clark et al., 2014)</ref>. Collectively, these findings suggest that GD patients may be hypersensitive to positive reward prediction errors compared to healthy controls, which could contribute to the behavioral inflexibility observed in GD.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Practices and pitfalls of model fitting</head><p>As described above, in the field of computational psychiatry, researchers fit RL models to behavioral data and specify the best-fit model and its parameter estimates. They then compare the parameter estimates between patients with mental disorders and healthy controls. In this section, we review the procedures of model fitting, also presenting some guidelines and highlighting some pitfalls.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Parameter estimation</head><p>Researchers compare parameter values (e.g., perseverance and learning rates)</p><p>in RL models between patients and healthy controls to better understand the latent computational mechanisms behind mental disorders. In this context, an important question emerges: How are parameter values estimated from behavioral data?</p><p>A basic concept in parameter estimation is to find values of the parameters that enable the model to accurately represent the observed data, a process known as Maximum Likelihood Estimation (MLE). MLE is achieved by maximizing the likelihood function, which quantifies how well the model, with a given set of parameters, explains the observed data: ( | ) where denotes the data and represents the set of model parameters (see below for an example case of RL). The parameter estimates can be thus obtained by * = argmax ( | ) .</p><p>In actual implementations, we often minimize the negative log-likelihood, which is effectively the same as maximizing the likelihood, by using functions that are built into many program languages (e.g., fminsearch and fmincon in Matlab, optim in R, and scipy.optimize.minimize in Python).</p><p>In the Bayesian estimation, the posterior probability distribution over the parameters is computed by combining the likelihood function and the prior belief about the parameters, ( ), as follows:</p><formula xml:id="formula_6">( | ) = ( | ) ( ) ∫ ( | ) ( ) .<label>(7)</label></formula><p>While the estimation of the posterior distribution is often computationally intensive, the A straightforward method is to estimate parameters for each participant individually, known as the "individual modeling approach," using either MLE or Bayesian estimation. This approach posits that each participant possesses their own parameters, independent of others, which generate the choice data (see <ref type="figure" target="#fig_1">Fig. 1a</ref>). Suppose participant chooses one option A (over the other option B) at trial t, then the likelihood of the RL model on that choice ( ()) is given by equation <ref type="formula" target="#formula_0">1</ref>:</p><formula xml:id="formula_7">W ( ()) X = exp Y ()) ( ()) ( )Z exp Y ()) ( ()) ( )Z + exp Y ()) ( ()) ( )Z .<label>(8)</label></formula><p>Note that the values of the two options ( ()) ( ) and ( ()) ( ) are derived from the sequence of previous choices and rewards (see equation <ref type="formula" target="#formula_1">2</ref>). The full likelihood over the trials t = 1, …, T for participant i is given by</p><formula xml:id="formula_8">+ ( ) ] ()) , ()) -=^W ( ()) X + (,- .<label>(9)</label></formula><p>By maximizing the likelihood function, we derive the point estimation of the parameters:</p><formula xml:id="formula_9">+`( )) , a ()) -= argmax</formula><p>. <ref type="bibr">(")</ref> ,0 (")</p><formula xml:id="formula_10">+ ( ) ] ()) , ()) -.<label>(10)</label></formula><p>In the Bayesian estimation, the posterior probability distribution of the parameters is derived by the likelihood function and the prior belief, ( ()) , ()) ), as follows:</p><formula xml:id="formula_11">+ ()) , ()) ] ( ) -= + ( ) ] ()) , ()) -+ ()) , ()) - ∬ + ( ) ] ()) , ()) -( ()) , ()) ) ()) ()) .<label>(11)</label></formula><p>By repeating this procedure for all the participants, it is possible to estimate the individual parameters for each one. (a) Individual modeling approach. Each participant has an independent set of parameters (e.g., ()) and ()) ) that generates their choice data, <ref type="bibr">())</ref> . N, the number of participants.</p><p>(b) Hierarchical modeling approach. Participants' individual-level parameters ( ()) and ()) ) are drawn from common distributions with the population-level parameters ( . ,</p><p>. , 0 , and 0 ). interest-such as learning rate and perseverance-between OCD patients and healthy controls using two-sample t-tests. However, the individual modeling approach often fails to reliably estimate parameter values, especially with a small number of trials <ref type="bibr" target="#b26">(Katahira, 2016</ref>). This poses a significant challenge in computational psychiatry studies, as patients with mental disorders often find it difficult to engage in experimental tasks for extended periods, resulting in a limited number of trials (i.e., data points).</p><p>Hierarchical modeling approach. To overcome this issue, researchers have begun to employ a new method, known as the "hierarchical modeling approach" <ref type="bibr" target="#b6">(Daw, 2011;</ref><ref type="bibr" target="#b26">Katahira, 2016)</ref>. The hierarchical approach posits that each participant's parameters are drawn from common population-level distributions <ref type="figure" target="#fig_1">(Fig. 1b)</ref>. For example, each participant's learning rate, 0 ≤ ≤ 1 , is often assumed to be sampled from the population-level normal distribution with the logistic (inverse logit) function transformation:</p><formula xml:id="formula_12">()) = 1 W1 + exp+− ′ ()) -X f where ′ ())~( . , . ) . Likewise, each</formula><p>participant's ≥ 0 is often assumed to be drawn from the population-level distribution as follows:</p><formula xml:id="formula_13">()) = exp+ ′ ()) -where ′ ())~+ 0 , 0 -.</formula><p>In this hierarchical model, the likelihood of the RL model for participant i given the population-level parameters, . , . , 0 , 0 , can be derived as follows:</p><formula xml:id="formula_14">+ ( ) ] . , . , 0 , 0 -= i + ( ) ] ()) , ()) -+ ()) ] . , . -+ ()) ] 0 , 0 -()) ()) . (12)</formula><p>In other words, the likelihood can be obtained by marginalization of the likelihood given the individual-level parameters, + ( ) ] ()) , ()) -(see equation <ref type="formula" target="#formula_8">9</ref>), over the probabilities of the individual-level parameters given the population-level parameters.</p><p>Then, the full likelihood can be given by the product over the participants 1, …, N:</p><formula xml:id="formula_15">+ ( ) , … , ( ) ] . , . , 0 , 0 -=^+ ( ) ] . , . , 0 , 0 -. 3 ),-<label>(13)</label></formula><p>Given the full likelihood function, the posterior probability distribution of the populationlevel parameters, . , . , 0 , 0 , can be derived by Bayes' rule:</p><formula xml:id="formula_16">+ . , . , 0 , 0 ] ( ) , … , ( ) -∝ + ( ) , … , ( ) ] . , . , 0 , 0 -+ . , . , 0 , 0 -.<label>(14)</label></formula><p>Once the population-level parameters are estimated, the individual-level parameters can be restored as follows:</p><formula xml:id="formula_17">+ ()) , ()) ] ( ) , . , . , 0 , 0 -∝ + ( ) ] ()) , ()) -+ ()) , ()) ] . , . , 0 , 0 -.<label>(15)</label></formula><p>The hierarchical modeling approach is becoming increasingly popular in computational psychiatry <ref type="bibr" target="#b25">(Kanen et al., 2019;</ref><ref type="bibr" target="#b32">Marzuki et al., 2021;</ref><ref type="bibr" target="#b58">Suzuki et al., 2023;</ref><ref type="bibr" target="#b64">Wiehler et al., 2021)</ref>. For instance, using the hierarchical modeling approach, <ref type="bibr" target="#b58">Suzuki et al. (2023)</ref> demonstrated that patients with OCD exhibited a lower learning rate for negative reward prediction errors compared to healthy controls (see Section 3 for details).</p><p>They assumed that the individual-level parameters for patients and healthy controls were drawn from separate population-level parameters (see <ref type="figure" target="#fig_3">Fig. 2a</ref>) and compared the population-level mean parameters of the learning rate between the two groups (e.g., .</p><p>(4-) vs . <ref type="bibr">(45)</ref> in <ref type="figure" target="#fig_3">Fig. 2a</ref>). Specifically, they evaluated Bayes Factor based on the posterior distribution of the difference between the population-level parameters in the two groups (e.g., .</p><p>(4-) − . <ref type="bibr">(45)</ref> in <ref type="figure" target="#fig_3">Fig. 2a</ref>). It is important to note that in such hierarchical models, comparing individual-level parameters between groups (e.g., <ref type="bibr">())</ref> in Group 1 vs <ref type="bibr">(6)</ref> in Group 2 in <ref type="figure" target="#fig_3">Fig. 2a</ref>) is not appropriate; this is because the estimated individuallevel parameters for each group are shrunk by their respective population-level distributions, which potentially increases the likelihood of detecting false positive differences.</p><p>Other studies estimated the individual-level parameters of two groups of participants, under the assumption that their individual-level parameters were drawn from common population-level distributions regardless of their group assignment (see <ref type="figure" target="#fig_3">Fig. 2b</ref>) <ref type="bibr" target="#b33">(Mkrtchian et al., 2017;</ref><ref type="bibr" target="#b36">Oba et al., 2019)</ref>. In this scenario, comparing individuallevel parameters between the two groups (e.g., <ref type="bibr">())</ref> in Group 1 vs <ref type="bibr">(6)</ref> in Group 2 in <ref type="figure" target="#fig_3">Fig. 2b)</ref> is appropriate since the estimates for both groups are influenced by the same population-level parameters. Through such comparisons, Oba and colleagues found that participants with high-psychopathic traits exhibited a lower learning rate for positive reward prediction errors during loss-avoidance decision-making tasks, compared to those with low-psychopathic traits <ref type="bibr" target="#b36">(Oba et al., 2019)</ref>.  <ref type="bibr">(4-)</ref> , 0 (4-) , . <ref type="bibr">(4-)</ref> , and 0 (4-) .</p><p>Meanwhile, for those who belong to Group 2, individual-level parameters are drawn from the other distributions with the population-level parameters, . <ref type="bibr">(45)</ref> , 0 (45) , .</p><p>, and 0 <ref type="bibr">(45)</ref> . M, the number of participants in Group 1. N, the total number of participants. ()) , participant i 's choice data. Which approach should researchers use, individual or hierarchical modeling?</p><p>The individual modeling approach is known to work fairly well when the number of trials is sufficiently large. In contrast, when the number of trials is not sufficiently large, which is often the case in computational psychiatry studies, it is recommended that researchers employ a hierarchical modeling approach. Importantly, the validity of parameter estimation procedures can be evaluated using simulated data, as discussed in the "parameter recovery analysis" subsection of Section 4.3. This evaluation hinges on the premise that well-functioning procedures yield parameter estimates that align with the true parameters used to generate the simulated data. For example, a parameter recovery analysis has shown that individual modeling is effective even for complicated model-free RL models with five parameters ( , (") , ($) , , and ; see Section 2), with data from 500 trials in a three-armed bandit task <ref type="bibr" target="#b57">(Suzuki et al., 2021)</ref>. Adopting a model-fitting approach informed by parameter recovery analysis is currently considered the best practice, as it systematically assesses the performance of the parameter estimation procedures.  <ref type="bibr" target="#b30">(Li et al., 2011;</ref><ref type="bibr" target="#b42">Piray &amp; Daw, 2020)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Model comparison</head><p>How to evaluate the goodness of fit of a model? In the framework of MLE, the model could be evaluated by the maximum likelihood (see equation <ref type="formula" target="#formula_5">6)</ref>:</p><formula xml:id="formula_19">* = max ( | ) .<label>(16)</label></formula><p>However, this is not appropriate as it leads to overfitting. That is, a model with a higher degree of complexity (i.e., larger number of free parameters) leads to a larger maximum likelihood due to overfitting <ref type="bibr" target="#b2">(Bishop, 2006)</ref>. To evaluate the goodness of fit of a model based on the maximum likelihood, we thus need to have a penalty for free parameters.</p><p>Among the widely used metrices for the evaluation of each model's goodness of fit with penalizing additional free parameters are the Akaike information criterion (AIC) <ref type="bibr" target="#b0">(Akaike, 1992)</ref> and Bayesian information criterion (BIC) <ref type="bibr" target="#b51">(Schwarz, 1978)</ref>, which can be easily computed from the maximum likelihood (see equation <ref type="formula" target="#formula_19">16</ref>):</p><formula xml:id="formula_20">AIC ≡ −2 ln( * ) + 2 ,<label>(17)</label></formula><p>BIC ≡ −2 ln( * ) + ln( ) ,</p><p>where and denotes the number of free parameters in the model and the number of data points, respectively. Note that while AIC and BIC have similar formulations, they are based on different principles: AIC evaluates the generalization loss, while BIC approximates the log model evidence (see below). It is also important to note that AIC and BIC are not suitable for hierarchical modeling approaches (see Section 4.1), where the posterior distribution of parameters is not well approximated by a normal distribution.</p><p>For singular models, including hierarchical ones, the use of the widely applicable AIC (WAIC) <ref type="bibr" target="#b62">(Watanabe, 2010)</ref> or widely applicable BIC (WBIC) (Watanabe, 2012) is advised.</p><p>These metrices can be approximated using the "loo" package in R <ref type="bibr" target="#b61">(Vehtari et al., 2017)</ref> in conjunction with sampling methods implemented in software such as Stan.</p><p>In the Bayesian framework, the goodness of fit of a model is evaluated by model evidence (also called marginal likelihood or free energy):</p><formula xml:id="formula_22">( ) = w ( | ) ( )d .<label>(18)</label></formula><p>As it is generally difficult to obtain the exact value, model evidence can be approximated by using BIC, WBIC, and Laplace approximation as well as Bridge Sampling and</p><p>Variational Bayes <ref type="bibr" target="#b6">(Daw, 2011)</ref>. Comparing the metrices of competing models, researchers can specify the most probable one given the data.</p><p>Note that, when using metrics such as AIC, BIC, WAIC, WBIC, and model evidence for model comparison, it is typically assumed that all participants can be modeled with the same underlying process, meaning that the model is treated as a fixed variable. In contrast, another framework of model comparison, known as Bayesian model selection (BMS), treats the model as a random variable with the assumption that it is sampled from a higher-level Dirichlet distribution for each participant <ref type="bibr" target="#b52">(Stephan et al., 2009)</ref>. In BMS, the goodness of fit for a model, given a set of competing models, is evaluated by model probability-that is, the likelihood that a particular model generated the data of a randomly chosen participant-and exceedance probability, which reflects the likelihood that a particular model is more probable than any competing model.</p><p>In previous computational psychiatry research on OCD and GD, Kanen et al. An important consideration in model comparison is determining which models should be included. Ideally, all models that could potentially explain the data and computational processes of interest should be considered. However, it is impractical to test every possible model. Indeed, computational psychiatry studies on OCD and GD <ref type="bibr" target="#b21">(Hauser et al., 2017;</ref><ref type="bibr" target="#b25">Kanen et al., 2019;</ref><ref type="bibr" target="#b32">Marzuki et al., 2021;</ref><ref type="bibr" target="#b58">Suzuki et al., 2023)</ref> have not examined RL models that incorporate long-term perseverance (see Section 2 for an explanation of the distinction between short-term and long-term perseverance), despite the theoretical demonstration of its importance in unraveling the latent computational processes behind behavioral inflexibility <ref type="bibr" target="#b27">(Katahira, 2018)</ref>. Notably, similar to parameter estimation, procedures of model comparison (including the metrics of goodness of fit, set of candidate models, and setting of the experimental task) can be evaluated through simulation. By simulating the actual experiment-where the true model that generates the data is known-it is possible to assess if a model comparison procedure is effective.</p><p>If the procedure is successful, it should correctly identify the true model in the simulated data as the best fit (see the subsection "model recovery analysis" in Section 4.3). For example, one study <ref type="bibr" target="#b58">(Suzuki et al., 2023)</ref> established a set of candidate models for comparison based on simulation data analysis. It is now widely regarded as best practice to base decisions about model comparison procedures on such simulation analyses.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Validation of the model-fitting procedure</head><p>How do we validate our model-fitting procedure? Researchers may wish to verify to what extent model comparison procedures can identify the true model and how accurately parameter estimation captures the true parameter values of the model within a given experimental setup. However, this task is challenging because the true model and its parameters are unknown in real experimental data. Here, we review the way to assess and validate model-fitting procedures using simulated data <ref type="bibr" target="#b66">(Wilson &amp; Collins, 2019)</ref>. The basic idea involves applying the model-fitting procedure to simulated data for which the true generative model and its parameters are known. If the procedure works well, it should consistently identify the true model as the best fit during model comparison (i.e., model recovery analysis), and the estimated parameters should align with the true parameter values (i.e., parameter recovery analysis).</p><p>Model recovery analysis. Model recovery analysis allows researchers to confirm the identifiability of models under current experimental settings by creating a "confusion matrix" and "inversion matrix" from simulated data <ref type="bibr" target="#b66">(Wilson &amp; Collins, 2019)</ref>. In this process, data are simulated with the same experimental design (e.g., the decisionmaking task, the number of participants, and the number of trials) as in the actual experiment. This simulation is performed multiple times for each of the competing models to generate the confusion and inversion matrices. In the confusion matrix, each row indicates the probability that a particular model provides the best fit-determined by metrics such as exceedance probability, model evidence, or WAIC-for data generated by the corresponding model (see <ref type="figure" target="#fig_6">Fig. 3a for details)</ref>. Conversely, in the inversion matrix, each row indicates the probability that data best fitted by a particular model originated from the corresponding model (see <ref type="figure" target="#fig_6">Fig. 3b for details)</ref>. Note that the inversion matrix can be derived from the confusion matrix by Bayes rule <ref type="bibr" target="#b66">(Wilson &amp; Collins, 2019)</ref>. If the models were perfectly identifiable, given a set of competing models and experimental settings, the confusion and inversion matrices should be the identity matrix, where data generated by a specific model are best explained by that same model. By evaluating the similarity of these matrices to the identity matrix, we can gauge how accurately the model comparison procedure can identify the true generative model, at least in ideal scenarios where the true model is known.</p><p>Parameter recovery analysis. Using simulated data, we can also assess the reliability of parameter estimation procedures, specifically how accurately they estimate the true parameter values given the experimental design. In parameter recovery analysis, we test to what extent the true parameters used to generate the simulated data are accurately recovered by the estimation procedure <ref type="figure" target="#fig_6">(Fig. 3c)</ref>. Successful recovery indicates that the procedure can reliably estimate parameters when the true generative model and its parameter values are known. Through this analysis, we can evaluate the effectiveness of different parameter estimation methods, such as individual and hierarchical modeling approaches, within the context of the given experimental settings and model. These analyses of simulated data are critical for verifying the model-fitting procedures employed in computational psychiatry studies <ref type="bibr" target="#b46">(Safra et al., 2019;</ref><ref type="bibr" target="#b58">Suzuki et al., 2023)</ref>. It is advisable for researchers to perform model and parameter recovery analyses during the research design phase, including the setting of the experimental tasks, the construction of competing models, and the selection of methods for model</p><p>fitting. If not feasible during the initial stages, these analyses should be conducted a posteriori. In any case, we believe that it is imperative to report the capabilities and limitations of the model-fitting procedures transparently on the basis of simulation data analyses. (a) Examples of the confusion matrix in model recovery analysis. Each row denotes the probability that each of the four competing models (RL1, RL2, RL3, and RL4) provides the best fit on the data generated by the corresponding model, given a model comparison procedure. For instance, in the 1 st row, the 2 nd column indicates the probability that RL2 outperforms the other three models when the simulation data are generated by RL1. Top, the theoretically best case (i.e., close to the identity matrix). Bottom, an example of the underperforming case (i.e., far from the identity matrix).</p><p>(b) Inversion matrix in model recovery analysis. Each row denotes the probability that the data best fitted by the corresponding model are actually generated from each of the four competing models. For instance, in the 1 st row, the 2 nd column shows the probability that the simulation data are generated by RL1 when RL2 is specified as the best-fit. Top, the theoretically best case (i.e., close to the identity matrix). Bottom, an example of the underperforming case (i.e., far from the identity matrix). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusions</head><p>In this chapter, we reviewed the application of the formal RL framework in understanding the psychopathology of mental disorders, drawing on computational psychiatry studies of OCD and GD as illustrative examples. Our review underscores the value of computational model fitting in uncovering the latent decision-making processes that are altered in mental disorders, emphasizing a critical need for the meticulous design of model-fitting procedures. This involves leveraging parameter and model recovery analyses of synthesized data to verify the procedures within a given experimental context.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>software package Stan offers a practical solution to numerically approximate this distribution using Markov Chain Monte Carlo (MCMC) sampling methods (https://mcstan.org/). Individual modeling approach. Let us consider an example of the standard computational psychiatry experiments, where patients with mental disorders and healthy controls engage in a sequential decision-making task with two choice options (i.e., twoarmed bandit task) over T trials. How do we estimate each participant's learning rate (a) and inverse temperature (b) in the conventional model-free RL model (see Section 2 for details of the model and its parameters)?</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1 :</head><label>1</label><figDesc>Schematic illustration of model fitting.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>The individual modeling approach is widely used in computational psychiatry research. For instance,<ref type="bibr" target="#b21">Hauser et al. (2017)</ref> fitted RL models to each participant separately and then compared the mean values of the individual estimated parameter of</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 2 :</head><label>2</label><figDesc>Schematic illustration of the two ways of hierarchical model fitting. (a) For each of the groups, participants' individual-level parameters are drawn from the respective common distributions with population-level parameters. For instance, the individual-level parameters of participants who belong to Group 1 are sampled from the distributions with the population-level parameters, .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>(b) Participants' individual-level parameters are drawn from a common set of the population-level distributions regardless of their group assignment.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>(</head><label></label><figDesc>2019) and Marzuki et al. (2021) fitted RL models using a hierarchical modeling approach and compared their model evidence as estimated by Bridge Sampling. Similarly, Suzuki et al. (2023) and Wiehler et al. (2021) also employed hierarchical modeling for model fitting, but they used WAIC to compare candidate RL models. Conversely, Hauser et al. (2017) adopted an individual modeling approach, obtaining log model evidence for each participant and model through Variational Bayes approximation, and compared the goodness of fits of the competing models using BMS.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 3 :</head><label>3</label><figDesc>Examples of model and parameter recovery analyses.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>(c) Parameter recovery analysis. Estimated parameter values are plotted against the true generative parameters. Each data point denotes the estimated and true generative parameter values for one participant. Top, the theoretically best case in which the estimated parameters are perfectly aligned with the true generative values (i.e., all the points are on the 45° line). Bottom, an example of the underperforming case.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head></head><label></label><figDesc>). They also revealed that across the groups of OCD patients and healthy controls, fMRI signals in the dorsal anterior cingulate cortex (dACC) inversely correlated with reward prediction errors-higher prediction errors corresponded with diminished fMRI signals in this region.Furthermore, this inverse relationship between reward prediction errors and fMRI signals in the dACC was notably diminished in OCD patients.<ref type="bibr" target="#b58">Suzuki et al. (2023)</ref> explored neural computations in RL among OCD patients using a modified two-armed bandit task, where decisions to seek rewards and avoid losses were randomly interleaved across trials. Their findings demonstrated that the RL model with asymmetric learning rates more accurately predicted behavior in rewardseeking contexts for both OCD patients and healthy controls, compared to the conventional RL and RL with perseverance models. Conversely, in loss-avoidance scenarios, the RL model featuring perseverance was superior. Remarkably, they observed a reduced learning rate from negative reward prediction errors (i.e., ($) in equation</figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head></head><label></label><figDesc>) compared to healthy controls. Specifically, GD patients showed an increased learning rate for positive reward prediction errors and a decreased rate for negative errors. The heightened learning rate for positive reward prediction errors corresponded with enhanced neural representations of positive prediction errors in the anterior insula (AI) in GD patients (compared to healthy controls). However, neural responses to negative reward prediction errors showed no significant difference between GD patients and healthy controls. The enhanced neural response to positive prediction errors in the AI broadly aligns with existing literature showing that cravings for gambling in pathological gamblers are associated with an</figDesc><table /><note>increased AI response to gambling cues (Limbrick-Oldfield et al., 2017) and that individuals with insula damage show reduced gambling-related cognitive distortions</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head></head><label></label><figDesc>Researchers often compare multiple RL models based on their goodness-of-fit metrics to identify the most suitable one. For instance, in computational psychiatry studies on OCD, Hauser et al. (2017) evaluated the conventional model-free RL, RL model with short-term perseverance, RL model with asymmetric learning rates, and the full RL model incorporating both perseverance and asymmetric learning rates. Suzuki et al. (2023) did not test the full model but instead assessed other advanced models, such as the volatility Kalman filter and Pearce-Hall models</figDesc><table /><note></note></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Breakthroughs in Statistics, Foundations and Basic Theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Akaike</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-1-4612-0919-5_38</idno>
+		<ptr target="https://doi.org/10.1007/978-1-4612-0919-5_38" />
+	</analytic>
+	<monogr>
+		<title level="j">Springer Series in Statistics</title>
+		<imprint>
+			<biblScope unit="page" from="610" to="624" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Altered learning under uncertainty in unmedicated mood and anxiety disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Aylward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Valton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W.-Y</forename><surname>Ahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Bond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Roiser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">J</forename><surname>Robinson</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-019-0628-0</idno>
+		<ptr target="https://doi.org/10.1038/s41562-019-0628-0" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="8" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Bishop</surname></persName>
+		</author>
+		<title level="m">Pattern Recognition and Machine Learning</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Damage to insula abolishes cognitive distortions during simulated gambling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Studer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bruss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tranel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bechara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">16</biblScope>
+			<biblScope unit="page" from="6098" to="6103" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1073/pnas.1322295111</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1322295111" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Meta-analysis of human prediction error for incentives, perception, cognition, and action</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Corlett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Mollick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kober</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41386-021-01264-3</idno>
+		<ptr target="https://doi.org/10.1038/s41386-021-01264-3" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychopharmacology</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="11" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">Trial-by-trial data analysis using computational models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<editor>M. R</editor>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Elizabeth</forename><forename type="middle">A</forename><surname>Delgado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Phelps</surname></persName>
+		</author>
+		<title level="m">Oxford Scholarship Online</title>
+		<editor>&amp; Trevor W. Robbins</editor>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Decision theory, reinforcement learning, and the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive, Affective, &amp; Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="429" to="453" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/cabn.8.4.429</idno>
+		<ptr target="https://doi.org/10.3758/cabn.8.4.429" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Compulsivity in obsessive-compulsive disorder and addictions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Figee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Pattij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Willuhn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Luigjes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Brink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van Den</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Goudriaan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Potenza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Denys</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">European Neuropsychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="856" to="868" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.euroneuro.2015.12.003</idno>
+		<ptr target="https://doi.org/10.1016/j.euroneuro.2015.12.003" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Fontenelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Oostermeijer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Harrison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Pantelis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Yücel</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Obsessive-Compulsive Disorder, Impulse Control Disorders and Drug Addiction</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.2165/11591790-000000000-00000</idno>
+		<ptr target="https://doi.org/10.2165/11591790-000000000-00000" />
+	</analytic>
+	<monogr>
+		<title level="j">Drugs</title>
+		<imprint>
+			<biblScope unit="volume">71</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="827" to="840" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Goal-directed learning and obsessive-compulsive disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rstb.2013.0475</idno>
+		<ptr target="https://doi.org/10.1098/rstb.2013.0475" />
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">369</biblScope>
+			<biblScope unit="page" from="20130475" to="20130475" />
+			<date type="published" when="1655" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Disruption in the Balance Between Goal-Directed Behavior and Habit Learning in Obsessive-Compulsive Disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Claire</forename><forename type="middle">M</forename><surname>Gillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Papmeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Morein-Zamir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Sahakian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Fineberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">De</forename><surname>Wit</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The American Journal of Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">168</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="718" to="726" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1176/appi.ajp.2011.10071062</idno>
+		<ptr target="https://doi.org/10.1176/appi.ajp.2011.10071062" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Understanding dopamine and reinforcement learning: The dopamine reward prediction error hypothesis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Glimcher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page" from="15647" to="15654" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>Supplement 3</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1073/pnas.1014269108</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1014269108" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Increased fronto-striatal reward prediction errors moderate decision making in obsessive-compulsive disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">U</forename><surname>Hauser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Iannaccone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ball</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hättenschwiler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Drechsler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rufer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Brandeis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Walitza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Brem</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Medicine</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1246" to="1258" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1017/s0033291716003305</idno>
+		<ptr target="https://doi.org/10.1017/s0033291716003305" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Computational psychiatry as a bridge from neuroscience to clinical applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J M</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Maia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nn.4238</idno>
+		<ptr target="https://doi.org/10.1038/nn.4238" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="404" to="413" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Mapping anhedonia onto reinforcement learning: a behavioural meta-analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Pizzagalli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bogdan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<idno type="DOI">10.1186/2045-5380-3-12</idno>
+		<ptr target="https://doi.org/10.1186/2045-5380-3-12" />
+	</analytic>
+	<monogr>
+		<title level="j">Biology of Mood &amp; Anxiety Disorders</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">12</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Computational modelling reveals contrasting effects on reinforcement learning and cognitive flexibility in stimulant use disorder and obsessive-compulsive disorder: remediating effects of dopaminergic D2/3 receptor agents</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Kanen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">D</forename><surname>Ersche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Fineberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Cardinal</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s00213-019-05325-w</idno>
+		<ptr target="https://doi.org/10.1007/s00213-019-05325-w" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">236</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="2337" to="2358" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">How hierarchical models improve point estimates of model parameters at the individual level</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2016.03.007</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2016.03.007" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">73</biblScope>
+			<biblScope unit="page" from="37" to="58" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">The statistical structures of reinforcement learning with asymmetric value updates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2018.09.002</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2018.09.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page" from="31" to="45" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note>Computational Psychiatry</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Effects of depression on reward-based decision making and variability of action in probabilistic learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Kunisato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Okamoto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ueda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Onoda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Okada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yoshimura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Suzuki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Samejima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yamawaki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Behavior Therapy and Experimental Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1088" to="1094" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jbtep.2012.05.007</idno>
+		<ptr target="https://doi.org/10.1016/j.jbtep.2012.05.007" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Differential roles of human striatum and amygdala in associative learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Schiller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schoenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Phelps</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nn.2904</idno>
+		<ptr target="https://doi.org/10.1038/nn.2904" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1250" to="1252" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Neural substrates of cue reactivity and craving in gambling disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">H</forename><surname>Limbrick-Oldfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Mick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Cocks</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mcgonigle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Sharman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Goldstone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R A</forename><surname>Stokes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Waldman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Erritzoe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bowden-Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nutt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lingford-Hughes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Clark</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/tp.2016.256</idno>
+		<ptr target="https://doi.org/10.1038/tp.2016.256" />
+	</analytic>
+	<monogr>
+		<title level="j">Translational Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="992" to="992" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Association of Environmental Uncertainty With Altered Decision-making and Learning Mechanisms in Youths With Obsessive-Compulsive Disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Marzuki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Tomić</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H Y</forename><surname>Ip</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gottwald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Kanen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kaser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sule</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Conway-Morris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Sahakian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+		<idno type="DOI">10.1001/jamanetworkopen.2021.36195</idno>
+		<ptr target="https://doi.org/10.1001/jamanetworkopen.2021.36195" />
+	</analytic>
+	<monogr>
+		<title level="j">JAMA Network Open</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Modeling Avoidance in Mood and Anxiety Disorders Using Reinforcement Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mkrtchian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Aylward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Roiser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">J</forename><surname>Robinson</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.biopsych.2017.01.017</idno>
+		<ptr target="https://doi.org/10.1016/j.biopsych.2017.01.017" />
+	</analytic>
+	<monogr>
+		<title level="j">Biological Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">82</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="532" to="539" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Computational psychiatry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="72" to="80" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.tics.2011.11.018</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2011.11.018" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">The Effect of Reduced Learning Ability on Avoidance in Psychopathy: A Computational Approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Oba</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2019.02432</idno>
+		<ptr target="https://doi.org/10.3389/fpsyg.2019.02432" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">2432</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>O'doherty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Deichmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">Dissociable Roles of Ventral and Dorsal Striatum in Instrumental Conditioning</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.1126/science.1094285</idno>
+		<ptr target="https://doi.org/10.1126/science.1094285" />
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">304</biblScope>
+			<biblScope unit="issue">5669</biblScope>
+			<biblScope unit="page" from="452" to="454" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Reinforcement Learning in Patients With Mood and Anxiety Disorders vs Control Individuals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Pike</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">J</forename><surname>Robinson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JAMA Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">79</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="313" to="322" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1001/jamapsychiatry.2022.0051</idno>
+		<ptr target="https://doi.org/10.1001/jamapsychiatry.2022.0051" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">A simple model for learning in volatile environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Piray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1007963</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1007963" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">A framework for studying the neurobiology of value-based decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Camerer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nrn2357</idno>
+		<ptr target="https://doi.org/10.1038/nrn2357" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Reviews Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="545" to="556" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Obsessive-Compulsive Disorder: Puzzles and Prospects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Vaghi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Banca</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">102</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="27" to="47" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.neuron.2019.01.046</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2019.01.046" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Depressive symptoms are associated with blunted reward learning in social contexts</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Safra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chevallier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1007224</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1007224" />
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Memory trace imbalance in reinforcement and punishment systems can reinforce implicit choices leading to obsessive-compulsive behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Sakai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Sakai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Abe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Narumoto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Tanaka</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.celrep.2022.111275</idno>
+		<ptr target="https://doi.org/10.1016/j.celrep.2022.111275" />
+	</analytic>
+	<monogr>
+		<title level="j">Cell Reports</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page">111275</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Opponent learning with different representations in the cortico-basal ganglia pathways can develop obsessioncompulsion cycle</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Shimomura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Morita</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1011206</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1011206" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">A Neural Substrate of Prediction and Reward</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">275</biblScope>
+			<biblScope unit="issue">5306</biblScope>
+			<biblScope unit="page" from="1593" to="1599" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1126/science.275.5306.1593</idno>
+		<ptr target="https://doi.org/10.1126/science.275.5306.1593" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Estimating the Dimension of a Model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schwarz</surname></persName>
+		</author>
+		<idno type="DOI">10.1214/aos/1176344136</idno>
+		<ptr target="https://doi.org/10.1214/aos/1176344136" />
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Penny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies</title>
+	</analytic>
+	<monogr>
+		<title level="j">NeuroImage</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1004" to="1017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.neuroimage.2009.03.025</idno>
+		<ptr target="https://doi.org/10.1016/j.neuroimage.2009.03.025" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Reinforcement Learning: An Introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Learning to Simulate Others</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Suzuki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Harasawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ueno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Gardner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ichinohe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haruno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nakahara</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2012.04.030</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2012.04.030" />
+	</analytic>
+	<monogr>
+		<title level="j">Decisions. Neuron</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1125" to="1137" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Psychiatric symptoms influence reward-seeking and loss-avoidance decision-making through common and distinct computational processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Suzuki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Yamashita</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/pcn.13279</idno>
+		<ptr target="https://doi.org/10.1111/pcn.13279" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychiatry and Clinical Neurosciences</title>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">Individuals with problem gambling and obsessive-compulsive disorder learn through distinct reinforcement mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Suzuki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Braganza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Fulcher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Parkes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Fontenelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Harrison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Murawski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Yücel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Suo</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pbio.3002031</idno>
+		<ptr target="https://doi.org/10.1371/journal.pbio.3002031" />
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Biology</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Timmeren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">G</forename><surname>Daams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Holst</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Van &amp; Goudriaan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Compulsivity-related neurocognitive performance deficits in gambling disorder: A systematic review and meta-analysis</title>
+		<idno type="DOI">10.1016/j.neubiorev.2017.11.022</idno>
+		<ptr target="https://doi.org/10.1016/j.neubiorev.2017.11.022" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuroscience &amp; Biobehavioral Reviews</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="204" to="217" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vehtari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gabry</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11222-016-9696-4</idno>
+		<ptr target="https://doi.org/10.1007/s11222-016-9696-4" />
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and Computing</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1413" to="1432" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title level="m" type="main">Asymptotic Equivalence of Bayes Cross Validation and Widely Applicable Information Criterion in Singular Learning Theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Watanabe</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>ArXiv</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<monogr>
+		<title level="m" type="main">A Widely Applicable Bayesian Information Criterion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Watanabe</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/arxiv.1208.6338</idno>
+		<ptr target="https://doi.org/10.48550/arxiv.1208.6338" />
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">Attenuated Directed Exploration during Reinforcement Learning in Gambling Disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wiehler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Chakroun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Peters</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/jneurosci.1607-20.2021</idno>
+		<ptr target="https://doi.org/10.1523/jneurosci.1607-20.2021" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="2512" to="2522" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<monogr>
+		<title level="m" type="main">Decomposition of reinforcement learning deficits in gambling disorder via drift diffusion modeling and functional magnetic resonance imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Antonius</forename><forename type="middle">&amp;</forename><surname>Wiehler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Peters</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/2020.06.03.131359</idno>
+		<idno>2020.06.03.131359</idno>
+		<ptr target="https://doi.org/10.1101/2020.06.03.131359" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<title level="m" type="main">Ten simple rules for the computational modeling of behavioral data. ELife, 8, e49547</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/elife.49547</idno>
+		<ptr target="https://doi.org/10.7554/elife.49547" />
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title level="a" type="main">Reduced model-based decision-making in gambling disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Wyckmans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sebold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bechara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Saeremans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kornreich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Chatard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Jaafari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Noël</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41598-019-56161-z</idno>
+		<ptr target="https://doi.org/10.1038/s41598-019-56161-z" />
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

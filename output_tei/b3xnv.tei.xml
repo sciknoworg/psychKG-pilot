@@ -1,0 +1,952 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">An algorithmic account for how humans efficiently learn, transfer, and compose hierarchically structured decision policies</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jing-Jing</forename><surname>Li</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Helen Wills Neuroscience Institute</orgName>
+								<orgName type="institution" key="instit2">University of California</orgName>
+								<address>
+									<settlement>Berkeley</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anne</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+							<email>annecollins@berkeley.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Helen Wills Neuroscience Institute</orgName>
+								<orgName type="institution" key="instit2">University of California</orgName>
+								<address>
+									<settlement>Berkeley</settlement>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of California</orgName>
+								<address>
+									<region>Berkeley</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">An algorithmic account for how humans efficiently learn, transfer, and compose hierarchically structured decision policies</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T12:39+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>computational cognitive modeling</term>
+					<term>abstraction</term>
+					<term>hierarchy</term>
+					<term>meta-learning</term>
+					<term>decision-making</term>
+					<term>transfer</term>
+					<term>composition</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Learning structures that effectively abstract decision policies is key to the flexibility of human intelligence. Previous work has shown that humans use hierarchically structured policies to efficiently navigate complex and dynamic environments. However, the computational processes that support the learning and construction of such policies remain insufficiently understood. To address this question, we tested 1,026 human participants on a decision-making task where they could learn, transfer, and recompose multiple sets of hierarchical policies. We propose a novel algorithmic account for the learning processes underlying observed human behavior. We show that humans rely on compressed policies over states in early learning, which gradually unfold into hierarchical representations via meta-learning and Bayesian inference. Our modeling evidence suggests that these hierarchical policies are structured in a temporally backward, rather than forward, fashion. Taken together, these algorithmic architectures characterize how the interplay between reinforcement learning, policy compression, meta-learning, and working memory supports structured decision-making and compositionality in a resource-rational way.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>From choosing a career to choosing socks, we make decisions all the time in our daily life, whether big or small. In this process, we learn strategies that guide us to make decisions in the future informed by our past experience. Such a strategy can be described by a policy function that takes the current state of the environment as an input and outputs some action to take in this state. For an example of a simple decision policy, imagine that you have a tomato and want to decide what to do with it. What is the first thing that comes to mind? You could slice it, roast it, store it in the fridge, or more. In this case, the tomato is the state, and you used some policy that you have learned through your past experience with tomatoes to choose an action.</p><p>However, real-life decisions are rarely isolated from other decisions like in this toy example -they are often interconnected in structured ways to contexualize one another. An earlier decision might affect the policy for a later decision: if you had just preheated the oven, your policy on a tomato might prefer the roasting action, while if you had just sliced some sandwich bread, your policy would be more likely to favor slicing the tomato ( <ref type="figure" target="#fig_4">Figure 1A</ref>). Humans excel at understanding the connections between related decisions, states, and actions, and learning structured policies that guide us to effectively navigate complex and dynamic environments <ref type="bibr" target="#b0">[1]</ref>. A prominent theme in human cognitive representations of decision structures is hierarchy: humans learn hierarchically structured decision policies, in which high-level representations form abstractions over low-level representations <ref type="bibr" target="#b1">[2]</ref><ref type="bibr" target="#b2">[3]</ref><ref type="bibr" target="#b3">[4]</ref><ref type="bibr" target="#b4">[5]</ref><ref type="bibr" target="#b5">[6]</ref><ref type="bibr" target="#b6">[7]</ref><ref type="bibr" target="#b7">[8]</ref><ref type="bibr" target="#b8">[9]</ref><ref type="bibr" target="#b9">[10]</ref><ref type="bibr" target="#b10">[11]</ref><ref type="bibr" target="#b11">[12]</ref><ref type="bibr" target="#b12">[13]</ref>. Such abstractions can form over time and states, serving as a foundation of efficient and flexible learning by <ref type="figure" target="#fig_4">Fig. 1</ref> Hierarchically structured decision policies and abstractions of policy information. A: In a hierarchically structured decision policy, the decision at a later time (e.g., what action to take with a tomato) is conditional on not only the immediate state (e.g., tomato), but also other related states and actions (e.g., having preheated the oven or sliced sandwich bread). B: Hierarchical policies can involve abstractions over time, in which a sequence of actions are chunked together via a policy, and abstractions over states, in which actions are chunked based on similarities between state representations.</p><p>reducing the computational cost of decision-making and enabling compositionality: the ability to re-arrange, combine, and reuse abstracted policy structures in novel ways to create new policies that can solve new tasks <ref type="bibr" target="#b13">[14,</ref><ref type="bibr" target="#b14">15]</ref>.</p><p>When hierarchical representations are temporally abstracted, a sequence of actions are chunked together via some policy <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b4">5,</ref><ref type="bibr" target="#b15">16,</ref><ref type="bibr" target="#b16">17]</ref>. These action chunks can be organized by subgoals that decompose a bigger task into smaller subtasks that are easier to solve <ref type="bibr" target="#b2">[3,</ref><ref type="bibr" target="#b3">4]</ref>. In terms of our tomato example, the actions of preheating the oven and roasting the tomato can be chunked or abstracted over time and described by a policy, which can serve as a subpolicy of a hierarchical policy for the higher-level task of making tomato soup ( <ref type="figure" target="#fig_4">Figure 1B</ref>). Cognitive scientists have used the options framework <ref type="bibr" target="#b17">[18]</ref> from hierarchical reinforcement learning to model temporally abstracted policies <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b4">5]</ref>. Unlike classic reinforcement learning <ref type="bibr" target="#b18">[19]</ref>, in which the agent samples a single action at each time step, the options framework allows the agent to alternatively sample a policy that it can use to generate a sequence of actions, thus giving rise to temporal abstractions.</p><p>In state abstractions, similar states are grouped to form compressed representations of the full state space <ref type="bibr" target="#b19">[20,</ref><ref type="bibr" target="#b20">21]</ref>. For example, both courses of actions illustrated in <ref type="figure" target="#fig_4">Figure 1A</ref> involve the tomato, which can be compressed into a single abstract state representation ( <ref type="figure" target="#fig_4">Figure 1B</ref>). Recent work has shown that humans learn compressed policies over states to jointly maximize reward and representation efficiency <ref type="bibr" target="#b21">[22]</ref><ref type="bibr" target="#b22">[23]</ref><ref type="bibr" target="#b23">[24]</ref>. State abstractions not only result in lower computational costs, but they are also essential to humans' ability to transfer knowledge between state components shared by related tasks and contexts <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b24">[25]</ref><ref type="bibr" target="#b25">[26]</ref><ref type="bibr" target="#b26">[27]</ref>. In our example, the abstract tomato state and the skill of slicing tomatoes can be further shared with related tasks such as making a pizza, which may require sliced tomatoes as toppings.</p><p>At the core of hierarchy and abstractions is the compression of policy information over time and states, but we lack a satisfactory understanding of how compression supports hierarchy at the algorithmic level. How do temporal and state abstractions interact with each other to generate hierarchically structured decisions? How does compression support the learning and construction of hierarchical policies? How are hierarchies represented in the mind to enable transfer and composition between policies in structurally related tasks?</p><p>To address these questions, we used an experimental protocol that extends <ref type="bibr" target="#b4">[5,</ref><ref type="bibr" target="#b6">7]</ref> to characterize how humans develop and compose hierarchical representations to guide behavior during trial-by-trial learning from deterministic feedback. Prior work has shown that humans can learn hierarchically structured policies and compose them to form new policies by transferring between contexts <ref type="bibr" target="#b4">[5]</ref> without catastrophic forgetting of existing policy representations <ref type="bibr" target="#b6">[7]</ref> in this task. Building on these findings, we incorporated novel structural designs with robust controls to further disentangle the interactions between different types of abstractions in learning and representing hierarchical policies. Coupling behavioral evidence with insights from computational cognitive modeling, we formulated two algorithmic architectures to account for how humans utilize compression to learn hierarchically structured decision policies, and how these structures are represented to enable efficient and flexible learning, transfer, and composition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Experimental design</head><p>We tested 1,026 human participants on a decision-making task where they could learn, transfer, and recompose multiple sets of hierarchical policies ( <ref type="figure" target="#fig_1">Figure 2</ref>). Our paradigm extended prior work <ref type="bibr" target="#b4">[5,</ref><ref type="bibr" target="#b6">7]</ref> to adopt more engaging stimuli and separate the action spaces between trial stages. Each trial consisted of two stages, represented by two pairs of treasure chests (gold and silver in stage 1; red and blue in stage 2) that could  The task paradigm. A: Participants learned to unlock two nested chests (gold/silver in stage 1 followed by red/blue in stage 2) by finding the correct keys through trial-and-error via deterministic feedback. They could only proceed to the next stage (pseudo-randomly determined) after selecting the correct key. B, C: The experiment consisted of 12 blocks, with 32-60 trials in the first two blocks and 32 trials in each following block. The hierarchically structured stimulus-action mapping changed every block without any explicit cues: the correct key to the inner chest depended on the outer chest's color and the block structure. In the training phase (Blocks 1-6), the block structure alternated between two hierarchical structures illustrated on the left. be unlocked by two sets of four keys (denoted as K1-K4 and K5-K8; <ref type="figure" target="#fig_1">Figure 2A</ref>). Participants learned the correct key for each chest through trial-and-error: they had to keep trying different keys until finding the correct one. Unlocking the chest in stage 1 led to stage 2, and unlocking the stage 2 chest led to positive feedback, followed by the next trial. The experiment included 12 blocks, spanning the training phase (Blocks 1-6), post-training tests (Blocks 7 and 11), and post-training control blocks ( <ref type="figure" target="#fig_1">Figure 2B</ref>). There were 32-60 trials (up to performance criterion, see Methods) in Blocks 1-2 and 32 trials in each following block. Five different hierarchically structured chest-key (stimulus-action) mappings were used in the experiment: two in training and control blocks for all participants, and three in test blocks, denoted as V1, V2, and V3 ( <ref type="figure" target="#fig_1">Figure 2C</ref>). Compared to the first training structure, all three versions of test structures had the same stage 1 contingencies, with different degrees of similarity in stage 2: they shared different types of meta-actions. We define a meta-action as a pair of actions chunked together either over time or over states ( <ref type="figure" target="#fig_1">Figure 2D)</ref>. A metaaction over time abstracts two atomic actions into a policy that specifies a compound action sequence spanning both stages, whereas a meta-action over states abstracts two actions in stage 2 based only on the stage 2 stimulus, regardless of the stimulus (state) in stage 1. V1, but not V2 or V3, preserved two of the four meta-actions over time (K1blue-K6 and K2-red-K7) in the first training structure; V3 preserved the meta-actions over states (K5-K7 and K6-K8) while V1 and V2 did not ( <ref type="table" target="#tab_1">Table 1)</ref>. Each participant experienced one of the following test conditions in Blocks 7 and 11, denoted by the test block combinations: V1-V1, V1-V2, V1-V3, V2-V1, V2-V2, V3-V1, and V3-V3. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Human learning performance</head><p>Observed human behavior qualitatively replicated findings in prior studies where applicable <ref type="bibr" target="#b4">[5,</ref><ref type="bibr" target="#b6">7]</ref>. Performance was measured by the number of key presses made by the participant until reaching the correct choice in each stage, as they had to keep pressing different keys until reaching the correct one to proceed to the next stage ( <ref type="figure">Figure 3A</ref>). All results held qualitatively when we used the accuracy of the first key press in each stage as the performance metric instead. In stage 1, no explicit feedback was provided when a wrong key was pressed; upon a correct key press, the task transitioned into stage 2. In stage 2, a "wrong key" message was shown upon a wrong key press and an open chest filled with treasures was displayed when the correct key was selected. The number of key presses quantified the amount of errors made by the participant in each stage: the more key presses, the more errors. Therefore, this metric is inversely correlated to how optimal the participant's policy was, making it an informative measure of task performance. Based on the observation that participants rarely repeated the</p><formula xml:id="formula_0">) Δ ) Δ Fig. 3</formula><p>Summary of human behavior. A: Task performance was measured by the number of key presses the participant made until reaching the correct choice in each stage, averaged over the first 10 trials of each block. On each trial, the participant had to press the correct key to advance from stage 1 to stage 2 (without explicit wrong key feedback) or from stage 2 to the next trial (with a "wrong key" message when a wrong key was selected). The number of key presses made in each stage quantified the amount of errors in the participant's choices and, by proxy, the deviation between their policy and the true task structure. B: The learning curves of all participants were grouped by an unsupervised k-means algorithm into 3 clusters, which corresponded to whether the participants learned to perform better than randomly guessing without replacement (chance) in both stages: the random performers (n=181) were no better than chance in either stage, indicating low task involvement, the mid performers (n=254) were only better than chance in stage 2, and the best performers (n=591) learned to perform better than chance in both stages. C: Across conditions in stage 2, humans made more key presses on average in the first test block (Block 7) compared to the end-of-training baseline (average between Blocks 5 and 6), with significantly less increase in V3 than same action on the same trial, we defined random performance level at 2.5 presses, which is the average of 1, 2, 3, and 4: if the participant did not make any errors, they would make 1 press; if they tried different keys without repeats, they would make up to 4 presses. Using an unsupervised k-means clustering algorithm, we divided the PCAtransformed individual learning curves over Blocks 1-6 (number of presses in each stage on each trial of the training phase; see Methods) into three groups ( <ref type="figure">Figure 3B</ref>): random performers (n=181), mid performers (n=254), and best performers (n=591). The learning patterns of these clusters were distinct: the random performers did not learn to perform better than chance in the training phase, the mid performers only exceeded chance performance in stage 2 but not stage 1, and the best performers learned to perform better than chance in both stages. Although both the mid and best performers learned stage 2, the mid performers made consistently more error (around 0.2 more key press per trial) than the best performers, suggesting that effectively learning stage 1 facilitated learning in stage 2. In the main text, we will only show results of the best performers. Corresponding results of the mid performers were qualitatively consistent with the main conclusions and included in Extended data. The random performers were excluded from any further analyses.</p><p>Human participants made more errors in the first test block (Block 7) than the end-of-training baseline, which was defined as the average performance on the first 10 trials of Blocks 5 and 6, in all three versions, replicating the negative transfer effect of previously learned policies shown by <ref type="bibr" target="#b4">[5]</ref> ( <ref type="figure">Figure 3C</ref> for best performers, <ref type="figure" target="#fig_4">Figure A1B</ref> for mid performers). Notably, the increase in the number of key presses from baseline was significantly lower in V3 than V1 or V2 (one-tailed t-test p=0.018 between V1 and V3 and p=0.039 between V2 and V3). This discrepancy indicated that V3's consistent meta-actions over states (K6-K8 and K5-K7) with the training structures facilitated new learning and transfer. On the other hand, due to the lack of discrepancy between V1 and V2 (two-tailed t-test p=0.78), there was no evidence that preserving metaactions over time (K1-K6 and K2-K7) facilitated transfer, which replicated the findings of <ref type="bibr" target="#b6">[7]</ref>. Taken together, these results imply that human behavior was more strongly driven by action chunking over states than over time.</p><p>Performance improved between both test blocks with repeating test structures (one-tailed t-test p=3.8 × 10 −3 for V1-V1, p=0.025 for V2-V2, and p=7.7 × 10 −4 for V3-V3), indicating transfer of learned structures ( <ref type="figure">Figure 3D</ref> for best performers, <ref type="figure" target="#fig_4">Figure A1A</ref> for mid performers). Interestingly, performance in the second test block was not significantly different between non-repeating and repeating combinations of V1 and V2 (two-tailed t-test p=0.93 between V1-V1 and V1-V2, and p=0.18 between V2-V1 and V2-V2), while it was significantly worse in V3-V1 than V3-V3 (one-tailed t-test p=7.9 × 10 −5 ). These results suggest that some transfer of learned structures might have occurred between V1 and V2, since participants showed similar amounts of performance improvement between test blocks when V1 was followed by V1 compared to V2, as well as when V2 was followed by V2 compared V1. However, no transfer was observed between V1 and V3 since performance only improved in V3-V3 but not V3-V1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Building a mechanistic understanding of the state and temporal abstractions underlying human choice behavior</head><p>The behavioral analyses above present strong evidence for compressed action representations over states, which imply state abstractions. However, we lack a mechanistic understanding of how these abstractions contribute to learning. How do state abstractions change over learning? What is their role in the construction of hierarchically structured policies that eventually drive behavior? In this subsection, we introduce an algorithmic account for how compressed policies over states unfold into hierarchical policies and how the temporal structure of state abstractions gives rise to efficient transfer by enabling compositionality. Using cognitive process models, we show that our framework can explain the error patterns in human behavior, which alternative accounts fail to.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1">Modeling the emergence of hierarchical policies</head><p>Compressed policies can form over the state space of either stage 1 or stage 2 ( <ref type="figure" target="#fig_3">Figure 4A)</ref>.  <ref type="figure" target="#fig_3">Figure 4B</ref>). In Block 1, compression errors, especially over stage 1, dominated the wrong choices made by humans on the first attempt of each trial ( <ref type="figure" target="#fig_3">Figure 4C</ref> for best performers, <ref type="figure" target="#fig_4">Figure A1C</ref> for mid performers), suggesting that humans relied on compressed policies in early learning. Based on this observation, we hypothesized that humans developed compressed policies into hierarchically structured policies over learning. To test this hypothesis, we fitted two models to human choice data: a fully hierarchical model that learned hierarchical policies without compression, and a meta-learning model that learned posterior probabilities of all compressed and hierarchical policies using Bayesian inference ( <ref type="figure" target="#fig_3">Figure 4A</ref>). The meta model started learning with a small, non-zero prior on the hierarchical structure; its priors on the compressed structures were determined by a fitted parameter. The meta model successfully produced the error distribution in early human choices, while the hierarchical model failed to ( <ref type="figure" target="#fig_3">Figure 4C</ref>). The meta model predicted that humans started learning with a higher preference for compression over stage 1, and slowly switched to making choices based on hierarchical rather than compressed policies ( <ref type="figure" target="#fig_3">Figure 4D</ref>). This gradual meta-learning process allowed the meta model to reproduce error patterns in human choices that drove learning, particularly the imbalance in error types and the decrease in compression errors throughout learning ( <ref type="figure" target="#fig_3">Figure 4E</ref> for best performers, <ref type="figure" target="#fig_4">Figure A1D</ref> for mid performers).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2">Modeling the representation structure of hierarchical policies</head><p>Building on the meta-learning of hierarchically structured policies, we further investigated how these policies were represented and how state abstractions shaped these representations. Compressed policies over states can unfold into hierarchical policies in two ways, depending on which type of state abstractions dominates: compressed policies over stage 2 use the stage 1 stimulus (gold/silver) to contexualize action chunks, while compressed policies over stage 1 use the stage 2 stimulus (red/blue). These action chunks can expand into policy chunks by incorporating the stimulus in the compressed stage ( <ref type="figure">Figure 5A, B)</ref>. In the former case, the hierarchy is constructed in Δ Δ <ref type="figure">Fig. 5</ref> The learned hierarchical policies in stage 2 followed a temporally backward structure. A: Temporally forward structures use earlier information (stage 1) to contextualize policy chunks defined over later information (stage 2), while temporally backward structures use later information (stage 2) to contextualize policy chunks over earlier information (stage 1). Temporally backward structures enable the policy for V3 to be composed by re-contextualizing chunks learned during training, while temporally forward structures do not allow such composition. We tested two models with temporally forward and backward structures, respectively. B: Both models learned two policy chunks to represent each block context, which could be reused between blocks. The models could create new policy chunks upon a new block structure. C: The forward model created new policy chunks upon first learning V3, while the backward model efficiently recomposed learned policy chunks to represent its V3 policy. D: Fitted to human choice data, the backward model had significantly higher likelihoods than the forward model in all three test block combinations containing V3. E: Overall, the backward model captured human behavior better than the forward model, particularly in the test blocks (Blocks 7 and 11).</p><p>a temporally forward manner, where earlier information (stage 1 stimulus) contextualizes policy chunks defined on later information (stage 2 stimulus). On the contrary, when later information (stage 2) contexualizes policy chunks defined on earlier information (stage 1), the hierarchy follows a temporally backward organization. By design, V3 preserved the policy chunks learned in training if the hierarchical policy structures were temporally backward, but not if they were temporally forward: policy chunks learned during training (the second chunk from each training structure, whose borders are highlighted in <ref type="figure">Figure 5A</ref>) could be composed to solve V3 only if the structures were temporally backward).</p><p>As a result, upon encountering V3, a model that implemented temporally forward structures created a new set of policy chunks to represent the hierarchical policy, while a backward structured model flexibly composed learned policy chunks ( <ref type="figure">Figure 5C</ref>). All visualizations similar to <ref type="figure">Figure 5C</ref> in this manuscript illustrate the most likely Δ Δ <ref type="figure">Fig. 6</ref> Temporally backward structures enabled efficient composition between V1 and V2. A: Temporally backward structures allowed for recomposition of learned policy chunks between V1 and V2, while temporally forward structures did not. B, C: The forward model created two sets of structures to represent V1 and V2, while the backward model could efficiently compose one set of policy chunks to represent both. D: Fitted to human choice data, the backward model had higher likelihoods than the forward model in both V1-V2 and V2-V1. E: The backward model reproduced the performance improvement between V1 and V2 (in Blocks 7 and 11), which the forward model failed to.</p><p>policy chunk (task-set) selections made in model simulations with best-fit parameters to human data on the last trial of each block. This enabled the backward model to learn and transfer structures more efficiently than the forward model in the V3-V3, V1-V3, and V3-V1 conditions. When fitted to human choice data, the backward model produced higher likelihoods than the forward model in all conditions ( <ref type="figure">Figure 5D</ref>; onetailed t-test p=8.3 × 10 −7 for V3-V3, p=8.7 × 10 −4 for V1-V3, and p=2.8 × 10 −3 for V3-V1). The better fit to human behavior of the backward model also manifested in its ability to capture the qualitative pattern that humans were less prone to errors (they make fewer presses) when learning V3 than V1 ( <ref type="figure">Figure 5E</ref>). Consistent results were observed in the mid performers ( <ref type="figure" target="#fig_1">Figure A2)</ref>.</p><p>In addition to the faster learning of V3, temporally backward structures could also account for the transfer between V1 and V2 observed in human behavior ( <ref type="figure">Figure 3D</ref>). When viewed as temporally backward, the hierarchical structures of V1 and V2 shared the same policy chunks, which was not true for temporally forward structures ( <ref type="figure">Figure 6A)</ref>. Therefore, the backward model could compose learned policy chunks between V1 and V2, while the forward model needed to create a new set of policy chunks upon learning each test structure ( <ref type="figure">Figure 6B</ref>). The backward model fitted human choices better in terms of both the likelihood metric ( <ref type="figure">Figure 6C</ref>) and capturing the qualitative pattern of performance improvement between V1 and V2 in human Δ Δ <ref type="figure">Fig. 7</ref> The forward and backward models both successfully captured human behavior in repeating V1 and V2 test conditions. A: Both models created new policy chunks upon V1 or V2, which were reused when the same test structure repeated. B: The likelihoods of the forward and backward models were not significantly different. C: Both models reproduced the performance improvement between repeating V1 and V2 blocks.</p><p>behavior ( <ref type="figure">Figure 6D</ref>). The backward model also matched human behavior better qualitatively in the mid performers, though there were no significant differences in model likelihoods ( <ref type="figure" target="#fig_1">Figure A2)</ref>.</p><p>The forward and backward models generated indistinguishable predictions on V1-V1 and V2-V2, where both models created new policy chunks upon learning the test block for the first time and reused them when the test block repeated ( <ref type="figure">Figure 7A</ref>). When fitted to human data, the forward and backward models were indistinguishable by the likelihood metric ( <ref type="figure">Figure 7B</ref>). Both models successfully accounted for the performance improvement between test blocks in V1-V1 and V2-V2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Discussion</head><p>Our findings highlight processes at multiple levels of abstraction that support the acquisition and representation of hierarchically structured decision policies in a complex, dynamic learning environment. We characterize the important role of state abstractions as building blocks of hierarchical policies and show how their temporal structure enables efficient learning, transfer, and composition.</p><p>Our computational framework, backed by data, provides a compelling algorithmic account for the slow, bottom-up construction process of hierarchical policies: simpler, compressed policies serve to bootstrap complex, hierarchical structures, which emerge incrementally through meta-learning. This theory bridges our understanding of compression and hierarchy via a mechanistic description of how the trade-off between representation efficiency and reward evolves over trial-by-trial learning. Our results suggest that humans prioritize representing policies efficiently through compression in early learning, which gradually unfold into more computationally expensive structures that maximize reward rate. This meta-cognitive process is resource-rational <ref type="bibr" target="#b27">[28]</ref><ref type="bibr" target="#b28">[29]</ref><ref type="bibr" target="#b29">[30]</ref>: under the constraint of limited cognitive resources, humans sacrifice some reward in the beginning to prioritize the effortful task of structure learning.</p><p>Contrary to our expectations based on previous work <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b4">5]</ref>, the structures learned by humans to represent hierarchical policies appear to be temporally backward rather than forward: the immediate information before decision-making (stage 2 stimulus) contextualizes a policy over earlier information held in memory (stage 1 stimulus). Although both temporally forward and backward structures can be flexibly transferred and composed to facilitate new learning, a temporally backward one may be more resource-rational, since it allows hierarchy to emerge without the effortful process of recontextualizing compressed policies. This temporally backward structural organization is a departure from the standard options framework in hierarchical reinforcement learning, which implies the opposite (temporally forward) representation structure <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b17">18]</ref>.</p><p>Moreover, the temporally backward decision process reveals the integral role of working memory in forming and executing hierarchical policies: the earlier information (stage 1 stimulus) is held in memory until decision time, when the later information that contextualizes the trial (stage 2 stimulus) is observed. Here, working memory connects different levels of abstractions over time, allowing policy information at multiple timescales to be integrated to guide decision-making. This novel insight corroborates the perspective that working memory and reinforcement learning are intertwined processes that facilitate each other and should not be considered separately <ref type="bibr" target="#b30">[31,</ref><ref type="bibr" target="#b31">32]</ref>. Future research should explore applications of temporally backward structures with a working memory mechanism to solve hierarchical reinforcement learning problems in artificial intelligence.</p><p>Another potential extension is to apply our framework to model hierarchical policies and abstractions in goal-directed decision-making and planning <ref type="bibr" target="#b32">[33,</ref><ref type="bibr" target="#b33">34]</ref>, in which the agent additionally learns the transition structure of the states and uses this information to choose actions to achieve specific outcomes. As a temporally forward process, would planning strengthen temporally forward hierarchical representations and inhibit temporally backward ones? Would it impact the roles of temporal and state abstractions in forming hierarchical policies? Since our current task paradigm focuses on investigating abstractions, all state transitions in the task are unstructured (i.e., random) to minimize potential confounds. Building on the algorithmic framework developed in our current work, incorporating planning in the decision-making process may help us gain a more complete understanding of how abstractions support learning and decision-making in real life.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusions</head><p>Our algorithmic framework characterizes how the interplay between various cognitive processes supports structured decision-making, including reinforcement learning, policy compression, meta-learning, and working memory. We emphasize the important contributions of state abstractions in forming hierarchical policies and challenge the conventional conception of temporal abstractions by introducing the novel temporally backward structure. These algorithmic architectures serve as backbones of compositionality, enabling humans to efficiently and flexibly generalize knowledge between related tasks -a hallmark of human intelligence. We hope our work will inspire and inform the development of machine learning architectures that can learn and generalize like humans.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Experiment and data</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.1">Task</head><p>Our task paradigm extends that used by <ref type="bibr" target="#b4">[5,</ref><ref type="bibr" target="#b6">7]</ref> to feature more engaging stimuli (treasure chests instead of geometric shapes) and separate the action spaces between stages 1 and 2 (left hand for stage 1 and right hand for stage 2), which allowed us to investigate the policies human participants used in stage 2 with minimal interference from their policies in stage 1. The experiment consisted of 12 blocks, with an optional 20-second break between every two consecutive blocks. The first two blocks had a minimum of 32 and a maximum of 60 trials: after completing 32 trials, participants skipped ahead to the next block as soon as they reached the criterion of less than 1.5 key presses per trial in each stage averaged over the past 10 trials. All other blocks included 32 randomly ordered trials with 8 trials for each combination of stage 1 and stage 2 stimuli pair. The trials were pseudo-randomly ordered such that in each block, there were never more than three consecutive iterations of the same stimulus in stage 1. Furthermore, among the trials that had the same stage 1 stimulus in each block, there were never more than three consecutive iterations of the same stimulus in stage 2. In each stage, participants were instructed to choose from one of four keys on their keyboards (Q, W, E, and R for stage 1, and U, I, O, and P for stage 2). When an invalid key was selected, a feedback message was shown to remind the participant which four keys to choose from. The experiment only advanced to the next stage upon a correct key press or until 10 key presses had been made in the current stage. In stage 1, when a wrong key was pressed, no explicit feedback was shown (the stimulus remained the same), and upon a correct key press, the experiment transitioned into stage 2; in stage 2, a wrong key press triggered a "wrong key" message, while a correct key press led to positive feedback (unlocked chest filled with gold; <ref type="figure">Figure 3A</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.2">Participants</head><p>All participants were recruited online through the Research Participation Program at the University of California, Berkeley. In total, 1,026 participants completed the task across all conditions and received credit in eligible courses for their participation. Informed consent was obtained from all participants. The experiments were administered in two batches: Experiment 1 tested all combination conditions of V1 and V2, while Experiment 2 included all combinations of V1 and V3. <ref type="table" target="#tab_3">Table 2</ref> contains the number of participants per condition and experiment, divided by performancebased cluster assignments. We thoroughly compared the V1-V1 data between both experiments and found no significant difference in performance or error types, which indicated that there were no external factors driving any learning differences between experiments. Therefore, data from Experiments 1 and 2 were combined in all analyses. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.3">Participant clustering</head><p>To group participants based on their task involvement in a data-driven way, we performed unsupervised clustering on the trial-by-trial performance data in the training phase. For each participant, we used a feature vector containing the numbers of key presses in both stages on the first 32 trials of all training blocks (384 dimensions in total). We performed k-means clustering on the first 10 principal components of these features. We set k = 3, which maximized the interpretability of group average learning behavior: the best performers exceeded chance performance in both stages, the mid performers only performed better than chance in stage 2, and the random performers did not perform better than chance in either stage ( <ref type="figure">Figure 3B</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Modeling</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.1">Hierarchical model</head><p>Algorithm 1 outlines the hierarchical model, which extends and improves on prior work <ref type="bibr" target="#b4">[5,</ref><ref type="bibr" target="#b34">35]</ref>. Since our current work focuses on modeling choices in stage 2 independent of choices in stage 1, the latter is skipped in our models. However, stage 1 policies can be modeled independently from stage 2 using a similar algorithm <ref type="bibr" target="#b4">[5]</ref>. Each policy chunk is represented by a tabular task-set, denoted as T S, which stores the value of each action in each state, encoded by the identity of the stimulus in the chunked stage (stage 2 for the forward structure and stage 1 for the backward structure; Line 2). Task-sets are contexualized by a combination of the block number and the identity of the stimulus that serves as the context of the policy chunks (stage Observe context c t and state s t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>3:</head><p>Compute alternative context in the same block</p><formula xml:id="formula_1">c ′ t 4:</formula><p>if c t is new then ▷ New context 5:</p><formula xml:id="formula_2">Initialize prior Pr(T S i | c t ; t) ∝ c Pr(T S i | c ; t) for all T S i 6:</formula><p>Create a new task-set T S ct with uninformative values 7:</p><formula xml:id="formula_3">Pr(T S ct | c t ; t) = λ λ+1 ▷ CRP 8:</formula><p>Normalize Pr(T S i | c t ; t) ← Pr(T Si|ct ; t) Add context-pairing bias based on c ′ t to task-set priors for c t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>12:</head><p>Sample a deep-copy of T S t based on Pr(T S i | c t ; t) for all T S i</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>13:</head><p>for a that has been tried on this trial do 14: </p><formula xml:id="formula_4">T S t (s t ,</formula><formula xml:id="formula_5">π = softmax β • T S t (s t , A ; t) • (1 − ϵ) + 1 |A| • ϵ 17:</formula><p>Sample action a t ∼ π and observe reward r t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>18:</head><p>if r t = 1 then ▷ Bayesian update</p><p>19: Re-sample T S t based on Pr(T S i | c t ; t + 1) for all T S i</p><formula xml:id="formula_6">Pr(T S i | c t ; t + 1) ∝ Pr(T S i | c t ; t) • π(a t )</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>24:</head><p>T S t (s t , a t ; t) ← T S t (s t , a t ; t) + α • r t − T S t (s t , a t ; t) ▷ Update value <ref type="bibr">25:</ref> end while 26: end for 1 for the forward structure and stage 2 for the backward structure; Line 2). The model tracks a repertoire of task-sets and learns the probability of sampling each taskset in each context, which is updated using Bayes' rule over learning. When a new context is encountered, the model creates a new task-set with uninformative values. The initialization of task-set priors in a new context follows a Chinese restaurant process (CRP) parameterized by λ <ref type="bibr" target="#b35">[36]</ref>: the task-sets that have been successful in previous contexts have higher priors than historically less successful task-sets, while the prior on the new task-set is determined by λ (Lines 5-8). As a result, the model is able to reuse previously learned task-sets when a structure re-occurs and learn a new one for an unfamiliar structure, as illustrated in <ref type="figure">Figures 5C, 6B</ref>, and 7A.</p><p>In addition to the current context, the model identifies an alternative context c ′ , which is the context defined by the current block and the alternative state. A context-pairing bias is added to the task-set probabilities to model the affinity between task-sets that have co-occurred in the same block -this allows the model to leverage the task-set probabilities it has learned in the alternative context within the same</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.3">Model fitting and parameter estimation</head><p>All models were fitted at the participant level using maximum likelihood estimation with the global optimization function differential_evolution provided by the optimize module of the SciPy library in python. The optimization objective was the negative log-transformed likelihood of the data given the model parameters, abbreviated as "model likelihood." The model likelihood was computed based on the model algorithm, marginalizing over all task-sets whenever a task-set was sampled. For example, in Algorithm 1, the model likelihood on trial t was calculated as: <ref type="figure">a t ; t)</ref>.</p><formula xml:id="formula_7">L(a t | c t , s t ; t) = − log i Pr(T S i | c t ; t) • T S i (s t ,</formula><p>Data and code availability. All analysis, modeling, and plotting code used to produce results and figures in this manuscript can be found at: https://github. com/jl3676/learning hierarchy. All human behavioral data will be uploaded to the repository upon acceptance of this manuscript.  <ref type="figure" target="#fig_4">Fig. A1</ref> Learning behavior of the mid performers cluster. A: Post-training learning curves by test condition. B: Human performance was better in the first test block of V3 than V1 and V2. C: The meta model captured the error rate patterns in early learning of humans, which the fully hierarchical model failed to. D: Human error curves in training were better matched by the meta model than the hierarchical model. Δ Δ <ref type="figure" target="#fig_1">Fig. A2</ref> Comparisons of the temporally forward and backward models on mid performer data. A: In V3-V3 and V1-V3, the backward model had significantly higher likelihoods than the forward model, while the models did not produce significantly different likelihoods in V3-V1, V1-V2, and V2-V1. B: Overall, the backward model captured qualitative patterns in human learning performance better than the forward model.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2</head><label>2</label><figDesc>Fig. 2 The task paradigm. A: Participants learned to unlock two nested chests (gold/silver in stage 1 followed by red/blue in stage 2) by finding the correct keys through trial-and-error via deterministic feedback. They could only proceed to the next stage (pseudo-randomly determined) after selecting the correct key. B, C: The experiment consisted of 12 blocks, with 32-60 trials in the first two blocks and 32 trials in each following block. The hierarchically structured stimulus-action mapping changed every block without any explicit cues: the correct key to the inner chest depended on the outer chest's color and the block structure. In the training phase (Blocks 1-6), the block structure alternated between two hierarchical structures illustrated on the left. In each test block (Block 7 or 11), it switched to one of V1, V2, and V3, which are illustrated on the right. All three test block versions shared the stage 1 contingencies of the first training structure, with modified stage 2 contingencies designed to test how participants transfer and recompose knowledge. D: Actions can be chunked into meta-actions over time (from stage 1 to stage 2) or over states (stage 1 stimuli). Compared to the first training structure, the test structures included partially (V1) or fully (V2 and V3) different meta-actions over time (highlighted in red); meta-actions over states learned in training were only preserved in V3, among all test structures (emphasized in bold).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>V1 or V2. D: Post-training learning curves for all test conditions. In all figures, we denote p&lt; 0.001 as ***, p&lt; 0.01 as **, p&lt; 0.05 as *, and p&gt; 0.05 as n.s. All error bars represent one standard error of the mean.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 4</head><label>4</label><figDesc>Compressed policies unfolded into hierarchical policies via meta-learning. A: We modeled two types of compressed policies and a hierarchical policy, which used information from different stages to choose in stage 2. The policy that was compressed over stage 1 disregarded information in stage 1 when sampling an action in stage 2 -its stage 2 policy depended solely on the stage 2 stimulus. On the other hand, the compressed policy over stage 2 depended solely on stage 1 to act in stage 2. The hierarchical policy was optimal for the task structure -it used both stages to inform action selection in stage 2. We compared a fully hierarchical model (i.e., the hierarchical policy) to a metalearning model that used Bayesian inference to learn the probability of sampling each of the three policies. B: Choices in stage 2 can be classified into 4 types: correct choices, compression over stage 1 errors (indicating stage 1 was disregarded), compression over stage 2 errors (indicating stage 2 was disregarded), and other errors. C: In early learning (Block 1), wrong presses made by humans were dominated by compression errors, especially compression over stage 1 errors, which was explained by the meta model but not the hierarchical model. D: The meta model's learned policy probabilities over training indicated a shift from favoring compressed policies to relying on the hierarchical policy. E: The qualitative error patterns in human learning were successfully captured by the meta model but not the hierarchical model.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Algorithm 1</head><label>1</label><figDesc>Fully hierarchical model Require: Parameters θ = {α, β, λ, ϵ} 1: for t = 1, 2, ..., T do ▷ Skip stage 1 2:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>for all T S i 20 : else 21 :</head><label>2021</label><figDesc>Pr(T S i | c t ; t + 1) ∝ Pr(T S i | c t ; t) • 1 − π(a t ) for all T S i</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>Supplementary information. See Extended data for supplementary figures. Δ ) Δ</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Table 1</head><label>1</label><figDesc>Comparison between test block versions</figDesc><table><row><cell>Number of new meta-actions</cell><cell>V1</cell><cell>V2</cell><cell>V3</cell></row><row><cell>Over time</cell><cell>2</cell><cell>4</cell><cell>4</cell></row><row><cell>Over states</cell><cell>2</cell><cell>2</cell><cell>0</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head></head><label></label><figDesc>In a fully compressed policy over stage 1, the state in stage 2 is represented independently from stage 1 stimulus (e.g., gold-red and silver-red are compressed into red), whereas a fully compressed policy over stage 2 assumes that the state is independent from stage 2 stimulus (e.g., gold-red and gold-blue are compressed into gold). Compressing over states in different ways leads to distinct meta-actions (in the first training structure, K5-K7 and K6-K8 if compressed over stage 1, and K5-K6 and K7-K8 if compressed over stage 2), which result in different wrong choices (e.g., K7 or K6 instead of K5). Thus, choices made on each trial can be classified into four types: correct choices, compression over stage 1 errors, compression over stage 2 errors, and other errors (example illustrated in</figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table 2</head><label>2</label><figDesc>Number of participants by experiment, condition, and cluster</figDesc><table><row><cell></cell><cell></cell><cell cols="2">Experiment 1</cell><cell></cell><cell></cell><cell cols="2">Experiment 2</cell><cell></cell></row><row><cell>Cluster</cell><cell>V1-V1</cell><cell>V1-V2</cell><cell>V2-V1</cell><cell>V2-V2</cell><cell>V1-V1</cell><cell>V1-V3</cell><cell>V3-V1</cell><cell>V3-V3</cell></row><row><cell>Best</cell><cell>78</cell><cell>83</cell><cell>86</cell><cell>77</cell><cell>68</cell><cell>61</cell><cell>79</cell><cell>59</cell></row><row><cell>Mid</cell><cell>36</cell><cell>39</cell><cell>37</cell><cell>27</cell><cell>27</cell><cell>35</cell><cell>23</cell><cell>30</cell></row><row><cell>Random</cell><cell>22</cell><cell>23</cell><cell>30</cell><cell>31</cell><cell>17</cell><cell>20</cell><cell>15</cell><cell>23</cell></row><row><cell>All</cell><cell>136</cell><cell>145</cell><cell>153</cell><cell>135</cell><cell>112</cell><cell>116</cell><cell>117</cell><cell>112</cell></row></table><note></note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Acknowledgements. This work was supported by the NIMH grant R01MH119383. We thank Liyu Xia, Milena Rmus, and Daniel Ehrlich for helpful discussions throughout the project.</p><p>Appendix A Extended data</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>block to inform task-set selection in the current context (Line 11). The bias b T Si,T Sj is proportional to the number of times two task-sets, T S i and T S j have been paired in the same block:</p><p>where 1 x is the indicator function which takes on the value 1 if x is true and 0 otherwise. The context-pairing bias is added to the task-set probabilities when the model is still learning the best task-set in the current context, or when the maximum task-set probability is less than 0.5, since a task-set probability higher than 0.5 implies that this task-set is deemed more likely than all others <ref type="bibr" target="#b34">[35]</ref>.</p><p>where T S ′ t = argmax Pr(T S | c ′ t ; t) is the most likely task-set in the alternative context c ′ and its probability is equal to the strength of the bias w = Pr(T S ′ t | c ′ t ; t). On each trial, in stage 2, the model samples a task-set according to the taskset probabilities in the current context (Line 23). It uses working memory to track actions that have been tried on this trial and avoids repeating them by de-valuing them (Line 14). Then, it picks an action by sampling from the softmax-transformed distribution of this task-set with a uniform decision noise (Lines <ref type="bibr" target="#b15">[16]</ref><ref type="bibr" target="#b16">[17]</ref>:</p><p>where A is the action space (the set of all available actions) and ϵ is the uniform noise parameter. After acting with the sampled action a t , the model observes reward r t from the environment and updates its task-set belief probabilities (Lines 18-22) and the corresponding value in the re-sampled task-set (Line 24).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.2">Meta-learning model</head><p>The meta-learning model, outlined in Algorithm 2, extends the fully hierarchical model to include two compressed policies over states ( <ref type="figure">Figure 4A</ref>). To support the metalearning mechanism, two additional parameters (m and β meta ) are included in the model: m defines the prior probability of the compressed policy over stage 2, and β meta controls the inverse temperature of a softmax transformation applied to the policy probabilities at decision time. At the beginning of learning, the prior of π H , the hierarchical policy, is fixed at a small, non-zero value (0.01 in our analyses) to model a weak, but non-vanishing, initial belief of hierarchical structure. The prior of π C2 , the compressed policy over stage 2, is parameterized by m, which is optimized in the fitting process. The last prior probability of π C1 , the compressed policy over stage 1, can then be calculated as 1−0.01−m since all priors sum to 1 (Line 1). During learning, these belief probabilities over policies are updated using Bayes' rule after observing the reward (Lines 25-29). while r t = 0 do</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>10:</head><p>Add context-pairing bias based on c ′ t to task-set priors for c t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>11:</head><p>Sample T S t and T S ′ t from priors given c t and c ′ t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>12:</head><p>De-value all actions that have been tried as in Algorithm 1</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>13:</head><p>if backward then 14:</p><p>15: </p><p>18:</p><p>end if <ref type="bibr" target="#b19">20</ref>:</p><p>22:</p><p>Sample action a t ∼ π m and observe reward r t</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>24:</head><p>Update task-set belief probabilities as in Algorithm 1</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>25:</head><p>if r t = 1 then ▷ Bayesian update end while 32: end for The meta model implements an off-policy representation of the compressed policies -its target policy is hierarchical, though it computes the compressed policies by averaging over corresponding stages of the hierarchical policy at decision time (Lines 13-19). To combine these policies into a meta-policy, the model computes an average between them weighted by the softmax-transformed policy belief probabilities (Lines 21-22).</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Naturalistic reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Wise</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Emery</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radulescu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Hierarchically organized behavior and its neural foundations: A reinforcement learning perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">cognition</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="262" to="280" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Divide and conquer: hierarchical reinforcement learning and task decomposition in humans. Computational and robotic models of the hierarchical organization of behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Diuk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Schapiro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Córdova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ribas-Fernandes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page" from="271" to="291" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Computational evidence for hierarchically structured reinforcement learning in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">47</biblScope>
+			<biblScope unit="page" from="29381" to="29389" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Temporal and state abstractions for efficient learning, transfer, and composition in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">643</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Cognitive control over learning: creating, clustering, and generalizing task-set structure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">190</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Annual Conference of the Cognitive Science Society</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science Society (US). Conference</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="page">948</biblScope>
+			<date type="published" when="2022" />
+			<publisher>NIH Public Access</publisher>
+		</imprint>
+	</monogr>
+	<note>Credit assignment in hierarchical option transfer</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Functional magnetic resonance imaging evidence for a hierarchical organization of the prefrontal cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>D'esposito</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of cognitive neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="2082" to="2099" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Cognitive control, hierarchy, and the rostro-caudal organization of the frontal lobes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="193" to="200" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">People construct simplified mental representations to plan</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Abel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">G</forename><surname>Correa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">606</biblScope>
+			<biblScope unit="issue">7912</biblScope>
+			<biblScope unit="page" from="129" to="136" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">The architecture of cognitive control in the human prefrontal cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Ody</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Kouneiher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">302</biblScope>
+			<biblScope unit="issue">5648</biblScope>
+			<biblScope unit="page" from="1181" to="1185" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Optimal behavioral hierarchy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Solway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Diuk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Córdova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Yee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page">1003779</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Discovery of hierarchical representations for efficient planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Tomov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yagati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1007594</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Compositional clustering in task structure learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">T</forename><surname>Franklin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1006116</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Building machines that learn and think like people</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Lake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and brain sciences</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="page">253</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Multilevel structure in behaviour and in the brain: a model of fuster&apos;s hierarchy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">362</biblScope>
+			<biblScope unit="page" from="1615" to="1626" />
+			<date type="published" when="1485" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">G</forename><surname>Correa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sanborn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2311.18644</idno>
+		<title level="m">Exploring the hierarchical structure of human plans via program generation</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Between mdps and semi-mdps: A framework for temporal abstraction in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Precup</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial intelligence</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="181" to="211" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Reinforcement Learning: An Introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">State abstractions for lifelong reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Abel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Arumugam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lehnert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Littman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="10" to="19" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Towards a unified theory of state abstraction for mdps</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Walsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AI&amp;M</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Policy compression: An information bottleneck in action selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychology of learning and motivation</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="page" from="195" to="232" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<title level="m">Action chunking as policy compression</title>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Human decision making balances reward maximization and policy compression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1012057</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Human eeg uncovers latent generalizable rule structure during learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Cavanagh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">13</biblScope>
+			<biblScope unit="page" from="4677" to="4685" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Neural signature of hierarchically structured expectations predicts clustering and transfer of rule sets in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page" from="160" to="169" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Reward-predictive representations generalize across tasks in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lehnert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page">1008317</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title level="m" type="main">A behavioral model of rational choice. The quarterly journal of economics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Simon</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1955" />
+			<biblScope unit="page" from="99" to="118" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Computational rationality: A converging paradigm for intelligence in brains, minds, and machines</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Horvitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">349</biblScope>
+			<biblScope unit="issue">6245</biblScope>
+			<biblScope unit="page" from="273" to="278" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Resource-rational analysis: Understanding human cognition as the optimal use of limited computational resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and brain sciences</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">How much of reinforcement learning is working memory, not reinforcement learning? a behavioral, computational, and neurogenetic analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">European Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1024" to="1035" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">How working memory and reinforcement learning are intertwined: A cognitive, neural, and computational perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Yoo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of cognitive neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="551" to="568" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">A goal-centric outlook on learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Molinaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Reasoning, learning, and creativity: frontal lobe function and human decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS biology</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">1001293</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Combinatorial Stochastic Processes: Ecole D&apos;eté de Probabilités de Saint-flour Xxxii-2002</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pitman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

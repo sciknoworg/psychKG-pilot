@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main"></title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Markkula</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><roleName>Madigan</roleName><surname>Romano</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fox</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><roleName>Merat</roleName><surname>Giles</surname></persName>
+						</author>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:26+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>automated vehicles</term>
+					<term>virtual testing</term>
+					<term>human behavior models</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>With the development of increasingly automated vehicles (AVs) comes the increasingly difficult challenge of comprehensively validating these for acceptable, and ideally beneficial, impacts on the transport system. There is a growing consensus that virtual testing, where simulated AVs are deployed in simulated traffic, will be key for cost-effective testing and optimisation. The least mature model components in such simulations are those generating the behaviour of human agents in or around the AVs. In this paper, human models and virtual testing applications are presented for two example scenarios: (i) a human pedestrian deciding whether to cross a street in front of an approaching automated vehicle, with or without external human-machine interface elements, and (ii) an AV handing over control to a human driver in a critical rear-end situation. These scenarios have received much recent research attention, yet simulation-ready human behaviour models are lacking. They are discussed here in the context of existing models of perceptual decision-making, situational awareness, and traffic interactions. It is argued that the human behaviour in question might be usefully conceptualised as a number of interrelated decision processes, not all of which are necessarily directly associated with externally observable behaviour. The results show that models based on this type of framework can reproduce qualitative patterns of behaviour reported in the literature for the two addressed scenarios, and it is demonstrated how computer simulations based on the models, once these have been properly validated, could allow prediction and optimisation of AV impacts on traffic flow and traffic safety.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>INTRODUCTION</head><p>In recent years, rapid technological progress has been made on automated vehicles (AVs); vehicles capable of taking over increasing shares of the driving task, with large hoped-for benefits in terms of increased mobility, improved traffic safety, reduced environmental footprint, and economic growth <ref type="bibr" target="#b0">(1)</ref>. As with any technology, it is important to subject AVs to sufficient testing and validation to ensure safe and effective operation. This is a daunting task, however, considering the essentially infinite variations of possible traffic situations that an AV needs to handle <ref type="bibr" target="#b1">(2)</ref>.</p><p>It is increasingly assumed that one important approach in the toolkit for AV validation will be virtual testing methods, where a computer simulation of an AV, integrating mathematical models of vehicle and sensors with the actual self-driving algorithms, can encounter a rich variety of simulated traffic situations <ref type="bibr" target="#b2">(3,</ref><ref type="bibr" target="#b3">4)</ref>. These traffic situations can for some purposes be replayed from large static databases of actual real-traffic recordings, but if the objectives of a virtual test depends on some form of interaction between the AV and surrounding road users-e.g., by means of external human-machine interfaces (5)-or interaction between the AV and its onboard operator, the involved human agents also need to be simulated.</p><p>Human road user models do exist, and are currently being actively developed and applied to AV testing <ref type="bibr" target="#b3">(4,</ref><ref type="bibr" target="#b5">6)</ref>, but so far mainly on the relatively coarse-grained level of traffic microsimulation, where the trajectory of each road user (car, truck, pedestrian, etc) is directly generated from equations of motion taking into account positions and velocities of surrounding road users. While this level of granularity might be adequate for some purposes, it seems likely that in many cases, the outcome of interactions between humans and AVs will hinge on finer details and time dynamics of human perception, scene interpretation, and decision-making <ref type="bibr" target="#b6">(7,</ref><ref type="bibr" target="#b7">8)</ref>.</p><p>Capturing such phenomena accurately in virtual simulation is of course very challenging, but recent literature suggest some possibly fruitful directions: There is by now ample neuroscientific support for the idea that perceptual decision-making in typical laboratory tasks is underpinned by noisy neural evidence accumulation, to a decision threshold at which the overt response is initiated <ref type="bibr" target="#b9">(9)</ref>. Interestingly, such models have also been proven useful for explaining human driver reaction times in responding to stimuli in traffic; discrete stimuli such as brake lights <ref type="bibr" target="#b10">(10)</ref> but importantly also graded, dynamic stimuli like the visual looming of approaching road users or collision threats <ref type="bibr" target="#b11">(11,</ref><ref type="bibr" target="#b12">12)</ref>.</p><p>Here, this line of modelling will be taken one step further, and applied to the more complex decision-making situations that tend to arise in the AV context, where the emphasis of required modelling naturally shifts away from low-level decisions like "more or less braking?" towards a higher-level assessment of the situation at hand; what is often referred to as situational awareness <ref type="bibr" target="#b7">(8,</ref><ref type="bibr" target="#b13">13)</ref>. The basic modelling idea to be explored here is that situational awareness can be modelled as a number of interrelated perceptual decisions about the world, where each decision is modelled as an accumulation process, but where the accumulators are also interconnected, in a related but not identical manner to existing connectionist and activation dynamics type models of perception and action selection <ref type="bibr" target="#b14">(14,</ref><ref type="bibr" target="#b15">15)</ref>.</p><p>After a first section below describing two AV-human interaction scenarios addressed here, three consecutive sections will pursue the three main objectives of the paper: (i) To suggest models of human decision-making in the targeted scenarios, as examples of the modeling approach sketched above. (ii) To illustrate that these models can qualitatively reproduce non-trivial behavior patterns reported in the literature. These prior findings thus serve as a first high level data set, to which model parameters are manually fitted. (iii) To illustrate how models at this level of detail can be useful in virtual testing of AVs. It is not an aim here to suggest final model formulations, nor to perform full model validation and tuning; these will be matters for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TARGETED AV -HUMAN INTERACTION SCENARIOS</head><p>Figure shows the two traffic scenarios considered here. The pedestrian interaction scenario in panel (a) is based on the test track study by Schneemann and Gohl <ref type="bibr" target="#b16">(16)</ref>. They considered the question of how an AV should behave at a zebra crossing, by studying the interactive behaviour of human drivers and pedestrians, as a function of initial car speed 0 and time to collision (TTC; or alternatively in this scenario time to arrival) at the moment when the pedestrian was instructed to step up to the crossing, prompting decelerations from the (uninstructed) drivers. Here, what will be modelled is the pedestrian's decision to cross or yield as a function of car movements, as well as of more direct indications from the car (from either the driver or the AV, as the case may be) about having seen the pedestrian, and about its possible intentions to yield.</p><p>The safety-critical take-over scenario in panel (b) is based on the simulator study by Gold et al. <ref type="bibr" target="#b17">(17)</ref>, where drivers either manually drove a vehicle or were driven by an AV at 0 = 120 km/h (75 mph), when a lead vehicle changed lane to reveal a stationary vehicle, at a TTC of either 5 s or 7 s, in the AV case prompting a take-over request to the driver. Similar types of take-over scenarios have recently been subject to intense research efforts; e.g. <ref type="bibr" target="#b6">(7,</ref><ref type="bibr" target="#b18">18)</ref>. What will be modelled here is the human's decisions, after the obstacle appears, on where to look and how to manoeuvre the car. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>MODELS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model of pedestrian crossing decisions</head><p>The basic hypothesis behind the pedestrian model, illustrated in <ref type="figure" target="#fig_1">Figure 2</ref>, is that the pedestrian makes the action decision to cross based on either or both of two perceptual decisions: (i) A perceptual decision that it is possible to pass the road before the car arrives, made by observing the visual looming quantity = /̇, with the projected angle of the car on the pedestrian's retina.</p><p>is a close approximation of TTC if assuming constant speeds <ref type="bibr" target="#b19">(19)</ref>, and is assumed to be compared to a threshold . (ii) A perceptual decision that the car (driver or AV, but here "car" will be used for short) intends to yield, but not if the actual car movements clearly suggest that it is still unsafe to cross ( &lt; ). To make the decision about whether or not the car intends to yield, the pedestrian is assumed to monitor the quantity ̇= d /d , which is ≥ −0.5 if the car stops at or before the zebra crossing <ref type="bibr" target="#b19">(19)</ref>, but also explicit communication acts (e.g., headlight flashes).</p><p>However, if the pedestrian decides that the car has not seen him/her (e.g., the driver is looking somewhere else), this is taken as evidence that the car is not intending to yield. , where each is a two-sided accumulator, bounded at plus and minus one, implying "yes" and "no" decisions, respectively, and zero implying maximum uncertainty. This type of accumulator is often referred to as a "drift-diffusion model for two-choice decisions" or similar <ref type="bibr" target="#b20">(20)</ref>, although interconnecting several of these or simulating them beyond a threshold being reached is possibly novel. At each new simulation time step, the are updated as follows: Positive/excitatory influence of state X of "A" on "B" X "A" "B"</p><p>Negative/inhibitory influence of state X of "A" on "B" X "A" "B"</p><formula xml:id="formula_0">d d ( ) = − ( ) + ( ( )) + ? ? ( ( )) + ( ( )) + ( ) + ( ) (1)</formula><p>where is a decay time constant, the  are matrices of connections between decision units, the  are activation functions, ( ) is a vector of external inputs, and ( ) is a vector of noise, accounting for between-trial behavioral variability due to for example variations in brain activity, modelled here as Gaussian noise with standard deviation Σ√Δt, where Σ is a parameter and Δt is the simulation time step <ref type="bibr" target="#b9">(9)</ref>. In this first model implementation, to simplify the manual tuning process, all elements in  were kept either at zero (no connection) or ±1 (excitatory and inhibitory connections), rather than being freely tuned. Also for simplicity, the activation functions were kept piecewise linear: ( ) = 0 and 1 for ≤ 0 and ≥ 1, respectively, and linearly increasing in between, and ( ) = (− ), such that the two functions respond maximally when indicates "yes" and "no", respectively. Further, ? ( ) = 1 − ( ) − ( ), i.e., zero at = ±1 and linearly increasing from both sides to a maximum of one at = 0. The external inputs to the decision units were: Manual tuning indicated satisfactory model behavior for = 2 s; Σ = 0.5; 1 = 0.5; 2 = 4.</p><formula xml:id="formula_1"> 1 ( ) = ℎ 1 ( ( )) = 1 ( ( ) − ),</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model of driver behavior during safety-critical take-over</head><p>The model for the take-over scenario, illustrated in an early detection of catching up with the lead vehicle (which does not in itself prompt braking) or a later realisation that attempted braking is not solving the conflict, and both of these are also modulated by visual looming directly. However, the lane changing decision is in all cases inhibited-as in made less probable-if the driver does not know that it is safe to change lane.</p><p>Gaze sampling is assumed driven to a large extent by the need to resolve uncertainties in the perceptual decisions <ref type="bibr" target="#b21">(21)</ref>, and the current gaze target determines what sensory input the model receives (the "switches" in <ref type="figure" target="#fig_4">Figure 3</ref>). In this first version of the model, there is no direct account of the process of actual control take-over; as a first approximation it will be investigated to what extent the effects of taking over from the AV can be accounted for as a simple time delay, combined with lower initial awareness of the adjacent lane.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>FIGURE 3 Schematic representation of the model for the safety-critical take-over scenario.</head><p>Again, the rest of this section can be considered optional reading: Just as in the pedestrian model, Equation (1) governs activations in the network. However, decisions between competing actions about where to look (units 4 and 5) or how to maneuver (units 6 and 7), are here modelled as "races" <ref type="bibr" target="#b20">(20)</ref>, bounded downward by zero instead of minus one, and each time an action threshold = 1 is reached, the race in question is restarted by resetting the competing accumulators to zero. The exception is the "increase braking" action, which has its accumulator reset to 0.7, to reflect an increased brake readiness after the first brake application <ref type="bibr" target="#b12">(12)</ref>. Also, before the first brake application, decision unit 2 is inactive. The looming-related inputs to the network, all set to zero if the driver's eyes are off the road, were defined as: </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>MODEL BEHAVIOR -REPRODUCING FINDINGS FROM LITERATURE</head><p>Reproducing pedestrian crossing behavior <ref type="figure" target="#fig_7">Figure 4</ref> shows example simulations with the pedestrian model, all at 0 = 50 km/h (31 mph) and</p><p>with TTC = 4 s at the moment when the pedestrian steps up to the zebra crossing, at which point the simulated car also initiates a deceleration to stop exactly at the zebra crossing.</p><p>In panel (a), note in the simulation without noise how the pedestrian comes close to a quick decision to cross while is above the threshold = 3 s, but since the margin − is small, the evidence accumulation is so slow that falls below before a complete crossing decision has formed. From that point, despite picking up some signs of car deceleration, the pedestrian still judges from that crossing might be risky. Thus  In the best case, where the pedestrian gets indications both of the car being aware of him/her, and of the car's intention to stop, the model pedestrian almost never waits until the car is stationary (dashed black line), whereas more than half of the model pedestrians wait that long in the worst case where neither of those indications are present (solid gray line). Reproducing safety-critical take-over behavior <ref type="figure" target="#fig_9">Figure 5</ref>(a) shows four example time histories generated by the take-over driver model. These simulations differ only in the initial seed of the random noise in the decision processes, but it is notable that the model can nevertheless produce a range of qualitatively different sequences of behavior, both with and without one or more long or short glances away from the road ahead, and both with and without some degree of braking before a lane change is initiated (terminating the simulation).    </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>MODEL APPLICATIONS IN VIRTUAL TESTING AND TUNING</head><p>This section will give examples of how the proposed models could be put to applied use in virtual, testing of AVs. It should be emphasized that since the models have yet to be fully validated and parameterized, the actual results given below are preliminary at best; especially for the transition scenario where the model is both more complex and showed signs of possible limitations in its braking behavior. The main aim here is to illustrate the type of results that can be obtained.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Optimizing AV traffic flow at a pedestrian crossing</head><p>If an AV intends to yield to a pedestrian, how should it behave so as to help the pedestrian make the crossing decision as quickly as possible? To answer this question, it was assumed that once the pedestrian starts walking, the AV adapts acceleration to pass behind the pedestrian, and then accelerates at 1 m/s 2 back up to the initial 50 km/h (31 mph). The time lost in the interaction was then calculated by comparing the distance travelled before regaining the initial speed, to the distance that would have been travelled in the same amount of time at constant speed, i.e., as if there had been no pedestrian. The model predicts that time savings can also be achieved by letting the AV communicate its situational awareness and intentions (assuming that this can be achieved by some external HMI that is understandable to the pedestrian). The benefits of exaggerated decelerations are still present, but less pronounced, except for the lowest TTCs, where it starts being questionable whether the AV should at all yield to a waiting pedestrian, considering the comfort and safety of AV occupants and any following vehicles. during transitions from automation <ref type="bibr" target="#b18">(18)</ref>. Exactly how to do so is of course a non-trivial matter, but here it is examined what benefit it might have in the studied scenario if a solution could be devised ensuring that the driver quickly knows, without having to look away from the road ahead, that it is possible to change lane, emulated here by initializing the "it is safe to change lane now" decision at full certainty. It is also examined here whether any such benefit might interact, according to the model, with emergency braking applied by the AV itself.</p><p>As shown in <ref type="figure">Figure 7</ref>, the model predicts a range of initial TTCs between 1.5 s and 3. Pedestrian road-crossing has been modeled here as an interrelated set of perceptual decisions about oncoming vehicle movement and intentions. The model has illustrated how a car that applies exactly the right amount of deceleration for stopping might make it difficult for a waiting pedestrian to decide on crossing before the car has come to a complete stop, thus explaining empirical observations of such late pedestrian crossing decisions (in <ref type="bibr" target="#b16">(16)</ref>, but anecdotally also in many people's everyday experience). In contrast, existing microsimulation pedestrian models tend to emphasise the question of whether a pedestrian accepts a certain time gap between passing cars <ref type="bibr" target="#b22">(22)</ref>, and less on when the pedestrian accepts it, as a function of exact movement and communicative acts of a vehicle, making the model proposed here a potentially useful addition to the toolkit for virtual testing and tuning of AV behavior.</p><p>With regards to the other scenario targeted here, focusing on human avoidance maneuvering close to a potential rear-end crash, existing driver models for such situations typically decide on braking and/or steering by drawing from fixed, situation-independent probability distributions (23), whereas it is well known that human avoidance responses vary significantly with not least urgency <ref type="bibr" target="#b16">(16,</ref><ref type="bibr" target="#b24">24)</ref>, in ways similar to what is exhibited by the model proposed here. The present work also provides some first steps towards modeling the actual process of taking over from an AV, suggesting that, at least in the presently studied scenario, the take-over could be thought of as an urgency-dependent time delay, combined with a low initial situational awareness.</p><p>Indeed, a striking feature of both models is that they provide concrete operationalizations of the concept of situational awareness in the given scenarios, in terms of neurobiologically plausible models of perceptual decisions. This may be a useful complement to existing computational models of situational awareness; e.g., <ref type="bibr" target="#b13">(13)</ref>. Overall, the results presented here seem promising for the general modeling approach of interconnecting several perception and action decision accumulators. Related but different models have been developed from connectionist and dynamical systems perspectives <ref type="bibr" target="#b14">(14,</ref><ref type="bibr" target="#b25">25)</ref>, as well as in the field of naturalistic decision-making <ref type="bibr" target="#b15">(15)</ref>. One useful next step would be to benchmark the present modeling framework against these existing ones, and ideally also against more conceptually different alternatives based on cognitive architectures such as ACT-R (26), or from robotics <ref type="bibr" target="#b27">(27)</ref>.</p><p>An obvious next step will be to properly test and parameterize the models on detailed data sets of human behavior in the studied scenarios. If such validation tests are successful, the (so far very preliminary) virtual testing results presented here suggest that models at this level of detail, capable of predicting full AV -human interaction sequences unfolding in dynamic traffic scenarios, could be of great use when testing, validating, and optimising future automated transport systems.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>FIGURE 1</head><label>1</label><figDesc>Schematic illustrations of the scenarios considered in this paper. The modeled human is indicated with a circle. TTC is short for time to collision. (a) Pedestrian interaction scenario. (b) Safety-critical take-over scenario.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>FIGURE 2</head><label>2</label><figDesc>Schematic representation of the model for the pedestrian interaction scenario. The rest of this section is optional reading; it provides model details not strictly needed to understand the rest of the paper: Figure 2 shows four interconnected decision units, and at any point in time, the state of the model is described by the vector of unit activations, ( ) = [ 1 ( ) … 4 ( )]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>corresponding to the perceptual decision about whether the time margin for crossing is currently above = 3 s. 2 ( ) = ℎ 2 ( ( )) + ℎ 3 ( ), where ℎ 2 ( ( )) = 2 (( ) −̇), corresponding to the perceptual decision about whether the car is decelerating to stop before the zebra crossing. Here ̇= −0.55 was used, to accumulate positive evidence also in the limit case ̇= −0.5. The input ℎ 3 ( ) was set to one to model the case where the car is providing some communicative act interpreted by the pedestrian as indicating an intention to yield, e.g., flashing the headlights, zero otherwise.  3 ( ) = ℎ 4 ( ) was set to one to model the car or its driver doing something that the pedestrian takes as evidence of the car seeing the pedestrian, e.g., eye contact in the case of a human driver, or some external HMI in the case of an AV, or minus one if the car is doing something that the pedestrian takes as evidence of the opposite, e.g., a car driver is looking somewhere else.  4 ( ) = 0.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 3 ,</head><label>3</label><figDesc>is slightly more complex. It does not terminate at the first action decision like the pedestrian model; instead each new action affects how the scenario continues playing out over time. For reasons of space, all connections shown in Figure 3 will not be discussed individually here, but the main hypotheses behind the model are as follows: Driver braking is assumed to function as proposed in (12), as discrete increases of brake pedal position applied each time a discrepancy between visual looming, quantified as −1 , and predicted visual looming −1 , updated after each new brake adjustment, accumulates to threshold. The decision to change lane can come about in the model in two ways:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>), modeling the perceptual decision of whether the vehicle ahead is coming closer.2 ( ) = − 2 ( −1 ( ) − −1 ( )), modeling the perceptual decision of whether braking is solving the conflict. 6 ( ) = ( −1 ( ) − −1 ( ) − −1 ), modeling the decision to increase braking<ref type="bibr" target="#b12">(12)</ref>. 7 ( ) = 4 ( −1 ( ) − −1 ) − min (0, 5 ( −1 ( ) − −1 )),modeling a positive looming contribution to the decision to change lane and a negative contribution to the same decision coming into play once −1 &gt; −1 , where −1 &gt; −1 .The remaining inputs were defined as:3 ( ) = 6 and 4 ( ) = 7 , both if the driver is directing gaze towards the adjacent lane (whether by mirror checks, shoulder checks, etc, is not defined in the model), zero otherwise.  5 ( ) = 0. Manual tuning indicated satisfactory model behavior for = 2 s; Σ = 0.3; 1 = 2 = 20; 3 = 5 = 6; 4 = 3; 6 = 1.5; 7 = 1.2; −1 = −1 = 0.1 s −1 ; −1 = 0.5 s −1 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>, as further illustrated by the delay time distribution in panel (b), one qualitative human behavior result that the model reproduces is the finding reported in (16), where 20 % of pedestrians waited until the car came to a complete stop before crossing. The authors of (16) did not report full delay time distributions, but in the model simulations the remaining 80 % are spread out in time with a wide peak in the time region while is still above , where the model can make the decision to cross even if it is unsure of the car's intentions. This aligns well with another finding in (16), where 25 % of pedestrians stated that they made the decision to cross without having seen the car's deceleration. Exactly what activation of the deceleration-detecting perceptual decision would yield a positive response to such a question is not defined in the model, but as a rough comparison, 25 % of the light brown dots in panel (b) lie below = 0.3.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 4 (</head><label>4</label><figDesc>c) shows the model predictions of the impact of interactive behaviour of the car.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>FIGURE 4</head><label>4</label><figDesc>Example simulations of the pedestrian model. (a) Visual looming input (top panel) and resulting model activations. The black activation traces show a model simulation without noise, and the lighter colored activation traces show three example simulations with noise. (b) The black line shows the full distribution of delay times before the model pedestrian's decision to cross the road, for 10,000 simulations with noise. The light brown dots show the activation of the "the car is letting me pass first" unit at the time of crossing decision, as a function of the decision delay time. (c) Distribution of delay times for variations of the same scenario, also without driver eye contact (gray traces), and with an explicit communicative act suggesting intent to let the pedestrian pass first (e.g., hand gesture or headlight flash; dashed traces).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 5 (</head><label>5</label><figDesc>b) shows the model-predicted frequency of different avoidance maneuvers, as a function of TTC at obstacle appearance, for a case with intermediate ( = 0.5) initial awareness of the adjacent lane being empty, as a possible emulation of a typical manual driving case. The obtained model distributions, and specifically the frequencies marked by vertical lines in the figure, align well with the pattern of driver responses reported in (17) for the manual driving condition: All human drivers (8/8; 100 %) responded with steering in the TTC = 7 s condition, whereas in the TTC = 5 s condition, also some combined braking and steering was observed (1/5 drivers; 20 %).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 5 (</head><label>5</label><figDesc>c) shows that without any initial awareness of the adjacent lane ( = 0), the probability of braking increases. This was also reported in<ref type="bibr" target="#b17">(17)</ref> for the AV condition. Specifically, the model frequencies at the initial TTCs marked with vertical lines (4 s and 3.5 s) align human responses in<ref type="bibr" target="#b17">(17)</ref> for the experimental conditions with take-over request at 7 s and 5 s TTC: A near-50/50 division between steering only and combined steering/braking was observed in the 7 s condition, whereas in the 5 s condition combined steering/braking rose to more clearly being the most common maneuver, followed by steering only, and some observations of pure braking. In other words, overall, the model simulations suggest the possibility that the take-over process in this scenario can be accounted for as a combination of reduced situational awareness and an urgency-dependent time delay, longer for the less critical scenario (7 s − 4 s = 3 s, compared to 5 s − 3.5 s = 1.5 s) . This aligns with the report in (17) that hands-on-wheel and eyes-on-road delay times were longer in the less critical 7 s take-over scenario.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 5 (</head><label>5</label><figDesc>b) and (c) also show simulated crash frequencies. The model's braking alone was typically not enough to avoid collision, whereas in (17) seemingly no collisions occurred. This may indicate some problem with the tuning of the braking model. If the model applied steering avoidance, avoidance was considered successful as long as the time margin before collision, given speed and acceleration at time of steering initiation, was above 1 s.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>FIGURE 5</head><label>5</label><figDesc>Example simulations of the hand-over model. (a) Example outcomes, all with TTC = 4 s and intermediate ( = . ) initial awareness of the adjacent lane being empty. The difference in outcome between these simulations is due solely to the random noise in the evidence accumulators. (b) Frequency of avoidance maneuvers performed by the model when run in a way so as to emulate manual driving (intermediate initial awareness of the adjacent lane), and resulting crash frequency, as a function of TTC at the time of obstacle appearance. The vertical lines indicate points of correspondence with (17), discussed in the text. (c) As panel b, but emulating a transition out of automated driving (with zero initial awareness of the adjacent lane).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Figure 6</head><label>6</label><figDesc>shows, across a range of pedestrian appearance TTCs, the model's predicted effect on time loss of (i) external AV-human communication, and of (ii) applying more than the deceleration needed to stop exactly at the zebra crossing, visible in the figure as the curved edge of the shaded area (within the gray area, deceleration is too small). Perhaps counter to what one might expect, the model predicts that increased deceleration can save considerable time. This is especially true for the AV without external communication means, where for some TTCs an extra 0.5 m/s 2 of deceleration can change a 12 s time loss to near zero. The reason this happens in the model is that the pedestrian's judgment of whether the car will stop before the crossing (i.e., of whether ̇&gt; −0.5) is difficult when the margin is narrow (i.e., when ̇≈ −0.5), and the exaggerated deceleration makes this perceptual decision much easier and quicker.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>FIGURE</head><label></label><figDesc>Model estimation of time lost for the AV in the pedestrian interaction (compared to passing the same zebra crossing when empty), as a function of TTC at time of pedestrian presentation, and AV deceleration applied at the same moment. The gray shaded areas indicate decelerations that do not result in stopping before the zebra crossing; i.e., the edges of the shaded areas show decelerations that result in stopping precisely at the zebra crossing. (a) Minimal communication from vehicle; the AV does not show signs of being aware of the pedestrian or any signs, besides deceleration, of intending to yield to the pedestrian. (b) AV shows signs both of being aware of the pedestrian and of intending to yield.Minimising crash risk in time-critical AV hand-oversIt has been suggested that detriments in performance during AV-human hand-overs are the result of a loss of situational awareness<ref type="bibr" target="#b7">(8)</ref>, with a recommendation that designers need to give deep consideration as to how best to facilitiate the process of bringing drivers back "into the loop"</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>5 s(FIGURE</head><label>5</label><figDesc>remember that factoring in the take-over process, this might correspond to a considerably higher obstacle appearance TTC) where benefits of increased situational awareness may exist. For example, even if the AV decelerates with 6 m/s 2 in a TTC = 2 s scenario, immediate driver awareness of the feasibility of steering avoidance changes the model-predicted crash risk from about 80 % to about 20 %. In fact, according to the model, this low crash risk remains nearly unchanged even if the AV does not apply any emergency braking at all, which seems beneficial from a perspective of minimising risk of being struck from behind. Model estimated effect of driver awareness of possibility to change lane, and AV emergency braking, on crash risk in the studied take-over scenario. DISCUSSION AND CONCLUSIONS This paper has presented first draft versions of novel models of human decision-making and behavior in two scenarios relevant to development and testing of AVs. Both models seem to offer useful developments beyond what is currently available in the literature for these scenarios.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0" />
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Preparing a nation for autonomous vehicles: opportunities , barriers and policy recommendations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Fagnant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kockelman</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tra.2015.04.003</idno>
+		<ptr target="http://dx.doi.org/10.1016/j.tra.2015.04.003" />
+	</analytic>
+	<monogr>
+		<title level="j">Transportation Research Part A</title>
+		<imprint>
+			<biblScope unit="volume">77</biblScope>
+			<biblScope unit="page" from="167" to="181" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Driving to safety: How many miles of driving would it take to demonstrate autonomous vehicle reliability?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kalra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Paddock</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tra.2016.09.010</idno>
+		<ptr target="http://dx.doi.org/10.1016/j.tra.2016.09.010" />
+	</analytic>
+	<monogr>
+		<title level="j">Transportation Research Part A</title>
+		<imprint>
+			<biblScope unit="volume">94</biblScope>
+			<biblScope unit="page" from="182" to="193" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Self-driving cars test traditional procedures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Stackpole</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title level="m" type="main">Evaluation of Automated Vehicles Encountering Pedestrians at Unsignalized Crossings</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Peng</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/1702.00785" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Evaluation of Vehicle-to-Pedestrian Communication Displays for Autonomous Vehicles</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Clamann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Aubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Cummings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Presented at Transportation Research Board 96th Annual Meeting</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Adaptive cruise control design for active congestion avoidance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kesting</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Treiber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Scho</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.trc.2007.12.004</idno>
+		<ptr target="http://dx.doi.org/10.1016/j.trc.2007.12.004" />
+	</analytic>
+	<monogr>
+		<title level="j">Transportation Research Part C</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="668" to="683" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">What determines the take-over time? An integrated model approach of driver take-over after automated driving</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Zeeb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Buchner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schrauf</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.aap.2015.02.023</idno>
+		<ptr target="http://dx.doi.org/10.1016/j.aap.2015.02.023" />
+	</analytic>
+	<monogr>
+		<title level="j">Accident Analysis and Prevention</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="page" from="212" to="221" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">The effects of level of automation and adaptive automation on human performance , situation awareness and workload in a dynamic control task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Kaber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Endsley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Theoretical Issues in Ergonomics Science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="113" to="153" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1080/1463922021000054335</idno>
+		<ptr target="http://dx.doi.org/10.1080/1463922021000054335" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Neurally Constrained Modeling of Perceptual Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Purcell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Heitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1113" to="1143" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Modeling simple driving tasks with a one-boundary diffusion model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Strayer</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-013-0541-x</idno>
+		<ptr target="http://dx.doi.org/10.3758/s13423-013-0541-x" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychon Bull Rev</title>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">A farewell to brake reaction times? Kinematics-dependent brake response in naturalistic rear-end emergencies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Markkula</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Engström</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lodin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Accident Analysis &amp; Prevention</title>
+		<imprint>
+			<biblScope unit="volume">95</biblScope>
+			<biblScope unit="page" from="209" to="226" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">A quantitative driver model of pre-crash brake onset and control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Svärd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Markkula</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Engström</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Presented at Human Factors and Ergonomics Society 61st Annual Meeting</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">A Computational Model of Attention/Situation Awareness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Mccarley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Wickens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Presented at Human Factors and Ergonomics Society 46th Annual Meeting</title>
+		<imprint>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Multialternative decision field theory: a dynamic connectionist model of decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Roe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Townsend</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="370" to="392" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Modeling the Dynamics of Recognition-Primed Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Patterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fournier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Pierce</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The 9th International Conference on Naturalistic Decision Making</title>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Analyzing Driver-Pedestrian Interaction at Crosswalk : A Contribution to Autonomous Driving in Urban Environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Schneemann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Gohl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IEEE Intelligent Vehicles Symposium</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Take over!&quot; How long does it take to get the driver back into the loop?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Damböck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lorenz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">at Human Factors and Ergonomics Society 57th Annual Meeting</title>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Transition to manual: Driver behaviour when resuming control from a highly automated vehicle</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Merat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Jamson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">C H</forename><surname>Lai</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.trf.2014.09.005</idno>
+		<ptr target="http://dx.doi.org/10.1016/j.trf.2014.09.005" />
+	</analytic>
+	<monogr>
+		<title level="j">Transportation Research Part F: Psychology and Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="274" to="282" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">A theory of visual control of braking based on information about time-to-collision</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">N</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="437" to="459" />
+			<date type="published" when="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">The Physics of Optimal Decision Making : A Formal Analysis of Models of Performance in Two-Alternative Forced-Choice Tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bogacz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Moehlis</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295X.113.4.700</idno>
+		<ptr target="http://dx.doi.org/10.1037/0033-295X.113.4.700" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="700" to="765" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Perceptions as hypotheses : saccades as experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Perrinet</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2012.00151</idno>
+		<ptr target="http://dx.doi.org/10.3389/fpsyg.2012.00151" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">A cellular automaton simulation model for pedestrian and vehicle interaction behaviors at unsignalized mid-block crosswalks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Accident Analysis and Prevention</title>
+		<imprint>
+			<biblScope unit="volume">95</biblScope>
+			<biblScope unit="page" from="425" to="437" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title level="m" type="main">Advanced Crash Avoidance Technologies (ACAT) Program -Final Report of the Honda-DRI Team</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Van Auken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Zelner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Chiang</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>Publication DOT HS 811 454. USDOT/NHTSA</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Analyses of rear-end crashes and near-crashes in the 100-car naturalistic driving study to support rear-signaling countermeasure development</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Llaneras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Klauer</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>Publication DOT HS 810 846. USDOT/NHTSA</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Making Driver Modeling Attractive</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pellecchia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Igel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Edelbrunner</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/MIS.2005.31</idno>
+		<ptr target="http://dx.doi.org/10.1109/MIS.2005.31" />
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Intelligent Systems</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="8" to="12" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Cockpit system situational awareness modeling tool</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Keller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lebiere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Shay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Human Performance, Situation Awareness and Automation: Current Research and Trends: HPSAA II</title>
+		<editor>D. A. Vincenzi, M. Mouloua, and P. A. Hancock</editor>
+		<imprint>
+			<publisher>Psychology Press</publisher>
+			<biblScope unit="page" from="66" to="71" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Intention-Aware Online POMDP Planning for Autonomous Driving in a Crowd</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ye</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IEEE International Conference on Robotics and Automation</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

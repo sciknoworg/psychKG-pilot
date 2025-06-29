@@ -1,0 +1,1014 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Flexplot: Graphically-Based Data Analysis</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dustin</forename><surname>Fife</surname></persName>
+							<email>fife.dustin@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Rowan University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<address>
+									<addrLine>201 Mullica Hill Road Glassboro</addrLine>
+									<postCode>08028</postCode>
+									<region>NJ</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Flexplot: Graphically-Based Data Analysis</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:21+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>flexplot</term>
+					<term>statistical assumptions</term>
+					<term>statistical modeling</term>
+					<term>replication crisis</term>
+					<term>visualization</term>
+					<term>exploratory data analysis</term>
+					<term>graphical data analysis</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>The human visual processing system has enormous bandwidth, able to interpret vast amounts of data in fractions of a second (Otten, Cheng, &amp; Drewnowski, 2015). Despite this amazing ability, there is a troubling lack of graphics in scientific literature (Healy &amp; Moody, 2014), and the graphics most traditionally used tend to bias perception in unintentional ways (Weissgerber, Milic, Winham, &amp; Garovic, 2015). I suspect the reason for the underuse and misuse of graphics is because sound visuals are di cult to produce with existing software (Wainer, 2010). While ggplot2 allows immense flexibility in creating graphics, its learning curve is quite steep, and even basic graphics require multiple lines of code. flexplot is an R package that aims to address these issues by providing a formula-based suite of tools that simplifies and automates much of the graphical decision-making. Additionally, flexplot pairs well with statistical modeling, making it easy for researchers to produce visuals that map onto statistical procedures. With one-line functions, users can visualize bivariate statistical models (e.g., scatterplots for regression, beeswarm plots for ANOVA/t-tests), multivariate statistical models (e.g., ANCOVA and multiple regression), and even more sophisticated models like multi-level models and logistic regressions. Further, this package utilizes old tools (e.g., added variable plots and coplots) as well as introduces new tools for complex visualizations, including ghost lines and point sampling.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>In light of the recent "replication crisis" in science <ref type="bibr">(Open Science Collaboration, 2015;</ref><ref type="bibr" target="#b27">Pashler &amp; Wagenmakers, 2012)</ref>, researchers are becoming increasingly concerned with the validity of psychological science, and science in general <ref type="bibr" target="#b4">(Baker, 2016)</ref>. In light of this, many are pushing for larger sample sizes <ref type="bibr" target="#b1">(Anderson &amp; Maxwell, 2017)</ref>, preregistration <ref type="bibr" target="#b22">(Nelson, Simmons, &amp; Simonsohn, 2018;</ref><ref type="bibr" target="#b23">Nosek, Ebersole, DeHaven, &amp; Mellor, 2018)</ref>, and stricter controls of probabilities <ref type="bibr" target="#b5">(Benjamin et al., 2018)</ref>. Many of these e orts place greater emphasis on confirmatory data analysis, yet there are also some pushing for a proportional push toward greater use of exploratory data analysis <ref type="bibr" target="#b12">(Fife &amp; Rodgers, 2019)</ref>, and the use of graphical data analysis in particular <ref type="bibr">(Fife, in press;</ref><ref type="bibr" target="#b31">Tay, Parrigon, Huang, &amp; LeBreton, 2016)</ref>.</p><p>Graphics o er many advantages over traditional methods that rely on tables and reported statistics. First, visuals are perhaps the most important tool available to enhance transparency, as they provide a medium to display the data in their entirety <ref type="bibr" target="#b28">(Pastore, Lionetti, &amp; Altoè, 2017;</ref><ref type="bibr" target="#b31">Tay et al., 2016)</ref>. Audiences can see, at a glance, the appropriateness of the model, the size of the e ect, and the degree of uncertainty. And, as some argue <ref type="bibr">(Fife, in press;</ref><ref type="bibr" target="#b12">Fife &amp; Rodgers, 2019;</ref><ref type="bibr" target="#b20">Levine, 2018)</ref>, graphing may not resolve all challenges that came to light during the replication crisis, but they are essential to psychology moving forward.</p><p>Furthermore, visuals improve communication between the scientific community and the public <ref type="bibr" target="#b25">(Otten et al., 2015)</ref>. Lay people can understand relatively sophisticated statistical procedures when that information is presented graphically <ref type="bibr" target="#b9">(Correll, 2015)</ref>. In recent years, there has been an uptick in scientific mistrust <ref type="bibr" target="#b6">(Camargo &amp; Grant, 2015)</ref> with disastrous consequences, including the reemergence of measles and the precipitous increase in global warming. Increasing the quality of communication is by no means a complete solution, but a necessary element.</p><p>Another advantage of graphics is that they highlight problems with models that are masked by traditional statistical procedures, such as nonlinearity, outliers, and heteroscedasticity <ref type="bibr" target="#b16">(Healy &amp; Moody, 2014;</ref><ref type="bibr" target="#b20">Levine, 2018)</ref>. As such, graphics serve as an important diagnostic check, one that is overwhelmingly ignored by most researchers <ref type="bibr" target="#b17">(Hoekstra, Kiers, &amp; Johnson, 2012)</ref>.</p><p>Finally, and perhaps most importantly, graphics improve encoding <ref type="bibr" target="#b15">(Hansen, Chen, Johnson, Kaufman, &amp; Hagen, 2014)</ref>. Nearly half of the brain is devoted to visual processing, and human visual processing can encode information in as little as a tenth of a second <ref type="bibr" target="#b0">(Abbott, Do, &amp; Byrne, 2012;</ref><ref type="bibr" target="#b21">Marieb, 1992;</ref><ref type="bibr" target="#b25">Otten et al., 2015;</ref><ref type="bibr" target="#b30">Semetko &amp; Scammell, 2012)</ref>. Consider the image displayed in <ref type="figure">Figure 1</ref>, taken from <ref type="bibr" target="#b9">Correll (2015)</ref>. The table on the left presents the same information as the one on the right, though the encoding of the information on the right is much easier because that information is conveyed visually.</p><p>Given these advantages, greater use of visualizations is critical to addressing the replication crisis. Even with open data, massive sample sizes, and preregistration, one can still be deceived by a well-fitting model. For example, a researcher might conclude that, once <ref type="figure">Figure 1</ref> . A table of numbers on the left, and a color-coded table on the right, where the 2's have been highlighted in yellow. With the color, a pattern emerges that was not easy to see without the graphic. we control for socioeconomic status, a particular treatment for depression has a whopping e ect. Perhaps, however, there's an underlying interaction that makes interpreting the main e ects deceiving (see <ref type="figure">Figure 2</ref>). Increasing sample sizes won't ameliorate this problem, nor will preregistration. Open data might help, but even then one would have to explicitly model the interaction and/or visualize it as I have done. As noted by Wilkinson, "If you assess hypotheses without examining your data, you risk publishing nonsense" <ref type="bibr">(Wilkinson &amp; Task Force on Statistical Inference, 1999, p. 597</ref>).</p><p>While visualizations have many advantages, they can also be used to mislead, sometimes intentionally, and sometimes not <ref type="bibr" target="#b9">(Correll, 2015;</ref><ref type="bibr" target="#b19">Kosslyn, 2006;</ref><ref type="bibr" target="#b26">Pandey, Rall, Satterthwaite, Nov, &amp; Bertini, 2015)</ref>. For example, when means/standard errors are presented as barcharts, people tend to judge values below the mean (i.e., within the confines of the bar) as far more likely than values above the mean, even when the underlying distribution is symmetric <ref type="bibr" target="#b9">(Correll, 2015)</ref>. To further complicate matters, the default images in most point-and-click statistical software violate important visualization heuristics <ref type="bibr" target="#b16">Healy &amp; Moody, 2014;</ref><ref type="bibr" target="#b37">Wainer, 2010)</ref>. For example, in SPSS it is impossible (as far as I know) to produce standard error plots that display raw data (jittered or otherwise). Also, in standard error plots, the axes are scaled to the means, not the range of the actual data, which visually inflates the size of the e ect. In addition, producing some types of graphics (e.g., Skew-Location plots) requires more e ort than many are willing to perform (the user must model the data, export the residuals, then produce a scatterplot). This paper introduces flexplot, an R-package specifically designed to remove obstacles to sound visualizations. The graphics produced by flexplot were developed using empirically-derived heurstics that maximize perceptual understanding, while minimizing perceptual biases . Also, the graphics produced are simple to generate and . Simulated relationship between Treatment, Depression, and SES. The visual makes it clear there's an interaction e ect, which would be masked if one simply computed a main e ects model. permit analysts to quickly shift between statistical modeling and graphical interpretation.</p><p>In the following section, I begin by developing the guiding philosophy behind flexplot, then introduce its grammar. I then spend the remainder of the paper demonstrating how to produce intuitive graphics with flexplot and illustrate how to pair these tools with statistical modeling.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Guiding Philosophy of Flexplot</head><p>The traditional approach to data analysis requires a great deal of decision-making up-front, but requires little e ort to interpret results. Initially, the analyst must choose between regression, ANOVA, t-tests, MANOVA, etc. If the analyst then chooses to visualize these results, they must again decide whether a boxplot, histogram, bar chart, scatterplot, etc. is most appropriate. By the time the analyst interprets the data, a great deal of e ort has already been expended, though the traditional approach to data-analysis makes interpreting the results unambiguous. One simply needs to determine whether the p-value dips below the critical 0.05 threshold.</p><p>This approach has been routinely criticized <ref type="bibr" target="#b8">(Cohen, 1994;</ref><ref type="bibr" target="#b14">Gigerenzer, 2004;</ref><ref type="bibr" target="#b34">Tyron, 1998)</ref>, particularly in how results are interpreted (significant versus not). While the traditional approach requires great e ort to choose the analysis and little e ort to interpret it, flexplot takes the opposite approach: little e ort is required to choose the analysis, leaving more resources to interpret the analysis. This is as it should be.</p><p>To accomplish this goal, flexplot is based on the following principles:</p><p>1. Minimize obstacles to producing graphics. The easier it is to produce graphics, the more likely they will be used, and the more resources the researcher will have available to interpret the results. Technology companies spend millions of dollars attempting to make the interaction between humans and technology as seamless as possible. One-click purchasing, voice-activated personal assistants like Siri, movies-on-demand, and audible app notifications are all innovations that are successful because they make it easy for humans to use their technology. Likewise, if producing a graphic is as simple (or simpler) than performing a statistical analysis, they too will become heavily utilized (and, dare I say, addictive?). Furthermore, the less e ort required to produce them, the more resources available to invest in interpreting graphics. To make producing graphics as simple as possible, flexplot automates much of the decision-making in the background, such as choosing between types of graphics (e.g., histograms versus bar charts) and how those graphics are displayed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Design graphics that leverage human strenths and mitigate human biases.</head><p>Successful technology capitalizes on human strengths. A mobile phone, for example, leverages our advanced finger tactile sensitivity and dexterity. Sending text messages with one's toes would be a very poor choice. Likewise, a computer that sends olefactory information might work well for a dog, but not a human. Visualization technology ought to be designed with the same principles in mind. Unfortunately, standard statistical analyses do not capitalize on human strengths. It takes a great deal of training to understand even basic statistics, and even then results are frequently misinterpreted <ref type="bibr" target="#b14">(Gigerenzer, 2004)</ref>. To put it in the words of <ref type="bibr" target="#b34">Tyron (1998)</ref>, traditional analyses have a "human factors" problem. To overcome misconceptions about statistical analyses, some of the tools within flexplot create visual representations of the statistical models. These representations highlight uncertainty, reveal whether chosen models are appropriate, and improve encoding of statistical information.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ggplot2 Versus flexplot</head><p>Hadley Wickham, the author of ggplot2, developed a grammar of graphics <ref type="bibr" target="#b40">(Wickham, 2010)</ref>, or a set of rules that guide the construction of visualizations. Furthermore, Wickham's grammar is "layered," which means that plotting elements can be stacked atop one another. For example, one could "layer" dots over an X/Y axis, layer a regression line over the dots, layer a correlation coe cient over the regression line, etc. Wickham's grammar allows a great deal of flexibility in the design of graphics. However, this flexibility comes at a cost. Very often the grammar necessary to produce a graphic requires a great deal of coding to produce. For example, consider the code to create jittered mean plots: plot = ggplot(data = exercise_data, aes(x=therapy.type, y=weight.loss)) + # x/y axis layer geom_jitter(width = .2, alpha = .4) + # point layer stat_summary(fun.y = mean , geom = point , size = 3, position = position_dodge(width = .2)) + # summary point layer stat_summary(geom = errorbar , fun.ymin = function(z){mean(z)-1.96*sd(z)}, fun.ymax=function(z) {mean(z)+1.96*sd(z)}, size = 1.25, width = .2, position = position_dodge(width = .2)) # "errorbar" layer I have personally spoken to many veteren R users who have been extremely reluctant to adopt ggplot2, simply because the approach and sytax are elaborate, if not complicated. For those less experienced, the prospect of leveraging ggplot2 is even more daunting, which means that few will likely abandon point-and-click software to produce graphics.</p><p>As noted earlier, the more di cult it is to produce a graphic, the more likely it is someone will simply not use it. A similar graphic can be produced with only one line of code using the flexplot function: plot = flexplot(weight.loss~therapy.type, data = exercise_data)</p><p>Naturally, this simplicity comes at a cost; flexplot is more limited than ggplot2. However, it was not designed to be able to produce any graphic conceivable. Rather it was designed to visualize statistical models with ease, and will cover the majority of graphics analysts will use for modeling. However, in the end, graphics produced through flexplot are still ggplot2 objects. As such, they can be edited and/or layered for further customization, which I will demonstrate throughout this paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The Grammar of the General Linear Model</head><p>flexplot's grammar is also a layered grammar (but incidentally, because it was developed within ggplot2's grammar), though its grammar is actually based on the general linear model (GLM). Recall that most statistical procedures are subsumed within the GLM, which is essentially regression. For example, a t-test is simply a regression where the intercept is the mean of the referent group (e.g., the control group) and the slope is simply the di erence between the treatment and control groups. The base R function lm utilizes GLMs to do various sorts of modeling, and all this is accomplished using a simple equation (e.g., y~x1 + x2). Likewise, flexplot adopts the same convention, utilizing a similar equation to produce graphics. The advantage of this approach is that there is notational consistency from modeling to visualization. Very often the exact code used to produce a fitted model can also be used to visualize the data, as in the following example: This simplifies the choice of graphics immensely; one only needs to specify the predictor variable(s) (and sometimes make some choices of paneling). Otherwise, flexplot handles the decision-making in the background. <ref type="figure" target="#fig_4">Figure 3</ref> is an illustration that identifies which components of a flexplot equation produce each element of a flexplot-style graphic. The first variable in the equation <ref type="formula">X1</ref>specifies which variable is displayed on the X axis. The second variable (X2) is displayed as di erent colors/symbols/lines. The third and fourth elements are shown as column and row panels, respectively.</p><p>By following the grammar of a GLM, there is consistency between statistical modeling and visualization, with a few notable exceptions. Most obviously, a GLM equation (e.g., plot(y~x1 + x2 + x3, data = data)) does not have any vertical pipes (|) as flexplot does. This is necessary in flexplot to allow more specificity in paneling. Additionally, with GLMs, one must explicitly specify interaction (e.g., X1:X2) and polynomial terms (e.g., I(X2ˆ2)). This is not necessary with flexplot; the raw data are displayed exactly as they are and if interactions are present, the visual will show it.</p><p>The base plot() function in R follows similar conventions as flexplot (i.e., users can specify an equation, such as plot(y~x)), though flexplot is more intelligent in its choice of displays. Also, plot() only allows the user to visualize one variable at a time. Another function, coplot(), allows some multivariate visualizations, yet it is limited in the types of data allowed and, like plot() is not flexible in the types of visualization decisions it makes. The flexplot package, on the other hand, o ers great flexibility and automates much of the decision-making.</p><p>In the following section, I will demonstrate how decisions are made in flexplot. I begin by showing how to produce univariate graphics, then bivariate graphics, then multivariate graphics. I will then follow that up with various functions and techniques for combining visuals with models, then conclude with a brief summary.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Univariate Graphics</head><p>In lm(), one can fit an "intercept only" model, using the code lm(y~1). This is equivalent to estimating the mean of y. flexplot follows a similar convention with visualizing univariate distributions. Alternatively, one can also write this as flexplot(y~y). The type of graphic displayed depends on the type of variable inputted into the function.</p><p>flexplot visualizes numeric variables in histograms and categorical variables as barcharts. For example, in the code below, notice that flexplot recognizes whether the variable is categorical or numeric, and plots accordingly (see <ref type="figure" target="#fig_5">Figure 4</ref>).   flexplot follows standard conventions when producing histograms. When producing barcharts, on the other hand, flexplot deviates from defaults. The order of the x-axis is typically sorted alphabetically in ggplot2, which violates the "principle of relevance" for visual processing <ref type="bibr" target="#b19">(Kosslyn, 2006)</ref>. This principle suggests that all features of a graphic should present meaningful information. Humans are primed to attend to visual di erences, and stacking large and small N categories side-by-side willy nilly taxes the visual processing system into believing these di erences are meaningful. flexplot automatically sorts the categories by sample size (the category with the largest N is left-most on the X axis), which also enhances the ability to "chunk" pieces of information meaningfully <ref type="bibr" target="#b19">(Kosslyn, 2006)</ref>, as in <ref type="figure">Figure 5</ref>. If the categories do have a meaningful order (e.g., if the variables are ordinal), the user can convert the variable of interest to an ordered factor.</p><p>Sometimes, flexplot will make a wrong guess, if, for example, a categorical variable is recorded as a number (e.g., 1 = Group 1, 2 = Group 2, 3 = Group 3). To force flexplot to produce a barchart, simply convert the variable to a factor (e.g., data$group = factor(data$group, levels = 1:3, labels = c("Group1", "Group2", "Group3"))).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Bivariate Graphics</head><p>As with univariate graphics, flexplot will automatically produce an appropriate bivariate graphic, depending on the type of predictors and outcome variable: a numeric . Two displays of the same data. In the left image, categories are sorted alphabetically (which is the default of ggplot2). In flexplot the categories are sorted by sample size, which enables better chunking of information.</p><p>predictor/outcome will produce a scatterplot, a numeric predictor/categorical outcome = logistic curve graph, categorical predictor/numeric outcome = beeswarm plot, and categorical predictor/categorical outcome = association plot.</p><p>With all graphics produced by flexplot it will display the raw data. Although <ref type="bibr" target="#b32">Tufte (2001)</ref> advocated for plots that minimize the "data to ink ratio," subsequent investigation of visual perception have shown little evidence that minimizing ink in a graph improves visual perception <ref type="bibr" target="#b18">(Inbar, Tractinsky, &amp; Meyer, 2007)</ref>. Rather, raw data is essential for sound visual interpretation. Vastly di erent patterns can produce identical summary statistics such as means, variances, slopes, intercepts, etc. <ref type="bibr" target="#b3">(Anscombe, 1973)</ref>. Raw data allow one to determine, at a glance whether these summary statistics accurately reflect the raw data. Furthermore, research has shown that humans are quite adept at visually aggregating information from raw data without summary information (see Correll, 2015 for a review), while they cannot accurately surmise raw data from summary statistics. In other words, if anything is to be omitted, it should be the summary statistics (e.g., regression lines, whiskers in a boxplot, dots of means), not the raw data.</p><p>Visualizing raw data can become tricky, particularly when categorical variables are involved. With categorical variables, there is bound to be a great deal of overlap (e.g., if the treatment group has 100 participants, 100 individuals will have identical scores on the X axis when plotted, which will tend to mean datapoints will overlap). In the next section, I</p><p>will explain how flexplot handles overlapping datapoints from categorical predictors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Categorical Predictor, Numeric Outcome (Beeswarm Plots)</head><p>There are many di erent ways to visualize a categorical predictor/numeric outcome relationship, including bar plots of means, box plots, violin plots, gradient plots, etc. Some are misleading (e.g., barplots of means and standard error plots). Others are mediocre (e.g., boxplots). Finally, some perform exceptionally well in human testing, including violin plots and gradient plots <ref type="bibr" target="#b9">(Correll, 2015)</ref>. As mentioned in the previous section, raw data are essential. To minimize overlap, a common strategy is to utilize "jittering," which means that categorical variables are first converted to values (e.g., control group = 1, treatment group = 2), then random noise is added to each participant's score (e.g., a 1 may become 1.012 or 0.097). This reduces overlap between datapoints. However, simply jittering values uniformly robs one of a valuable opportunity to convey additional information in a graphic. flexplot instead jitters data proportional to the density of the data. In other words, regions of little density will have very little jittering and regions of high density (e.g., at the mode) will have more jittering. These sorts of plots are essentially violin plots with raw data, where the maximum amount of jittering is the outline of the violin plot. Traditionally, these were called "textured dot strips," which were invented by <ref type="bibr" target="#b33">Tukey and Tukey (1990</ref>; see also . Others (e.g., Eklund, 2012) call them "bee swarm" plots. I am not too fond of the original name, so I'll refer to them as bee swarm plots throughout this text.</p><p>While violin plots partially solve the problem mentioned earlier (i.e., that summary statistics can be generated from a diverse set of patterns of raw data), they too have their limitations. For one, it is impossible to tell the di erence between a dataset with 15,000 versus 15 observations. For example, the two distributions in the left image in <ref type="figure">Figure 6</ref> look essentially the same, while the same data, plotted as beeswarm plots, very clearly show the sample size. group1 = c(0,1,2,2,3,3,3,3,3,3,4,4,5,6) group2 = rnorm(10000,3,1) d = data.frame(score = c(group1, group2), group = factor(c(rep("group 1", times = length(group1)), rep("group 2", times = length(group2))), ordered=T)) a = ggplot2::ggplot(data = d, aes(x = group, y = score)) + geom_violin() + theme_bw() b = flexplot(score~group, data = d) cowplot::plot_grid(a, b)</p><p>In flexplot, one can control the amount of jittering. The amount can be specified in multiple ways: as a boolean (TRUE means it will jitter, FALSE it will not), as a number (e.g., 0.2), or as a vector (e.g., c(.2, .4), which will indicate .2 jittering for X and .4 for Y). Just as it is in geom_jitter(), this number refers to the amount of jittering on either side. However, the value refers to the maximum amount the computer will jitter the data. So, 0.2 (the default) will jitter up to 0.1 points on the right, but only at the highest density and 0.1 on the left at the highest density. <ref type="figure">Figure 6</ref> . Violin plots with 15,000 versus 15 datapoints. The outlines look the same in the left image, but the right image overlays the raw data, which makes the di ering sample sizes much more apparent.</p><p>Users can also specify what the "whiskers" mean for the summary statistics. They default to the interquartile range (with the median as the center dot), but the user can also specify sterr, or stdev, to indicate the standard error or standard deviation (see The indisputed king of numeric on numeric visualization is the scatterplot. Once again, flexplot is smart enough to choose a scatterplot when it is passed a numeric predictor and numeric outcome. Except for severe departures, people tend to believe the fit of a line overlaid on raw data, even when the line is not appropriate . For this reason, flexplot defaults to graphing a loess line as the summary statistic, so as to highlight deviations from linearity. However, the user can specify other sorts of fits, such as <ref type="figure">Figure 7</ref> . Dot plots with the interquartile range and no jittering (left), beeswarm plot with mean + standard errors and jittering on X and Y (middle), and beeswarm plot with mean + standard deviation with jittering on only X (right).</p><p>"lm" (for regression), "quadratic", "cubic", and "rlm" (robust linear model) in the MASS package <ref type="bibr" target="#b29">(Ripley et al., 2013)</ref>. The user can also choose to remove the confidence interval by specifying se = F, as well as jitter one or both variables, as shown below and in <ref type="figure">Figure 8</ref>  <ref type="figure">Figure 8</ref> . Scatterplot with di erent options of fit: loess (default), lm (regression), and quadratic Also, the data in the far right plot has been jittered.</p><p>Though flexplot defaults to a loess line, if the analyst models the data using another fitted function (e.g., regression, cubic, robust), the final display should reflect that <ref type="bibr" target="#b35">(Umanath &amp; Vessey, 1994;</ref><ref type="bibr" target="#b36">Vessey, 1991)</ref>. This process is seamless when one uses the visualize function, discussed shortly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Numeric Predictor, Categorical Outcome (Logistic Curves)</head><p>flexplot also has some ability to model categorical outcomes. One common situation might be when one is attempting to model a binary outcome, as they would in a logistic regression. In this situation, it is critical that the visual match the analysis <ref type="bibr">(Fife, in press</ref>). This aligns with the principle of "cognitive fit," which suggests that the type of display matches the type of information conveyed <ref type="bibr" target="#b35">(Umanath &amp; Vessey, 1994;</ref><ref type="bibr" target="#b36">Vessey, 1991)</ref>. Because logistic regressions utilize ogive curves to model the data, the visuals ought to reflect that.</p><p>Any binary variable can be visualized as a logistic regression in flexplot, except when the axis variable (i.e., the variable occupying the first slot in the flexplot equation) is also categorical. To model logistic curves, the user only needs to specify logistic as the method (see <ref type="figure" target="#fig_9">Figure 9</ref>). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Categorical Outcome, Categorical Predictor (Association Plots)</head><p>Sometimes the analyst may wish to visualize the relationship between two categorical variables. Once again, flexplot is smart enough to determine that information from the formula, provided the user supplies two factors. In this situation, flexplot will generate an "association" plot, which plots the deviation of each cell from its expected frequencies (divided by the expected values within that cell). The reason for an association plot (as opposed to a traditional barplot) is because it best maps into what sorts of questions viewers are interested in asking. When users model the association between categorical variables, they traditionally use a ‰ 2 test, which compares observed versus expected frequencies. An association plot displays observed (height of bar) versus expected (y axis at zero) frequencies, thus following the principle of cognitive fit <ref type="bibr" target="#b35">(Umanath &amp; Vessey, 1994;</ref><ref type="bibr" target="#b36">Vessey, 1991</ref>; see also <ref type="bibr" target="#b19">Kosslyn, 2006</ref> for a similar principle, the "principle of compatibility").</p><p>In the example below, I had to convert injury to a factor to get a barplot. The graphic ( <ref type="figure" target="#fig_11">Figure 10)</ref> shows that females are less likely to be injured than males, relatively speaking.</p><p>tablesaw.injury$injury = factor(tablesaw.injury$injury, levels=c(0, 1), labels=c("all good", "ouch")) flexplot(injury~gender, data = tablesaw.injury)  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Repeated Measures Data (Related t-test)</head><p>One of the guiding tenets of flexplot is that every statistical analysis ought to be accompanied by a graphic that closely matches the analysis. This not only improves encoding of statistical information, but it also highlights uncertainty and reveals the appropriateness of the model. With a related t-test, the existing graphics will not accurately represent this model because a related t actually models the di erence between scores (e.g., from Time 1 to Time 2). As such, flexplot allows an additional option (related = TRUE) that tells flexplot to plot the di erences, rather than the groups. To do so, flexplot requires "tidy" data, or data where time is indicated in one column and the score in the other. Also, there must be equal numbers of observations in each group. Once in this format, it simply plots the di erences ( <ref type="figure" target="#fig_12">Figure 11</ref>). For example: (Note, this dataset didn't actually contain repeated measures data. This is merely for illustrative purposes).</p><p>Unfortunately, plotting di erence scores only works with two timepoints. When there are more than two timepoints, I recommend visualizing these relationships with the visualize() function using mixed models. (I'll address visualize() shortly). In the plant growth graphic, the di erences seem centered around zero, indicating that the type of potting soil used (store-bought potting soil versus a "secret" custom mix I found online) didn't make a di erence in seedling diameter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Avoiding Overlap</head><p>If it wasn't yet apparent, let me be less subtle: I think all graphics should include raw data. Showing raw data allows readers to determine whether the chosen model is appropriate, and it communicates the degree of uncertainty about the model. However, when there are a large number of datapoints, it increases cognitive load and masks salient characteristics <ref type="bibr" target="#b19">(Kosslyn, 2006)</ref>. This makes it quite di cult to see any patterns; areas of high density look just as crowded as areas of lower density, relatively speaking (although having bee swarm plots makes it clear which areas are most dense; see the example in top-left image in <ref type="figure" target="#fig_13">Figure  12</ref>). To address such overlap, flexplot o ers three options. The first is to suppress raw data (raw.data = F, right-top in <ref type="figure" target="#fig_13">Figure 12</ref>). I don't recommend that, but it can be done.</p><p>A second option is to reduce the transparency (e.g., bottom-left in <ref type="figure" target="#fig_13">Figure 12</ref>). This will draw more attention to the fit of the model than the raw data (e.g., users will attend to the regression line rather than the raw data; see <ref type="bibr" target="#b19">Kosslyn, 2006)</ref>, which may or may not be a good thing. Perhaps the best option is to sample (bottom-right in <ref type="figure" target="#fig_13">Figure 12)</ref>. Sampling allows the visual-processing system to not be overly influenced by the fit, but without overwhelming the visual processing system. However, it is important that the visual display of fit (e.g., median + IQR, loess line, regression line) not be estimated from the sampled data. Rather, the fit should correspond to the entire dataset. flexplot performs this operation in the background. In <ref type="figure" target="#fig_13">Figure 12</ref>, notice how the medians/interquartile ranges do not change, despite having di erent numbers of datapoints. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Multivariate Graphics</head><p>Visualizing multivariate relationships can become quite tricky. It is very easy to induce cognitive overload, especially when attempting to visualize raw data (which is, again, a key characteristic of flexplot). Some might be inclined to create three-dimensional plots. However, these are di cult to interpret and they require the user to rotate the view. Even then, they can only show two predictors at a time. I find it much easier to use other strategies. flexplot utilizes four di erent strategies to visualize multivariate relationships:</p><p>(1) plotting a dimension as di erent colors/lines/shapes, (2) plotting a dimension in row or column panels, (3) visualizing conditional relationships with added variable plots, and (4) overlaying ghost lines.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Added Variable Plots (AVPs) With added.plot()</head><p>AVPs are underused, yet extremely useful. Essentially, an AVP shows the relationship between a predictor of interest and the residuals of an existing model. For example, if one wanted to understand the relationship between therapy.type and weight.loss after controlling for motivation, that person could build a model predicting weight.loss from motivation, residualize that relationship, then show a beeswarm plot of the residuals for each type of therapy. This is what AVPs do (see <ref type="figure" target="#fig_4">Figure 13</ref>). These reduce cognitive load substantially, since users only need to interpret two dimensions.</p><p>flexplot s version of AVPs have a slightly di erent flavor. In my experience, AVPs can be confusing to lay audiences because the scale of the outcome variable has changed to be centered on zero; if one is expecting the outcome variable to range from 0 to 30, yet the graph shows scores from -15 to +15, this will violate users' intuitions, which will create ostacles to proper interpretation of graphics <ref type="bibr" target="#b19">(Kosslyn, 2006)</ref>. To counter this confusion, flexplot adds the mean back into the residuals so the Y -axis retains the original scale. The notation for added.plot() is similar to flexplot, though the vertical pipes aren't necessary. What flexplot will do is take the last variable entered (therapy.type in the following example) and plot that on the X axis, while plotting the residuals of the model on the Y axis (i.e., the residuals of the model weight.loss~motivation). Other arguments can be passed to added.plots() as well (such as alpha, sample, method, etc.) added.plot(weight.loss~motivation + therapy.type, data = exercise_data)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Colors/Lines/Shapes</head><p>As shown in <ref type="figure" target="#fig_4">Figure 3</ref>, the second slot in the flexplot formula (X2 in <ref type="figure" target="#fig_4">Figure 3</ref>) controls which variable is displayed as di erent colors/symbols/lines. <ref type="figure" target="#fig_5">Figure 14</ref> shows two examples of this: one where a numeric predictor is on the X axis, and one where a categorical predictor is on the X-axis. When categorical variables are shown on the X-axis, flexplot draws lines connecting the medians (or means). One limitation of colors/shapes/symbols is the increase in cognitive load. When plotting di erent symbols/colors/lines on the same graph, there is often a great deal of overlap, which makes it more di cult to pick out patterns. While research suggests we can conceptualize up to four unique elements <ref type="bibr" target="#b19">(Kosslyn, 2006)</ref>, in my experience, having a variable with more than two levels in the second slot of a flexplot equation becomes challenging to interpret, particularly when there are more than a handful of datapoints.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Paneling</head><p>An alternative (or additional) strategy for plotting multivariate data is paneling. As shown in <ref type="figure" target="#fig_4">Figure 3</ref>, the third and fourth slots control paneling in columns and rows, respectively. The panels follow many conventions developed by <ref type="bibr">William Cleveland (1994)</ref>, such as having values increase from left to right and bottom to top (just as they do on the X and Y axis, respectively).  <ref type="figure" target="#fig_5">Figure 14</ref> . Two multivariate graphs illustrating how the second slot in a flexplot formula controls the visualization. The left image demonstrates what happens to the second slot variable (X2) when a numeric predictor is on the X-axis, while the right image demonstrates what happens to the second slot variable when a categorical predictor is on the X-axis.</p><p>that I have taken advantage of the fact that flexplot returns a ggplot2 object that can be edited. In this case, I am both layering (modifying the behavior of the labels to prevent cutting them o ) and modifying the ggplot2 object itself (reducing the size of the points in the final graphic).  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Binning</head><p>Within flexplot, any numeric predictor, with the exception of the variable in the first slot, will be binned into discrete categories. These bins will then be represented in panels (if the variable is in the third or fourth slot) or as colors/symbols/lines (if the variable is in the second slot). The user has the option of specifying the number of bins (e.g., 2 or 3), or the user can specify breakpoints at which to bin. When the user specifies bins, flexplot will attempt to have an equal number of datapoints in each bin. However, flexplot may be unable to bin into the specified number of bins. For example, if a user specifies four bins, it is possible the scores at the 50th and 75th percentile are the same. In these cases, flexplot will choose a smaller bin number, though it will report such to the user. flexplot defaults to three bins.</p><p>When specifying breakpoints, the panels may have di erent sample sizes in each bin. A user may wish to do this if these breakpoints are meaningful (e.g., when particular scores are clinically meaningful, such as Beck Depression Inventory scores above 29 are considered severly depressed).</p><p>Whether using breakpoints or bins, the user can also specify labels for the bins. <ref type="figure">Figure  16</ref> shows three plots of the same variables: the first specifies two breakpoints, the second specifies breakpoints with labels, and the third just specifies the number of bins. a = flexplot(weight.loss~motivation | satisfaction, data = exercise_data, breaks = list <ref type="figure" target="#fig_4">(satisfaction=c(3,7)</ref>)) + ggplot2::facet_grid(~therapy.type, labeller = ggplot2::labeller(therapy.type = label_value)) + # change font size to eliminate overlap theme(axis.text.x = element_text(size = 12, angle = 90, hjust=0.95,vjust=0.5)) b = flexplot(weight.loss~motivation + satisfaction, data = exercise_data, breaks = list <ref type="figure" target="#fig_4">(satisfaction=c(3,7)</ref>), labels = list(satisfaction=c("low", "medium", "high"))) c = flexplot(weight.loss~motivation + satisfaction, data = exercise_data, bins = 2)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Ghost Lines</head><p>There are advantages and disadvantages to plotting a variable as a color/symbol/line versus panels. Panels reduce clutter, but make it harder to make comparisons because the eye has to travel further to make such comparisons. On the other hand, plotting in the same panel with di erent colors/lines/symbols means less visual distances to travel, but then there is too much clutter. One obvious solution is to stick with colors/symbols/lines and reduce transparency (or sample). However, there is a more innovative way of resolving <ref type="figure">Figure 16</ref> . Plots reflecting choices of di erent break points (left-most plot), labels (right plot), and bins (bottom plot). this di culty, by using something I call ghost lines. Ghost lines repeat the relationship from one panel to the other panels to make it easier to compare. <ref type="figure">Figure 17</ref> demonstrates how to use ghost lines. By default, flexplot chooses the middle panel for odd numbers of panels, otherwise it chooses a panel close to the middle. The second line of code below specifies the referent panel by picking a value in the range of the referent panel. In <ref type="figure">Figure 17</ref>, the ghost lines makes it clear that the relationship between motivation and weight.loss is stronger both at low and high levels of satisfaction, but less so at medium levels. flexplot(weight.loss~motivation | satisfaction, data = exercise_data, method = "lm", bins = 3, ghost.line = "red")+ # change font size to eliminate overlap theme(axis.text.x = element_text(size = 14)) <ref type="figure">Figure 17</ref> . Ghost lines repeat the pattern from one panel to the others, making it easier to compare across panels. In this case, the line from the middle panel (Satisfaction = 4-6) is repeated in red across the other panels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>General Strategy for Plotting Multivariate Relationships</head><p>It is easy for multivariate visuals to become unnecessarily complicated. For example, the top image in <ref type="figure" target="#fig_19">Figure 18</ref> shows a graphic where all four flexplot slots are occupied. This is very di cult to interpret. To simplify things, we could utilize several strategies. First, we can specify two bins instead of the default three. We can also remove confidence intervals, reduce the opacity of the data, and plot regression lines. 2 Also, I generally try to have only two levels for the variable in the second slot (in this case, Male versus Female). Finally, we could add ghost lines. The bottom image in <ref type="figure" target="#fig_19">Figure 18</ref> utilizes all these strategies and simplifies the visual interpretation immensely.</p><p>Another strategy is to mentally block out all panels but the diagonal (the bottom-left to top-right). The diagonal reflects the influence of both variables as they increase (or decrease). In other words, they are a rough approximation of the average e ect of the X1/Y relationship as you increase (or decrease) the paneled variables. If there is a general pattern of the lines consistently getting steeper (or shallower) as they move up the diagonal, that indicates there may be a three-way interaction e ect. In <ref type="figure" target="#fig_19">Figure 18</ref>, the lines seem pretty parallel going from bottom-left to top-right. The one thing that does seem to change is that the colored lines go from below the ghost line to above it (indicating a main e ect of health and/or satisfaction). In other words, we may be safe to do AVPs. However, before doing so, it may be best to combine visuals with statistical modeling. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Combining Modeling and Visualizations</head><p>Visuals are great for conveying general trends and patterns. However, it can be di cult to make decisions based on graphics, particularly when the pattern is not striking. For example, in <ref type="figure" target="#fig_19">Figure 18</ref>, I don't feel entirely comfortable rejecting the idea that there are no interactions present in the model. Statistics, on the other hand, put visual patterns into concrete numbers that assist with statistical decision-making. Furthermore, it is easy to engage in confirmation bias when viewing a graphic. Statistics provide a much-needed reality check. As such, the two, statistics and visualizations, ought to proceed hand in hand. Fortunately, flexplot was designed to complement statistical analysis (and vice versa). More specifically, flexplot has two additional visualization functions that simplify modeling, as well as two functions dedicated to statistical analysis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The visualize() Function</head><p>As I've mentioned repeatedly, one of the primary purposes of flexplot is to provide visualization for statistical models. The visualize() function is designed to do exactly that. Much like summary(), or coef(), visualize() is an R method within flexplot that can be applied to diverse sorts of models, including lmer, lm, and glm. visualize() attempts to generate a graphic that matches the formula used in a fitted model. Not only will visualize() plot a graphic to match the analysis, but it will also show diagnostic plots. For example, if we were to fit an ANCOVA model, we could visualize it as follows: model = lm(weight.loss~motivation + therapy.type, data = exercise_data) visualize(model) For multivariate data, visualize will create a plot that will use panels and/or colors/symbols/lines. It will also generate diagnostic plots (histogram of the residuals, residual dependence plots, and S-L plots). The user can specify just a plot of the model (visualize(model1, "model")), or just a plot of the diagnostics (visualize(model1, "residuals")). Additionally, visualize can take flexplot arguments and even a flexplot formula.    visualize() randomly samples from the random e ects (Subject in this case) and plots that as a variable in the graphic, and its location on the graph depends on whether the user specifies formula. If they do not, visualize() will default to placing it in the second slot (di erent lines/colors/shapes). This allows the user to visualize a subset of the subjects in a mixed model to ensure the model chosen is appropriate. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The compare.fits() Function</head><p>Very often in statistical modeling, we are interested in comparing two models, such as one with and one without an interaction term. There are many statistics available that allow easy comparison between models, such as the AIC, BIC, Bayes Factor, R 2 , p-values, etc. However, it is again important to see how the two models di er in terms of fit. On multiple occasions, I have found various statistics show preference for one model, yet the visuals show the two models di er in only trivial ways.</p><p>That is where compare.fits() comes in. It is simply a wrapper for the predict() function, combined with the graphing capabilities of flexplot. More specifically, compare.fits() will overlay the fit of both models onto the raw data. For example, <ref type="figure">Figure 22</ref> shows the fit of two di erent models, one that includes an interaction and the other that does not. The arguments are very similar to flexplot, but with the addition of the model objects. Likewise, compare.fits() takes many of the same arguments. In this example, I've overlaid a black ghost line. Notice that the two lines (from lm and interaction) generate very similar predictions across the range of data, suggesting that a main e ects model may be su cient.  <ref type="figure">Figure 22</ref> . Demonstration of the compare.fits() function, comparing a main e ects and an interaction model. Ghost lines have been added from the cog condition for easier comparison across panels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Functions Devoted to Estimation</head><p>The flexplot package specializes in visualization, providing easy-to-use tools for graphical data analysis. However, it also has a small collection of non-visual functions that can be used hand-in hand with visuals. These functions include the estimates() method and model.comparison().</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The estimates() Function</head><p>The estimates() function was designed to report paremeter estimates and e ect sizes. Much like flexplot, many of the decisions are made in the background. And like visualize(), estimates() takes a fitted object as input. estimates() will then determine which estimates are most appropriate. For grouping variables, estimates() will report means, mean di erences, and cohen's d, as well as 95% confidence intervals. For numeric variables, estimates() will report the intercept, slopes, and standardized slopes, also with corresponding confidence intervals. Additionally, it will report the model R 2 , as well as the semi-partial R 2 associated with each e ect in the model, except when there are interactions in the model. (With interactions present, it does not make sense to interpret main e ects, which is why estimates() only reports the semi-partial for the interaction e ect).  <ref type="figure" target="#fig_9">Figures 19-20</ref>, as well as <ref type="figure">Figure 22</ref>, namely that the addition of the interaction likely is not improving the fit enough to consider keeping. in prediction between the two models is only about 1.76 pounds, while the median di erence is only about a quarter of a pound, suggesting the predictions are quite similar. Also, all statistics (AIC, BIC, Bayes Factor, p-value, and probably R 2 ) support the more simplified main e ects model. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>There's little doubt that psychology is undergoing a methodological revolution. Scholars are pushing with increased fervor for preregistration, larger sample sizes, open science practices, etc. This is a very good thing, but inevitably insu cient. Data can often be deceptive, especially when tortured into submission by standard analyses. Alongside emerging post-replication crisis practices, I advocate for greater use of visualizations. Visuals are the best, and sometimes the only way to allow data to speak for itself.</p><p>Traditionally, producing visuals has been a cumbersome and extraneous procedure, quite divorced from the actual analyses. In this paper, I have introduced flexplot. flexplot aims to automate much of the visualizations that accompany data analysis. These visuals, which are based on scientifically-derived principles of visual perception, promise to promote sound data analysis and enhance data decision-making.</p><p>To use flexplot, users can download and install the R package through github, at www.github.com/dustinfife/flexplot. Alternatively, a point-and-click version of flexplot can be accessed via JASP (through the visual modeling module) or through Jamovi (through the flexplot module). For additional information on using flexplot, visit the following YouTube playlist: https://www.youtube.com/playlist?list= PL8F480DgtpW8cFY8diRWcNeq6bsleAoe_</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>Figure usedwith permission from<ref type="bibr" target="#b9">Correll (2015)</ref>.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>Figure 2 . Simulated relationship between Treatment, Depression, and SES. The visual makes it clear there's an interaction e ect, which would be masked if one simply computed a main e ects model.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>+ C, data = d) plot = flexplot(A~B + C, data = d)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>) #### these are simulated data available #### in flexplot. Please don t base your #### weight loss program on this dataset a = flexplot(weight.loss~1, data = exercise_data) b = flexplot(therapy.type~1, data = exercise_data) cowplot::plot_grid(a , b)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 3 .</head><label>3</label><figDesc>A diagram showing how elements of Flexplot's graphics are represented in a plot. X1 is shown on the X axis, X2 shows up as di erent colors/symbols/lines, X3 panels in columns, and X4 panels in rows.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 4 .</head><label>4</label><figDesc>A histogram (left) and barchart (right) produced within flexplot in R.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>Figure 5 . Two displays of the same data. In the left image, categories are sorted alphabetically (which is the default of ggplot2). In flexplot the categories are sorted by sample size, which enables better chunking of information.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>Figure 7): a = flexplot(weight.loss~therapy.type, data = exercise_data, jitter = F, spread = "quartile") + labs(x="") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) b = flexplot(weight.loss~therapy.type, data = exercise_data, jitter = c(.4,.5), spread = "sterr") + labs(x="")+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) c = flexplot(weight.loss~therapy.type, data = exercise_data, jitter = .2, spread = "stdev") + labs(x="") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) cowplot::plot_grid(a, b, c, nrow = 1) Numeric Predictor, Numeric Outcome (Scatterplots)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>. a = flexplot(weight.loss~satisfaction, data = exercise_data) + theme_minimal() ### using layering to change theme b = flexplot(weight.loss~satisfaction, data = exercise_data, method = "lm", se = F) c = flexplot(weight.loss~satisfaction, data = exercise_data, method = "polynomial", jitter = .4) cowplot::plot_grid(a, b, c, nrow = 1)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 9 .</head><label>9</label><figDesc>data("tablesaw.injury") ### also simulated data available ### in flexplot package ### always remember to be safe ### and attentive when woodworking flexplot(injury~attention, data = tablesaw.injury, method = "logistic", jitter = c(0, .05)) Example of a logistic plot in the flexplot package.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 10 .</head><label>10</label><figDesc>Example of an association plot for categorical predictor/categorical outcome.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 11 .</head><label>11</label><figDesc>A plot of repeated measures data.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Figure 12 .</head><label>12</label><figDesc>(distress~major.dep, data = nsduh) b = flexplot(distress~major.dep, data = nsduh, raw.data = F) c = flexplot(distress~major.dep, data = nsduh, alpha = .005) d = flexplot(distress~major.dep, data = nsduh, sample = 200) cowplot::plot_grid(a, b, c, d, nrow = 2) Four graphics showing di erent ways to handle overlapping datapoints. The top-left image does nothing. The top-right omits raw data. The bottom-left reduces the opacity of the points. The bottom-right samples datapoints.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 13 .</head><label>13</label><figDesc>An Added Variable Plot (AVP) showing the relationship between therapy.type and weight.loss, after controlling for motivation. a = flexplot(weight.loss~motivation + gender, data = exercise_data, se = F, alpha = .3) b = flexplot(weight.loss~therapy.type + gender, data = exercise_data, se = F, alpha = .3) + theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.2)) cowplot::plot_grid(a, b)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure 15</head><label>15</label><figDesc>shows the same relationships inFigure 14, but with the second variable in panels instead. The bottom image also displays panels for three variables simultaneously. Paneled variables are easy to conceptualize with categorical variables, but what about numeric variables? These can still be visualized, but the values must be binned. Also notice</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head></head><label></label><figDesc>1 a = flexplot(weight.loss~motivation | gender, data = exercise_data) + theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.2)) b = flexplot(weight.loss~therapy.type | gender, data = exercise_data)+ theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.2)) c = flexplot(weight.loss~motivation | gender + therapy.type, data = exercise_data) + ggplot2::facet_grid(therapy.type~gender, labeller = ggplot2::labeller(therapy.type = label_value)) + theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.2)) #### edit point size c = ggplot2::ggplot_build(c) c$data[[1]]$size = .25 c = ggplot2::ggplot_gtable(c)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17"><head>Figure 15 .</head><label>15</label><figDesc>A multivariate plot where therapy.type and gender are now shown in panels.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18"><head></head><label></label><figDesc>a = flexplot(weight.loss~motivation + gender | satisfaction + health, data = exercise_data) + # change font size to eliminate overlap theme(axis.text.x = element_text(size = 12)) b = flexplot(weight.loss~motivation + gender | satisfaction + health, data = exercise_data, method = "lm", se = F, bins = 2, ghost.line = "black", alpha = .2, ghost.reference = list(satisfaction = 0, health = 10, gender = "male"))+ # change font size to eliminate overlap theme(axis.text.x = element_text(size = 12)) cowplot::plot_grid(a, b, ncol = 1)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_19"><head>Figure 18 .</head><label>18</label><figDesc>Multivariate relationship between five variables. Each flexplot slot is occupied and it is di cult to interpret what is going on in the top figure, though the use of regression lines instead of loess lines, removing standard errors, reducing transparency of the datapoints, adding ghost lines, and reducing the number of bins have made it easier to interpret (</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_20"><head>Figure 19 .</head><label>19</label><figDesc>Demonstration of the visualize function on a lm object. The top row shows a representation of the statistical model. The bottom row shows diagnostic plots.model = lm(weight.loss~motivation + therapy.type, data = exercise_data) visualize(model, formula = weight.loss~motivation | therapy.type, ghost.line = "red", se = F, method = "lm", plot = "model")</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_21"><head>Figure 20 .</head><label>20</label><figDesc>Demonstration of the visualize function on a lm object, but with flexplot arguments controlling the output (as well as suppressing residuals).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_22"><head>Figure 21</head><label>21</label><figDesc>shows the visualize() function for a mixed model. With mixed models,</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_23"><head>Figure 21 .</head><label>21</label><figDesc>model = lmer(MathAch~Sex + SES + (SES|School), data = math) visualize(model, plot = "model", formula = MathAch~SES + School| Sex, sample = 3) Demonstration of the visualize function for a mixed model. In this graphic, each thin line represents the fit of a particular school.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_24"><head></head><label></label><figDesc>model.me = lm(weight.loss~motivation + therapy.type, data = exercise_data) model.int = lm(weight.loss~motivation * therapy.type, data = exercise_data) compare.fits(weight.loss~motivation | therapy.type, data = exercise_data, model.me, model.int, ghost.line = "black")+ ggplot2::facet_grid(~therapy.type, labeller = ggplot2::labeller(therapy.type = label_value))</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head></head><label></label><figDesc>The estimates shown support the conclusions gleaned from</figDesc><table><row><cell cols="3">estimates(model.int)</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">## Model R squared:</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">## 0.222 (0.12, 0.32)</cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">## Semi-Partial R squared:</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">## motivation:therapy.type</cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell></cell><cell>0.006</cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">## Estimates for Factors:</cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell cols="4">variables levels estimate lower upper</cell><cell></cell></row><row><cell cols="3">## 1 therapy.type control</cell><cell></cell><cell>4.09 2.81 5.38</cell><cell></cell></row><row><cell>## 2</cell><cell></cell><cell>beh</cell><cell></cell><cell>7.86 6.74 8.99</cell><cell></cell></row><row><cell>## 3</cell><cell></cell><cell>cog</cell><cell></cell><cell>7.74 6.46 9.02</cell><cell></cell></row><row><cell>##</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">## Mean Differences:</cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell cols="6">variables comparison difference lower upper cohens.d</cell></row><row><cell cols="4">## 1 therapy.type beh-control</cell><cell cols="2">3.77 0.71 6.84</cell><cell>0.75</cell></row><row><cell>## 2</cell><cell cols="3">cog-control</cell><cell cols="2">3.65 0.77 6.54</cell><cell>0.72</cell></row><row><cell>## 3</cell><cell></cell><cell cols="2">cog-beh</cell><cell cols="2">-0.12 -2.99 2.75</cell><cell>-0.02</cell></row><row><cell>##</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>##</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="5">## Estimates for Numeric Variables =</cell><cell></cell></row><row><cell>##</cell><cell cols="6">variables estimate lower upper std.estimate std.lower std.upper</cell></row><row><cell cols="2">## 1 (Intercept)</cell><cell cols="3">-5.77 -11.84 0.31</cell><cell>0.00</cell><cell>0.00</cell><cell>0.00</cell></row><row><cell cols="2">## 2 motivation</cell><cell>0.18</cell><cell cols="2">0.07 0.29</cell><cell>0.35</cell><cell>-0.33</cell><cell>1.03</cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">I also do not show the code where I actually plot the graphics. This required some advanced manipulation of the layout and I didn't want to detract from what flexplot is doing.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">These are great strategies to use after one has determined that the model generally fits the data. If the data are curvilinear, for example, it would not make sense to plot straight lines or make the datapoints overly transparent.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The model.comparison() Function</head><p>The final function I will mention is the model.comparison() function. This is similar to the anova() function in base R, but it includes additional estimates, including AIC, BIC, and the BIC-derived Bayes Factor. Additionally, model.comparison() works on both nested and non-nested functions. When used on non-nested functions, it will only compute AIC, BIC, and Bayes Factor. Also, the model.comparison() function will report the quantiles of the di erences in prediction. The model.comparison() below compares the main e ects and the interaction model. The last reported numbers indicate that the maximum di erence</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Diminished subjective wellbeing in schizotypy is more than just negative a ect. Personality and Individual Di erences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Abbott</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Do</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Byrne</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.paid.2012.01.018</idno>
+		<ptr target="https://doi.org/10.1016/j.paid.2012.01.018" />
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="page" from="914" to="918" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Addressing the &quot;Replication Crisis&quot;: Using Original Studies to Design Replication Studies with Appropriate Statistical Power</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">F</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Maxwell</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.1080/00273171.2017.1289361</idno>
+		<ptr target="https://doi.org/10.1080/00273171.2017.1289361" />
+	</analytic>
+	<monogr>
+		<title level="j">Multivariate Behavioral Research</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="305" to="324" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Graphs in statistical analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">J</forename><surname>Anscombe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The American Statistician</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="17" to="21" />
+			<date type="published" when="1973" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">1,500 scientists lift the lid on reproducibility</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Baker</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/533452a</idno>
+		<ptr target="https://doi.org/10.1038/533452a" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">533</biblScope>
+			<biblScope unit="issue">7604</biblScope>
+			<biblScope unit="page" from="452" to="454" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Redefine statistical significance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Benjamin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">O</forename><surname>Berger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Johannesson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Nosek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Berk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">E</forename></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-017-0189-z</idno>
+		<ptr target="https://doi.org/10.1038/s41562-017-0189-z" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="6" to="10" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Public health, science, and policy debate: being right is not enough</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Camargo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Grant</surname></persName>
+		</author>
+		<idno type="DOI">10.2105/AJPH.2014.302241</idno>
+		<ptr target="https://doi.org/10.2105/AJPH.2014.302241" />
+	</analytic>
+	<monogr>
+		<title level="j">American Journal of Public Health</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="232" to="235" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Coplots, nonparametric regression, and conditionally parametric fits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">S</forename><surname>Cleveland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Lecture Notes-Monograph Series</title>
+		<imprint>
+			<biblScope unit="page" from="21" to="36" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The earth is round (p &lt; .05)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cohen</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0003-066X.49.12.997</idno>
+		<ptr target="https://doi.org/10.1037/0003-066X.49.12.997" />
+	</analytic>
+	<monogr>
+		<title level="j">American Psychologist</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="997" to="1003" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Visual Statistics (Doctoral Dissertation)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Correll</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Wisconsin-Madison</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Beeswarm: The bee swarm plot, an alternative to stripchart</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Eklund</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>R Package Version 0.1, 5</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">The Eight Steps of Data Analysis: A Graphical Framework to Promote Sound Statistical Analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fife</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/OSF.IO/R8G7C</idno>
+		<ptr target="https://doi.org/10.31234/OSF.IO/R8G7C" />
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint/>
+	</monogr>
+	<note>in press</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Exonerating EDA: Addressing the Replication Crisis By Expanding the EDA/CDA Continuum</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fife</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Rodgers</surname></persName>
+		</author>
+		<ptr target="https://psyarxiv.com/5vfq6/" />
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">Developing and Empirically Validating Flexplot: A Tool for Mapping Statistical Analyses into Graphical Presentation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fife</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tremoulet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Longo</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+			<publisher>American Psychological Association</publisher>
+			<pubPlace>Chicago, IL</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Mindless statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gigerenzer</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/J.SOCEC.2004.09.033</idno>
+		<ptr target="https://doi.org/10.1016/J.SOCEC.2004.09.033" />
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Socio-Economics</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="587" to="606" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Kaufman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Hagen</surname></persName>
+		</author>
+		<ptr target="http://www.springer.com/series/4562" />
+		<title level="m">Scientific Visualization: Uncertainty, Multifield, Biomedical, and Scalable Visualization</title>
+		<meeting><address><addrLine>London</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Data Visualization in Sociology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Healy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Moody</surname></persName>
+		</author>
+		<idno type="DOI">10.1146/ANNUREV-SOC-071312-145551</idno>
+		<ptr target="https://doi.org/10.1146/ANNUREV-SOC-071312-145551" />
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Sociology</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="105" to="128" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Are Assumptions of Well-Known Statistical Techniques Checked, and Why Not?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Hoekstra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kiers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2012.00137</idno>
+		<ptr target="https://doi.org/10.3389/fpsyg.2012.00137" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="issue">137</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Minimalism in information visualization: Attitudes towards maximizing the data-ink ratio</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Inbar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Tractinsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Meyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">In ECCE</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="185" to="188" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Graph design for eye and mind</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Kosslyn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>Oxford University Press</publisher>
+			<pubPlace>New York, NY</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Show us your data: Connect the dots, improve science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Levine</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/mor.2018.19</idno>
+		<ptr target="https://doi.org/10.1017/mor.2018.19" />
+	</analytic>
+	<monogr>
+		<title level="j">Management and Organization Review</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="433" to="437" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Human anatomy and physiology. Redwood city</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">N</forename><surname>Marieb</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1992" />
+			<publisher>Cummings Publishing Company</publisher>
+			<biblScope unit="page" from="306" to="307" />
+			<pubPlace>Ine</pubPlace>
+		</imprint>
+	</monogr>
+	<note>CA: Benjamin</note>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">D</forename><surname>Nelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Simmons</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Simonsohn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Psychology</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page" from="511" to="534" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">The preregistration revolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Nosek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Ebersole</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Dehaven</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">T</forename><surname>Mellor</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1708274114</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1708274114" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the National Academy of Sciences</title>
+		<meeting>the National Academy of Sciences</meeting>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Estimating the reproducibility of psychological science</title>
+		<idno type="DOI">10.1126/science.aac4716</idno>
+		<ptr target="https://doi.org/10.1126/science.aac4716" />
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">349</biblScope>
+			<biblScope unit="page">6251</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Infographics And Public Policy: Using Data Visualization To Convey Complex Information. Health A airs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Otten</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Drewnowski</surname></persName>
+		</author>
+		<idno type="DOI">10.1377/hlthaff.2015.0642</idno>
+		<ptr target="https://doi.org/10.1377/hltha.2015.0642" />
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="1901" to="1907" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">How deceptive are deceptive visualizations?: An empirical analysis of common distortion techniques</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Pandey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Satterthwaite</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Nov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bertini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 33rd annual acm conference on human factors in computing systems</title>
+		<meeting>the 33rd annual acm conference on human factors in computing systems</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="1469" to="1478" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Editors&apos; Introduction to the Special Section on Replicability in Psychological Science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Pashler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/1745691612465253</idno>
+		<ptr target="https://doi.org/10.1177/1745691612465253" />
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="528" to="530" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">When one shape does not fit all: A commentary essay on the use of graphs in psychological research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pastore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lionetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Altoè</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2017.01666</idno>
+		<ptr target="https://doi.org/10.3389/fpsyg.2017.01666" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers Media S.A</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ripley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Venables</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Bates</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Hornik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gebhardt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Firth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">B</forename><surname>Ripley</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>Package &quot;mass&quot;. Cran R, 538</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">The sage handbook of political communication</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Semetko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Scammell</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012" />
+			<publisher>Sage Publications</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Graphical Descriptives: A Way to Improve Data Transparency and Methodological Rigor in Psychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Tay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Parrigon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Lebreton</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/1745691616663875</idno>
+		<ptr target="https://doi.org/10.1177/1745691616663875" />
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="692" to="701" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">The visual display of quantitative information</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">R</forename><surname>Tufte</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001" />
+			<publisher>Graphics press</publisher>
+			<pubPlace>Cheshire, CT</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">Strips Displaying Empirical Distributions: I. Textured Dot Strips</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Tukey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Tukey</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1990" />
+			<publisher>Bellcore</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">The inscrutable null hypothesis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">W</forename><surname>Tyron</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0003-066X.53.7.796.b</idno>
+		<ptr target="https://doi.org/10.1037/0003-066X.53.7.796.b" />
+	</analytic>
+	<monogr>
+		<title level="j">American Psychologist</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="796" to="796" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Multiattribute data presentation and human judgment: A cognitive fit perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">S</forename><surname>Umanath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Vessey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Decision Sciences</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">5-6</biblScope>
+			<biblScope unit="page" from="795" to="824" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Cognitive fit: A theory-based analysis of the graphs versus tables literature</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Vessey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Decision Sciences</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="219" to="240" />
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Prelude</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Wainer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Semiology of graphics: Diagrams, networks, maps</title>
+		<editor>J. Berkson</editor>
+		<meeting><address><addrLine>Redlands, CA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ESRI Press</publisher>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>pp. ix-x)</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Beyond Bar and Line Graphs: Time for a New Data Presentation Paradigm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Weissgerber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Milic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Winham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">D</forename><surname>Garovic</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Biology</title>
+		<imprint>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1371/journal.pbio.1002128</idno>
+		<ptr target="https://doi.org/10.1371/journal.pbio.1002128" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">A Layered Grammar of Graphics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Wickham</surname></persName>
+		</author>
+		<idno type="DOI">10.1198/jcgs.2009.07098</idno>
+		<ptr target="https://doi.org/10.1198/jcgs.2009.07098" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Computational and Graphical Statistics</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="3" to="28" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Dot plots</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wilkinson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The American Statistician</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="276" to="281" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">&amp; Task Force on Statistical Inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wilkinson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Statistical Methods in Psychology Journals: Guidelines and Explanations</title>
+		<imprint>
+			<date type="published" when="1999" />
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="page" from="594" to="601" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

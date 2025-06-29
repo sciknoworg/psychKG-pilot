@@ -1,0 +1,1556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Measuring individual differences in the depth of planning</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Valkyrie</forename><surname>Felso</surname></persName>
+							<email>valkyrie.felso@tuebingen.mpg.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Intelligent Systems</orgName>
+								<orgName type="laboratory">Rationality Enhancement Group</orgName>
+								<address>
+									<addrLine>Max-Planck-Ring 4</addrLine>
+									<postCode>72076</postCode>
+									<settlement>Tübingen, Baden-Württemberg</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Falk</forename><surname>Lieder</surname></persName>
+							<email>falk.lieder@tuebingen.mpg.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Intelligent Systems</orgName>
+								<orgName type="laboratory">Rationality Enhancement Group</orgName>
+								<address>
+									<addrLine>Max-Planck-Ring 4</addrLine>
+									<postCode>72076</postCode>
+									<settlement>Tübingen, Baden-Württemberg</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Measuring individual differences in the depth of planning</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:16+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>resource-rational analysis</term>
+					<term>planning</term>
+					<term>inverse reinforcement learning</term>
+					<term>cognitive costs</term>
+					<term>cognitive biases</term>
+					<term>decision-making</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>While making plans, people have to decide how far out into the future they want to plan: days, months, years, or even longer. Overly shortsighted planning can harm people&apos;s well-being in important life domains, such as health, finances, and academics. While self-report scales exist to measure people&apos;s planning, people&apos;s answers to such questions may be distorted by their desire to make a good impression and conform to norms and expectations. Here, we introduce a method for objectively quantifying people&apos;s propensity to plan into the future. Our method combines a process-tracing method with Bayesian inverse reinforcement learning to measure how prone an individual is to plan multiple steps ahead. To infer this from a person&apos;s process-tracing data, our method inverts a new resource-rational model of individual differences in planning. This model assumes that subjective planning costs are captured by a cost function with two parameters: a mental effort cost and a planning depth cost. Upon showing that our model of planning explains individual participants&apos; planning behavior better than the best previous models, we validate our method on simulated data and real data from a large online experiment where the cost of planning was manipulated within participants. Our results show that our method can infer individual differences in the planning depth cost. Our model provides a mechanistic account for why some people plan too shortsightedly. The subjective planning costs inferred by Springer Nature 2021 L A T E X template 2 Measuring individual differences in the depth of planning our method can be used as an objective, non-self-report measure of individual differences in people&apos;s propensity to plan into the future.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Some people enjoy planning into the future -whether that be preparing spreadsheets, researching options or consulting others <ref type="bibr" target="#b40">(Lynch, Netemeyer, Spiller, &amp; Zammit, 2010;</ref><ref type="bibr" target="#b56">Strathman, Gleicher, Boninger, &amp; Edwards, 1994)</ref>. Others, however, prefer to live firmly in the present and would find such planning to be exhausting. In this article, we present a model-based method for measuring individual differences in people's propensity to plan into the future. Together, our model and the resulting estimates of people's planning costs offer a mechanistic, parsimonious explanation for why some people plan further ahead than others.</p><p>Not planning far enough into the future can lead to bad decisions with disastrous consequences for individuals, organizations, and society at large. For example, one manifestation of this on the individual level would be budgeting without considering retirement or old age <ref type="bibr" target="#b17">(Goda, Levy, Manchester, Sojourner, &amp; Tasoff, 2019;</ref><ref type="bibr" target="#b44">Mooney, Earl, Mooney, &amp; Bateman, 2017)</ref>. Understanding why some people disregard important future consequences could inform personalized interventions. Several self-report measures aim to measure this <ref type="bibr" target="#b40">(Lynch et al., 2010;</ref><ref type="bibr" target="#b53">Steinberg et al., 2009;</ref><ref type="bibr" target="#b56">Strathman et al., 1994)</ref>. However, since planning is seen as a virtue in most societies, some people may embellish their reports of how much they plan, especially if they actually plan very little <ref type="bibr" target="#b21">(Grimm, 2010)</ref>.</p><p>Previous research has demonstrated that people differ in how many steps they plan ahead <ref type="bibr" target="#b10">(Campitelli &amp; Gobet, 2004;</ref><ref type="bibr" target="#b11">Charness, 1991;</ref><ref type="bibr" target="#b24">Holding, 1989;</ref><ref type="bibr" target="#b61">van Opheusden et al., 2021)</ref>. However, why some people plan further ahead than others remains unclear. In this paper, we introduce a model of planning which explains differences in planning from a resource-rational perspective <ref type="bibr" target="#b38">(Lieder &amp; Griffiths, 2020)</ref>. The main assumption of our model is that variability in planning can be explained by differing planning costs. Specifically, we parametrize a cost function with two cost parameters: a mental effort cost and a planning depth cost. We then introduce an objective method for measuring individual differences in the planning depth cost. Our method combines the process-tracing paradigm described in the following section with our model of planning and Bayesian inverse reinforcement learning.</p><p>We use participant data to compare this model against other candidate models, including the state-of-the-art resource-rational model introduced by <ref type="bibr" target="#b9">Callaway, van Opheusden, et al. (2022)</ref>. We validate our method with simulated data and participant data in an online experiment where costs of planning are manipulated within and between participants. We close by discussing potential applications of our method and other directions for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Background and Related Work</head><p>Before introducing our model and the considered cost functions, we first introduce the process-tracking task we are using to measure planning and our general framework for modeling planning in this task. We also introduce two frameworks our work builds upon, namely resource rationality and Bayesian inverse reinforcement learning. Measuring individual differences in the depth of planning</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Mouselab-MDP Paradigm</head><p>We will use the Mouselab-MDP paradigm to measure human planning.</p><p>The Mouselab-MDP paradigm is a process-tracing paradigm introduced by <ref type="bibr" target="#b8">Callaway, Lieder, Krueger, and Griffiths (2017)</ref>. The key idea of processtracing is to link unobservable internal cognitive operations to observable information-gathering behavior <ref type="bibr" target="#b51">(Schulte-Mecklenbeck, Kühberger, &amp; Johnson, 2011)</ref>. The task itself is an extension of the Mouselab Paradigm <ref type="bibr" target="#b31">(Johnson, Payne, Bettman, &amp; Schkade, 1989)</ref> for studying multi-alternative risky choice. The Mouselab-MDP paradigm extends this methodology to sequential decision-making <ref type="bibr" target="#b9">(Callaway, van Opheusden, et al., 2022)</ref>.</p><p>In the task, participants are shown a map comprising multiple locations, called nodes, and paths that connect them (see <ref type="figure" target="#fig_0">Figure 1)</ref>. Each node harvests a certain monetary gain or loss, which participants experience if they visit that node. In our version of this task, participants are told that they have to lead a money-loving spider through a web of cash. The spider has to traverse the web in the direction of the arrows until it reaches one of the outermost nodes. The participant's task is to gather as much money as possible. Participants must first click on the starting node before the other nodes appear. A key element of this process-tracing paradigm is that the values of the nodes are hidden at the start of a trial. Participants are told they can click on nodes to reveal a node's value for a cost of $1. Participants can then use this information to decide whether to later traverse the node and collect its reward/loss or not. After participants feel they have gathered enough information, they can move the spider out of the web with the arrow keys. Once participants have started moving the spider through the web, they are not allowed to inspect further nodes.</p><p>Of particular note is a configuration of the spider web that has previously been used for research on the "present bias" <ref type="bibr">(Callaway, Jain, et al., 2022;</ref><ref type="bibr" target="#b37">Lieder et al., 2019)</ref>. The values of nodes further out into the future (i.e., the nodes at the edge of the spider web) are drawn from a higher variance distribution than those in the middle, followed by those at the beginning of the web. The possible values at the first (inner) level are {−4, −2, 2, 4}; for the middle level, they are {−8, −4, 4, 8}; and for the final (outer) level, they are {−48, −24, 24, 48}.</p><p>Given knowledge of this structure, the optimal planning strategy would click Measuring individual differences in the depth of planning on the outer nodes first because they carry the most information about a path's total value. <ref type="bibr" target="#b27">Jain et al. (2021)</ref> developed a computational method for inferring which planning strategies participants use from the information gathering actions they perform in the Mouselab-MDP paradigm. They observed two types of suboptimal planning: a bias towards inspecting proximal nodes even when they are less informative than more distant nodes, and the tendency to not plan (click) at all. However, it remains unclear why some people engage in these suboptimal forms of planning but not others. Moreover, there are no methods for measuring the individual differences that causes this variation in planning behavior.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Resource Rationality</head><p>Planning has traditionally been modeled as searching for a good path through a tree of state-action sequences <ref type="bibr" target="#b9">(Callaway, van Opheusden, et al., 2022;</ref><ref type="bibr" target="#b26">Huys et al., 2015;</ref><ref type="bibr" target="#b45">Newell, Simon, et al., 1972;</ref><ref type="bibr" target="#b60">Van Opheusden, Galbiati, Bnaya, Li, &amp; Ma, 2017)</ref>. A crucial challenge for these models is to explain which stateaction sequences people consider and which they ignore <ref type="bibr" target="#b26">(Huys et al., 2015)</ref>.</p><p>The principle of resource-rationality suggests that this decision should follow a rational cost-benefit analysis <ref type="bibr" target="#b9">(Callaway, van Opheusden, et al., 2022;</ref><ref type="bibr" target="#b38">Lieder &amp; Griffiths, 2020)</ref>. That is, people should consider a potential course of action if and only if the improvement in decision quality it can be expected to achieve is larger than the cost of the time and cognitive resources that this additional planning would require.</p><p>Our model of planning in the Mouselab-MDP task can be considered a resource-rational model <ref type="bibr" target="#b38">(Lieder &amp; Griffiths, 2020)</ref>. Resource-rational analysis is an extension of Anderson's rational analysis <ref type="bibr" target="#b0">(Anderson, 2013)</ref>, in which cognitive constraints are incorporated into rational models of cognition. It thereby constrains the space of potential cognitive models by requiring the model to accomplish the task with limited computational resources <ref type="bibr" target="#b38">(Lieder &amp; Griffiths, 2020)</ref>. Seemingly suboptimal or irrational behavior, such as heuristics or biases, can be seen as a rational adaptation to people's limited cognitive resources or to environmental constraints <ref type="bibr" target="#b58">(Todd &amp; Gigerenzer, 2012)</ref>.</p><p>Resource-rational analysis has already been applied to study planning in the Mouselab-MDP paradigm (cf. <ref type="bibr" target="#b7">Callaway et al., 2018;</ref><ref type="bibr" target="#b9">Callaway, van Opheusden, et al., 2022)</ref>. However, thus far, there are no resource-rational models of individual differences in planning.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Meta-level Markov Decision Process</head><p>Our resource-rational model casts human planning as the optimal solution to a meta-level Markov Decision Process (MDP; <ref type="bibr" target="#b7">Callaway et al., 2018;</ref><ref type="bibr" target="#b20">Griffiths et al., 2019;</ref><ref type="bibr" target="#b22">Hay, Russell, Tolpin, &amp; Shimony, 2014)</ref>. A meta-level MDP (B, C, T meta , R meta ) is an MDP where the states B are the beliefs the agent can arrive at through reasoning and the actions are the computations C the agent can perform to improve the accuracy of its beliefs. In our case, a belief b ∈ B is a probability distribution over the possible values of rewards at the nodes of the environment shown in <ref type="figure" target="#fig_0">Figure 1</ref>. The available computations</p><formula xml:id="formula_0">C = {c 1 , c 2 , c 3 , • • • ⊥} comprise the planning operations (c 1 , c 2 , • • • )</formula><p>and the decision to terminate planning (⊥). The planning operation c i evaluates and processes the reward of the i th node. The decision to end planning selects the path out of the spider web that is best according to the information processed by the preceding planning operations. The transition matrix T meta (b, a, b ′ ) Measuring individual differences in the depth of planning specifies the probability of arriving in belief state b ′ after performing the planning operation c ∈ C in belief state b. For performing a planning operation in the environment described in the previous subsection, T meta (b, a, b ′ ) is uniformly 1/4 since there are four equally likely values that may be revealed upon clicking a node. Performing the termination operation ⊥ deterministically leads to a terminal state.</p><p>The cost of inspecting a node which is not terminal, that is r meta <ref type="bibr">(b, c)</ref> where c ∈ C − ⊥, is $1. Participants are told they will have to pay this fee for inspecting a node before beginning the task. The cost of completing a trial and moving the spider through the web, R meta (b, ⊥), is defined as the maximum expected return of any available path according to the current belief state b.</p><p>Please see <ref type="figure">Figure 2</ref> for a diagram of the meta-level MDP as well as an example time step using the reward distribution described in the previous subsection. Our model of planning will extend the definition of this meta-level MDP.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Bayesian Inverse Reinforcement Learning</head><p>Our method uses Bayesian inverse reinforcement learning. Before introducing Bayesian inverse reinforcement learning, we must first define the terms in the traditional reinforcement learning framework and inverse reinforcement learning in general.</p><p>In the typical reinforcement learning framework, one is given an agent's state space S, an action space C, a transition function T = P r(s ′ | s, c), and a reward function R = P r(r | s, c) <ref type="bibr" target="#b57">(Sutton &amp; Barto, 2018)</ref>. The goal is to derive a policy π :</p><formula xml:id="formula_1">S × C → [0, 1].</formula><p>The inverse reinforcement learning paradigm puts this on its head: we observe an agent's behavior, a trajectory τ of state-action tuples (s t , c t ) for In this example time step, the participant just clicked on the node highlighted in yellow (C t=2 ) with a cost of −1 (R t=2 ) and ends up in a new belief state (B t=3 ). The numbers outside the nodes denote each node's index in the belief state. Measuring individual differences in the depth of planning time steps t = 1, 2, 3, . . . , T . Knowing the agent's state space S, action space C, and the transition dynamics of the environment T = P r(s ′ | s, c) the most common goal is to uncover the reward function R = P r(r | s, c). Inverse reinforcement learning can also be used for apprenticeship or imitation learning <ref type="bibr" target="#b1">(Arora &amp; Doshi, 2021;</ref><ref type="bibr" target="#b35">Kubala, Konidaris, &amp; Greenwald, 2019)</ref>.</p><p>In Bayesian inverse reinforcement learning <ref type="bibr" target="#b47">(Ramachandran &amp; Amir, 2007;</ref><ref type="bibr"></ref> Rothkopf &amp; Dimitrakakis, 2011), a posterior distribution over potential reward functions is inferred:</p><formula xml:id="formula_2">P (R | τ ) ∝ P (τ | R)P (θ)</formula><p>The likelihood P (τ | R) is generally assumed to arise from a softmax actionselection policy P (c | s). <ref type="bibr" target="#b35">Kubala et al. (2019)</ref> have extended this algorithm to learning agents through the addition of a behavior rule that outputs the policy given the past history, a discount factor, and reward parameter values.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Modeling the cost of planning</head><p>To make it possible to infer individual differences in the cost of planning from their behavior, we developed a generative model linking the cost of planning that an individual experiences to their planning behavior in the Mouselab-MDP paradigm. To do so, we approached modelling people's planning in the Mouselab-MDP task from a resource-rational point of view. That is, our models assume that people who exhibit suboptimal behavior act optimally with respect to subjective internal costs. Please note that we do not strive to fully explain all aspects of human planning, but merely to develop a model that is useful for measuring individual differences in the cost of planning.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model Development</head><p>Our model is an extension of the resource-rational model of human planning put forward by <ref type="bibr" target="#b9">Callaway, van Opheusden, et al. (2022)</ref>. We therefore focus on the aspects that are new or different, namely how we model the cost of planning (cost functions) and the selection of planning operations (meta-level action selection).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Cost Functions</head><p>In the meta-level Markov Decision Process described in the "Background" section, the cost of performing planning operation c in belief-state b (i.e., r meta (b, c)) is typically assumed to be identical for all non-terminal planning operations. It is typically set to the monetary cost participants actually pay to inspect nodes in a given experiment.</p><p>Here, we introduce four candidate cost functions that replace this simplistic assumption by a more realistic and more flexible model of the cost of planning.</p><p>In doing so, we aim to explain differences in planning behaviors via differences in subjective planning costs. Our models consider that people may experience one or more additional costs that go beyond the financial cost of clicking on a node, namely cognitive costs, motor costs, or time costs. We did not aim for a perfect or comprehensive model. Rather, we just aimed to parametrize the cost function in a way that could be useful for understanding participant behavior and providing a mechanistic account of planning variation. We will first introduce the cost function that explained people's planning behavior best. This cost function includes a term which depends on node depth. We then proceed to introduce three alternative cost functions: one depending on the distance from the last clicked node, and two which depend on the planning strategy. In all cost functions, the mental effort cost w eff. applies to all clicks.</p><p>Note also that we will use the letter c to refer exclusively to these non-terminal planning operations (i.e., c ∈ C − ⊥).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Effort and Planning Depth</head><p>This cost function includes a planning depth cost w depth. . Individuals with a higher planning depth cost might find planning further into the future more difficult. Let d n be the depth of node n. For the first level of the web (closest to the start), d n is 1, while for the leaf nodes (furthest from the start) d n is 3.</p><p>We then parametrize the cost r meta (b, c) of the planning operation c a that inspects the node n as</p><formula xml:id="formula_3">r meta (b, c n ) = w depth. • d n + w eff. • 1, where w depth.</formula><p>is the planning depth cost and w eff. is a mental effort cost. A person with higher w depth. may make short-sighted decisions because they prefer to inspect earlier nodes that represent more proximal outcomes rather than later nodes that represent more distant outcomes. A person with higher w eff. may plan less or not perform any planning operations at all.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Distance and Effort Costs</head><p>This cost function formalizes the alternate explanation that people are not experiencing a cognitive planning depth cost, but instead experience a motor cost from moving the cursor all the way to the outermost nodes. This cost function includes a distance parameter w dist. . Individuals with a higher distance parameter might be more likely to consider options closer in physical space.</p><p>The distance itself depends on the distance between the locations evaluated by the current planning operation, c t , and the previous planning operation, c t−1 . We define l(n i , n j ) as the Euclidean distance between the nodes n i and n j inspected by the planning operations c i and c j , respectively. If the posi-</p><formula xml:id="formula_4">tion of node n i is (x i , y i ) then l(n i , n j ) = (x i − x j ) 2 + (y i − y j ) 2 . The full cost function is r meta (b, c t , c t−1 ) = (w dist. • l(c t , c t−1 ) + w eff. • 1).</formula><p>The first planning operation is assumed to be the spider's starting node n 0 , since participants must click on the spider's starting node to begin each trial.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Forward Search Bonus &amp; Backward Search Bonus</head><p>The final two cost functions include a term which depends on the relation between a given node and the already-revealed nodes. We considered the forward search bonus in particular because forward planning, specifically bestfirst-search, has been hypothesized to be a common strategy people employ when planning <ref type="bibr" target="#b45">(Newell et al., 1972)</ref>. Recently, there has also been evidence that participants may employ forwards search or backwards search strategies in the Mouselab-MDP task, depending on which strategy is more well suited for the environment they find themselves in <ref type="bibr" target="#b9">(Callaway, van Opheusden, et al., 2022)</ref>. For forward planning, the bonus applies to the children nodes of alreadyrevealed nodes. For backward planning, the bonus applies to the parent nodes of already-revealed nodes. These bonuses capture the idea that people may find it easier to continue planning action sequences they have already thought about than to start making an entirely new plan. We define Rel(n i ) as the relatives (parents or children) of node n i , and we define N revealed as the set of already revealed nodes.</p><p>Using this notation, this cost function can be written as</p><formula xml:id="formula_5">r meta (b, c n ) =      w eff. Rel(n) ̸ ∈ N revealed w rel. + w eff. Rel(n) ∈ N revealed ,</formula><p>where n is the node inspected by the planning operation c n .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Meta-Level Action Selection</head><p>We assumed that people select planning operations according to a softmax policy given the meta-level MDP's optimal Q-functions. More specifically, we assumed that the probability of observing a planning operation c t in belief state b t under reward parameters θ is</p><formula xml:id="formula_6">P (c t | b t , θ) ∝ e Q * θ (bt,ct)/β ,</formula><p>where β is the decision-making temperature and Q * θ is the optimal meta-level Q-function found via dynamic programming (cf. <ref type="bibr" target="#b7">Callaway et al., 2018)</ref> for the problem where the parameters of the cost function are given by θ. We considered all four cost models along with each possible nested cost model (see <ref type="table" target="#tab_0">Table 1</ref>). For example, for the Distance Cost &amp; Effort Cost model we also looked at two submodels: Distance Cost Only and Effort Cost Only.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Considered Models</head><p>We also considered the model where the cost is fixed to the imposed financial costs ("Null (Imposed Financial Costs Only)") and a model which assumes completely random planning operation selection, naive to the optimal Q-values ("Null Random"). All models except the completely random model ("Null Random") assume softmax meta-level action selection according to the optimal meta-level Q-values. To compute the optimal meta-level Q-values, we assumed that the participant knows the range of possible payoffs at each step of the planning task.</p><p>Experiment 1: Which model describes the cost of human planning best?</p><p>In our first experiment, we aimed to see which cost model best explained real human planning data. This is important because it determines which model our method should use to measure individual differences in the cost of human planning.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Participants</head><p>We recruited 164 participants on Amazon Mechanical Turk, using</p><p>CloudResearch <ref type="bibr" target="#b39">(Litman, Robinson, &amp; Abberbock, 2017</ref> bonus in addition to the $0.50 base pay.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Materials</head><p>Each participant completed 40 trials of the Mouselab-MDP task as described in the Section "Mouselab-MDP Paradigm" (see also <ref type="figure" target="#fig_0">Figure 1</ref>). Concretely, we used the exact same version of this task that has previously been used to study the "present bias" <ref type="bibr" target="#b37">(Lieder et al., 2019)</ref>. That is, the click cost was 1 game dollar and the possible rewards were {−4, −2, +2, 4} at the first step,</p><p>{−8, −4, 4, 8} at the second step, and {−48, −24, 24, 48} for the third and final step. At the beginning of this task all participants were given a 50 game dollar endowment. Moreover, participants were incentivized to perform well in this task by a performance-dependent bonus of 1 cent for every $5 they earned in this game.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Procedures</head><p>Participants were given instructions and a comprehension test before beginning the task. The comprehension test checked participants' understanding of the task and bonus payment. Participants were only allowed to move on to the task if they passed the pre-task comprehension test within four attempts.</p><p>Participants then completed 40 trials of the Mouselab-MDP Task. After that,</p><p>participants were asked four multiple-choice questions testing their knowledge of the task. The first three questions related to the range of node values for each of the three levels of nodes in the task. The fourth question checked their knowledge of the cost for inspecting a node before moving.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>Participant behavior was relatively stable for the last half of trials</p><p>Because our model assumes that participant behavior is stable, we checked that participant behavior did not vary too much in the last 20 of the 40 trials.</p><p>To do so, we used Jain et al. 's Computational Microscope to infer the most likely strategies the participant used in each trial . We found that, on average, participants used less than two different strategies in the last half of trials (M : 1.984, SD : 1.213). Moreover, around half of the participants never changed their strategy during the last half of the trials and ≈ 86% of participants used at most three different strategies during this period (see section "Participant strategies for Experiment 1" in the appendix for further details on the Computational Microscope results).</p><p>We can therefore apply our method to the last 20 trials of the experiment.</p><p>The model containing both a planning depth cost and a mental effort cost explains participants' data best.</p><p>To determine which cost function our method should assume, we compared the models listed in <ref type="table" target="#tab_0">Table 1</ref> using both the Bayesian Information Criterion <ref type="bibr" target="#b52">(Schwarz, 1978)</ref> and Bayesian Model Selection <ref type="bibr" target="#b48">(Rigoux, Stephan, Friston, &amp; Daunizeau, 2014;</ref><ref type="bibr" target="#b54">Stephan, Penny, Daunizeau, Moran, &amp; Friston, 2009)</ref>.</p><p>To compute Bayes factors <ref type="bibr" target="#b32">Kass and Raftery (1995)</ref>, we used the Bayesian Information Criterion as an approximation of the negative log-model evidence (i.e., − log(P (Model | Data)); <ref type="bibr" target="#b12">Claeskens &amp; Hjort, 2008)</ref>. The model comparison based on the Bayesian Information Criterion was a fixed-effects analysis, looking for the best model for all participants, whereas the Bayesian Model Selection method performed a random effects analysis, which takes into account that different participants may be better explained by different models.</p><p>Our fixed-effects analysis provided decisive evidence that the Effort and Planning Depth model explains the data better than any of the alternative models (all log-Bayes factors ≥ 689; see <ref type="figure" target="#fig_12">Figure 3a</ref>). The second-best model was the Distance and Effort Cost model. Bayesian Model Selection (see <ref type="table" target="#tab_2">Table 2)</ref> showed that the Effort and Planning Depth model provided the best explanation for approximately 48% of our participants' planning behavior. The Measuring individual differences in the depth of planning second-best model, Effort Costs Only, best explained the planning behavior of approximately 34% of our the participants. The exceedance probability of the Effort and Planning Depth model was around 94%. This means that it is very likely that the full Effort and Planning Depth model was the best model for a larger proportion of participants than any other model. Taken together, these results suggest that the Effort and Planning Depth model performs better than models incorporating distance costs, forward search, nested models, and null models, including the state-of-the-art Forward Search Bonus and Effort Cost model proposed by <ref type="bibr" target="#b9">Callaway, van Opheusden, et al. (2022)</ref>.   <ref type="figure" target="#fig_12">Figure 3b</ref>). This implies that the Effort and Planning Depth model fits participants' data best, on an absolute scale, and that participants are fit just as well throughout the 20 trials, even if they may exhibit multiple planning strategies.</p><p>The behavior of simulated participants matches participant behavior.</p><p>To check which aspects of people's planning behavior the Effort and Planning Depth model can capture, we looked at the average number of clicks participants used to inspect immediate, intermedia, and final outcomes (clicks per level) for participants versus the fitted model <ref type="bibr" target="#b16">(Gelman, Meng, &amp; Stern, 1996;</ref><ref type="bibr" target="#b49">Roecker, 1991</ref>; see <ref type="bibr" target="#b62">Wilson &amp; Collins, 2019)</ref>. Specifically, for each possible cost parameter combination, we simulated 200 optimal participants and computed the number of clicks per level, per trial for each simulated participant. We then computed the average node-level click rate for each cost parameter combination for these simulated participants. To compare simulated and real data, we computed the correlation between click behavior for each participant and the average click behavior of participants simulated with cost parameter values matching each participants' MAP estimates. We found that there was a high Pearson correlation for all the metrics of planning behaviors we considered: [0.83, 0.91]). This suggests that participant data and simulated data exhibit similar node-level clicking behavior.</p><p>Understanding the environment's structure mitigates experienced cost.</p><p>Our models assume that people know the structure of the environment. Here, that means that we assumed people already know the possible values behind each node (and their respective probabilities) by the time they start the last 20 trials. This raises the question of whether the planning behavior of people with higher cost parameter values, who may not click enough to learn the environmental structure, might simply be less well explained by our models.</p><p>To look into this, we inspected the average log likelihoods of participant's planning operations as a function of their score on the four post-task questions.</p><p>We found that the average log likelihood of a planning operation did not differ significantly between participants who answered all four post-task questions correctly versus those who answered at least one post-task question incorrectly (Kruskal-Wallis H(3) = 0.75, p &gt; 0.05). <ref type="figure">Figure 4</ref> shows the post-task quiz performance versus the average planning operation likelihood. This suggests that our model explains participants who lacked knowledge of the environment just as well as those who were able to answer the post-task questionnaire completely correctly.</p><p>However, although participants' score on the post-task quiz had no effect on the MAP estimates of their mental effort cost (Kruskal-Wallis H(3) = 3.33, p &gt; 0.05), it did have a significant effect on the inferred planning depth cost (Kruskal-Wallis H(3) = 8.71, p = 0.03). On average, the MAP estimate was significantly higher for participants with a post-test score of 4 than for participants with a post-test score of 3 (Mann-Whitney U = 313.50, p = 0.01, two-sided; M 4 = 0.40 vs M 3 = 2.60). All other pair-wise comparisons between people with different post-test scores were not statistically significant (p &gt; 0.05); however, this might be primarily because there were fewer participants with scores below 3. <ref type="figure">Fig. 4</ref>: Average BIC versus post-task questionnaire.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>In this experiment, we established that the Effort and Planning Depth model fits participant data best, compared to our other candidate models. In particular, our model fits the data better than the current state-of-the-art resource-rational model introduced by <ref type="bibr" target="#b9">Callaway, van Opheusden, et al. (2022)</ref>.</p><p>This suggests that individual differences in the planning depth cost are an important determinant of individual differences in human planning. Moreover, our model's superiority to the Distance and Effort Cost model shows that this is not an artifact of the potential confound that inspecting long-term consequences required moving the mouse further out from the center of the screen than inspecting the immediate outcomes. We therefore base our method for measuring the cost of planning on the Effort and Depth of Planning model.</p><p>We found that the model fit did not depend on the degree to which participants understood the task. Through our posterior predictive check, we also found that participant node-level clicking behavior follows a similar pattern to node-level clicking behavior of participants simulated from the Effort and Depth of Planning model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Measuring individual differences in the cost of planning</head><p>Given the model selection results reported in the previous section, we set out to show that the combination of the Effort and Planning Depth model and Bayesian Inverse Reinforcement Learning can produce meaningful parameter estimates for participants performing the task. This method could then allow researchers to quantify differences in people's planning behavior in a way that, compared to traditional self-report studies, is less susceptible to demand characteristics <ref type="bibr" target="#b46">(Orne, 1996)</ref>. First, we show that this method can accurately recover the ground truth values of these parameters from simulated data sets and that our method accurately quantifies its uncertainty about these estimates. After establishing that our method performs well on simulated data, we conducted an experiment with assigned planning costs to test whether our method can accurately and precisely infer experimentally imposed inter-individual differences in the cost of planning.</p><p>Applying Bayesian inverse reinforcement learning to the</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Mouselab-MDP paradigm</head><p>Given the formulation of the meta-level Markov Decision Process, our cost function, and our assumption of softmax action selection, our method infers the parameters θ of a given cost function and the temperature parameter β from a trajectory τ of tuples (b t , c t ) of the belief states and planning operations from time steps t ∈ (1, 2, 3, . . . , T ):</p><formula xml:id="formula_7">τ = ((b 1 , c 1 ), . . . (b T , c T ))</formula><p>We are interested in finding the posterior distribution of the cost function parameters and the decision temperature given the observed data, that is, P (ϑ | τ ) where ϑ = {θ, β}. According to Bayes rule, the posterior distribution is proportional to the product of the likelihood function P (τ | ϑ) and the prior distribution P (ϑ), that is</p><formula xml:id="formula_8">P (ϑ | τ ) ∝ P (τ | ϑ) • P (ϑ)</formula><p>We use a uniform prior on the cost function parameters θ, and the prior distribution on the temperature parameter is the exponential distribution shown in <ref type="figure" target="#fig_4">Figure 5</ref>. Specifically, we assume that the prior probability of a specific value of β is P (β = x) = e −x for x ≥ 0 and P (β = x) = 0 for x &lt; 0. 2 This prior distribution puts more probability mass on lower values of the temperature parameter (favoring less randomness and a better model fit).</p><p>To compute the likelihood function, we can use the fact that we are assuming people are selecting planning operations according to a softmax policy, the Markov property, and the fact that the initial belief state is constant and that the transition structure is deterministic. Therefore, the likelihood of a sequence of planning operations is the product of the likelihoods of the individual planning operations:</p><formula xml:id="formula_9">P (τ | ϑ) = P (b 1 , c 1 . . . b T , c T | ϑ) = P (b 1 )P (c 1 | b 1 , ϑ) • • • • • P (b T | b T −1 , c T −1 , ϑ) • P (c T | b T , ϑ) = T t=1 P (c t | b t , ϑ) (1)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Inference</head><p>In order to evaluate the likelihood function for each set of cost parameters, we have to compute the Q-function of the meta-level MDP defined by those parameter values. However, solving the meta-level MDP can take several hours for one possible value setting. Therefore, we decided to estimate the cost function parameters θ and the temperature parameter β using grid search.</p><p>Specifically, we defined a grid of possible parameter values, precomputed the Q-function of the meta-level MDP defined by each combination of parameter Measuring individual differences in the depth of planning values by dynamic programming (cf. <ref type="bibr" target="#b7">Callaway et al., 2018)</ref>, and then saved the meta-level Q-values for each possible layout of rewards that a participant could encounter. Given the precomputed meta-level Q-values the likelihood function can then be evaluated instantly.</p><p>To construct the grid, we chose the range of possible values for the cost function parameters to capture a reasonable range of planning behavior. Concretely, we chose the range of values of the mental effort cost so that our model would be able to explain the full range of possible planning behaviors from not making any clicks to clicking all nodes. Similarly, we chose values of the planning depth cost which could explain the full range of planning behaviors from clicking only on the immediate nodes to clicking only on the most distant nodes. We determined this by inspecting the number of different types of clicks that the optimal policy makes for different cost function parameter combinations (see <ref type="figure">Figure A.</ref>2). For the decision temperature we chose a range of values that allowed us to explain planning behavior that was almost completely deterministic according to the optimal policy as well as completely random Because our method assumes that each participant uses the same planning strategy throughout all trials, it should only be applied to the trials after the learning period, once the participant's planning behavior has stabilized.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Quantifying the posterior distributions of individual variables</head><p>Applying Bayesian inverse reinforcement learning computes the MAP estimateθ M AP . This MAP estimate is a tuple which contains the decision temperature and the cost parameters. While using the MAP estimate for the parameters can be useful for characterizing individual differences in the cost parameters and the decision temperature, we are also interested in extracting estimates for individual parameters and quantifying their uncertainty. Therefore, to find the posterior probability of one parameter, say θ 1 , we marginalize out the other parameters. We then computed the highest density interval (HDI) of the posterior distribution for that parameter (e.g., P (θ 1 | τ )) by selecting the most probable parameter value, and then greedily including the maximum not-yet-selected neighboring value until the probability of included values reaches 95%. We quantified the spread of a highest posterior density interval I as max I − min I (i.e. the smaller the spread, the more confident the method is in the estimate).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Validation on Simulated Data</head><p>To validate our method, we simulated human planning according to the best model identified in Experiment 1, namely the Effort and Planning Depth model, applied our method to the simulated data, and then compared the parameters that our method inferred from the simulated data with the true parameters of the simulated participants.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Procedures</head><p>We simulated participants' planning operations in 30 trials of the Mouselab-MDP task used in Experiment 1 with the Effort and Planning Depth model. We simulated the planning behavior of 200 participants for each of the 144 combinations of the 12 possible values of the planning depth cost and the 12 possible values of the mental effort cost on the grid shown in <ref type="figure">Figure A.</ref>2. The simulations' decision temperature values were selected from a subset of the parameters considered in our inference step, namely {0.5, 1.0, 2.5, 7.5, 100}.</p><p>We ran our inference method on the simulated participants' process-tracing data as described in the section "Applying Bayesian Inverse Reinforcement Learning to the Mouselab Paradigm". We then performed multiple linear regressions to assess how well each of the true parameters could be predicted by a linear combination of the estimated values of all three parameters. <ref type="figure">Fig. 6</ref>: Parameter recovery for the participants simulated with the softmax policy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Both cost parameters can be recovered from simulated data</head><p>To test the relation between the inferred parameter values <ref type="bibr">(MAP estimates)</ref> and true parameter values used to simulate the data, we fit one regression model for predicting the true value of each parameter (i.e., the planning depth cost, the mental effort cost, and the decision temperature) from all MAP estimates.</p><p>Our regression models explained a significant proportion of the variance (adjusted R 2 ) in the ground truth values of each of the three parameters. Concretely, the adjusted R 2 values were 71% the true planning depth cost (F (3, 142996) = 114347.33, p &lt; 0.001), 42% for the true mental effort cost (F (3, 142996) = 34208.55, p &lt; 0.001), and 79% for the true decision temperature (F (3, 142996) = 177880.67, p &lt; 0.001). See <ref type="table" target="#tab_3">Table A</ref> Our method outputs individual parameters with high confidence for simulated data Next, we calculated the 95% highest posterior density intervals for the simulated parameters (see the "Quantifying the posterior distributions of individual variables" section). The typical spread of the 95% highest posterior density intervals was lower for the planning depth cost (M : 2.52, SD : 1.89) than for the mental effort cost (M : 5.50, SD : 3.62). Therefore, based on width of the highest posterior density intervals for both cost parameters, our method cannot reliably differentiate between cost parameters 0 vs 1. However, it should be able to distinguish between cost parameter values on a more coarse scale, such as a log scale. This means our method should be able to distinguish between more aberrant parameter differences such as 0 vs 10. The highest posterior density intervals for the decision temperature also had a low spread, although the decision temperature is measured on a different scale (M : 2.19, SD : 3.54). The spreads of the highest posterior density intervals for the cost parameters were significantly correlated with the temperature parameter used to generate the data (planning depth cost: r(142857) = 0.23, p &lt; 0.001, 95% C. I. [0.23, 0.24]; mental effort cost: r(142857) = 0.24, p &lt; 0.001, 95% C. I. [0.24, 0.25]). This suggests that the planning depth cost is more precisely recovered than the mental effort cost and that the cost parameters are recovered more precisely when participants plan more systematically (i.e., lower decision temperature).</p><p>For these simulated participants, the true parameter value was contained in the 95% highest posterior density interval 83% of the time for the planning depth cost, 91% of the time for the mental effort cost and 70% of the time for the decision temperature. This implies that although our method's highest posterior density intervals tend to a bit too narrow, they are still relatively well calibrated on simulated data. Nevertheless, users of our method should take highest posterior density intervals with a grain of salt to avoid drawing overconfident conclusions.</p><p>To verify the usefulness of these highest posterior density intervals to distinguish between participants with cost parameters on a log scale (e.g., 0 vs. 10), we looked at the correlation between the simulated participants' highest posterior density interval spread and the true (simulated) parameter values. We found a moderate correlation for the mental effort cost and the decision tem- </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>In conclusion, our method is reasonably accurate at recovering the ground truth model parameters from participant data simulated according to the Effort and Planning Depth model; it was particularly accurate for the planning depth cost and the decision temperature. Looking at the highest posterior density intervals for simulated participants, we found that the spread of the highest posterior density intervals was significantly correlated with the simulated value of decision temperature, which can be seen as a proxy for model fit. The highest posterior density intervals for the planning depth cost had a smaller spread on average than those for the mental effort cost. The highest posterior density intervals were slightly overconfident but reasonably well calibrated overall.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experiment 2: Validation on Human Data</head><p>Now that we have validated our method on simulated data, we present results of a validation experiment we devised to test the method's accuracy for human participants. We ran an experiment in which we imposed different levels of additional planning cost on different participants to emulate inter-individual differences in the planning depth cost and the mental effort cost.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Participants</head><p>We recruited 420 participants on Amazon Mechanical Turk, using CloudResearch <ref type="bibr" target="#b39">(Litman et al., 2017)</ref>. 347 participants completed the experiment; the other participants quit during the instructions phase. Of these 347 participants, 12 participants were unable to pass the instructions quiz. So, we have complete data for 335 participants (192 females, 141 males, 2 nonbinary; median age 40, age range 19-78). Participants completed the task in a median time of 25.65 minutes and earned a median $4.20 bonus in addition to the $0.50 base pay.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Materials</head><p>We created a modified version of the Mouselab-MDP task in which participants have to wait a variable amount of time after inspecting a node before they can inspect a new node or move the spider through the web. As a cover story, participants are told that the node inspector has limited power and that they need to wait for it to recharge in between uses. The amount the node inspector was drained by inspecting a node -and how long it consequently took to for it to recharge -varied by condition and node depth. Participants were not told how long the node inspector would take to recharge after any particular node, nor were the nodes marked according to this duration. Instead, participants were only told that the time it takes the node inspector to recharge might vary between nodes. Because Experiment 1 had revealed that people differ in how costly planning is for them at baseline, we added a block where participants were told the node inspector did not need to recharge; the purpose of this block was to measure participants' baseline cost values.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experimental Design</head><p>We randomly assigned each participant to one of 12 conditions, which were combinations of the following imposed additional costs: ∆ w depth. ∈ (0.0, 2.0, 5.0, 10.0) and ∆ w eff. ∈ (2.0, 5.0, 10.0). The amount of time participants had to wait was based on the cost function for the winning model in Experiment 1; that is participants had to wait ∆ w depth. • d n + ∆ w eff. • 1 seconds after inspecting a node n at depth d n . For instance, a participant with Measuring individual differences in the depth of planning ∆ w depth. = 5.0 and ∆ w eff. = 2.0 would have to wait for 7 seconds after inspecting an immediate outcome (d n = 1), 12 seconds after inspecting an outcome that is two steps away (d n = 2), and 17 seconds for inspecting one of the final outcomes (d n = 3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Procedures</head><p>Following the experiment's instructions, participants were given a pre-task comprehension quiz that checked their understanding of the task and the possible performance bonus. Participants were again only allowed to move onto the task if they passed the pre-task comprehension quiz within four attempts.</p><p>In all conditions, we gave participants a block of 20 trials of the modified Mouselab-MDP task with time delays, a block of 15 trials without delays (baseline trials), and a block of 15 trials with time delays. The order of the last two blocks of 15 trials was counterbalanced across participants.</p><p>At the beginning of the task, each participant received an endowment.</p><p>To keep the payment fair across conditions, the endowment participants received at the beginning of the task was chosen to equalize the average wage approximately across all 12 experimental conditions. After the experiment, participants received a financial bonus of 1 cent for every $5 earned in this game.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>Manipulation checks: The manipulated planning depth cost but not the mental effort cost has an effect on planning behavior</p><p>To check that the imposed additional costs influenced behavior in the way we expected, we looked at the ratio of late node clicks for the additional planning depth cost and the total number of clicks for the additional mental effort cost. We expected the ratio of late node clicks to decrease with higher planning depth cost values and the total number of clicks to decrease with higher mental effort cost values. The manipulation of the planning depth cost appeared to be working: participants assigned to higher planning depth </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The planning depth cost but not the mental effort cost manipulation is reflected in block-wise MAP estimates</head><p>To validate our method, we compared the MAP estimates between the test block that imposed an additional cost of planning and the baseline block that did not. We expected to see higher MAP estimates for the planning depth cost in the test block compared to the baseline block. For the baseline block, we expected the MAP estimates to be similar to the MAP estimates in Experiment 1. Because our manipulation of the mental effort cost did not appear to work, we expected no difference between inferred values in the test and baseline blocks As expected, the MAP estimates of the planning depth cost were higher for the test block (M : 3.89, SD : 4.59) than those for the baseline block (M : 1.16, SD : 4.05; Wilcoxon signed-rank test: W = 3092.00, RBC = 0.80, p &lt; 0.001, two-sided) and those for Experiment 1 (M : 0.57, SD : 2.60; Mann-Whitney U = 28310.50, p &lt; 0.001, two-sided).</p><p>As predicted, the MAP estimates of the planning depth cost were not significantly different between the baseline block of Experiment 2 and Experiment 1 Measuring individual differences in the depth of planning (Mann-Whitney U = 19502.50, p &gt; 0.05, two-sided). These results are consistent with the hypothesis that our method can recover the imposed cost of planning because the MAP estimates were larger for the test block that imposed an additional cost of planning than for Experiment 1 and the baseline block which did not. Moreover, the lack of difference between the baseline block MAP estimates and the Experiment 1 MAP estimates further suggests that our method measures people's latent values of the planning depth cost.</p><p>For the mental effort cost, the MAP estimates were also significantly higher for the test block (M : 5.89, SD : 4.84) than for baseline block (M : 4.56, SD : 5.11; Wilcoxon signed-rank test W = 9201.00, RBC = 0.29, p &lt; 0.001, two-sided); even though we were unable to reliably manipulate the mental effort cost. Comparing the MAP estimates for the mental effort cost in Experiment 1 (M : 3.50, SD : 4.72) against the MAP estimates in Experiment 2 for the test block, we found a significant difference (Mann-Whitney U = 26630.00, p &lt; 0.001, two-sided). However, we did also find a significant difference between the MAP estimates for the mental effort cost in Experiment 1 and the MAP estimates in the baseline block of Experiment 2 (Mann-Whitney U = 23080.50, p = 0.03, two-sided). The difference found between the test block versus the baseline block, and between the test block and Experiment 1 suggests that our method was able to recover the manipulation of the mental effort cost. The significant difference between the MAP estimates for the baseline block of Experiment 2 and Experiment 1 may be due to a carry-over effect, that is, participants who saw the test block first might have continued to use the strategy they used in the test block in the baseline block. However, we did not see a difference with number of clicks given block order in the test block (Mann-Whitney U = 14997.00, p &gt; 0.05, two-sided).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Manipulated planning depth cost is recovered by the model</head><p>We wanted to see whether we could recover the assigned cost parameters with our inference method. However, unlike when we assessed parameter recovery on simulated data, we were missing information on the ground truth parameter values. Therefore, we performed linear regression, investigating whether the inferred parameter values (planning depth cost, mental effort cost, decision temperature) in both blocks could explain the variance of each assigned cost parameter. 3</p><p>For the assigned planning depth cost as the dependent variable, the overall regression was statistically significant (adj. R 2 = 0.21, F (9, 325) = 10.98, p &lt; 0.001). For the mental effort cost as the response, the overall regression was not statistically significant (adj. R 2 = 0.00, F (9, 325) = 1.12, p &gt; 0.05). This suggests, to some degree, that a fair proportion of the variance in the planning depth cost can be explained by the inferred parameter values in the test and baseline blocks. However, this was not the case for the mental effort cost. This might be because, as discussed above, the manipulation of the mental effort cost was only partly working.</p><p>The question remains: can we predict the planning depth cost from these inferred parameter values reliably enough to use it as an individual-differences metric?</p><p>To answer this question, we examined at the root-mean-square error (RMSE) of the linear regression models. We calculated the RMSE between the prediction of the linear regression and the true cost imposed on the participant. To estimate the RMSE for predicting new observations, we performed 10-fold cross validation, stratified across participant conditions (assigned cost and order of baseline block presentation). The average RMSEs were 3.39 (SD: Measuring individual differences in the depth of planning 0.28) for the planning depth cost and 3.35 (SD: 0.12) for the mental effort cost. Since the given parameters ranged from 0 or 2 to 10, this means that our method should at least be able to differentiate individual participants' values on a coarse scale, such as "low" versus "high".</p><p>We then used the computed RMSEs to test if the amount of variance explained by our model is significantly greater than zero. Concretely, we performed a one-sample t-test to see if participants' squared error (between regression output and instructed cost) was significantly less than the variance of the instructed cost parameter. For the planning depth cost, we found that the squared error was significantly less than the variance (t(334) = −4.77, p &lt; 0.001). This implies that the regression model does explain a significant proportion of the variance of the true planning depth cost. However, for the mental effort cost, we found that participants' squared error was not significantly different from the variance of the true cost parameter (t(334) = −0.84, p &gt; 0.05). This makes sense given that the number of clicks was not significantly correlated with the imposed mental effort cost.</p><p>To capture meaningful individual differences, the absolute errors in the inferred cost parameter values should be at most 1 standard deviation of the parameter values found in Experiment 1: 2.60 for the planning depth cost and 4.72 for the mental effort cost. For the planning depth cost, 54% of participants' absolute errors were below this threshold. For the mental effort cost, 96% of participants' absolute errors were below this threshold. This indicates that we can reliably identify people with extreme levels of planning cost (i.e., 2+ standard deviations above/below the mean) and tell the difference between people with high versus low cost parameter values (i.e., 1+ standard deviations above the mean vs. 1+ standard deviations below the mean) for the majority of participants for both cost parameters.</p><p>Our method can be used to classify individuals as exhibiting a high versus low cost of planning Having found that our method is appropriate for measuring the cost of planning at a coarse scale, we then evaluated how accurately it can classify people as behaving according to a high versus low cost of planning. Concretely, we performed median splits on the imposed planning costs 4 and assessed whether our method could predict whether the imposed cost was above versus below the median. The classification was performed by applying a decision stump (one-level decision trees) to the prediction of our linear regression model described above. We used a 5-fold cross-validation procedure in which the decision threshold was optimized on one set of the data and the performance of the resulting classifier was evaluated on the held-out set. The performance of the classifier was measured by the balanced accuracy score <ref type="bibr" target="#b2">(Brodersen, Ong, Stephan, &amp; Buhmann, 2010)</ref>. For the planning depth cost, cross validation had an average balanced accuracy score of 69%. The values the data was split on varied from 3.12 to 4.27, depending on the fold. This suggests there is a bit of an offset in the linear regression model output, although it should correct for the participants' baseline parameter values. For the mental effort cost, the cross validation average balanced accuracy was only 49%. These results imply we can somewhat accurately differentiate between planning depth cost values on a coarser scale but cannot differentiate between coarser values of the mental effort cost. Since this analysis depends on both the linear regression model to correct for baseline cost values and the success of the cost manipulations, the accuracy reported here could be interpreted as a lower bound on the performance of our method. Measuring individual differences in the depth of planning How reliable are the high density intervals outputted by this method?</p><p>We examined the highest posterior density intervals outputted by our method (see details of calculation in the HDI subsection above) to investigate the reliability of our method's uncertainty estimates. We found that the spread (width) of the highest posterior density intervals which should quantify the confidence of the method in providing a parameter estimate were not significantly correlated with the apparent accuracy of the parameter estimate (all p &gt; 0.05).</p><p>We also found that the highest posterior density intervals appeared to be systematically too narrow, especially for the planning depth cost. Please see the "Experiment 2 highest posterior density intervals" section in the appendix for more details on these analyses and others. These results should be taken with a grain of salt because the ground truth is unknown, and the simulation-based results were more encouraging. However, we think it prudent to advise users of our method to rely primarily on the MAP estimates and not put too much weight on the highest posterior density intervals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>This validation experiment tested how accurate and how precise our method is at measuring individual differences in the cost of human planning, particularly the planning depth cost. Our results show that our method's MAP estimates of the planning depth cost are reasonably accurate, even though the accuracy of the corresponding highest posterior density intervals remains unclear.</p><p>Whether our method can accurately measure the mental effort cost remains unclear because our mental effort cost manipulation did not have the desired effect on the amount of planning. Relevant to potential clinical applications, we found we were able to detect whether the planning depth cost was below or above the population median with a balanced accuracy of 69% based on the MAP parameter estimates. The ability to accurately tell whether an individual participant's planning depth cost is larger than the standard value of the planning depth cost in the task may help researchers identify individuals with aberrant planning.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>In this article, we provided evidence for the existence of an internal planning depth cost and introduced a method for measuring its value for a given individual. In the process, we introduced a new resource-rational model that can explain human planning in a process-tracing paradigm better than previous models <ref type="bibr" target="#b9">(Callaway, van Opheusden, et al., 2022)</ref>. We validated our Bayesian inverse reinforcement learning method for measuring the planning depth cost on both simulated data and human data in an experiment where participants' experienced planning costs were manipulated.</p><p>Prospection has been hypothesized to be a central component to deliberation in intertemporal choice <ref type="bibr" target="#b4">(Bulley &amp; Schacter, 2020;</ref><ref type="bibr" target="#b25">Hunter, Bornstein, &amp; Hartley, 2018)</ref>. It therefore plays an important role in crucial life decisions that impact people's health, education, careers, relationships, and financial well-being <ref type="bibr" target="#b18">(Golsteyn, Grönqvist, &amp; Lindahl, 2014;</ref><ref type="bibr" target="#b42">Meier &amp; Sprenger, 2012;</ref><ref type="bibr" target="#b43">Mischel, Shoda, &amp; Rodriguez, 1989;</ref><ref type="bibr" target="#b63">Xu &amp; Yin, 2020)</ref>. This makes measuring and understanding individual differences in prospection a crucial first step towards developing interventions that help people identify, choose, and pursue what is best for them in the long-run <ref type="bibr" target="#b36">(Lempert &amp; Phelps, 2016)</ref>.</p><p>Previous work assessed individual differences in planning by looking at people's scores in behavioral tasks such as the Tower of London <ref type="bibr" target="#b14">(Daw, Niv, &amp; Dayan, 2005;</ref><ref type="bibr" target="#b34">Krikorian, Bartok, &amp; Gay, 1994)</ref> or through self-report measures Measuring individual differences in the depth of planning <ref type="bibr" target="#b3">(Bruine de Bruin, Parker, &amp; Fischhoff, 2007;</ref><ref type="bibr" target="#b40">Lynch et al., 2010;</ref><ref type="bibr" target="#b53">Steinberg et al., 2009;</ref><ref type="bibr" target="#b56">Strathman et al., 1994)</ref>. The benefit of our model-based approach over using such purely behavioral indices, such as the Tower of London task, is that it infers which planning operations were performed and interprets each planning operation in light of the beliefs that the person had when they selected this planning operation. This takes into account that people can often tell that looking further into the future is no longer useful for selecting the optimal action. To achieve this, our method traces the information the person acquires and models how their beliefs change with each new piece of information. The advantage of our method over the two-step task <ref type="bibr" target="#b14">(Daw et al., 2005)</ref> is that it measures the depth of planning, whereas the two-step task only measures whether people plan at all. The main advantage of our model over the previous model by <ref type="bibr" target="#b9">Callaway, van Opheusden, et al. (2022)</ref> is that it can capture individual differences in how far people are planning ahead. Our method differs from the approach used by van Opheusden et al. (2021) by using process-tracing and a fully resource-rational model of human planning. <ref type="bibr">Moreover, van Opheusden et al. (2021)</ref> constrained their model of planning to forward search, whereas our model can inspect nodes that are not adjacent to any of the nodes that have been inspected previously. The benefit of our method over self-report methods is that it is more quantitative, more objective, and does not rely on introspection. It thereby bypasses the problems that arise from people's tendency to give socially desirable responses <ref type="bibr" target="#b21">(Grimm, 2010)</ref> and comply with the experimenter's expectations <ref type="bibr" target="#b46">(Orne, 1996)</ref> and their limited metacognitive self-awareness and their often inaccurate self-assessments <ref type="bibr" target="#b15">(Dunning, 2011)</ref>.</p><p>One drawback of our Bayesian inverse reinforcement learning algorithm is that it assumes that a person's planning strategy never changes. Despite this limitation, we found that our method allows one to draw broad inferences about individual differences in the subjective cost of planning. A possible extension would be to extend our approach to settings where people's planning strategies change over time; this could be accomplished by using Bayesian inverse reinforcement learning for learning agents <ref type="bibr" target="#b35">(Kubala et al., 2019)</ref>. This work could draw on recent models of how people learn planning strategies <ref type="bibr" target="#b23">(He, Jain, &amp; Lieder, 2021;</ref><ref type="bibr" target="#b29">Jain, Gupta, et al., 2019)</ref>. One drawback of such a method would be the computational cost required for performing inference over the potentially large number of parameters for the model of how people learn planning strategies.</p><p>One assumption of our model is that participants choose their planning operations approximately optimally. This assumes that people's planning strategies are optimally adapted to the structure of the environment, that is that they know the distribution of possible rewards at different locations. While this becomes a reasonable assumption after a sufficient amount of experience, this assumption may not hold earlier in the learning process, or in cases where participants fail to discover the true structure of the environment. However, we found that our model fits participants with less post-task knowledge of the task structure just as well as those who displayed full post-task knowledge.</p><p>Another limitation of our work is that we performed parameter estimation over a rather limited grid of possible values. We did this because the timeconsuming process of calculating the optimal meta-level Q-values prevented us from using other optimization methods, such as Expectation-Maximization. These limitations could be addressed in future work.</p><p>Regardless of its limitations, our method makes it possible to investigate the effect of individual differences in the planning depth cost on decision-making.</p><p>An appealing feature of our method is that it grounds the measurement of Measuring individual differences in the depth of planning individual differences in planning in a state-of-the-art model of the underlying cognitive processes, thereby grounding the psychometrics of planning depth cost in cognitive modeling. We hope that this will facilitate the transfer of knowledge between research on the cognitive mechanisms of planning in controlled laboratory experiments and research on individual differences in planning in the real world (cf. <ref type="bibr" target="#b13">Cronbach, 1957)</ref>. To investigate the real-world validity of our measure of planning depth cost, future work will combine our empirical and computational methods with self-report measures of real-world planning and decision-making (cf. <ref type="bibr" target="#b41">Ma, Ma, &amp; Gureckis, 2021)</ref> and measures of psychiatric symptoms.</p><p>Our mechanistic model of short-sighted planning is a step towards understanding the causes and mechanisms of decision-making dysfunctions <ref type="bibr" target="#b19">(Goschke, 2014)</ref>. In the long run, being able to objectively measure and read out these individual differences in the planning depth cost might facilitate the development and selection of personalized treatments and interventions for helping people overcome short-sighted biases in planning and decision-making.  parameter estimates based on the last twenty trials (M : 0.03, SD : 0.13) versus all forty trials (M : 0.03, SD : 0.13). Using a two-sided Wilcoxon signedrank test, we found that the average action likelihood was significantly higher with the parameters inferred from the last half of trials than with the parameters inferred from all trials (W = 1570.00, RBC = 0.57, p &lt; 0.001, two-sided).</p><p>However, we found that the two cost parameter model still fit the data best, compared to the alternative models tested in Experiment 1, when using all 40 trials (see <ref type="figure">Figure A.</ref>1).</p><p>The model fits data generated for higher cost parameters better As an additional measure of parameter recovery, we calculated model fit on trajectories simulated from the optimal policy using the Effort Cost and Planning Depth model. 20 optimal participants were simulated for each cost parameter combination and their MAP estimates were computed. We found that the BIC was negatively correlated with higher cost parameters, meaning that trajectories generated with higher cost parameters are better fit by our model  There was no correlation between the decision temperature and the BIC (r(144) = 0.09, p &gt; 0.05, 95% C. I. <ref type="bibr">[−0.07, 0.25])</ref>. <ref type="figure">Figure A.</ref>3 shows the average BIC for trajectories generated with each possible cost combination on the inference grid. The correlations between cost parameters and BIC values are, at least in part, due to the fact that participants with higher costs do not perform as many planning operations (see <ref type="figure">Figure A.</ref>2).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Participant strategies for Experiment 1</head><p>We used the Computational Microscope as a measure of when participants have reached a stable policy and stopped learning. The Computational Microscope gives us the most likely strategy a participant was using for each trial. We then calculated the most common strategy for the last 20 trials of the experiment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="74">out of 122 participants operated via Strategy 21 of the Computational</head><p>Microscope. This strategy approximates the optimal strategy by exploring the final outcomes first.</p><p>The next most frequently used strategies were 31 and 37, for 7 and 6 participants, respectively Strategy 31 approximates depth first search, while strategy 37 inspects the nodes closer to the start and then follows a best-firstsearch strategy.</p><p>Participants with more spread out posteriors are still well explained by the model Regression results for parameter recovery from simulated trajectories 0.001, two-sided). Since the decision temperature can be seen as an index of model fit, this suggests that participants were better fit by the model in the test block. This makes sense since higher cost conditions are better fit by our model (see "The model fits data generated for higher cost parameters better" in this Appendix) and there was an additional cost in the test block.</p><p>Next, we tested the MAP estimates in each block against the estimates in Experiment 1 to see if the model fits participants in this experiment just as well. We found no significant difference between MAP estimates of the decision temperature in Experiment 1 (M : 1.09, SD : 1.63) and the estimates in the test block (Mann-Whitney U = 18080.50, p &gt; 0.05, two-sided) or the baseline block (Mann-Whitney U = 21089.50, p &gt; 0.05, two-sided). This is consistent with the interpretation that participants are fit just as well as participants in Experiment 1, in both blocks, even though there is a difference between blocks.</p><p>The order of the baseline block has little effect on behavior or inferred parameter values</p><p>We counter-balanced the baseline and test blocks to correct for two possible confounds: fatigue and increased task knowledge. To test if these order effects were present, we compared behavior and MAP estimates between participants Measuring individual differences in the depth of planning in each condition. We found that whether the test block was presented first or second had no significant effect on the number of nodes inspected in the test block (Mann-Whitney U = 14997.00, p &gt; 0.05, two-sided) or the baseline block (Mann-Whitney U = 12711.00, p &gt; 0.05, two-sided), nor did it affect the MAP estimates for the cost parameters in either the test block (planning depth cost: Mann-Whitney U = 12617.00, p &gt; 0.05, two-sided, two-sided; mental effort cost: Mann-Whitney U = 14011.50, p &gt; 0.05, two-sided) or the baseline block (planning depth cost: Mann-Whitney U = 15779.50, p = 0.05, two-sided; mental effort cost: Mann-Whitney U = 13509.00, p &gt; 0.05, two-sided). This implies that there was no significant main effect of block order on the amount of planning in this experiment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experiment 2 highest posterior density intervals</head><p>We examined the highest posterior density intervals outputted by our method (see details of calculation in the HDI subsection above) to investigate the reliability of our method's uncertainty estimates. We examined the spread (width) of the highest posterior density intervals which should quantify the confidence of the method in providing a parameter estimate. We also measured the accuracy of the method by looking at how often the values outputted by our linear regression model occur in the highest posterior density intervals.</p><p>The spread of the highest posterior density interval for the planning depth cost in the test block (M : 3.01, SD : 1.62) tended to be smaller than the spread of the highest posterior density interval for the mental effort . This suggests that our method is surprisingly less confident for people whose data is better fit by our model. We also found that for the cost parameters, higher MAP estimates are correlated with higher spread sizes (planning depth cost:r(335) = 0.13, p = 0.02, 95% C. I. [0.02, 0.23]; mental effort cost: r(335) = 0.47, p &lt; 0.001, 95% C. I. <ref type="bibr">[0.38, 0.55]</ref>). This means that the method is less confident for higher cost parameter values. This makes sense because there are many values of the cost parameters for which the model predicts no planning.</p><p>We next examined how accurate our method is by looking at how often the highest posterior density interval contains the value outputted by the linear regression equation found in the previous section. We used this value as an Measuring individual differences in the depth of planning estimate of the true cost because the linear regression equation considers the MAP estimate for the baseline block and will correct for any baseline offset in any of the parameters, as well as for the order of presentation for the baseline block. We found that 70% of highest posterior density intervals for the mental effort cost contain the estimated true parameter value and that 43% of highest posterior density intervals for the planning depth cost contain the estimated true parameter value. The fact that these proportions are much smaller than 95%, suggests that our method's highest posterior density intervals are not well calibrated. However, this might have to do more with the accuracy of the linear regression model and success of the planning depth cost manipulation than with the calibration of the highest posterior density intervals per se.</p><p>How reliable are the highest posterior density intervals on a more coarse scale?</p><p>Next we examined the correlation between the highest posterior density interval spread and the absolute error between the parameter estimates using the output of the linear regression model and the assigned costs for each participant. In order for the highest posterior density intervals to be useful, the method should report more narrow highest posterior density interval spreads when it can accurately estimate parameter values. There was no significant correlation between the spreads of the 95% highest posterior density intervals and the absolute error per participant for the cost parameters (mental effort cost: r(335) = −0.10, p &gt; 0.05, 95% C. I. [−0.21, 0.01]; planning depth cost:</p><p>r(335) = 0.08, p &gt; 0.05, 95% C. I. <ref type="bibr">[−0.03, 0.18]</ref>). This implies that when our method cannot predict the cost parameter well, it does not, unfortunately, communicate that by returning a wider range of possible values.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 :</head><label>1</label><figDesc>Example Mouselab-MDP trial.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>(a) A diagram of the meta-level MDP. (b)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>Fig. 3: (a) The Bayesian Information Criteria for each model. The lower the value, the better the fit. The vertical line denotes the average Bayesian Information Criterion of simulated participants with no added internal costs. (b) The average trial log likelihood for each trial, given the MAP cost parameter values inferred from the last twenty trials.Cost model (Wilcoxon signed-rank test, W = 746.00, RBC 1 = −0.40, p &lt; 0.01, two-sided), the Null (Given Costs) model (Wilcoxon signed-rank test, W = 52.00, RBC = −0.99, p &lt; 0.001, two-sided), and the Null model (Wilcoxon Measuring individual differences in the depth of planning signed-rank test, W = 130.00, RBC = −0.97, p &lt; 0.001, two-sided). Looking at the average planning operation likelihoods over time, we found no significant difference with time for the Effort and Planning Depth model (r(68) = 0.04, p &gt; 0.05, 95% C. I. [−0.20, 0.28]; see</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>clicking on first-level nodes (r(122) = 0.80, p &lt; 0.001, 95% C. I. [0.73, 0.86]), clicking on middle nodes (r(122) = 0.71, p &lt; 0.001, 95% C. I. [0.61, 0.79]), clicking on last-level nodes (r(122) = 0.87, p &lt; 0.001, 95% C. I. [0.82, 0.91]), and the total number of nodes clicked (r(122) = 0.88, p &lt; 0.001, 95% C. I.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 5 :</head><label>5</label><figDesc>The probability mass function for the exponential prior distribution on the temperature parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>planning behavior. The resulting 12x12x14 grid contains all possible combinations of 12 potential values of the mental effort cost and 12 potential values of the planning depth cost and 14 possible values of the temperature parameter.Given some observed planning behavior, our method then uses the prior distributions and the likelihood function in Equation 1 to compute the posterior probability of each parameter combination on our grid. It then selects the parameter combination with the highest posterior probability as the maximum a posteriori (MAP) estimate of the participant's cost function and temperature parameters, that isθ M AP = argmax ϑ P (τ | ϑ)P (θ)P (β).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>.1 for the coefficients in each linear regression. Additionally, we found that the inferred values of the planning depth cost and the mental effort cost were negatively correlated (r(143000) = −0.16, p &lt; 0.001, 95% C. I. [−0.17, −0.16]) while the inferred values of the planning depth cost and decision temperature were positively correlated (r(143000) = 0.18, p &lt; 0.001, 95% C. I. [0.18, 0.19]) and the inferred values of the mental effort cost and decision temperature were negative correlated (r(143000) = −0.20, p &lt; 0.001, 95% C. I. [−0.20, −0.19]). As one can see from Figure 6, the estimates are not only correlated but also close to the true values for the two cost parameters. The median absolute error was 0 for both cost parameters (range for planning depth cost: [−7.60, 10.00]; range for mental effort cost: [−15.00, 15.00]) and −0.90 for the decision temperature(range: [−95.00, 2.50]). These results suggest that our method can recover parameters relatively well.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>perature (mental effort cost: r(142857) = 0.24, p &lt; 0.001, 95% C. I.[0.23, 0.24]; decision temperature: r(142857) = 0.40, p &lt; 0.001, 95% C. I. [0.40, 0.41]). For the planning depth cost, we found only a slight negative correlation between the true parameter values and the HDI spread (r(142857) = −0.01, p &lt; 0.001, 95% C. I. [−0.02, −0.01]). This suggests that the precision of our planning depth cost's highest posterior density interval is not as affected by a participant's planning depth cost value, which further suggests that we should be able to use it to differentiate between people whose cost parameters differ to a significant extent. We next investigated, for each simulated participant, how the absolute error of our method's estimate (the MAP estimate minus the parameter used to simulate the trajectory) varied with the spread of the HDI. We found that the absolute error and the spread of all estimates were moderately correlated (planning depth cost: r(142857) = 0.44, p &lt; 0.001, 95% C. I. [0.44, 0.44]; mental effort cost: r(142857) = 0.53, p &lt; 0.001, 95% C. I. [0.53, 0.53]; decision temperature: r(142857) = 0.39, p &lt; 0.001, 95% C. I. [0.39, 0.40]). This means that the uncertainty communicated by the widths of the highest posterior density intervals outputted by our method is informative about the accuracy of the corresponding MAP estimate.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>cost conditions clicked less on late level nodes in the test block (Spearman's ρ(335) = −0.19, p &lt; 0.001, 95% C. I. [−0.29, −0.09]) but not in the baseline block (Spearman's ρ(335) = −0.06, p &gt; 0.05, 95% C. I. [−0.17, 0.04]). The manipulation of the mental effort cost was only partly working: while the number of clicks was significantly lower in the test block than in the baseline block (F (1, 332) = 236.01, p &lt; 0.001), the correlation between the assigned mental effort cost values and the number of clicks in the test block was not statistically significant (Spearman's ρ(335) = −0.07, p &gt; 0.05, 95% C. I. [−0.18, 0.04]).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head></head><label></label><figDesc>Open practices statement. Neither of the experiments was preregistered. The data and materials for all experiments are available at https://osf.io/ k8gtw/. Acknowledgements. The authors thank the International Max Planck Research School for Intelligent Systems (IMPRS-IS) for supporting Valkyrie Felso. The authors thank Martin Butz, Peter Dayan and Yash Raj Jain for helpful suggestions and comments.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. A. 1 :</head><label>1</label><figDesc>Bayesian information criterion when inferring MAP parameter estimates from all 40 trials.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head></head><label></label><figDesc>Fig. A.2: (a) Average number of early node clicks for the optimal policy under varying cost parameters (b) Average number of late node clicks for the optimal policy under varying cost parameters (c) Average number of middle node clicks for the optimal policy under varying cost parameters (d) Average number of clicks for the optimal policy under varying cost parameters.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. A. 3 :</head><label>3</label><figDesc>Model fit for trajectories generated by optimal policy as a function of the true parameter values as measured by the BIC (lower is better). Measuring individual differences in the depth of planning(planning depth cost: r(144) = −0.78, p &lt; 0.001, 95% C. I. [−0.84, −0.71]; mental effort cost: r(144) = −0.53, p &lt; 0.001, 95% C. I. [−0.64, −0.40]).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head></head><label></label><figDesc>Next, we found the posterior distribution of individual parameters (see the "Model Development" section). To test how well our model can explain the planning behavior of participants with more of a spread in their 95% highest posterior density intervals, we examined the correlation between highest posterior density interval spread and the participant-level BICs.We found that lower BICs were correlated with larger highest posterior density interval spreads for the mental effort cost (r(122)= −0.57, p &lt; 0.001, 95% C. I.[−0.68, −0.43]), as well as for the planning depth cost (r(122) = −0.47, p &lt; 0.001, 95% C. I. [−0.60, −0.32]). This is contrary to what we would have expected. We would have expected that participants with lower BICs, since they are better explained by the model, would have more narrow posterior distributions. Larger highest posterior density interval spreads for the decision temperature were, on the other hand, correlated with a higher BIC (r(122) = 0.30, p &lt; 0.001, 95% C. I. [0.13, 0.45]). This makes sense since the decision temperature has a different scale and since it indexes model fit. Worse model fit (higher BIC) should correspond to worse ability to infer parameters (larger highest posterior density interval spread.)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head></head><label></label><figDesc>cost (M : 8.44, SD : 3.64). The spread of the highest posterior density interval for the decision temperature was even smaller, but considering the difference in scale this is not surprising (M : 1.04, SD : 0.83). The spreads of the recovered parameter values in the baseline block (planning depth cost: M : 2.05, SD : 1.48; mental effort cost: M : 5.37, SD : 3.64; decision temperature: M : 0.90, SD : 1.01) were considerably larger than in the test block for the cost parameters (Wilcoxon signed-rank tests: planning depth cost: W = 7876.50, RBC = −0.57, p &lt; 0.001, two-sided; mental effort cost: W = 5650.50, RBC = −0.70, p &lt; 0.001, two-sided; decision temperature: W = 13218.50, RBC = −0.25, p &lt; 0.001, two-sided). The larger spreads in highest posterior density intervals for the baseline block may stem from participants exploring more once the added cost was removed. Therefore, the baseline blocks may not accurately reflect participants' subjective costs, which should be more stable. Participants may be exhibiting more variable costs as they have to adapt to new, external costs, and participants in general may react to these external costs in varied ways. When measured only in the test block, higher MAP estimates for the decision temperature are correlated with a lower spread size of the highest posterior density intervals of the other two parameters (planning depth cost: r(335) = −0.38, p &lt; 0.001, 95% C. I. [−0.47, −0.28]; mental effort cost: r(335) = −0.30, p &lt; 0.001, 95% C. I. [−0.39, −0.20])</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc>Considered Models.</figDesc><table><row><cell>Model name</cell><cell>Meta-</cell><cell>Node distribution</cell><cell>Parameters</cell></row><row><cell></cell><cell>level</cell><cell></cell><cell></cell></row><row><cell></cell><cell>action</cell><cell></cell><cell></cell></row><row><cell></cell><cell>selection</cell><cell></cell><cell></cell></row><row><cell>Null Random</cell><cell>Random</cell><cell>None</cell><cell>None</cell></row><row><cell cols="2">Null (Imposed Financial Costs Only) Softmax</cell><cell>True Distribution</cell><cell>β</cell></row><row><cell>Effort Cost Only</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w eff.</cell></row><row><cell>Planning Depth Only</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w depth.</cell></row><row><cell>Forward Search Only</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w forward</cell></row><row><cell>Backward Search Only</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w backward</cell></row><row><cell>Distance Cost Only</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w dist.</cell></row><row><cell>Effort Cost and Planning Depth</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w eff. , w depth.</cell></row><row><cell cols="2">Forward Search Bonus &amp; Effort Cost Softmax</cell><cell>True Distribution</cell><cell>β, w eff. , w forward</cell></row><row><cell>Backward Search Bonus &amp; Effort</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w eff. , w backward</cell></row><row><cell>Cost</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Distance Cost &amp; Effort Cost</cell><cell>Softmax</cell><cell>True Distribution</cell><cell>β, w eff. , w dist.</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head></head><label></label><figDesc>). 137 participants completed the experiment; the other participants quit during the instructions phase. Of these 137 participants, 15 participants were unable to pass the instructions quiz. So, we have complete data for 122 participants (52 females, 69 males, 1 nonbinary; median age 42, age range 20-75). Participants completed the task in a median time of 13.42 minutes and earned a median $3.24</figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 2 :</head><label>2</label><figDesc>Bayesian Model Selection Results.As a secondary model validation, we computed the average likelihood per planning operation per trial. To keep the text more readable, we only report on the best two models, that is the Distance and Effort Costs and the Effort and Planning Depth models, their nested models, and the null models. We found</figDesc><table><row><cell>Model Name</cell><cell cols="2">Expected number</cell><cell>Model proba-</cell><cell>Exceedance</cell></row><row><cell></cell><cell>of</cell><cell>participants</cell><cell>bility</cell><cell>probability</cell></row><row><cell></cell><cell cols="2">best explained by</cell><cell></cell></row><row><cell></cell><cell cols="2">the model</cell><cell></cell></row><row><cell>Effort Cost and Planning Depth</cell><cell>47.89</cell><cell></cell><cell>0.37</cell><cell>0.94</cell></row><row><cell>Effort Cost Only</cell><cell>33.62</cell><cell></cell><cell>0.26</cell><cell>0.06</cell></row><row><cell>Distance and Effort Costs</cell><cell>20.25</cell><cell></cell><cell>0.16</cell><cell>0.00</cell></row><row><cell>Forward Search Bonus and Effort</cell><cell>7.59</cell><cell></cell><cell>0.06</cell><cell>0.00</cell></row><row><cell>Cost</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Planning Depth Only</cell><cell>5.14</cell><cell></cell><cell>0.05</cell><cell>0.00</cell></row><row><cell>Distance Cost Only</cell><cell>4.14</cell><cell></cell><cell>0.04</cell><cell>0.00</cell></row><row><cell>Null</cell><cell>3.04</cell><cell></cell><cell>0.03</cell><cell>0.00</cell></row><row><cell>Backward Search Bonus Only</cell><cell>0.00</cell><cell></cell><cell>0.01</cell><cell>0.00</cell></row><row><cell>Backward Search Bonus and Effort</cell><cell>0.03</cell><cell></cell><cell>0.01</cell><cell>0.00</cell></row><row><cell>Cost</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Forward Search Bonus Only</cell><cell>0.30</cell><cell></cell><cell>0.01</cell><cell>0.00</cell></row><row><cell>Null (Given Costs)</cell><cell>0.00</cell><cell></cell><cell>0.01</cell><cell>0.00</cell></row></table><note>that the average likelihood of a planning operation was significantly higher for the Effort and Planning Depth Model than for the Distance and Effort</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table A .</head><label>A</label><figDesc>1: Simulated Recovery Regression Results. : p &lt; .05, ** : p &lt; .01, *** : p &lt; .001 Planning Operation Likelihoods for Each Model Table A.2: Average Planning Operation Likelihood per Trial for each Model.To see how well the model fit participants' behavior in each block, we looked at the difference in the decision temperature estimates between the test versus the baseline block. The decision temperature MAP estimates were significantly</figDesc><table><row><cell cols="3">Additional Experiment 2 Analyses</cell><cell></cell></row><row><cell cols="5">Both blocks in Experiment 2 are fit just as well as the test</cell></row><row><cell cols="2">block in Experiment 1</cell><cell></cell><cell></cell></row><row><cell cols="3">Response variable Input variable β (SD)</cell><cell></cell><cell>t-value</cell></row><row><cell>w eff.</cell><cell>Intercept</cell><cell cols="2">0.193(0.012)  *  *  *</cell><cell>16.096</cell></row><row><cell cols="2">w eff.ŵeff.</cell><cell cols="2">0.680(0.002)  *  *  *</cell><cell>319.826</cell></row><row><cell cols="2">w eff.ŵdepth</cell><cell cols="2">0.121(0.002)  *  *  *</cell><cell>48.909</cell></row><row><cell cols="5">w eff.β lower for the test block (M : 0.91, SD : 1.29) than for the baseline block (M : 0.154(0.002)  *  *  *  70.014</cell></row><row><cell cols="5">w depth. w depth.ŵeff. Intercept 1.28, SD : 1.78; Wilcoxon signed-rank test W = 12297.50, RBC = −0.26, p &lt; −0.383(0.009)  *  *  *  −44.897 0.230(0.002)  *  *  *  151.933</cell></row><row><cell cols="2">w depth.ŵdepth</cell><cell cols="2">1.020(0.002)  *  *  *</cell><cell>579.001</cell></row><row><cell cols="2">w depth.β</cell><cell cols="2">−0.053(0.002)  *  *  *</cell><cell>−33.999</cell></row><row><cell>β</cell><cell>Intercept</cell><cell cols="2">−7.359(0.070)  *  *  *</cell><cell>−105.429</cell></row><row><cell cols="2">βŵ eff.</cell><cell cols="2">−0.590(0.012)  *  *  *</cell><cell>−47.713</cell></row><row><cell cols="2">βŵ depth</cell><cell cols="2">−0.572(0.014)  *  *  *</cell><cell>−39.716</cell></row><row><cell cols="2">ββ</cell><cell cols="2">8.974(0.013)  *  *  *</cell><cell>702.985</cell></row><row><cell cols="2">SD = Standard Deviation</cell><cell></cell><cell></cell></row><row><cell>Model</cell><cell></cell><cell>Mean</cell><cell>SD</cell></row><row><cell cols="3">Effort Cost and Planning Depth 0.033</cell><cell>0.126</cell></row><row><cell cols="2">Distance Cost Only</cell><cell>0.032</cell><cell>0.126</cell></row><row><cell cols="2">Distance and Effort Costs</cell><cell>0.032</cell><cell>0.126</cell></row><row><cell cols="2">Planning Depth Only</cell><cell>0.032</cell><cell>0.126</cell></row><row><cell cols="2">Effort Cost Only</cell><cell>0.015</cell><cell>0.013</cell></row><row><cell cols="2">Null (Given Costs)</cell><cell>0.004</cell><cell>0.005</cell></row><row><cell>Null</cell><cell></cell><cell>0.002</cell><cell>0.010</cell></row><row><cell cols="2">SD = Standard Deviation</cell><cell></cell><cell></cell></row></table><note>*</note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot">Measuring individual differences in the depth of planning</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">The rank biserial correlation (RBC) is one way of quantifying the effect size of a Wilcoxon signed-rank test. It is the proportion of data in favor of the hypothesis versus not<ref type="bibr" target="#b33">(Kerby, 2014;</ref><ref type="bibr" target="#b59">Vallat, 2018)</ref>.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">The intensity parameter λ of this exponential distribution was set to 1.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3">In this regression analysis, we added the order of the baseline block presentation as an additional covariate.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4">The median was 5.0 for the planning depth cost and 5.0 for the mental effort cost.</note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Declarations Funding</head><p>The authors have no relevant financial or non-financial interests to disclose.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflicts of interest</head><p>The authors declare that they have no conflicts of interest. Participants were informed that their data could be published anonymously and indicated their consent for publication.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Ethics approval</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix</head><p>How do our assumptions of environment knowledge and stationarity affect model fit?</p><p>Because our resource-rational model assumes that participants know the possible distributions of values behind nodes and are not changing their planning strategy, we only used trials from the last half of the experiment for our model selection. To test how these assumptions might impact model fit, we looked at the average action likelihood for participants in Experiment 1 using the MAP</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">The adaptive character of thought</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Anderson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>Psychology Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">A survey of inverse reinforcement learning: Challenges, methods and progress</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Arora</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Doshi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="page">103500</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">The balanced accuracy and its posterior distribution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">H</forename><surname>Brodersen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Ong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Buhmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">20th international conference on pattern recognition</title>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="3121" to="3124" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Individual differences in adult decision-making competence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Bruine De Bruin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Parker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Fischhoff</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0022-3514.92.5.938</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">92</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="938" to="956" />
+			<date type="published" when="2007-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Deliberating trade-offs with the future</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bulley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Schacter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="238" to="247" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">R</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Iwama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Leveraging artificial intelligence to improve people&apos;s planning strategies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page">2117432119</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">A resource-rational analysis of human planning. Cogsci. Measuring individual differences in the depth of planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Griffiths</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Mouselab-mdp: A new paradigm for tracing how people plan. OSF Preprints. Retrieved from osf</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Griffiths</surname></persName>
+		</author>
+		<idno type="DOI">10.31219/osf.io/7wcya</idno>
+		<ptr target="io/7wcya10.31219/osf.io/7wcya" />
+		<imprint>
+			<date type="published" when="2017-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Rational use of cognitive resources in human planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="14" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Adaptive expert decision making: Skilled chess players search more and deeper</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Campitelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Gobet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ICGA Journal</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="209" to="216" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">Expertise in chess: The balance between knowledge and search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Charness</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">The Bayesian information criterion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Claeskens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">L</forename><surname>Hjort</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/CBO9780511790485.004</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Model selection and model averaging</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2008" />
+			<biblScope unit="page" from="70" to="98" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">The two disciplines of scientific psychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Cronbach</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American psychologist</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="671" to="684" />
+			<date type="published" when="1957" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="1704" to="1711" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The dunning-kruger effect: On being ignorant of one&apos;s own ignorance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dunning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in experimental social psychology</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="page" from="247" to="296" />
+			<date type="published" when="2011" />
+			<publisher>Elsevier</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Posterior predictive assessment of model fitness via realized discrepancies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X.-L</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Stern</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistica sinica</title>
+		<imprint>
+			<biblScope unit="page" from="733" to="760" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Predicting retirement savings using survey measures of exponential-growth bias and present bias</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">S</forename><surname>Goda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">F</forename><surname>Manchester</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sojourner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tasoff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Economic Inquiry</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1636" to="1658" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Adolescent time preferences predict lifetime outcomes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">H</forename><surname>Golsteyn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Grönqvist</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lindahl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Economic Journal</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="issue">580</biblScope>
+			<biblScope unit="page" from="739" to="761" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Dysfunctions of decision-making and cognitive control as transdiagnostic mechanisms of mental disorders: advances, gaps, and needs in current research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Goschke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Methods in Psychiatric Research</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">S1</biblScope>
+			<biblScope unit="page" from="41" to="57" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Doing more with less: meta-reasoning and meta-learning in humans and machines</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">B</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Grant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Behavioral Sciences</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="24" to="30" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note>Measuring individual differences in the depth of planning</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Social desirability bias</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Grimm</surname></persName>
+		</author>
+		<idno type="DOI">10.1002/9781444316568.wiem02057</idno>
+		<ptr target="https://doi.org/10.1002/9781444316568.wiem02057" />
+	</analytic>
+	<monogr>
+		<title level="m">Wiley international encyclopedia of marketing</title>
+		<editor>J. Sheth &amp; N. Malhotra</editor>
+		<imprint>
+			<publisher>John Wiley &amp; Sons</publisher>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tolpin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Shimony</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1408.2048</idno>
+		<title level="m">Selecting computations: Theory and applications</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title level="m" type="main">Measuring and modelling how people learn how to plan and how people adapt their planning strategies the to structure of the environment. International conference on cognitive modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">R</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<ptr target="https://mathpsych.org/presenta-tion/604/document" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Evaluation factors in human tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Holding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The American Journal of Psychology</title>
+		<imprint>
+			<biblScope unit="volume">102</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="103" to="108" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">A common deliberative process underlies model-based planning and patient intertemporal choice. bioRxiv</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Hunter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Bornstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Hartley</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page">499707</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Interplay of approximate planning strategies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Lally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Faulkner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Eshel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Seifritz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Roiser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="3098" to="3103" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title level="m" type="main">A computational process-tracing method for measuring people&apos;s planning strategies and how they change over time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">R</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Measuring how people learn how to plan. Cogsci</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">R</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="1956" to="1962" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">R</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rakesh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">How do people learn how to plan</title>
+	</analytic>
+	<monogr>
+		<title level="m">Conference on cognitive computational neuroscience</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="826" to="829" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">Monitoring information processing and decisions: The mouselab system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Payne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Bettman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Schkade</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Tech. Rep.</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Bayes factors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Kass</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Raftery</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the american statistical association</title>
+		<imprint>
+			<biblScope unit="volume">90</biblScope>
+			<biblScope unit="issue">430</biblScope>
+			<biblScope unit="page" from="773" to="795" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">The simple difference formula: An approach to teaching nonparametric correlation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Kerby</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comprehensive Psychology</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">11</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Tower of london procedure: a standard method and developmental data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Krikorian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bartok</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of clinical and Experimental Neuropsychology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="840" to="850" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Inverse reinforcement learning from a learning agent. Reinforcement learning and decision making conference. Measuring individual differences in the depth of planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Kubala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Konidaris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Greenwald</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">The malleability of intertemporal choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Lempert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Phelps</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="64" to="74" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">A cognitive tutor for helping people overcome present bias. The fourth multidisciplinary conference on reinforcement learning and decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">R</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Griffiths</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Resource-rational analysis: Understanding human cognition as the optimal use of limited computational resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="page">43</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Turkprime. com: A versatile crowdsourcing data acquisition platform for the behavioral sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Litman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Abberbock</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Behavior research methods</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page" from="433" to="442" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">A generalizable scale of propensity to plan: The long and the short of planning for time and for money</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">G</forename><surname>Lynch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Netemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Spiller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zammit</surname></persName>
+		</author>
+		<idno type="DOI">108-128.10.1086/649907</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Consumer Research</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2010-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Information sampling for contingency planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Gureckis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the annual meeting of the cognitive science society</title>
+		<meeting>the annual meeting of the cognitive science society</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">43</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Time discounting predicts creditworthiness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Meier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Sprenger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological science</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="56" to="58" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Delay of gratification in children</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Mischel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shoda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">244</biblScope>
+			<biblScope unit="issue">4907</biblScope>
+			<biblScope unit="page" from="933" to="938" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Using balanced time perspective to explain well-being and planning in retirement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mooney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Earl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">H</forename><surname>Mooney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bateman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in psychology</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">1781</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">Human problem solving</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Newell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Simon</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1972" />
+			<publisher>Prentice-hall</publisher>
+			<biblScope unit="volume">104</biblScope>
+			<pubPlace>Englewood Cliffs, NJ</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Demand characteristics. Introducing psychological research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">T</forename><surname>Orne</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1996" />
+			<publisher>Springer</publisher>
+			<biblScope unit="page" from="395" to="401" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ramachandran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Amir</surname></persName>
+		</author>
+		<title level="m">Bayesian inverse reinforcement learning. Ijcai</title>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="2586" to="2591" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies-revisited</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rigoux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="971" to="985" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Prediction error and its estimation for subset-selected models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Roecker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Technometrics</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="459" to="468" />
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+	<note>Measuring individual differences in the depth of planning</note>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Preference elicitation and inverse reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Rothkopf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dimitrakakis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Joint european conference on machine learning and knowledge discovery in databases</title>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="page" from="34" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+		<title level="m" type="main">A handbook of process tracing methods for decision research: A critical review and user&apos;s guide</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schulte-Mecklenbeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kühberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">G</forename><surname>Johnson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<publisher>Psychology Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Estimating the dimension of a model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schwarz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="page" from="461" to="464" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Age differences in future orientation and delay discounting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Steinberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>O'brien</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Woolard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Cauffman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Banich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Child Development</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="28" to="44" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Penny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies</title>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1004" to="1017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">The consideration of future consequences: Weighing immediate and distant outcomes of behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Strathman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Gleicher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Boninger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Edwards</surname></persName>
+		</author>
+		<idno type="DOI">742-752.10.1037/0022-3514.66.4.742</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Todd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Gigerenzer</surname></persName>
+		</author>
+		<title level="m">Ecological rationality: Intelligence in the world</title>
+		<imprint>
+			<publisher>Oxford University Press</publisher>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Pingouin: statistics in python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vallat</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Open Source Softw</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">31</biblScope>
+			<biblScope unit="page">1026</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+		<title level="m" type="main">A computational model for decision tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Galbiati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Bnaya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<title level="m" type="main">Revealing the impact of expertise on human planning with a two-player board game</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Galbiati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Bnaya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title level="m" type="main">Ten simple rules for the computational modeling of behavioral data. eLife</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">49547</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">The roles of time discounting and delay of gratification in career outcomes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Yin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Counseling Psychology</title>
+		<imprint>
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">747</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

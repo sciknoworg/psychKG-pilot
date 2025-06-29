@@ -1,0 +1,1821 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Cognitive models of decision-making with identifiable parameters: Diffusion Decision Models with within-trial noise</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+							<email>m.d.nunez@uva.nl</email>
+							<affiliation key="aff0">
+								<orgName type="department">Psychological Methods</orgName>
+								<orgName type="institution">University of Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anna-Lena</forename><surname>Schubert</surname></persName>
+							<email>anna-lena.schubert@uni-mainz.de</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Mainz</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gidon</forename><forename type="middle">T</forename><surname>Frischkorn</surname></persName>
+							<email>gidon.frischkorn@psychologie.uzh.ch</email>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Zurich</orgName>
+								<address>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Klaus</forename><surname>Oberauer</surname></persName>
+							<email>k.oberauer@psychologie.uzh.ch</email>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Zurich</orgName>
+								<address>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Cognitive models of decision-making with identifiable parameters: Diffusion Decision Models with within-trial noise</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:08+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Drift-diffusion model Internal noise Identifiability Bayesian methods Neuro-cognitive modeling</keywords>
+			</textClass>
+			<abstract>
+				<p>Diffusion Decision Models (DDMs) are a widely used class of models that assume an accumulation of evidence during a quick decision. These models are often used as measurement models to assess individual differences in cognitive processes such as evidence accumulation rate and response caution. An underlying assumption of these models is that there is internal noise in the evidence accumulation process. We argue that this internal noise is a relevant psychological construct that is likely to vary over participants and explain differences in cognitive ability. In some cases a change in noise is a more parsimonious explanation of joint changes in speed-accuracy tradeoffs and ability. However, fitting traditional DDMs to behavioral data cannot yield estimates of an individual&apos;s evidence accumulation rate, caution, and internal noise at the same time. This is due to an intrinsic unidentifiability of these parameters in DDMs. We explored the practical consequences of this unidentifiability by estimating the Bayesian joint posterior distributions of parameters (and thus joint uncertainty) for simulated data. We also introduce methods of estimating these parameters. Fundamentally, these parameters can be identified in two ways: (1) We can assume that one of the three parameters is fixed to a constant. We show that fixing one parameter, as is typical in fitting DDMs, results in parameter estimates that are ratios of true cognitive parameters including the parameter that is fixed. By fixing another parameter instead of noise, different ratios are estimated, which may be useful for measuring individual differences. (2) Alternatively, we could use additional observed variables that we can reasonably assume to be related to model parameters. Electroencephalographic (EEG) data or singleunit activity from animals can yield candidate measures. We show parameter recovery for models with true (simulated) connections to such additional covariates, as well as some recovery in misspecified models. We evaluate this approach with both single-trial and participant-level additional observed variables. Our findings reveal that with the integration of additional data, it becomes possible to discern individual differences across all parameters, enhancing the utility of DDMs without relying on strong assumptions. However, there are some important caveats with these new modeling approaches, and we provide recommendations for their use. This research paves the way to use the deeper theoretical understanding of sequential sampling models and the new modeling methods to measure individual differences in internal noise during decision-making.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Cognitive modeling of individuals' data from behavioral experiments is a powerful method of measuring individual differences. Specifically, fitting cognitive models to behavioral data results in parameter estimates capturing individual differences in theoretically interpretable parameters <ref type="bibr" target="#b49">(Schmiedek et al., 2007;</ref><ref type="bibr" target="#b10">Farrell and Lewandowsky, 2018;</ref><ref type="bibr" target="#b14">Frischkorn and Schubert, 2018;</ref><ref type="bibr" target="#b7">Dutilh et al., 2019;</ref><ref type="bibr" target="#b26">Lerche et al., 2020;</ref><ref type="bibr" target="#b50">Schubert and Frischkorn, 2020;</ref><ref type="bibr" target="#b15">Frischkorn et al., 2022)</ref>. These methods rely on the veracity of the cognitive models. To gain trust in the veracity of a model, researchers ensure that cognitive models describe the data well, that models predict data from new experiments, and that the parameters respond to experimental manipulations in the way it is expected given their cognitive interpretation, for example in selective influence studies. In this work we</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1.">Diffusion decision models</head><p>Diffusion Decision Models (DDMs; also known as Drift-Diffusion Models) are among the empirically best established models of cognitive processes <ref type="bibr" target="#b42">(Ratcliff et al., 2016b)</ref>. DDMs describe simple decision-making via an accumulation of evidence to a threshold <ref type="bibr" target="#b55">(Stone, 1960;</ref><ref type="bibr" target="#b40">Ratcliff, 1978;</ref><ref type="bibr" target="#b42">Ratcliff et al., 2016b)</ref>. These models describe data well from experiments with perceptual decision-making tasks (e.g. van <ref type="bibr" target="#b44">Ravenzwaaij et al., 2012)</ref>, memory tasks (e.g. <ref type="bibr" target="#b41">Ratcliff et al., 2016a)</ref>, value-based decisions (e.g. <ref type="bibr" target="#b25">Krajbich et al., 2010)</ref>, and others.</p><p>DDMs have parameters that describe multiple cognitive components of a decision. Parameters reflect the rate of evidence accumulation in favor of one or another decision (i.e., the drift rate ), the amount of evidence required to make a decision (i.e., the boundary/criterion parameter ), a parameter for the noisiness of evidence accumulation (i.e., the diffusion coefficient ), the initial evidence for one choice over another (i.e., the start point parameter -assumed in our work to be proportional to the boundary/criterion parameter instead of reflecting absolute evidence), and the time for non-decision processes (i.e., the non-decision time ). When fitting DDMs to data from individuals , we can interpret an individual's parameter estimates as measures of their speed of processing decision-relevant information (i.e., their drift rate ), their caution (i.e., their criterion parameter ), their internal noise in the decision-making process (i.e., their diffusion coefficient ), their initial bias for a choice (i.e. their proportional start point parameter ), and their speed of non-decision processes ( ). A simple DDM with these parameters is mathematically defined by the following density equation for binary choices and RTs <ref type="bibr" target="#b40">(Ratcliff, 1978;</ref><ref type="bibr" target="#b57">Tuerlinckx, 2004)</ref>: </p><formula xml:id="formula_0">⎧ ⎪ ⎪ ⎪ ⎨ ⎪ ⎪ ⎪ ⎩ ( , = 0 | , ,<label>, , ) = 2</label></formula><p>The advantages of DDMs are that they contain parameters that are interpretable as reflecting certain cognitive mechanisms or processes, which we can compare across participants and patient populations. This is in contrast to computational models that instantiate complex brain mechanistic behavior, that can not easily be fit to data. This is also in contrast to models in explainable AI that can perform tasks but are very difficult to interpret.</p><p>However, drawing inference about a certain set of DDM parameters that we expect to vary over individuals is difficult due to unidentifiablity (i.e., an inverse problem). Specifically, simultaneously estimating drift rate , the criterion , and the internal noise is not possible. At least one of these DDM parameters (typically the internal noise ) is therefore often ignored. In this work we further explore this problem of identifiablity, show how these parameters can be identified, and discuss implications for the identifiability of models in general.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.">Classical unidentifiability of the evidence parameters in DDMs</head><p>Unidentifiability is a property of a model such that the parameters can not be estimated well when fitting a model to observed data. Conceptually this property arises when we can simulate a model from a set of parameters that generates simulated data, but we cannot obtain unique parameter estimates from any data of the same type (true or simulated) when the model is fit to data. As a result, there are multiple different sets of parameter estimates that are probable given the data. This is related, if not identical to, the "inverse problems" in some scientific fields, for example astronomy <ref type="bibr" target="#b8">(Ellerbroek and Vogel, 2009)</ref>. The term "unidentifiable" often describes statistical models, and is therefore the term we will use in this paper, whereas the latter term, "inverse problem", often describes deterministic models but can describe both types of models in certain scientific fields <ref type="bibr" target="#b56">(Tarantola, 2006)</ref>.</p><p>Parameters of any mathematical (deterministic or stochastic) model are classically unidentifiable for given data when a set of parameters can take multiple values to describe the data equally well. For instance, a vector of parameters ( , , ) of a DDM equal to (2, 1, 1) would describe the exact same choice-RT data as the same vector of parameters equal to <ref type="bibr">(1, .5, .5)</ref>. Classical unidentiability can be shown algebraically using the mathematical equations that define the density function of the statistical cognitive model (e.g., reducing Equation 1 to Equation 2). In particular, DDMs often used for identifying cognitive individual differences are classically unidentified with only behavioral data.</p><p>One case of unidentifiability in DDMs is that it is not possible to separately identify an absolute evidence boundary/criterion and an absolute start point of evidence. This unidentifiability holds significance in the field of decision making in Cognitive and Computational Neuroscience, where one aim is to determine evidence cutoffs in neural data (e.g. see <ref type="bibr" target="#b3">Bogacz et al., 2010;</ref><ref type="bibr" target="#b22">Jun et al., 2021)</ref>. However, for psychological applications it is known that this unidentifiability can be fixed with a proportional start parameter (e.g. <ref type="bibr" target="#b2">Boehm et al., 2021)</ref>. It is thus usually assumed that the absolute start point parameter is fixed to and thus not estimated. In the following work the reader can assume that all instances of boundary and start point parameters are the relative parameters in both simulation and model fitting procedures. In this paper we will instead focus on the following unidentifiability.</p><p>Three of the parameters in the DDM are not jointly identifiable with choice-RT data alone <ref type="bibr" target="#b40">(Ratcliff, 1978;</ref><ref type="bibr" target="#b43">Ratcliff et al., 2004;</ref><ref type="bibr" target="#b6">Donkin et al., 2009;</ref><ref type="bibr" target="#b29">van Maanen and Miletić, 2021)</ref>. Specifically, the drift rate , the boundary parameter , and the diffusion coefficient are not classically identified. Dividing all three parameters by the same number will result in the same fit of choice-RT because the model makes exactly the same prediction, resulting in the same value given by the statistical likelihood function. This is illustrated by the example above, with = 2. This is because the density function depends only on the quantities ∕ , which we define as the Signal-to-Noise Ratio (SNR), and ∕ , which we define as the Criterion-to-Noise Ratio (CNR). 1 With some simple algebra we can show that the density equation (Equation 1) 2 for choice-RTs depends only on SNR = ∕ and CNR = ∕ :</p><formula xml:id="formula_2">⎧ ⎪ ⎪ ⎪ ⎨ ⎪ ⎪ ⎪ ⎩ ( , = 0 | , , , ) = 2 − 1 2 2 + 2 ( − ) ∑ ∞ =1 sin ( ) − 1 2 2 2 2 ( − ) ( , = 1 | , , , ) = ( , = 0 | − , , 1 − , )<label>(2)</label></formula><p>This identifiability problem means that, in practice, one of the three parameters, , , or , needs to be set to a constant, fixing the measurement scale, so that the other two can be estimated relative to it. This raises the question of what happens if the cognitive process described by the parameter that we choose to fix actually varies between individuals, or between situations. As that variance is expressed in the choice-RT data, inevitably, other model parameters will capture it -but which ones, and how? This is not immediately clear from the likelihood model, because the shape of the likelihood over parameter values (and thus the posterior distribution) in multidimensional space depends on the observed data. In the first part of this paper, we explore this question through simulation.</p><p>Most researchers who use DDMs in individual differences research make one of the following assumptions. Assumption (1): The diffusion coefficient is a normalizing constant that is not relevant to understanding individual differences in human cognition. Assumption (2): While not perfect due to the unidentifiability of DDMs, parameter estimates of and reflect true individual differences in the underlying individuals' cognition. Assumption (2) is not an unreasonable due to experiments of selective influence <ref type="bibr" target="#b59">(Voss et al., 2004;</ref><ref type="bibr" target="#b7">Dutilh et al., 2019)</ref>. Assumption (1), however, is not appropriate, as we show below.</p><p>In practice, both assumptions result in the diffusion coefficient being used as the scaling constant, usually fixed to 1 or 0.1. This is also built into most packages for fitting DDMs to data (e.g., <ref type="bibr" target="#b60">Voss and Voss, 2007;</ref><ref type="bibr" target="#b62">Wagenmakers et al., 2007;</ref><ref type="bibr" target="#b61">Wabersich and Vandekerckhove, 2014)</ref>. In some work the boundary has been fixed in order to estimate individual differences in the diffusion coefficient (e.g. <ref type="bibr" target="#b32">Nunez et al., 2015</ref><ref type="bibr" target="#b33">Nunez et al., , 2017</ref>. Furthermore, a reparameterization of the DDM has been suggested to fix the boundary relative to the diffusion coefficient <ref type="bibr" target="#b2">(Boehm et al., 2021)</ref>. Later in this paper, we discuss the circumstances under which all three parameters can be estimated freely, potentially solving the unidentifiability problem if additional data is available.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Rethinking classical DDM fitting procedures</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Simulations and EZ-diffusion estimates of DDMs with varying diffusion coefficients</head><p>We simulated data from simple DDMs with variation in the diffusion coefficient in Python 3 in order to demonstrate how the diffusion coefficient can be a parameter of psychological and theoretical interest. We did so using the Euler method with a step size of Δ = 10 ms that directly simulates a Wiener process that passes one of two boundaries (0 or ). We fixed the proportional start point to .5 of the total evidence required to make a decision.</p><p>To understand the possible effects of the diffusion coefficient on human behavior, consider <ref type="figure" target="#fig_1">Figure 1</ref>. <ref type="figure" target="#fig_1">Figure 1</ref> shows that when = 1 and = 1, increasing drift rate causes higher mean accuracies, shorter mean response times (RTs) and smaller RT variances. When = 3 and = 1, larger boundaries lead to higher accuracies, longer mean RTs, and larger RT variances. When = 3 and = 1, higher diffusion coefficients cause lower mean accuracies, shorter mean RTs, and larger RT variances. However note that the relationship of diffusion coefficients to RT variances is more complex than this figure suggests, as when = 1 and = 1, increases in diffusion coefficients generally lead to smaller RT variances. These simple simulations clearly show that variation of the diffusion coefficients can capture different behavioral effects than variations of each of the other two parameters individually. Therefore, a change in the diffusion coefficient would be a more parsimonious explanation of certain changes in behavior, such as decreases in accuracy and mean RT with an associated increase in RT variance, than changes in both the other two parameters.</p><p>However, the parameters do not capture differentiable effects when they all vary together. To illustrate the reason for the unidentifiability of the three parameters with only behavioral data, we ran the following additional simulations. We simulated a base model with a true drift rate of 1.5 evidence units per second, a true boundary parameter of 1.2, and a true diffusion coefficient of 1, in summary given by the triad ( , , ) = (1.5, 1.2, 1). This results in the cognitive evidence paths that pass choice boundaries shown in <ref type="figure" target="#fig_2">Figure 2a</ref>. Note that the Signal-to-Noise Ratio (SNR; ratio of drift rate to diffusion coefficient) ∕ equals 1.5 and the Criterion-to-Noise Ratio (CNR; ratio of boundary to diffusion coefficient) ∕ equals 1.2. We then adjusted the simulation by doubling each parameter, resulting in ( , , ) = (3, 2.4, 2), while using the same random seed. This change maintained the original evidence paths when scaled to the new boundary, as illustrated in <ref type="figure" target="#fig_2">Figure 2b</ref>, leading to identical times for boundary crossing and, consequently, the same choice RTs. It is important to note that while the y-axis scales with the change in parameter values-a factor that may be relevant for cognitive neuroscientific applications of the model (see below)-such scaling cannot be observed in behavioral experiments. The relationship between parameters drift rate , boundary , or diffusion coefficient to mean accuracy, mean response time, or response time variance when simulating from Decision Diffusion Models (DDMs). This figure was generated with base drift rate = 3, base diffusion coefficient = 1, and base boundaries = 1 unless the parameter is specified in the figure as changing along the x-axis.</p><p>Based on the simulation results, we do not expect that fitting DDMs to choice-RT data yields any additional information about all three parameters. To show this, we conducted a so-called parameter recovery study (we refer readers to the tutorial paper by <ref type="bibr" target="#b31">Nunez et al. (2024)</ref> for more information on parameter recovery). That is, we wished to find out how well parameters are estimated from simulated data with a known set of generating parameters. We obtained parameter estimates of simulated choice-RTs using the EZ-diffusion method <ref type="bibr" target="#b62">(Wagenmakers et al., 2007;</ref><ref type="bibr" target="#b43">van Ravenzwaaij et al., 2017)</ref>. The EZ-diffusion method relies on the statistical method of moments to estimate parameters from equations based on the sample accuracy (or choice proportion), mean RT, and RT variance. The EZ-diffusion method does not estimate, but rather fixes, the diffusion coefficient due to the unidentifiability of the model with behavioral data alone. The EZ estimates of drift and boundary are the same in both simulations of <ref type="figure" target="#fig_2">Figure 2a</ref> and 2b, close to the true SNR and CNR (̂ = 1.48,̂ = 1.25).</p><p>Some researchers may remain unconcerned by this demonstration because SNR and CNR are still useful psychological constructs that reflect the person's decision ability and their speed-accuracy tradeoff, respectively, and thus the diffusion coefficient can safely be ignored as a scaling constant. This is only partly true. We identified at least 3 problems with this line of reasoning. The first is that true individual differences in-or experimental effects oninternal noise, as reflected by the diffusion coefficient , will be reflected in both estimates of the drift rate and the boundary. Let's compare the EZ diffusion estimates of the first simulation with the parameter triad ( , , ) = (1.5, 1.2, 1) to estimates of the triad ( , , ) = (1.5, 1.2, 0.5) in <ref type="figure" target="#fig_2">Figure 2c</ref>, where only the true diffusion coefficient has changed. The EZ diffusion estimates are noŵ = 2.97 and = 2.02, suggesting both an increase in caution and in the decision-making ability. However, in reality there is only a difference in a single parameter, the diffusion coefficient. Hence, the true cognitive difference, and a more parsimonious explanation of the resulting change in behavior, would be a difference in internal noise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Fixing the diffusion coefficient entails neurocognitive assumptions</head><p>A second problem that arises is the fact that the cognitive dynamics instantiated by the model can be completely different to the results of model fitting procedures. This is particularly relevant to the field of decision neuroscience in animal and human electrophysiology (e.g. see <ref type="bibr" target="#b46">Roitman and Shadlen, 2002;</ref><ref type="bibr" target="#b52">Shadlen and Kiani, 2013;</ref><ref type="bibr" target="#b34">O'Connell et al., 2012</ref><ref type="bibr" target="#b35">O'Connell et al., , 2018</ref><ref type="bibr" target="#b22">Jun et al., 2021)</ref>, in which researchers find neural correlates of evidence accumulation in the human brain by mapping observed neural dynamics to cognitive dynamics. For instance, we can change the speed-accuracy tradeoff by multiplying the true drift rate and the true noise with the same scalar, without changing the boundary parameter . An example is comparing the triad ( , , ) = (3.0, 1.2, 2.0) in <ref type="figure" target="#fig_2">Figure 2d</ref> to the simulation in <ref type="figure" target="#fig_2">Figure 2a</ref>, which uses the triad ( , , ) = (1.5, 1.2, 1.0). The EZ Diffusion estimates of the new parameter triad arê = 1.53 and̂ = 0.70. These estimates of the SNR ( ∕ = 1.5) and CNR ( ∕ = 0.6) are close to their true values. Hence, the CNR is still a valid psychological construct that accurately reflects the change in the speed-accuracy tradeoff, which is mapped exclusively tô in EZ diffusion estimates. However, when looking at neural correlates, the EZ parameter estimates would justify the expectation that the neural correlates of drift rate and of noise remain unchanged. Specifically, we would expect an unchanged level of firing rate per second (spikes / sec 2 ) in the LIP / superior colliculus <ref type="bibr" target="#b46">(Roitman and Shadlen, 2002;</ref><ref type="bibr" target="#b22">Jun et al., 2021)</ref>, or an unchanged amplitude per second ( / sec) reflected in parietal EEG electrodes <ref type="bibr" target="#b34">(O'Connell et al., 2012</ref><ref type="bibr" target="#b35">(O'Connell et al., , 2018</ref><ref type="bibr" target="#b31">Nunez et al., 2024)</ref>, both of which have been proposed as correlates of the drift rate. At the same time, we would expect those signals to reach different thresholds (spikes / sec or ), or analogous baseline-firing differences that reflect the speed-accuracy change (see <ref type="bibr" target="#b3">Bogacz et al., 2010</ref>, for an explanation). However, because the true change happened in drift rate and internal noise, we could actually observe a gain increase in the overall level of firing, or an increase in amplitude over time, reflecting both signal and noise . This is particularly relevant for the rich literature on the neural basis of speed-accuracy tradeoffs <ref type="bibr" target="#b3">(Bogacz et al., 2010;</ref><ref type="bibr" target="#b12">Forstmann et al., 2011;</ref><ref type="bibr" target="#b54">Standage et al., 2014b;</ref><ref type="bibr" target="#b36">Penconek, 2022)</ref>. In particular, the gain hypothesis <ref type="bibr" target="#b54">(Standage et al., 2014a)</ref> in this field could correspond to the scenario considered here, where changing drift rate and diffusion coefficient causes a change in speed-accuracy trade-off. This scenario could explain some neural results in the literature (e.g. <ref type="bibr" target="#b21">Heitz and Schall, 2012</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Reparameterizing standard diffusion model estimates</head><p>There is a third issue, which is related to both the aforementioned issues and is more specific to model-based cognitive neuroscience that seeks to jointly link (neuro)cognitive model parameters to observed neurophysiology and behavior (e.g. <ref type="bibr" target="#b12">Forstmann et al., 2011;</ref><ref type="bibr" target="#b58">Turner et al., 2019;</ref><ref type="bibr" target="#b19">Ghaderi-Kangavari et al., 2022;</ref><ref type="bibr" target="#b31">Nunez et al., 2024)</ref>. Results in this field of research are often highly dependent on the model parameterization used. One such example was exploring the relationship of individual differences in participant-specific drift rates , ERP latencies, and cognitive abilities <ref type="bibr" target="#b51">(Schubert et al., 2019)</ref>. In this paper, we (two of the current authors) picked a parameterization of the DDM that assumed fixed diffusion coefficients for identifiability. However, estimating the diffusion coefficient instead of another parameter can yield different results. Thus a different parameterization of the DDM could have resulted in more accurate information about the nature of the relationship of external (e.g. neural) data to individual differences as measured by DDM parameters.</p><p>If no external covariates are available that are specifically related to parameters of the diffusion model, that is, when researchers have collected behavioral data alone, it is still possible to learn something about individual differences in internal noise. Let us assume that a researcher would rather estimate the diffusion coefficient and fix the boundary instead of identifying the model the other way around. In this case, they would be interested in two quantities: The Noise-to-Criterion Ratio (NCR) ∕ and the Signal-to-Criterion Ratio (SCR) ∕ . Fortunately, these quantities can be easily calculated from model parameters estimated with readily available software packages such as EZ-Diffusion <ref type="bibr" target="#b62">(Wagenmakers et al., 2007;</ref><ref type="bibr" target="#b43">van Ravenzwaaij et al., 2017)</ref> or fast-dm <ref type="bibr" target="#b60">(Voss and Voss, 2007)</ref>. For example, assume a diffusion constant = 1. We can then obtain the NCR by calculating 1/ , and the SCR by calculating / .</p><p>To demonstrate the usefulness of these quantities, we reanalyzed data from 141 participants collected by <ref type="bibr" target="#b28">Löffler et al. (2024)</ref>. Participants in that study completed the Berlin Intelligence Test <ref type="bibr" target="#b23">(Jäger et al., 1997)</ref> to assess cognitive ability (see <ref type="bibr" target="#b28">Löffler et al., 2024</ref>, for details). Our reanalysis focused on data from the 2-back condition of the -back task, where participants first completed 20 practice trials followed by 96 experimental trials. In this task, participants viewed a sequence of letters and judged whether each letter matched the one shown two trials earlier, which occurred in 50% of trials. In the original study, the authors estimated diffusion model parameters with fast-dm 30 <ref type="bibr" target="#b59">(Voss et al., 2004)</ref> using the Kolmogorov-Smirnov criterion for optimization. Participants had a mean drift rate of̂ = 1.74 ( = 0.46), a mean boundary of̂ = 1.47 ( = 0.22), a mean non-decision time of̂ = 0.36 ( = 0.11), and a mean trial-to-trial variability of the non-decision time of̂ = 0.25 ( = 0.17). The original study reported a positive relationship between participants drift rate in the -back task and their cognitive ability, with correlations between = 0.12 and 0.43 across cognitive ability test subscales.</p><p>To explore the respective relations of the Signal-to-Noise Ratio (SNR) ∕ and Criterion-to-Noise Ratio (CNR) ∕ as well as the Noise-to-Criterion ratio (NCR) ∕ and the Signal-to-Criterion Ratio (SCR) ∕ with general cognitive abilities, we estimated two separate structural equation models with the R package lavaan <ref type="bibr" target="#b47">(Rosseel, 2012)</ref> using full information maximum likelihood (FIML) estimation.</p><p>The model with the standard diffusion model parameters (i.e., with SNR and CNR, see <ref type="figure" target="#fig_3">Figure 3a</ref> ) provided a good account of the data, 2 (8) = 15.31, = .053, CFI = .94, RMSEA = 0.08. Participants with higher cognitive abilities had a greater SNR (i.e.,̂ ), with a standardized regression parameter of = .43, &lt; .001, 95% CI = [.27; .60], and a greater CNR (i.e.,̂ ), with a standardized regression parameter of = .21, = .030, 95% CI = [.03; .90], than those with lower cognitive abilities.</p><p>In comparison, the model with the derived diffusion model parameters (i.e., the NCR and the SCR calculated as the ratios ∕ and ∕ , respectively, see <ref type="figure" target="#fig_3">Figure 3b</ref>) also provided an acceptable account of the data, 2 (8) = 16.06, = .942, CFI = .94, RMSEA = 0.09. Participants with higher cognitive abilities had a lower NCR ratio (i.e., 1∕̂ ), with a standardized regression parameter of = −.48, &lt; .001, 95% CI = [-.66; -.30], and a higher SCR (i.e., ∕̂ ), with a standardized regression parameter of = .47, &lt; .001, 95% CI = [.29; .65], than those with lower cognitive abilities.</p><p>In summary, our findings demonstrate that reparameterizing standard diffusion model parameters into derived quantities such as the Noise-to-Criterion Ratio (NCR) and Signal-to-Criterion Ratio (SCR) can reveal stronger relationships with individual differences in cognitive abilities. Specifically, while the association between the Criterion-to-Noise Ratio (CNR) and cognitive abilities in the standard parameterization was modest, the relationships involving the NCR and SCR in the alternative parameterization were notably stronger. These results underscore the interpretational flexibility of the diffusion model and highlight the importance of carefully considering parameter tradeoffs (e.g., drift rate, boundary separation, and internal noise) when linking model parameters to external variables. Consequently, when external covariates related to specific model parameters are unavailable, researchers can still gain valuable insights into internal noise processes by leveraging derived quantities like NCR and SCR, which are straightforward to compute from behavioral data using software such as EZ-Diffusion <ref type="bibr" target="#b62">(Wagenmakers et al., 2007;</ref><ref type="bibr" target="#b43">van Ravenzwaaij et al., 2017)</ref> or fast-dm <ref type="bibr" target="#b60">(Voss and Voss, 2007)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Extending DDMs with Bayesian inference</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Bayesian estimation methods</head><p>To obtain parameter estimates of simple and hierarchical models, we used the Probabilistic Programming Languages JAGS <ref type="bibr" target="#b37">(Plummer, 2003)</ref> and Stan <ref type="bibr" target="#b4">(Carpenter et al., 2017)</ref> to obtain samples from joint posterior distributions of models using Markov Chain Monte Carlo (MCMC) algorithms. In JAGS, we used the Wiener distribution with the Wiener module extension <ref type="bibr" target="#b61">(Wabersich and Vandekerckhove, 2014)</ref>. In Stan, we used the native wiener function. To assess model convergence, we calculated the Gelman-Rubin statistiĉ and the number of effective samples for each parameter of a model <ref type="bibr" target="#b17">(Gelman et al., 2014)</ref>. The Gelman-Rubin statistiĉ assesses the convergence of MCMC samplers by comparing the between-chain variance to the within-chain variance of each parameter, with Gelman-Rubin statistics ≤ 1.1 for each parameter thought to be a necessity for convergence. The number of effective samples gives an estimate of the number of posterior samples after accounting for autocorrelation in the resultant Markov Chains.</p><p>We also obtained posterior distributions of parameters from various models using the Python package BayesFlow <ref type="bibr" target="#b38">(Radev et al., 2020</ref><ref type="bibr">(Radev et al., , 2023</ref>. This package allowed us to obtain joint posterior distributions of parameters without having to formulate their explicit likelihood equations. The package BayesFlow uses Artificial Neural Networks (ANNs) to learn a mapping function from data to parameter sets, based on data simulated from the model. On that basis, the trained ANNs can infer the posterior distribution of parameter sets from observed data. We used this method for two model classes, those that did not have clear tractable likelihoods, e.g., joint models of choice-RT and external covariates on single-trials following the framework by <ref type="bibr" target="#b18">Ghaderi-Kangavari et al. (2023)</ref>, as well as those models that we expected to be classically unidentifiable to avoid potential convergence problems with MCMC samplers (see following paragraphs). We used the BayesFlow ANN standard of a summary network attached to an invertible network. These ANNs were trained for 500 epochs of experience replay training with 1000 iterations per epoch and batch sizes of 32. Convergence was judged post-hoc by observing the loss value reaching an asymptote well before the end of the 500 epochs. Further details about simulation-based Bayesian inference and the BayesFlow package are found in the papers by <ref type="bibr" target="#b38">Radev et al. (2020</ref><ref type="bibr">Radev et al. ( , 2023</ref>.</p><p>Where possible we attempted to fit similar, if not identical models, in JAGS and Stan. If these models converged, we report their results, otherwise we rely on model fits from BayesFlow.</p><p>Any unidentified model still has a posterior distribution of its parameters. In the extreme case, when the data yield no information about the parameter values, the joint posterior distribution will equal the joint prior distribution (reflecting no gain in information about the parameters from the data). MCMC posterior estimation algorithms can struggle to appropriately identify the posterior distributions of unidentified models because obtaining convergent chains and/or assessing convergence can be difficult (e.g. see <ref type="bibr" target="#b0">Betancourt, 2017)</ref>. However, when successful, finding posterior distributions of classically unidentifiable models gives us an idea of the true posterior space. For example, we acquired estimates of joint posteriors of classically unidentified DDMs when no parameter was fixed as a scaling constant and only choice-RT data are used to inform parameter estimates. As a result, we determined the extent to which information about drift rate, boundary, and diffusion coefficients can be obtained from only choice-RTs without additional assumptions (see <ref type="figure" target="#fig_4">Figure  4</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">The joint posterior distribution of a full model with a free-to-vary diffusion coefficient</head><p>We used Bayesian inference to understand the uncertainty in the three-dimensional space of the parameters , , and . We fit a model using BayesFlow to obtain samples from joint and marginal posterior distributions of a DDM with free-to-vary diffusion coefficient, in the following text labeled dcDDM. We ran multiple simulations with multiple datasets. The simulation in <ref type="figure" target="#fig_4">Figure 4</ref> was picked as an example because of the randomly generated simulated parameters being in typical ranges for real data. In this scenario, there is clearly a tradeoff between the three evidence parameters. The posterior distribution is also quite wide across a large portion of the prior space, indicating considerable uncertainty in the true parameter triad. From other simulations (see <ref type="figure" target="#fig_1">Figures 8 -10</ref> in the Appendix), it was clear that the tradeoff between three evidence parameters depends on the data itself. For instance, when the drift rate is near 0, the boundary and the diffusion coefficient trade off more with each other rather than with the drift rate .</p><p>Note that we also fit this model in JAGS using a traditional MCMC sampler, with nearly identical results (1000 samples from each of 6 chains converged with a maximum = 1.05 and minimum number of effective samples of 104 across parameters). We also fit this model in Stan with similar results (1000 samples from each of 6 chains converged with a maximum̂ = 1.00 and minimum number of effective samples of 4031 across parameters). Draws from a joint posterior distribution for one simulated data set from a DDM with all three parameters free to vary (purple 3D scatter plot). Pairwise joint distributions are given by the grey projections on each of the three faces. The joint posterior distribution is driven mostly by the joint likelihood of the data (N=185) given the model (Model dcDDM). The prior distributions (though not influential) for Model dcDDM are given in the text. The posterior shape will be different for each data set (see Appendix for pairwise posterior distributions). The 5-dimension joint posterior distribution also includes the relative start point and non-decision time. The mean posteriors of those two parameters werê = 0.659 seconds and̂ = 0.47 proportion of boundary in this simulation, respectively. The drift rate and diffusion coefficients are given in evidence units per second, while the boundary is in evidence units.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">External correlates of the evidence scale to identify all three parameters</head><p>One thing that is apparent from <ref type="figure" target="#fig_2">Figure 2</ref> is that observing information about the scale of evidence (the y-axis of the subplots of <ref type="figure" target="#fig_2">Figure 2</ref>) allows identification of all three parameters. This, however, is information unlikely to be found in behavioral data alone. Nonetheless, there is work that suggests that certain neural measures reflect the evidence scale itself (e.g. <ref type="bibr" target="#b52">Shadlen and Kiani, 2013;</ref><ref type="bibr" target="#b35">O'Connell et al., 2018;</ref><ref type="bibr" target="#b27">Lui et al., 2021;</ref><ref type="bibr" target="#b31">Nunez et al., 2024)</ref>. Here we present modeling work that shows that the three parameters can indeed be jointly identified if a trial-to-trial external covariate, which is correlated with one of the parameters-namely the boundary -informs parameter estimation. This additional information enables the identification of the other model parameters. Though the methods come with important caveats, discussed below.</p><p>According to previous research, there are promising data types as candidates for the measure of the evidence scale in human electrophysiology. Specifically, promising EEG measures include: Event-Related Potential (ERP) measures time-locked to the onset of visual stimuli <ref type="bibr" target="#b33">(Nunez et al., 2017;</ref><ref type="bibr" target="#b34">O'Connell et al., 2012</ref><ref type="bibr" target="#b35">O'Connell et al., , 2018</ref>, ERP measures time-locked to the motor response of participants <ref type="bibr" target="#b20">(Gluth et al., 2013;</ref><ref type="bibr" target="#b27">Lui et al., 2021)</ref>, EEG power-band measures <ref type="bibr" target="#b5">(Cavanagh et al., 2011;</ref><ref type="bibr" target="#b13">Frank et al., 2015)</ref>, and ERP measures timelocked to correct and error responses on the preceding trial <ref type="bibr" target="#b30">(Mattes et al., 2022)</ref>. In addition, the firing rate behavior of neurons in the LIP and superior colliculus in Rhesus macaques suggests that observing evidence-accumulation scales directly is achievable in animal electrophysiological recordings <ref type="bibr" target="#b52">(Shadlen and Kiani, 2013;</ref><ref type="bibr" target="#b22">Jun et al., 2021)</ref>. fMRI BOLD may also yield indicators of the scale of evidence, as indicated by correlations between certain BOLD activation indices and response boundary <ref type="bibr" target="#b11">(Forstmann et al., 2008)</ref>. Technically, external covariates for model identification purposes can be any data type, such as physiological or behavioral data, besides choices and response times. However, we know of no other promising data candidate that encodes information about the evidence scale other than neural data.</p><p>Collecting and modeling this additional data, in addition to choice-RTs, can lead to identifiable information about individual differences in the three evidence parameters. Here we show this for the case of statistical linear relationships between cognitive model parameters and an external covariate that is on a continuous scale. For instance, suppose we assume that external covariate for each participant is related to the amount of evidence required to make a decision, the boundary parameter , through a linear relationship with some intercept 0 and slope 1 . Together with measurement noise , this would be reflected by a simple distribution statement:</p><formula xml:id="formula_3">∼  ( 0 + 1 , 2 )<label>(3)</label></formula><p>This is similar to linear regression. However, the variable is not estimable outside the larger model architecture. Further details of specific models are presented below.</p><p>Additional assumptions must be made about these relationships in order to identify the model parameters, both when external covariates are available on the level of the individual and when external covariates are available on the level of single trials. For instance, we can not assume full regression-like relationships between cognitive parameters and external covariates, such that the regression weights of each model parameter on the external covariates are freely estimated. The model would remain just as flexible as before, and the 3 evidence accumulation parameters will remain unidentified. This is because the regression weight can compensate for the scaling of the cognitive model parameters (e.g., multiplying each parameter by 2 would result in the same equations as when each regression weight is divided by 2.) For this reason, we must make additional assumptions.</p><p>After we tried multiple methods and models, we identified one method that is able to estimate all 3 evidence parameters. We fix 0 and 1 parameters to 0 and 1 respectively, representing the assumption that relationships exist between external covariates and one cognitive parameter. We included a parameter 2 for the standard deviation of the measurement noise in external covariates (i.e., variance in external covariates not related to cognition), which was free to vary. This method essentially assumes that the scale of evidence comes from the external covariates and that shared variability with external covariates is only allowed on one of the three cognitive parameters. In practice, the model is only truly identified when noise in the external covariate 2 is much smaller than the participant-to-participant (or trial-to-trial) variance in the cognitive parameter. The freeto-vary parameter 2 allowed us to test whether the external covariate was actually practically related to cognitive parameter assumed in the linear relationship. This is because the proportion of variance in that is accounted for by is given by the ratio of the variance of to the sum of the variances of measurement noise 2 and of (see also the equation for in Section 3.5). If the true correlation between and is very small, the model can accommodate that by estimating the measurement noise 2 to a high value, and the variance of to a low value. The model is free to estimate the mean and variance of to any value because dividing the triplet of ( , , ) by the same (potentially large) number does not change the model predictions. In other words, although the unstandardized regression weight of on is fixed to 1, once we standardize it by the variances of these two variables, it can become arbitrarily small, thereby indicating a lack of empirical correlation between and . However, we found these models are only practically useful in real data when the correlation between response times (RTs) and external covariates is large enough ( &gt; 0.3), as we explain below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Models with participant-level external covariates may be useful under specific conditions</head><p>Here we are concerned with external covariates that vary between participants, rather than between trials of a single person. We fit a DDM with free-to-vary diffusion coefficient, where we incorporated a participant-level external covariates for the criterion ℎ , labeled dcDDM-. The covariate was described by a normal distribution with a mean reflecting the participant-level boundary parameter and measurement noise that was assumed to be the same across participants (a restriction for identifiability). This model was fit in JAGS and converged across all model runs witĥ &lt; 1.1. Specifically, we fit one model to multiple simulated participants simultaneously with the likelihood statement structure given in Equation 4. <ref type="bibr">4</ref> ,</p><formula xml:id="formula_4">∼ DDM( , , , , ) (4a) ∼  ( , 2 )<label>(4b)</label></formula><p>The prior distributions were the following, where   and  refer to the Truncated Normal and Normal distributions respectively:</p><formula xml:id="formula_5">∼   (1, 0.5 2 , 0, 10) (5a) ∼   (0.5, 0.25 2 , 0, 1.5) (5b) ∼  (0, 2 2 ) (5c) ∼   (1, 0.5 2 , 0, 10) (5d) ∼ Beta(2, 2) (5e) ∼   (3, 1 2 , 0, 10)<label>(5f)</label></formula><p>In simulation, but not in model fitting, we assumed some trial-to-trial variability in the drift rate, given by the standard deviation ( ) . Trial-to-trial variability is often an assumption of DDMs to account for differences in correct versus incorrect response time distributions, but often is of little use when estimating mean parameters <ref type="bibr" target="#b1">(Boehm et al., 2018;</ref><ref type="bibr" target="#b31">Nunez et al., 2024)</ref>. The amount of trial-to-trial variability in drift for each participant was chosen by drawing from a uniform distribution, ( ) sim ∼ Uniform(0, 2) where sim ∼ refers to a simulated draw instead of an assumed distribution in model fitting given by ∼.</p><p>The model was tested under simulated conditions of high and low measurement noise in external covariates. The results presented here are from two simulations of 100 participants and 100 trials observed per participant. In the first simulation, the measurement noise of external covariates was = 0.5 (see <ref type="figure">Figure 5a</ref>). In the second simulation ( <ref type="figure">Figures 6 and 5b)</ref>, the measurement noise of external covariates was = 0.1. The true proportion of cognitive variance can be estimated from the simulated values that were drawn from a Uniform(0.8, 1.4) distribution with a true variance of 0.03. This corresponds to a proportion of cognitive variance of = 0.03∕(0.03 + (0.5) 2 ) ≈ 0.11 in the first simulation, reflecting a small proportion of cognitive variance in the external covariates across participants. In the second simulation, the proportion of cognitive variance was = 0.75, reflecting a large proportion of cognitive variance in the external covariates across participants. The model was fit to all participants and trials, resulting in 1000 samples from each of 6 chains. The model converged with a maximum̂ = 1.03 for simulation 1 and̂ = 1.09 for simulation 2. The two model fits resulted in a minimum number of effective samples of 182 and 96 across parameters in the first and second simulations, respectively. Uncertainty in the joint posterior distributions are greatly reduced between these two simulations (compare <ref type="figure">Figure 5a to 5b)</ref>. For simulation 2, there was moderate recovery of all three evidence parameters, namely: drift-rate , boundary , and diffusion coefficient . Recovery plots of posterior means for simulation 2 are given in <ref type="figure">Figure 6</ref>.</p><p>Despite these promising results, we identified critical limitations in this modeling approach. To assess the model's robustness in scenarios where the external covariate has no real relationship to the boundary parameters, we conducted simulation 3. Here, we generated covariates ∼ <ref type="figure">Figure 5</ref>: Draws from two joint posterior distributions for two example participants of two simulated data sets from a DDM with all three parameters free to vary (purple 3D scatter plot) with external covariates described by the boundary on the participant-level. The true simulated DDM parameters were = 3.50, = 1.20, = 1.20, = 0.50, and = 0.4 for the participants in each simulation. Paired joint distributions are given by the grey projections on each of the three faces. The joint posterior distribution is driven mostly by the joint likelihood of the data (N=100) given the model (dcDDM-) with measurement noise of external data, = 0.5 for subplot a and = 0.1 for subplot b. The drift rate and diffusion coefficients are in evidence units per second while the boundary is in evidence units.</p><p> (1, 0.2 2 ) with no true connection to the boundary parameter . Importantly, the variance of the external covariate was matched to Simulation 2, such that the total standard deviation equaled = √ (0.03 + (0.1) 2 ) = 0.2. In this case, the standard deviation of the covariate reflects only the unrelated noise ( = ), whereas in scenarios where boundary differences are related to the covariate, the standard deviation would be larger ( &gt; ). The external covariates were simulated as sim ∼  (1, 0.2 2 ). The model converged with a maximum̂ = 1.07. The resultant posterior distributions were certain about incorrect estimates of , indicating a serious concern about model misspecification that could occur with real data. Therefore, we recommend only deploying the model for parameter estimation when the data is appropriate, given by large positive Pearson correlations between the mean response times (RTs) and covariates across participants. In simulation 3, simulated Pearson correlation between mean response times (RTs) and covariate was = 0.186, whereas it was larger in simulation 1 ( = 0.287) and in simulation 2 ( = 0.405).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Models with trial-level external covariates</head><p>Here we consider covariates that can be measured trial by trial, and which we assume to be correlated with one of the model parameters, for instance , across trials within one subject. Using BayesFlow procedures for model fitting, models were simulated that predicted choice-RT data and external covariates on single experimental trials. So that these models can be identified, a relationship to one of the cognitive parameters had to be assumed for each external covariate. In addition, the measurement noise in the external covariates was allowed to vary. These models follow the framework of Ghaderi-Kangavari et al. <ref type="formula">2023</ref>, who showed that fitting models with assumed single-trial links between EEG measures and DDM parameters yields recoverable parameter estimates. We expand upon the ideas of this paper in our current work in two ways, namely by (1) accounting for any covariate instead of particular EEG measures and (2) expanding the DDM to include estimable diffusion coefficients . Note that in the previous work of Ghaderi-Kangavari et al. (2023), the authors assumed = 1. Like in this previous work, our models are able to recover a percentage of trial-to-trial variance in the external covariates related to each cognitive parameter relative to measurement noise. This allowed us to freely fit models to data in order to both identify individual differences in all 3 cognitive parameters, while also allowing the correlation between model parameters and the external covariates to vary freely between 1 (i.e., perfect covariation, indicated by an estimated residual variance 2 of 0) and a value close to 0 (i.e., practically negligible covariation, indicated by a residual variance 2 close to the observed variance of the covariate).</p><p>We refer to one model in this set as Model dcDDM-, corresponding to the fact that we fit the DDM that described choices and response times with all three evidence parameters left to vary, but that also assumed that the decision boundary would vary across trials and predicts the single-trial covariate plus additional noise. In particular, the generative statement for the single trial boundary was ∼   ( ( ) , 2 ( ) , 0, ∞) with 2 ( ) representing trial-totrial variability in decision boundaries-a good approximation in this Truncated Normal distribution. The generative statement for the external covariate was ∼  ( , 2 ), with representing the measurement noise. Because the <ref type="figure">Figure 6</ref>: Parameter recovery of Model dcDDM-. Each plot displays the true simulated parameter on the x-axis and the estimated parameter (the posterior means) on the y-axis. Perfect recovery would show all points on the = diagonal in each plot. Each plot also contains the coefficient of determination 2 from the regression line = to account for over-or underestimation relative to the true value and the Pearson correlation between the simulated and estimated parameters. Unlike <ref type="figure">Figure 7</ref>, the recovery in this figure was generated from only one model fit of 100 participants with a proportion of cognitive variance = .75. Each point on a plot represents the parameter estimate from one participant.</p><p>variance of the summation of normal distributions is the sum of their variances, 2 ( ) explains some trial-to-trial variability in the external covariate, together with the measurement noise 2 , for a total variance of 2 ( ) + 2 for the external covariate. Following the work by Ghaderi-Kangavari et al. <ref type="formula">2023</ref>, we calculate the proportion of cognitive variance in the external covariate as = 2 ( ) ∕( 2 ( ) + 2 ). The full model can be summarized by the following simulation statements (denoted sim ∼ ). This model is not hierarchical, but we include subscript to denote participant in order to be clear about the observation level and so that readers can compare to the participant-level model above.</p><formula xml:id="formula_6">, sim ∼ DDM( , , , , ) (6a) sim ∼  ( , 2 ) (6b) sim ∼   ( ( ) , 2 ( ) , 0, ∞)<label>(6c)</label></formula><p>The prior distributions were similar to model dcDDMabove, except that now there is participant-level noise in the covariate , and a prior for an additional parameter ( ) :</p><formula xml:id="formula_7">( ) ∼   (1, 0.5 2 , 0, 10) (7a) ( ) ∼   (1, 0.5 2 , 0, 3) (7b) ∼   (0.5, 0.25 2 , 0, 1.5) (7c) ∼  (0, 2 2 ) (7d) ∼   (1, 0.5 2 , 0, 10) (7e) ∼ Beta(2, 2) (7f) ∼ Uniform(0, 5)<label>(7g)</label></formula><p>Note that this model makes very strong assumptions about the external covariate, namely that the external covariate provides the scale of the amount of evidence necessary for a response. For instance, an EEG covariate would be in the scale of microvolts , and thus the scale of the evidence domain is now in . Alternatively, a neuron firing rate as a covariate would give the scale of the evidence domain in spikes per second. Considering the progress in identifying possible neural correlates of DDM parameters (see <ref type="bibr" target="#b35">O'Connell et al., 2018)</ref>, this is a restrictive but not unreasonable assumption. This model allows this assumption to be tested through evaluation of the proportion of cognitive variance . However, this assumption is not that concerning in practice as we show in the next section. In fact, any external covariate can just be standardized to any desired boundary scale when fitting real data to find meaningful individual differences in parameters. We further show this in Appendix B when we fit the model to the data by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref> and <ref type="bibr" target="#b53">Stahl et al. (2015)</ref>.</p><p>Compared to the model dcDDM that is not constrained by external covariates, the model dcDDM-produces much better estimates of all three model parameters. A summary of parameter recovery is given in the second row of <ref type="figure">Figure 7</ref>, which was generated from 500 simulations with the true measurement noise standard deviation drawn from the Truncated Normal distribution   (1, 0.5 2 , 0, 10), thus resulting in many possible values of proportion of cognitive variance between 0 and 1. Note that the parameter estimates are even closer to the truth when only considering scenarios where the proportion of cognitive variance is high. The third row of <ref type="figure">Figure 7</ref> corresponds to the scenario where &gt; 0.75. The posterior distributions also yield much more information about the true parameter space when is large in comparison to smaller values of . For instance, compare the width and shape of the joint posterior distribution in <ref type="figure" target="#fig_1">Figure 18</ref> in the Appendix to that of </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6.">Evaluating the usability of models that also explain trial-level covariates</head><p>We tested the model under realistic scenarios of model misspecification that could occur in real data by using various simulations. One concern was scenarios where there is no true relationship between the proposed external covariate and any model parameter, which could produce misleading parameter estimates. To test this case, we simulated a model dcDDM-that contained the same base model as in dcDDM-but with external data that was simulated from a normal distribution with mean of 1 (using the mean <ref type="figure">Figure 7</ref>: Parameter recovery of models dcDDM and dcDDM-. Each plot displays the true simulated parameter on the x-axis and the estimated parameter (the posterior means) on the y-axis. Perfect recovery would show all points on the = diagonal in each plot. Each plot also contains the coefficient of determination 2 from the regression line = that can be intuitively thought of as a proportion of true variance explained by predicted values, as well as the Pearson correlation between the simulated and estimated parameters. The top row reflects recovery of the base model dcDDM with 500 simulations, with one point from the joint posterior distribution reflected in <ref type="figure" target="#fig_4">Figure 4</ref>. The second to last rows reflect recovery of the model dcDDM-, the model with trial-to-trial fluctuations in the boundary that explains external covariate with additional measurement noise. Specially, the second row shows 500 simulations from the model with various values of -the proportions of cognitive variance explained in the covariate by the model parameter-between 0 and 1. The third row shows recovery of the same model for 500 simulations when &gt; 0.75. The last row shows recovery of the same model when the model is misspecified, because the ground-truth (simulated) single-trial external covariates are related to the single-trial boundary with a scalar = 2. Note that the True Boundary in the third column of the 2nd to 4th rows reflects the mean boundary parameter ( ) as defined in the text, while the 1st row reflects the boundary parameter that is assumed to not have trial-to-trial variability. The second and third coefficients of determination 2 are negative in the last row, which can occur because these values are not based on a fitted linear regression but compared to the simple regression = .</p><p>parameter of the prior for the mean boundary parameters ( ) ) with different amounts of simulated variance, ∼ Uniform(0, 5). We initially thought that this should result in uncertain parameter estimates, such as the results of fitting model dcDDM in <ref type="figure" target="#fig_4">Figure 4</ref> and top row of <ref type="figure">Figure  7</ref>, that occurred in scenarios of the true data coming from model dcDDM-but with a small proportion of cognitive variance in the external data. Instead, fitting dcDDMto this simulated data resulted in incorrect estimates (a tight posterior probability around incorrect values) of the mean boundary parameters, a very problematic scenario for practical data fitting.</p><p>However, we discovered an easy method to prevent this misfit. The mean Pearson correlation between singletrial response times and single-trial covariates over 500 simulations from this model was̄ = −0.006 with a standard deviation of ±0.079 and a maximum of 0.257. To further validate this, we tested an alternative scenario where external covariates were simulated from a uniform distribution (instead of a normal distribution) with the same mean and standard deviation. The results were virtually identical: mean Pearson correlation was̄ = −0.007, SD = 0.085, and the maximum correlation was 0.307, again yielding poor parameter estimates. In contrast, when simulating directly from the model under ideal conditions (i.e., with no model misfit and a true underlying correlation &gt; 0.75), the mean Pearson correlation between single-trial response times ( ) and covariates ( ) was markedly higher (̄ = 0.556, SD = 0.200), with a maximum correlation reaching 0.999. These results highlight that fitting the dcDDM-model to single-trial data with low correlations can produce substantial misfit, as the estimated correlation becomes artificially inflated. To avoid this issue entirely, we recommend fitting the model only when the Pearson correlation between singletrial response times and covariates in real data exceeds 0.3. This threshold ensures that the covariates are sufficiently informative and reduces the risk of misleading parameter estimates.</p><p>Another concern was that in scenarios where the external covariate is actually correlated to a different parameter than assumed, we would obtain estimates of the triad with narrow posteriors but incorrect values. This was not the case in simulation. We simulated a new ground-truth model dcDDM-in which trial-to-trial variability in the diffusion coefficient was related to the external covariate in scenarios where the true proportion of cognitive variance is high, &gt; 0.75. We then fit model dcDDM-to this data (the model discussed above that assumed the covariate is related to trialto-trial variability in the boundary). Nearly all estimated proportions of cognitive variancê (mean posteriors) were small, with a mean of̄ = 0.07 and a standard deviation of ±0.11, with 6.6% of the estimates being above 0.2. This was also true when we fit model dcDDM-with the simulated external covariate values from dcDDM-multiplied by -1, in order to simulate scenarios of uncertain directionality of external covariates. The estimated proportions of cognitive variancê were small, with a mean of̄ = 0.01 and a standard deviation of ±0.01, with 0% of the estimates being above 0.2. This feature of the model fitting procedure is desirable, as we can usê to determine whether we can trust the model parameter estimates after checking the Pearson correlations in the data. In the first case, the Pearson correlation of simulated single-trial response times and external covariate was often negative with a mean of̄ = −0.391 with a SD of 0.18 and a maximum of 0.281. Note that the Pearson correlations were usually negative because larger diffusion coefficients are expected to decrease RTs while larger boundary parameters are expected to increase RTs (see <ref type="figure" target="#fig_1">Figure 1)</ref>. However in the second case with an inverse relationship, the Pearson correlations were high with a mean of̄ = 0.392 with a SD of 0.18, but then all estimated proportion of cognitive varianceŝ were small. Based on these results and the above results, we provide recommendations for model usage in Section 4.3.</p><p>The assumptions of model dcDDM-may seem unjustified. It assumes an (albeit noisy) estimation of the scale of evidence by external covariates. However, in practice all that must be done to find true individual differences across participants is to scale the mean of the external covariates to about 1 across participants in order to scale the estimated evidence domain to a mean of 1. Under conditions where the external covariates are scalars of the true evidence scale, the model gives poor estimates of the true parameters on an absolute scale. This was apparent when we simulated a ground-truth model dcDDM-that assumed a single-trial external covariate was related to the single-trial boundary with a scalar 1 ≠ 1. In one simulation we fixed 1 = 2 across all simulated participants, and then fit dcDDMto participants' data (i.e., using the model that essentially assumes 1 = 1). In this case, the evidence accumulation parameters, particularly the diffusion coefficient and boundary, were not well estimated in absolute terms. But because of the arbitrary scale of evidence of the DDM, this should not be important for any researcher. Importantly, the Pearson correlation between the true values and estimated values was still high, as shown in the last row of <ref type="figure">Figure 7</ref>. The joint posterior distributions of the parameter triads are also still relatively uncorrelated. This means that when the true parameter 1 differs from 1, parameter estimates are still highly correlated with true parameters. Hence, individual differences in the parameters (e.g., relative differences in diffusion coefficients ) are still informative for individual differences research. Furthermore, the proportion of cognitive variance in the external covariates was well estimated (see <ref type="figure" target="#fig_1">Figure 19b</ref> in the Appendix), with the real ratio in the ground-truth model being = 2 1 2 ( ) ∕( 2 1 2 ( ) + 2 ) and the ratio assumed by the fitted model being = 2 ( ) ∕( 2 ( ) + 2 ). Note however that we did find a restriction on the external covariates, in that the true relationship between the external covariate and the cognitive variable should remain equal across individuals.</p><p>Finally, we wished to know the usability of the model under scenarios where there is a true positive relationship between the single-trial boundary and the single-trial external covariate that is non-linear. We thus simulated a model close to the fitted model dcDDM-, but with a sigmoidal relationship. We used simulation parameters such that the proportion of cognitive variance would be greater than 0.75 in the linear case for all simulations. We used a sigmoid shape with noise with a lower bound at 0.6 and an upper bound at 0.6 and an upper bound of 1.4 for and centered at − 1 with a steep slope, such that sim ∼  0.6 1 + exp (−32( − 1)) + 0.8, 2</p><p>This approximated the simulated positive relationships in a similar range to the linear simulations. Fitting model dcDDM-to this data resulted in useful parameter estimates, with the Pearson correlation between the true simulated parameters and parameter estimates being only slightly lower than the original parameter recovery (compare <ref type="figure">Figure  7</ref> to <ref type="figure" target="#fig_1">Figure 21</ref> in the Appendix).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Discussion</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">The diffusion coefficient is not just a constant</head><p>It is clear from the simulations that while researchers typically fix the diffusion coefficient in evidence accumulation models, the diffusion coefficient is not just a constant for fixing the scale of the other parameters. Rather, it has a substantive interpretation as the degree of noise in information processing, and as such it is of interest to ask how it is affected by experimental manipulations, and how it relates to other variables in individual differences investigations (e.g. see <ref type="bibr" target="#b16">Garrett et al., 2013;</ref><ref type="bibr" target="#b24">Kaur et al., 2021)</ref>. It is not obvious that one parameter should be preferred to be fixed over the others. For instance, we might prefer a parameterization of the DDM that gives the least correlation in the joint posterior space. The joint posterior distribution from one simulation of Model dcDDM in <ref type="figure" target="#fig_4">Figure 4</ref> shows that the posterior correlation between the boundary and drift rate is slightly higher than the correlation between the diffusion coefficient and the drift rate. Hence, if the aim is to minimize parameter trade-offs, the boundary might be fixed in models instead of the diffusion coefficient. However, no parameter is clearly preferred to be fixed across all model simulations (see also <ref type="figure" target="#fig_7">Figures 8, 9</ref>, and 10 in the Appendix).</p><p>In our view, a more important concern for cognitive models of evidence accumulation is that the reality of the diffusion process in brain and cognition may be such that all three parameters-drift rate, boundary, and internal noisechange across individuals and experimental conditions. Changes in one or two of the parameters across participants or conditions can be estimated when assuming another parameter is the same across participants or conditions <ref type="bibr" target="#b6">(Donkin et al., 2009)</ref>, but assuming a parameter is the same across participants seems unreasonable. We should thus aim to estimate all three parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Recommendations for individual differences research</head><p>When applying DDMs to investigate individual differences, we recommend that researchers begin by explicitly considering the assumptions inherent in their chosen parameterization. Because drift rate, boundary, and diffusion coefficient cannot be estimated independently from choice-RT data alone, it is essential to clarify which parameter is fixed and why. We advise comparing multiple parameterizations to see how interpretations of ability-and caution-related differences might shift when the parameterization changes. For instance, if drift rate and boundary are freely estimated and the diffusion coefficient is fixed, then differences in estimated drift rates and boundaries could reflect differences in internal noise. We suggest that researchers regularly compute and report derived ratios, such as the Signal-to-Noise Ratio (SNR = drift/diffusion) and the Criterion-to-Noise Ratio (CNR = boundary/diffusion), as well as the Signalto-Criterion Ratio (SCR = drift/boundary) and Noise-to-Criterion Ratio (NCR = diffusion/boundary). Presenting these ratios, rather than focusing only on parameters fixed by convention, allows for a richer interpretation of individual differences: Is a group's higher estimated drift rate actually signaling lower internal noise rather than genuinely faster evidence accumulation? Is a purported difference in caution best understood as changes in how signal and noise interact, rather than a shift in the decision threshold alone? Such comparisons provide a more nuanced view of how distinct cognitive processes -evidence strength, internal variability, and decision criteria -contribute to performance. Furthermore, whenever possible, researchers should incorporate external covariates that bear on evidence scaling (e.g., neural measures) to help break identifiability constraints and directly link model parameters to measurable individual differences. Such integrative approaches can yield clearer guidelines for interpreting parameter contrasts and deepen our understanding of the cognitive and neurobiological mechanisms underlying performance variability.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Using additional data to identify parameters</head><p>We found that models dcDDM-dcDDM-can successfully recover all three parameters , , and when there is a relationship between the boundary parameter and the external covariate that is sufficiently large. These models can be practically used when there is a large-enough positive Pearson correlation ( &gt; 0.3) between mean response times and participant-level external covariates or a large-enough positive Pearson correlation ( &gt; 0.3) between singletrial response times and single-trial external covariates. Importantly, the covariate will only contribute to identifying the scale of -and thereby aid in identifying the entire parameter triad-if the true proportion of cognitive variance in the external covariate is sufficiently large. To guide researchers, we recommend the following steps: First check for a positive Pearson correlation between response times and external covariates greater than 0.3 before fitting the model. Multiply the external covariates by −1 if necessary to achieve a positive Pearson correlation greater than 0.3. Next, after fitting the model, verify that the resultant estimates of the proportion of cognitive variancê are larger than 0.2. This two-step check ensures the model's assumptions are met and guards against model misspecifications.</p><p>We expect our modeling procedures to be informative for individual differences research, but not reveal true computational mechanisms of the brain. One example is that a speed-accuracy tradeoff could be instantiated in the brain as an increase/decrease in both signal and noise, such as described in Section 2.1 when drift rate and diffusion coefficient both increase/decrease. This scenario would look exactly like one in which the speed-accuracy trade-off is implemented through an increase/decrease in boundary (see <ref type="figure" target="#fig_1">Figure 1d</ref>). Our model cannot differentiate these two cases without making restrictive assumptions about a true relationship between neural data and model parameters. Therefore, while the model would be useful to understand individual differences in the parameter triad across individuals for psychometrics, it would not give us information to differentiate the gain hypothesis <ref type="bibr" target="#b54">(Standage et al., 2014a)</ref> from other computational mechanisms of speed-accuracy tradeoff.</p><p>We focused on particular methods and models that produced promising results after testing various methods and models. These methods could also be extended to assuming non-linear relationships or embedded computational models of neural data, as long as the entire model parameter inference is restricted by the extra data. However these methods would require extensive testing, similar to the model recovery and misspecification tests we performed. We also expect other methods to be able to shrink the unidentified space, such as clever uses of hierarchical models. However, we were not able to find promising methods in our own work, other than the ones described in this paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>At the core of the Diffusion Decision Model (DDM) is a triad of parameters that cannot be jointly identified. The pragmatic solution is to choose one of them arbitrarily and fix it so that it serves to scale the other two parameters. We find this practice unsatisfying because all three parameters represent a variable of theoretical interest -the speed of evidence accumulation, the noisiness of the evidence, and the caution of decision making -which could vary between experimental conditions and between individuals. We present alternative ways of interpreting parameter estimates from the DDM in terms of ratios of these true variables. We also identified ways to leverage additional data to estimate all three parameters separately. Future work should further apply these methods to additional real datasets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Declarations</head><p>potential also thought to be involved in error monitoring -as predictors of DDM parameters. The authors found evidence in the "base" experiment of a negative effect of single-trial Pe/c on boundaries and not on drift rates , nor non-decision times , given the effect of single-trial Ne/c. We therefore fit model dcDDM-to the choice-RT data from the original study as well as transformed single-trial Pe/c data in the "base" experiment by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref>. We transformed the original single-trial Pe/c data with the following steps: (1) To find the effect of Pe/c unrelated to Ne/c, we used simple linear regression of Pe/c as the dependent variable and Ne/c as the independent variable and then extracted the residuals. (2) These residuals were negated (i.e. multiplied by −1) to account for the negative effect on boundaries found in the original study. (3) The data were normalized (importantly for the dcDDM-model assumptions, not within-but across-participants). (4) Shifted and skewed the normalized Pe/c data to choose a scale for the boundary parameters, specifically giving the transformed data a mean of 1 and a standard deviation of approximately 1∕3 -this step is performed to match the prior distributions of the model. The mean Pearson correlation between singletrial RTs and these single-trial transformed Pe/c values was = 0.025 across participants with a standard deviation of ±0.086, with a maximum of 0.277 and a minimum of −0.222. Remember that our suggested cutoff was &gt; 0.3 to put further trust in the posterior distributions of the evidence parameters, and none of the 89 subjects reached this cutoff. However, we continue the analysis of the model results here as a usage example.</p><p>The estimates (mean posterior) of the proportion of cognitive variancê for each participant were small (see <ref type="figure" target="#fig_2">Figure 20)</ref>, with a mean of̄ = 0.12 and a standard deviation of ±0.09. While maximum proportion of cognitive variance estimate waŝ = 0.53 (and the minimum waŝ = 0.02), the uncertainty about for this participant (and many other participants) was quite large. The model fit indicated some certainty about the boundary parameter being approximately 1 for every participant and some variability in the diffusion coefficient . However, because the Pearson correlations between the single-trial RTs and single-trial transformed Pe/c were so low, we should not interpret these findings as being real individual differences in the boundary parameters. The model gave diffusion coefficient estimates similar to those estimates when fixing the boundary to 1 in the behavior-only DDMs discussed earlier.</p><p>The results show that the model did not give false estimates of individual differences in the parameters when the model fit resulted in little estimated shared variance between the external covariates and behavior. However, we could not estimate both participant-level boundaries in addition to participant-level drift rates and participant-level diffusion coefficients in the data by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref>; <ref type="bibr" target="#b53">Stahl et al. (2015)</ref>, even though the authors found significant results in the original studies. The effects on DDM parameters by Pe/c estimated by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref> are very small, likely explaining the low estimated̂ values in our work.</p><p>Future work should seek single-trial external covariates that are more correlated to behavioral data in order to use this model to estimate individual differences in all three evidence parameters.</p><p>We checked that the results of fitting the data by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref> to Model dcDDM-were realistic in a few additional ways. We fit the model also with single-trial Ne/c measures from the same study (also standardized in the same way as discussed above), non-negated single-trial Pe/c measures, and completely simulated Pe/c data that was not correlated in any way to the real behavioral data. The model results in all of these cases were quite similar to the results previously mentioned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B.2. Fitting DDMs to real EEG and imputed behavioral data</head><p>Finally, to further show that the model would work in ideal scenarios, we imputed single-trial alpha values directly from real standardized Pe/c without measurement noise. That is, we used the real single-trial Pe/c values to impute single-trial boundary parameters without additional noise. We sampled additional parameters of a DDM from the following distributions to simulate behavioral data along with the single-trial boundary parameters. </p><p>The mean Pearson correlation between single-trial RTs and these single-trial Pe/c values was̄ = 0.474 across participants with a standard deviation of ±0.105, with a maximum of 0.777 and a minimum of 0.194. In this ideal scenario, the model could well estimate the imputed and simulated parameters of a DDM with a mean of̄ = 0.87, a standard deviation of ±0.11, a maximum̂ of 0.98, a minimum̂ of 0.31. Note that in this model fit, the true imputed boundaries were also all near 1 because the real data had the mean subtracted for each participant in a preprocessing step by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref>.</p><p>Finally, we performed one more simulation using real data with simulated individual differences We also imputed data in which, for each participant, their true Pe/c data on each trial was added to one participant-level random draw from a normal distribution with mean 0 and standard deviation equaling the total standard deviation of the Pe/c data. The other parameters were simulated using the distributions listed above. In this further ideal scenario, the model also recovered the imputed boundaries. Thus, the single-trial model will recover individual differences in the parameters-as long as the single-trial external covariates are standardized across (and not within) individuals.          (purple 3D scatter plot). Pairwise joint distributions are given by the grey projections on each of the three faces. The joint posterior distribution is driven mostly by the joint likelihood of the data (N=247) given the model. The 5-dimension joint posterior distribution also includes the relative start point and non-decision time. The mean posteriors of those two parameters werê = 0.647 seconds and̂ = 0.35 proportion of boundary in this simulation respectively. <ref type="figure" target="#fig_1">Figure 19</ref>: Two instances of recovery of the true (simulated) proportion of cognitive variance in an external covariate for Model dcDDM-. Subplot a gives the recovery when the simulation is from the same fitted model, Model dcDDM-. Subplot b gives the recovery of the same model when it is misspecified, specifically when the data is simulated by Model dcDDM-. The orange line = in each plot indicates ideal recovery. The mean of the posterior distributions are given by teal star symbols and the median of the posterior distributions are given by black circles. Uncertainty about each parameter estimate is given by the 95% credible intervals of dark blue lines, and 99% credible intervals of teal lines. <ref type="figure" target="#fig_2">Figure 20</ref>: The x-axis gives a summary of posterior samples of the proportion of cognitive variance in standardized Pe. The y-axis gives the (ordered) participant IDs in the dataset by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref>. The mean of the posterior distributions are given by teal star symbols and the median of the posterior distributions are given by black circles. Uncertainty about each parameter estimate is given by the 95% credible intervals of dark blue lines, and 99% credible intervals of teal lines. <ref type="figure" target="#fig_1">Figure 21</ref>: Parameter recovery of model dcDDM-when the ground truth relationship between single-trial boundary parameter and covariate data was simulated from a sigmoidal shape (see end of Section 3.6 and compare to <ref type="figure">Figure 6</ref>).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>, , , , ) = ( , = 0 | − , , , 1 − , )</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The relationship between parameters drift rate , boundary , or diffusion coefficient to mean accuracy, mean response time, or response time variance when simulating from Decision Diffusion Models (DDMs). This figure was generated with base drift rate = 3, base diffusion coefficient = 1, and base boundaries = 1 unless the parameter is specified in the figure as changing along the x-axis.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 2 :</head><label>2</label><figDesc>Four simulations of DDMs via the approximation of a Wiener process outlined in Section 2.1. The intersection of the evidence path with the top or bottom boundaries describes the choice (top or bottom) of a participant in a experimental task, as well as the response time at boundary crossing in seconds. The same random seed was used to generate all four plots. The parameter triad used to generate each plot is given in the top left of each subplot. The resulting true SNR and CNR ratios from the parameter triad are given in the bottom left of each subplot. Note that the scale of evidence is different in (b) than the other three plots, but results in the same path crossings as in (a). Interpretations of outcomes of these simulations are presented in the text.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 3 :</head><label>3</label><figDesc>Path models used to estimate the regression of cognitive ability on standard (a) and reparameterized (b) DDM parameters. The path coefficient from cognitive ability to processing capacity was fixed to 1 for reasons of identifiability.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Draws from a joint posterior distribution for one simulated data set from a DDM with all three parameters free to vary (purple 3D scatter plot). Pairwise joint distributions are given by the grey projections on each of the three faces. The joint posterior distribution is driven mostly by the joint likelihood of the data (N=185) given the model (Model dcDDM). The prior distributions (though not influential) for Model dcDDM are given in the text. The posterior shape will be different for each data set (see Appendix for pairwise posterior distributions). The 5-dimension joint posterior distribution also includes the relative start point and non-decision time. The mean posteriors of those two parameters werê = 0.659 seconds and̂ = 0.47 proportion of boundary in this simulation, respectively. The drift rate and diffusion coefficients are given in evidence units per second, while the boundary is in evidence units.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>Figure 4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 8 :</head><label>8</label><figDesc>Samples from paired posterior distributions of diffusion coefficients on the x-axes and boundaries on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM. The following information also holds for Figures 9, 10, and 11. The true parameter is shown with a black dot. The Pearson correlation of the posterior samples is given in the top left of each subplot. The three-dimensional joint posterior distribution ofFigure 4corresponds to the first highlighted subplot.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 9 :</head><label>9</label><figDesc>Samples from paired posterior distributions of diffusion coefficients on the x-axes and drift rates on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 10 :Figure 11 :</head><label>1011</label><figDesc>Samples from paired posterior distributions of drift rates on the x-axes and boundaries on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM Samples from paired posterior distributions of start points on the x-axes and boundaries on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 12 :</head><label>12</label><figDesc>Samples from paired posterior distributions of diffusion coefficients on the x-axes and boundaries on the y-axes for 18 simulated participants. The following information also holds for Figures 13 and 14. These paired posteriors were estimated from a single simulation and fit of Model dcDDM-. The true parameter is shown with a black dot. The Pearson correlation of the posterior samples is given in the top left of each subplot. The three-dimensional joint posterior distribution of Figure 5b corresponds to the first highlighted subplot.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 13 :</head><label>13</label><figDesc>Samples from paired posterior distributions of diffusion coefficients on the x-axes and drift rates on the y-axes for 18 simulated participants from Model dcDDM-.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 14 :</head><label>14</label><figDesc>Samples from paired posterior distributions of drift rates on the x-axes and boundaries on the y-axes for 18 simulated participants from Model dcDDM-.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Figure 15 :</head><label>15</label><figDesc>Samples from paired posterior distributions of diffusion coefficients on the x-axes and (participant-level) boundaries ( ) on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM-. The following information also holds forFigures 16 and 17. The true parameter is shown with a black dot. The Pearson correlation of the posterior samples is given in the top left of each subplot. The three-dimensional joint posterior distribution ofFigure 18corresponds to the first highlighted subplot.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 16 :</head><label>16</label><figDesc>Samples from paired posterior distributions of diffusion coefficients on the x-axes and drift rates on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM-.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure 17 :</head><label>17</label><figDesc>Samples from paired posterior distributions of drift rates on the x-axes and (participant-level) boundaries ( ) on the y-axes. These posteriors were estimated from 18 simulations and fits of Model dcDDM-.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>Figure 18 :</head><label>18</label><figDesc>Draws from a joint posterior distribution for one simulated data set from Model dcDDM-</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">This is similar to other cognitive models that have been shown to be dependent on parameter ratios instead of individual parameters<ref type="bibr" target="#b29">(van Maanen and Miletić, 2021)</ref>.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">Note that the density functions in Equations 1 and 2 assume that there is no trial-to-trial variability in the cognitive parameters across experimental trials. However, the same properties hold for the densities of DDM extensions with trial-to-trial variability parameters<ref type="bibr" target="#b57">(Tuerlinckx, 2004;</ref><ref type="bibr" target="#b42">Ratcliff et al., 2016b)</ref>. Therefore the unidentifiability problem still holds for many DDM extensions.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3">Note that there are quite a few (likely infinite) different theoretical mappings between parameters of cognitive models and neural recordings. Here we discussed the results in terms of the typical interpretation of electrophysiological measures thought to reflect evidence accumulation.</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4">Note that this is not a hierarchical model in the sense that there are only priors per parameter per participant, and no hierarchical parameters for simplicity. We expect a similar hierarchical model to perform similarly well, if not better, than this model. However we excluded this comparison from the paper for the sake of clarity in comparison to the single-trial model dcDDM-in section 3.6.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>We thank Amin Ghaderi-Kangavari for feedback and advice regarding the work. We thank Joachim Vandekerckhove for suggesting testing hierarchical models with fixing participants and experimental conditions to assess identifiability of DDM parameters. We thank Stefan Radev and Jan Göttmann for offering advice about BayesFlow scripting and usage. We thank Anna Grabowska for advice about EEG data. We thank SURF (www.surf.nl) for the support in using the Dutch National Supercomputer Snellius. We thank Sebastian Hellmann for finding an error in our online Stan code in an earlier version of this work.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflict of interest</head><p>The authors have declared that they do not have any conflict of interest.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data and code availability</head><p>Python code associated with this work is available at https://github.com/mdnunez/bayesflow_nddms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Funding</head><p>Supported by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) SCHU 3266/2-1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Joint posterior distributions</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.1. Paired posterior distributions from a full model with a free-to-vary diffusion coefficient</head><p>In <ref type="figure">Figures 8, 9</ref>, 10, and 11, we show samples from paired posterior draws of Model dcDDM for multiple pairs of parameters. For each simulation, a parameter set was drawn randomly from the priors. After model fitting, the shape of the joint posteriors depends on the data. The mean and standard deviation of the number of simulated trials were 179 ± 73. Each subplot within a figure corresponds to a different simulation. The same location of the subplots across the four figures shows a different projection of the joint posterior distribution from the same simulation.</p><p>Not all paired posterior distributions that include the non-decision time and start-point parameters are plotted. Those parameters are recovered in each simulation (see the last two columns of <ref type="figure">Figure 7</ref>) and the resulting plotted posterior samples for each simulation were usually circular clouds of dots, indicating approximately multivariate normal posterior distributions with little correlation between the paired parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.2. Paired posterior distributions from a model with participant-level covariates</head><p>Figures 12, 13, and 14 include samples from paired posterior draws of Model dcDDM-that describes external covariates by participant-level boundary parameters when the measurement noise of external covariates was = 0.1 (see <ref type="figure">Figures 6 and 5b)</ref>. The parameters for the posteriors from the first simulated participant are described in the text of Section 3.4 and <ref type="figure">Figure 5</ref>. For the rest of the simulated participants, the DDM parameters were drawn randomly from the following distributions:</p><p>A.3. Joint posterior distributions from a model with trial-level covariates <ref type="figure">Figures 15, 16</ref> and 17 include samples from paired posterior draws of Model dcDDM-that describes singletrial external covariates through trial-to-trial boundary changes in addition to choice-RTs. A parameter set was drawn randomly from the priors for each simulation. A subset of 18 of these simulations were found with proportions of cognitive variance &gt; 0.90 in the external covariate. The mean and standard deviation of the number of simulated trials were 181 ± 69 in these 18 simulations. Each subplot within a figure corresponds to a different simulation. The same location of the subplots across the four figures shows a different projection of the joint posterior distribution from the same simulation. <ref type="figure">Figure 18</ref> shows a joint posterior of three parameters for one representative simulation to compare to <ref type="figure">Figure 4</ref>. <ref type="figure">Figure 19a</ref> shows parameter recovery of the proportion of external covariate variance explained by cognition for 500 simulations of Model dcDDM-. <ref type="figure">Figure 19b</ref> shows parameter recovery of the same model when the model was misspecified, specifically when simulating from Model dcDDM-with 1 = 2. Further details are given in Section 3.6 of the main text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Fitting DDMs to trial-level EEG and behavioral data B.1. Fitting DDMs to real EEG and behavioral data</head><p>We sought to further verify the usefulness of fitting model dcDDM-by fitting the model to real data. <ref type="bibr" target="#b30">Mattes et al. (2022)</ref> found evidence that a single-trial EEG measure, thought to reflect response monitoring after an experimental trial (the error/correct positivity Pe/c), was negatively associated with single-trial boundaries on the subsequent trials of an Eriksen flanker task <ref type="bibr" target="#b9">(Eriksen and Eriksen, 1974)</ref>. They evaluated fits of DDMs with fixed diffusion coefficients to the data using the HDDM package by <ref type="bibr" target="#b63">Wiecki et al. (2013)</ref>. The original data is from a paper by <ref type="bibr" target="#b53">Stahl et al. (2015)</ref>, and the extracted single-trial measures were provided on the Open Science Framework (OSF) at https://osf.io/8nbd4/. However, we should note here that this data and model combination was not going to be useful to measure individual differences in an ideal scenario of high correlation of single-trial Pe/c to single-trial boundaries . This is because the mean was subtracted from the original Pe/c before preprocessing <ref type="bibr" target="#b30">(Mattes et al., 2022)</ref>, effectively removing the variance across individuals. We use this data set instead as an example for obtaining parameter estimates from Model dcDDM-.</p><p>We thought this dataset would be a good candidate to attempt to measure all three evidence parameters with dcDDM-within participants. This was based on the results shown by <ref type="bibr" target="#b30">Mattes et al. (2022)</ref> in their DDM model fits. Specifically, the authors fit an embedded-regression models using single-trial Pe/c and Ne/c -a post-decision negative</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Identifying bayesian mixture models. Stan Case Studies 4</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Betancourt</surname></persName>
+		</author>
+		<ptr target="https://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html" />
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Estimating across-trial variability parameters of the diffusion decision model: Expert advice and recommendations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Boehm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Annis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kellen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Krypotos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">D</forename><surname>Logan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Palmeri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page" from="46" to="75" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">An attention-based diffusion model for psychometric analyses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Boehm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marsman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">L</forename><surname>Van Der Maas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Maris</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page" from="938" to="972" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">The neural basis of the speed-accuracy tradeoff</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bogacz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nieuwenhuis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in neurosciences</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="10" to="16" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Stan: A Probabilistic Programming Language</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Carpenter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Hoffman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Goodrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Betancourt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Brubaker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riddell</surname></persName>
+		</author>
+		<idno type="DOI">10.18637/jss.v076.i01</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Software</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page" from="1" to="32" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Subthalamic nucleus stimulation reverses mediofrontal influence over decision threshold</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Cavanagh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">X</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Figueroa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Samanta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Sherman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nn.2925</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="1462" to="1467" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">The overconstraint of response time models: Rethinking the scaling problem</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Donkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="1129" to="1135" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">The Quality of Response Time Data Inference: A Blinded, Collaborative Assessment of the Validity of Cognitive Models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Dutilh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Annis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cassey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P P P</forename><surname>Grasman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Holmes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Krypotos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">N</forename><surname>Kupitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">P</forename><surname>Leite</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">S</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">D</forename><surname>Logan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Palmeri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Starns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Trueblood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Van Maanen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Van Ravenzwaaij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Visser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">N</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rieskamp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Donkin</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-017-1417-2</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="1051" to="1069" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Inverse problems in astronomical adaptive optics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">L</forename><surname>Ellerbroek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Vogel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Inverse Problems</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page">63001</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Effects of noise letters upon the identification of a target letter in a nonsearch task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Eriksen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Eriksen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception &amp; psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="143" to="149" />
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Computational modeling of cognition and behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Farrell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lewandowsky</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Striatum and pre-sma facilitate decision-making under time pressure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Dutilh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Neumann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">Y</forename><surname>Von Cramon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">R</forename><surname>Ridderinkhof</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="page" from="17538" to="17542" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">The speed-accuracy tradeoff in the elderly brain: a structural model-based approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tittgemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Derrfuss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Imperati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page" from="17242" to="17249" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">fmri and eeg predictors of dynamic decision parameters during human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gagne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Nyhus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Masters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Cavanagh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page" from="485" to="494" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Cognitive models in intelligence research: Advantages and recommendations for their application</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">T</forename><surname>Frischkorn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Schubert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page">34</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Process-oriented intelligence research: A review from the cognitive perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">T</forename><surname>Frischkorn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Wilhelm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Oberauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">94</biblScope>
+			<biblScope unit="page">101681</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Moment-to-moment brain signal variability: A next frontier in human brain mapping?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Garrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Samanez-Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">W S</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Lindenberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Mcintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Grady</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neubiorev.2013.02.015</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroscience &amp; Biobehavioral Reviews</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="610" to="624" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Bayesian Data Analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Carlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">S</forename><surname>Stern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Dunson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vehtari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">LLC</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>Taylor &amp; Francis Group</publisher>
+		</imprint>
+	</monogr>
+	<note>3rd ed.</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">A general integrative neurocognitive modeling framework to jointly describe EEG and decision-making on single trials</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ghaderi-Kangavari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Rad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Brain &amp; Behavior</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="60" />
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Neurocognitive models of single-trial eeg measures describe latent effects of spatial attention during perceptual decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ghaderi-Kangavari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Rad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Parand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">102725</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Classic EEG motor potentials track the emergence of value-based decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rieskamp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Büchel</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuroimage.2013.05.005</idno>
+	</analytic>
+	<monogr>
+		<title level="j">NeuroImage</title>
+		<imprint>
+			<biblScope unit="volume">79</biblScope>
+			<biblScope unit="page" from="394" to="403" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Neural mechanisms of speed-accuracy tradeoff</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Heitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Schall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page" from="616" to="628" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Causal role for the primate superior colliculus in the computation of evidence for perceptual decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Jun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Bautista</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Allen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Tak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Alvarez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Basso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="1121" to="1131" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title level="m" type="main">Berliner Intelligenzstruktur-Test</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">O</forename><surname>Jäger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Süß</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Beauducel</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1997" />
+			<pubPlace>Göttingen</pubPlace>
+		</imprint>
+	</monogr>
+	<note>Form 4. Hogrefe</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Exploring Neural Signal Complexity as a Potential Link between Creative Thinking, Intelligence, and Cognitive Control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Kaur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hildebrandt</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/jintelligence9040059</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Visual fixations and the computation and comparison of value in simple choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Krajbich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Armel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rangel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="1292" to="1298" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Diffusion modeling and intelligence: Drift rates show both domain-general and domain-specific relations with intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Von Krause</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">T</forename><surname>Frischkorn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Schubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hagemann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">149</biblScope>
+			<biblScope unit="page">2207</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Timing of readiness potentials reflect a decisionmaking process in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">K</forename><surname>Lui</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Cassidy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Cramer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Srinivasan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Brain &amp; Behavior</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="264" to="283" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">The common factor of executive functions measures nothing but speed of information uptake</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Löffler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">T</forename><surname>Frischkorn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hagemann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Sadus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Schubert</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s00426-023-01924-7</idno>
+		<idno>doi:10.1007/s00426-023-01924-7</idno>
+		<ptr target="https://doi.org/10.1007/s00426-023-01924-7" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Research</title>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">The interpretation of behavior-model correlations in unidentified cognitive models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Van Maanen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miletić</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page" from="374" to="383" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Linking neurophysiological processes of action monitoring to post-response speed-accuracy adjustments in a neuro-cognitive diffusion model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mattes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Porth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stahl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">NeuroImage</title>
+		<imprint>
+			<biblScope unit="volume">247</biblScope>
+			<biblScope unit="page">118798</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">A tutorial on fitting joint models of m/eeg and behavior to understand cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Fernandez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Srinivasan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13428-023-02331-x</idno>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Behavior Research Methods</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Individual differences in attention influence perceptual decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Srinivasan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">How attention influences perceptual decision making: Single-trial EEG correlates of drift-diffusion model parameters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Srinivasan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of mathematical psychology</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page" from="117" to="130" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">A supramodal accumulation-to-bound signal that determines perceptual decisions in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>O'connell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Dockree</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Kelly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="1729" to="1735" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Bridging neural and computational viewpoints on perceptual decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>O'connell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wong-Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Kelly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in neurosciences</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="838" to="852" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Computational analysis of speed-accuracy tradeoff</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Penconek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page">21995</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Plummer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 3rd International Workshop on Distributed Statistical Computing (DSC 2003)</title>
+		<meeting>the 3rd International Workshop on Distributed Statistical Computing (DSC 2003)<address><addrLine>Vienna, Austria</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Bayesflow: Learning complex stochastic models with invertible neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Radev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">K</forename><surname>Mertens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ardizzone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Köthe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IEEE transactions on neural networks and learning systems</title>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="1452" to="1466" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Radev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schmitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Schumacher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Elsemüller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Pratz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Schälte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Köthe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Bürkner</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2306.16015</idno>
+		<title level="m">Bayesflow: Amortized bayesian workflows with neural networks</title>
+		<imprint>
+			<biblScope unit="page">2023</biblScope>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">A single trial analysis of EEG in recognition memory: Tracking the neural correlates of memory strength</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Sederberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Childers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychologia</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page" from="128" to="141" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Diffusion Decision Model: Current Issues and History</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="260" to="281" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">A diffusion model analysis of the effects of aging in the lexical-decision task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Thapar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Van Ravenzwaaij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Donkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page" from="547" to="556" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+	<note>Psychology and aging</note>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">A diffusion model decomposition of the effects of alcohol on perceptual decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Van Ravenzwaaij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Dutilh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychopharmacology</title>
+		<imprint>
+			<biblScope unit="volume">219</biblScope>
+			<biblScope unit="page" from="1017" to="1025" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">Neither measurement error nor speed-accuracy trade-offs explain the difficulty of establishing attentional control as a psychometric construct: Evidence from a latentvariable analysis using diffusion modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rey-Mermet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Singmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Oberauer</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+			<publisher>PsyArXiv</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Roitman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="9475" to="9489" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">lavaan: An R Package for Structural Equation Modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Rosseel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Software</title>
+		<imprint>
+			<biblScope unit="volume">48</biblScope>
+			<biblScope unit="page" from="1" to="36" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">A psychometrics of individual differences in experimental tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Rouder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Haaf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="452" to="467" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Individual differences in components of reaction time distributions and their relations to working memory and intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Schmiedek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Oberauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Wilhelm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Süß</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">W</forename><surname>Wittmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of experimental psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">136</biblScope>
+			<biblScope unit="page">414</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Neurocognitive psychometrics of intelligence: How measurement advancements unveiled the role of mental speed in intelligence differences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Schubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">T</forename><surname>Frischkorn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Directions in Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="140" to="146" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Individual differences in cortical processing speed predict cognitive abilities: A model-based cognitive neuroscience account</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Schubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Nunez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hagemann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Brain &amp; Behavior</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="64" to="84" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Decision making as a window on cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kiani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="page" from="791" to="806" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Perfect error processing: Perfectionism-related variations in action monitoring and error processing mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Acharki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kresimon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Völler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Gibbons</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Psychophysiology</title>
+		<imprint>
+			<biblScope unit="volume">97</biblScope>
+			<biblScope unit="page" from="153" to="162" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Neural dynamics implement a flexible decision bound with a fixed firing rate for choice: a modelbased hypothesis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Standage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Blohm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Dorris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Standage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Blohm</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">318</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>On the neural implementation of the speed-accuracy trade-off</note>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">Models for choice-reaction time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Stone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page" from="251" to="260" />
+			<date type="published" when="1960" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Popper, bayes and the inverse problem</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tarantola</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature physics</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="492" to="494" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">The efficient computation of the cumulative distribution and probability density functions in the diffusion model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Tuerlinckx</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/BF03206552</idno>
+		<idno>doi:10. 3758/BF03206552</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods, Instruments, &amp; Computers</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page" from="702" to="716" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">Joint models of neural and behavioral data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Interpreting the parameters of the diffusion model: An empirical validation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rothermund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/BF03196893</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Memory &amp; Cognition</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="1206" to="1220" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Fast-dm: A free program for efficient diffusion model analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/BF03192967</idno>
+		<idno>doi:10.3758/ BF03192967</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page" from="767" to="775" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Extending JAGS: a tutorial on adding custom distributions to JAGS (with a diffusion model example)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Behavior research methods</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="15" to="28" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">An ezdiffusion model for response time and accuracy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">L</forename><surname>Van Der Maas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Grasman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="3" to="22" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">Hddm: Hierarchical bayesian estimation of the drift-diffusion model in python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Frontiers in neuroinformatics</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">14</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

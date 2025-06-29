@@ -1,0 +1,1744 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Methods to scale deliberative decision-making to billions of simultaneous people</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Niccolo</forename><forename type="middle">'</forename><surname>Pescetelli</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Georgina</forename><surname>Denis</surname></persName>
+						</author>
+						<title level="a" type="main">Methods to scale deliberative decision-making to billions of simultaneous people</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T12:48+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>In today&apos;s connected information environment, communication with millions of individuals is the norm rather than the exception. However, communication is primarily text-based, asynchronous and non-deliberative. Real-time deliberation remains sporadic. Even on social media, where people can simultaneously signal their opinions to millions of individuals and engage in lengthy discussion threads, communication remains limited to broadcasting, and information aggregation is not guaranteed in a reasonable amount of time. Here, we present a novel approach to collective decision-making for open-ended problems, which scales real-time online deliberation to virtually thousands, millions, or even billions of individuals. The method, called PSi (People Supported intelligence), is an iterative method for group discussions that outputs a ranking of crowdsourced answers to open-ended questions. PSi is bounded by the number of iterations required to reach a collective decision and, thus, the time needed to reach it. It is guaranteed to output a decision in logarithmic time as a function of group size, opening the door to massive-scale deliberative decision-making. We present results from a discussion between Republicans and Democrats (N=208) on abortion rights. We present the PSi method within the broader field of collective intelligence and decision-making, its informational properties, and applications. PSi represents a scalable solution to deliberative decision-making that is theoretically resilient to herding, negative social influence, or intentional attacks (e.g., disinformation). We discuss its potential impact on deliberative democracy and deliberative participation in large groups, like organizations, cities, and societies.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">INTRODUCTION</head><p>Researchers have long argued that humans evolved the use of language to increase the size of human groups that could successfully coordinate and make collective decisions at scale <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b17">18,</ref><ref type="bibr" target="#b49">50,</ref><ref type="bibr" target="#b59">60]</ref>. Deliberation is at the basis of many decision-making systems, from friends deciding where to go out to a business board discussing an organization's strategy and politicians debating policies. Nevertheless, the ability to share viewpoints and reach a consensus via deliberation breaks down when group size increases from a handful of individuals to hundreds, thousands, or millions of individuals <ref type="bibr" target="#b61">[62]</ref>. Empirical evidence shows that it is difficult to sustain casual conversations when more than four people are involved (the dinner party problem <ref type="bibr" target="#b33">[34]</ref>).</p><p>The number of possible person-to-person links ( ) rapidly increases with the number of individuals composing a group:</p><p>. The number of possible two-person links = ( 2 − ) / 2 in a group of four is six, but in a group of twelve is 66. Notably, the dynamics of social influence change as a function of group size. Experimental evidence shows that different speaker-audience dynamics affect small and large groups. In small 5-person groups, members are influenced most by those with whom they interact in the discussion. However, in large, 10-person groups, members are influenced most by the dominant speaker and show greater post-interaction internal agreement due to the dominant speaker's greater influence <ref type="bibr" target="#b18">[19]</ref>. When social influence is unbalanced, information independence decreases and can damage group performance <ref type="bibr" target="#b6">[7,</ref><ref type="bibr" target="#b21">22]</ref>.</p><p>Modern organizations and societies are made of thousands or even millions of individuals, where deliberation is currently impossible. Decision-making at this scale is often achieved with leadership, chains of command, division of labor, bureaucratic systems, or representation <ref type="bibr" target="#b60">[61]</ref>. Groups face a well-known trade-off between the depth of the information aggregation process and the size of the group involved in it <ref type="bibr" target="#b27">[28]</ref>, typically with the former becoming simpler as group size grows larger. For instance, democratic election processes, arguably the largest scale of decision-making processes, rely on voting as a simple way to aggregate preferences from millions of individuals -or even billions in the case of Indian elections.</p><p>In recent years, there has been an impetus to bring back deliberation in the political arena <ref type="bibr" target="#b16">[17,</ref><ref type="bibr" target="#b20">21,</ref><ref type="bibr" target="#b46">47]</ref>. Political scientists have argued for the positive properties of deliberative democratic processes, such as deliberative assemblies, as seen in the Paris Climate Assembly and the Irish Assembly <ref type="bibr" target="#b24">[25]</ref>. These methods of collective decision-making are considered fairer by citizens while producing larger buy-in and a more informed populace. However, also here, the size of group conversations limits the number of citizens that can be included in a citizen assembly. Deliberative methods, such as deliberative polling <ref type="bibr" target="#b19">[20]</ref>, rely on small representative samples of citizens but some scholars have even argued that in democratic deliberative assemblies, more is smarter <ref type="bibr" target="#b34">[35]</ref>.</p><p>From an information point of view, whether decision-making at this scale requires deliberation (or even social interaction) is still a matter of debate. Deliberative and non-deliberative opinion aggregation leverage distinct properties of collective intelligencenamely social learning (in the case of deliberative processes) and judgment independence (in the case of non-deliberative processes) -that are both beneficial under the right circumstances. Importantly, deliberation interacts with team size in many real-world tasks and complex information environments. When judgments are independent, and the average accuracy is above chance, group accuracy monotonically increases with group size (the "wisdom of crowds" phenomenon) <ref type="bibr" target="#b10">[11,</ref><ref type="bibr" target="#b23">24]</ref>. In many real-world decision environments, however, individual judgments are often not independent, and tasks can be so difficult that average individual accuracy is below chance. In these scenarios, the opposite result is observed, with small groups showing an advantage compared to larger groups <ref type="bibr" target="#b15">[16,</ref><ref type="bibr" target="#b22">23,</ref><ref type="bibr" target="#b26">27,</ref><ref type="bibr" target="#b31">32,</ref><ref type="bibr" target="#b43">44]</ref>. Whether deliberative decision-making can constructively scale to thousands, millions, or even billions of people remains unexplored.</p><p>In what follows, we describe the PSi (or People Supported Intelligence) algorithm. The algorithm is designed to scale deliberative decision-making while avoiding the downsides affecting real-life large-group discussions. The platform uses a real-time voice API to automatically manage audio rooms, allocating users to them to facilitate voice-based discussions among concurrent users. We describe the algorithm's central intuition and novelty. To ground PSi's method on a real use case, we ran a discussion on abortion rights following the US Supreme Court's decision to overturn Roe v Wade, the national law that protected abortion rights. PSi interface. a) The user is prompted to answer the discussion question by submitting an "idea". They record a short voice note and choose a title for their idea. b) The user is randomly assigned to a small discussion group. They are prompted to discuss a subset of the ideas and vote on the best ones. A timer on the left of the user interface helps users keep track of time. c) Each user at a table can allocate a number of vote credits to all ideas except for their idea in the first round of discussion. This limitation is introduced to reduce the risk of deadlocks on the first round. Dot voting allows capturing the mean and the variance of the preference distribution. In the figure, the user expresses a stronger preference for the first idea than the following ideas.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">METHODS</head><p>The PSi process starts by posing an open-ended question and scheduling a new discussion. While binary and multiple-option questions (e.g., Do you agree with the US Supreme Court's decision to overturn Roe v Wade?') can be asked, we focus on open-ended problems in this paper.</p><p>Users take part by joining a waiting room at the scheduled time. Users are prompted to answer the discussion question by submitting a unique answer ( <ref type="figure">Figure 1A)</ref>, called "idea" (see Box 1. Terminology). The ideas provide a summary of the user's viewpoint regarding the question and consist of a short text title and a voice recording. The system can be adapted to include other answer formats, such as long-format text answers, numerical estimates, or graphical representations.</p><p>Thus, a discussion with n individuals produces n unique answers, which describe the space of possible answers according to the respondents. The goal of the PSi method is to find a unique ranking of these answers (e.g., the answers that should be prioritized by impact or importance, or effectiveness) according to users' deliberation, argumentation, and discussion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">PROCEDURE</head><p>PSi is an iterative deliberative method designed to generate a ranking of solutions influenced by discussions among participants in response to an open-ended question. Upon entering the discussion, each user i is required to contribute a unique idea denoted as X i . The method operates by taking a solution vector X, which consists of n independent answers input by the users, and producing a ranking R based on peer-to-peer discussions, denoted as R = d(X).</p><p>In the initial round, users are randomly assigned to breakout sessions referred to as "tables" (see Box 1. Terminology), as depicted in <ref type="figure" target="#fig_1">Figure 2</ref>. Each table aims to accommodate a predetermined target size denoted as m (m=2 in <ref type="figure" target="#fig_1">Figure 2</ref>). The researcher sets a pre-established discussion time (t), typically 5 minutes, during which users engage in conversations related to the m ideas present at the table <ref type="figure">(Figure 1b)</ref>. At the conclusion of the discussion time, users are prompted to vote on the idea they deem to possess greater merits among the m ideas discussed within their table. This voting process employs dot voting <ref type="bibr" target="#b22">(23)</ref>, allowing users to allocate a number of vote credits across the m answers at their table. This approach captures the user's belief distribution rather than a single-point preference. Users can distribute their votes across multiple ideas if they are uncertain or allocate all their votes to a single idea if they strongly support it <ref type="figure">(Figure 1c</ref>). Alternative voting mechanisms, such as 1-person 1-vote, quadratic voting, or ranked voting, may also be implemented. While voting serves as the primary means to integrate discussion insights into the decision-making process, other methods of information aggregation can be explored (see Discussion). After voting, votes are aggregated, and one idea per table moves to the next round.</p><p>In round two, users are reshuffled to new tables ( <ref type="figure" target="#fig_1">Figure 2</ref>, middle row) and new rooms (Box 1. Terminology) containing m tables and m ideas are formed. With each new iteration, the number of ideas discussed is reduced by a factor m while the number of tables per room increases by a factor m. As the number of users and tables is constant, but the number of ideas is reduced, smaller rooms are merged into larger ones with each iteration. As more ideas are eliminated after every round, the number of tables where an idea x i is discussed increases by a factor m on every iteration. Users who belong to the same room in round r will belong to the same room in all following rounds. Rooms are sets of tables that discuss the same set of ideas. In Round 1 (top), n users (here n=8) suggest N unique ideas to answer the discussion question. Ideas and users are randomly paired in discussion rooms. Users discuss ideas in their room for a set time and allocate votes to the ideas they support the most. One idea per room advances to the next round based on the votes received. In round 2 (central row), all users are redistributed across tables and winning ideas are redistributed across new rooms. Users discuss ideas in their room for a set time and allocate votes to the ideas they support the most. One idea per room advances to the next round based on the votes received. The process repeats until two (in this particular example) remaining ideas are left. In round 3 (bottom row), all users discuss the remaining ideas for a set period. One idea is selected based on the votes received across the room (all tables).</p><p>The platform automatically deals with dropouts while preserving the ideas submitted by users who drop out after the discussion starts. The platform also ensures that the discussion remains civil by letting users flag disruptive users at their table and AI moderation to filter out ideas that use inappropriate language.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">ANALYSES</head><p>For every discussion, PSi automatically transcribes submitted ideas and, optionally, conversational data. It then computes behavioral and semantic measures that are visualised on an interactive dashboard allowing the researcher to interact with the data. Idea submissions from a single discussion are transcribed and analyzed to compute the ideas' semantic variance. This value indicates the diversity of all submitted ideas. To compute it, we embed submitted ideas using the Universal Sentence Encoder <ref type="bibr" target="#b9">[10]</ref> and then assemble all possible idea combination pairs. Each combination pair is scored for semantic similarity using cosine similarity and the final idea diversity score is computed as the variance of semantic similarity score across all pairs.</p><p>To explicitly model redundancies between ideas, we cluster submitted ideas based on semantic similarity, by projecting the idea embeddings on a cartesian plane where each point represents a single idea. Transcribed idea statements are individually encoded into word embedding vectors. The collection of vectors is then subjected to dimensionality reduction to render coordinates compatible with a cartesian plane. The resulting coordinates are then passed through either of two clustering methods to identify clusters, namely HDBSCAN or K-Means. Each cluster of text is summarized using the abstractive Bart-Summarizer model <ref type="bibr" target="#b38">[39]</ref>.</p><p>Similarity between ideas is also assessed using collaborative filtering. The algorithm, commonly used by recommender systems, is used here to infer the votes that a participant i would have given to idea j had they encountered it during the discussion. This method addresses a common problem in statement-based collective intelligence tools, namely the sparsity of the user-item matrix <ref type="bibr" target="#b56">[57]</ref>. Even though a participant does not discuss and vote on every idea submitted, the algorithm helps inferring the similarity of different ideas based on the votes received by similar users <ref type="bibr" target="#b13">[14]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">THEORETICAL ADVANTAGES</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">SCALABILITY</head><p>The first advantage of the PSi method is that the number of ideas discussed in each round reduces exponentially, depending on the base m and the number of initial ideas n. Thus, the number of rounds r needed to reach a consensus increases logarithmically as a function of n:</p><formula xml:id="formula_0">(1) = ( )</formula><p>For instance when ten people (n=10) take part and discuss their ten ideas in pairs (m=2), they reach a consensus in three discussion rounds. However, a discussion with the entire world population ( billion people and ) would take only 15 discussion rounds = 7. 88 = 5</p><p>(r=15) to reach a deliberative outcome. The logarithmic property of the aggregation process makes it feasible to reach a deliberative decision with incredibly large groups. For instance, a discussion time of 5 minutes per round with the same settings ( ) will = 7. 88 , = 5</p><p>be resolved in less than 2 hours: 15 discussion rounds x 5 minutes = 75 minutes (87.5 when including current latency times). <ref type="figure" target="#fig_2">Figure 3</ref> shows the variation in convergence time as a function of group size and time allowed for a table discussion, assuming a table size of five (m=5). Most variability in decision time is explained by increases in discussion time rather than increases in the number of people present in the discussion, suggesting that the algorithm is scalable across larger group sizes <ref type="figure" target="#fig_2">(Figure 3a</ref>). Notice that most variability is explained by increases in time rather than increases in the number of people present in the discussion. b) The same plot but with the x-axis (group size) plotted on a logarithmic progression.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">ATTACK RESILIENCY AND SOCIAL BIASES.</head><p>Previous studies showed that individual members in a centralised network disproportionately influence group outcomes <ref type="bibr" target="#b6">[7]</ref>. In estimation tasks, group accuracy is increased when central nodes are themselves accurate, but it is reduced when central nodes show high error rates or bias. Over-influential individuals can bias the crowd. Greater social influence can lead to desired outcomes in certain situations, for instance, when an epidemiologist is given air time on TV, gaining influence on public opinion and behavior. However, greater social influence of a few individuals can also lead to undesired consequences. Group performance can be hindered when influence is assigned to non-experts, and uninformed individuals or incentives between influential members and the crowd are not aligned (e.g. when a central node wants to influence to attain personal gain).</p><p>The proposed method relies on small-scale parallel discussions that limit the influence that each given individual has on the final group decision. discussion round x 5 discussion rounds), or 2.5% of all participants. In other words, collective decisions emerge from individuals interacting locally (i.e., by directly talking to a handful of other users) rather than via global broadcasting of opinions, comments or posts. Aggregation emerges from the fact that opinions receiving support across independent conversations replicate while the others die out. Emergence from local interaction is a common principle in self-organising collective biological systems, such as swarms, schools and flocks <ref type="bibr" target="#b11">[12]</ref>. Similarly, unwanted error cascades can occur in groups, even without malicious agents, due to herding, groupthink and other known social biases. Assuming these biases are uncorrelated across parallel discussions, PSi is expected to be more robust than having a one-shot one-group conversation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.3">INDEPENDENCE AND SOCIAL LEARNING.</head><p>Deliberation is known to increase opinion alignment <ref type="bibr" target="#b29">[30,</ref><ref type="bibr" target="#b42">43]</ref>. Opinion alignment reduces the wisdom of crowds by decreasing estimates diversity <ref type="bibr" target="#b28">[29,</ref><ref type="bibr" target="#b39">40,</ref><ref type="bibr" target="#b55">56]</ref>. Social learning models show that less efficient network structures benefit group accuracy in complex environments because they slow down the rate of convergence to a majority solution <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b37">38,</ref><ref type="bibr" target="#b40">41]</ref>. By limiting social interactions to local interactions, PSi can theoretically reduce or slow down social alignment. In open-ended tasks, small groups tend to produce more divergent category systems <ref type="bibr" target="#b25">[26]</ref>. Because interaction happens primarily in self-contained small groups, independence is preserved across tables, even in the presence of alignment within groups.</p><p>Being part of a large group often produces unwanted social biases such as bystander effects and social loafing. Being part of a large group reduces the incentives for each individual to contribute because responsibility for taking action is diffused among more people <ref type="bibr" target="#b12">[13]</ref>.</p><p>Individual effort often decreases, as seen in social loafing <ref type="bibr" target="#b35">[36]</ref>. In a discussion, these effects can be compounded by negative emotions, such as the anxiety speaking in front of a large audience can cause <ref type="bibr" target="#b8">[9,</ref><ref type="bibr" target="#b41">42]</ref>. Group size can also limit the amount of information each individual can share as information is shared serially. PSi's reliance on small group discussions happening in parallel reduces the impact of these concerns.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.4">FOUR-EYE PRINCIPLE.</head><p>In various design systems and teams, the four-eye principle is employed, which mandates that two individuals must approve an action before it can be implemented. This principle is commonly used in quality assurance, business management, and engineering to ensure robust decision-making. Similarly, the engineering proverb "with enough eyes, all bugs are shallow" conveys a similar approach to detecting and rectifying errors through increased scrutiny by independent observers.</p><p>On PSi, as ideas progress from the first round to subsequent rounds, they undergo multiple discussions involving an increasing number of individuals. The ideas that make it to the last round of discussion (and thus the "winning" idea) are discussed, by design, by everyone in the group at least once <ref type="figure" target="#fig_1">(Figure 2</ref>, bottom row). The repeated discussion of ideas by a growing number of users ensures that everyone in the group has at least one chance to raise relevant criticisms before an idea receives the group's endorsement. Importantly, as ideas advance through rounds, they are discussed across independent (i.e., non-communicating) tables, which thus represent independent samples of conversation. This methodology safeguards against herding bias and groupthink, making the process more resilient.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.5">INCREASED BUY-IN.</head><p>Beyond a purely quantitative informational perspective, significant qualitative advantages are worth mentioning. We designed the PSi method to increase the ability to meaningfully consult large groups without reducing the depth of the information shared (e.g., via surveys) or the number of people involved in the decision process (e.g., via representation). The ability to hear from many voices constructively will likely increase buy-in as people are given a chance to be heard and participate in the decision process. Even when some individuals disagree (or explicitly oppose) the collective's decision, they will be aware of the arguments supporting it because they had the chance to discuss them with others. Supporters of deliberative democracy argue that deliberative practice improves people's ability to understand nuances in complex topics, to understand better (if not agree with) opposite perspectives and even to make bolder policy decisions <ref type="bibr" target="#b16">[17,</ref><ref type="bibr" target="#b57">58,</ref><ref type="bibr" target="#b58">59</ref>].</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">RESULTS</head><p>We ran an online debate on the divisive issue of abortion rights in the United States, following the US Supreme Court's decision to overturn Roe v Wade, the national law that protected abortion rights. 300 Democrats and 300 Republicans were recruited on Prolific to deliberate on the question: "What do you think the laws around abortion access should be in the United States?" A total of 270 participants proposed ideas, with 208 engaging in the conversation over four discussion rounds. Participants were randomly assigned to discussion groups, ensuring a mix of individuals who either aligned with their political stance or represented the opposing viewpoint. The platform recorded 15 hours of dialogue data in just 45 minutes.</p><p>The proposed ideas showed a 0.62 diversity score, signifying a broad range of perspectives. Perspectives ranged from highly liberal ("Abortion should be legal for anyone who wants an abortion in the United States. And it is a woman's choice.") to highly conservative ("I believe that most abortion should be illegal"). The average correlation among people's votes within a table was r=-0.10, reflecting the fact that our sample was balanced across opposing camps of the political spectrum.</p><p>Submitted ideas clustered around two main themes. The first idea cluster (the blue cluster in <ref type="figure" target="#fig_4">Figure 4a</ref>) was related to the legal aspects of abortion, such as when it should be permitted, until what trimester, and who should be responsible for the decision. The second cluster (in red) grouped ideas related to medical aspects of abortion and womens' individual rights. Finally, for each idea submitted, we computed a polarization score based on the fraction of Republicans and Democrats who voted for the idea out of all people who discussed the idea:</p><formula xml:id="formula_1">P i = |(p rep / (p rep +p dem )|-0.5) * 2<label>(2)</label></formula><p>This measure varies from 0 (Republicans and Democrats are equally likely to vote for the idea) to 1 (Republicans or Democrats are the only ones voting for the idea). We found an inverse correlation between the polarization score of an idea and the number of votes it cumulatively received during the discussion (r=-0.1, p&lt;0.001), suggesting that highly polarizing ideas did not perform well during the discussion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">DISCUSSION</head><p>In this paper, we introduced the PSi method as a scalable approach to deliberative decision-making. Information aggregation and collective decision-making methods in very large groups currently rely on voting, surveying, polling, group representatives or chains of command. These non-deliberative methods solve the scalability problem by reducing information complexity or the number of decision-makers. We presented a technical solution for how large groups can preserve information aggregation and decision-making via deliberation. The PSi method crowdsources individual responses to open-ended questions and hosts iterative local conversations that sort the solutions into a final group ranking. Given enough computing power, the method is virtually infinitely scalable, meaning that deliberative decision-making is possible among thousands, millions or even billions of concurrent speakers. Importantly, the process is guaranteed to converge to a collective decision (i.e. a group solution ranking) in a known and finite amount of time. Notice that deliberation per se does not necessarily bring people to agree on one answer. However, the PSi method always outputs the most supported answer at the end of each discussion by design. We do not claim that PSi is a silver bullet to finding consensus solutions. However, the method ensures that the group can come to a deliberative decision in a reasonable amount of time, no matter how large the group is. Compared to other platforms for large-scale deliberation <ref type="bibr" target="#b54">[55]</ref>, PSi does not use AI to integrate ideas and reach a consensus but relies on human decision-making. AI is used after the discussion to help summarize and gain insights from the data. The system's scalability is ensured by the fact that ideas that receive more support across parallel independent conversations grow exponentially fast, while ideas that do not receive support quickly die out. Future work will relax these features and parametrize them to control how quickly popular opinions grow and unpopular opinions die out.</p><p>Even if ideas exponentially spread within the entire group, social interaction remains localized. Individuals can influence only a limited number of people (other users at their table) rather than having sway over the whole group. This dynamic is very different from how most online fora operate today. For instance, social media platforms tend to be characterized by signal broadcasting, where individual posts are broadcast to many people (their followers or, sometimes, the entire platform user base). In this environment, influence can grow exponentially according to well-understood dynamics, such as winner-takes-all and preferential attachment <ref type="bibr" target="#b0">[1,</ref><ref type="bibr" target="#b44">45]</ref>. It also makes the system vulnerable to attacks. Central nodes can be targeted to accelerate or slow down contagion waves <ref type="bibr" target="#b2">[3,</ref><ref type="bibr" target="#b36">37]</ref> or to dismantle a network into isolated components <ref type="bibr" target="#b52">[53]</ref>. Instead, PSi relies on local interaction and information cascading from one individual to the next in a decentralized manner. This type of information propagation is closer to models of collective behavior in animal groups, such as swarms and schools <ref type="bibr" target="#b11">[12]</ref>, where global information aggregation emerges from local interactions among animals with limited access to global information (e.g., the state of the whole swarm). Attacking the PSi system requires influencing many independent small-group discussions happening in parallel. Notably, a successful attack requires a disproportionate larger effort over rounds. For example, it is relatively easy for an attacker to influence the output of a decision in round 1 because they would need to sway only one last round of discussion, the attacker would need to influence all parallel discussions happening across all tables. The attacker would need a confederate (e.g., a bot or an accomplice) in each table they aim to influence. This approach makes attacks more costly as group size increases.</p><p>Contrary to swarm dynamics, however, information aggregation on PSi occurs across independent group discussions (i.e., parallel table discussions within a room). Aggregating across modular or small group discussions has been shown to increase aggregate accuracy over and above the wisdom of crowd <ref type="bibr" target="#b15">[16,</ref><ref type="bibr" target="#b32">33,</ref><ref type="bibr" target="#b43">44,</ref><ref type="bibr" target="#b48">49]</ref>. This effect is partly explained by the fact that modular groups achieve the benefits of social learning without the downsides of error propagation and diversity reduction. Errors in modular crowds remain confined to the social module and do not spread to the whole group. Furthermore, small groups have been shown to outperform larger ones in realistic tasks <ref type="bibr" target="#b22">[23,</ref><ref type="bibr" target="#b26">27]</ref>, forecasting <ref type="bibr" target="#b15">[16,</ref><ref type="bibr" target="#b48">49]</ref> and innovation <ref type="bibr" target="#b62">[63]</ref>.</p><p>A third characteristic of the process is that ideas are discussed multiple times and by more people as they move from round 1 to the following rounds. Many design systems and teams use the four-eye principle, requiring two individuals to approve some action before it can be taken. This approach is used in quality assurance, business management and engineering to ensure robust decisions are taken. On PSi, the fact that ideas are discussed multiple times by increasingly more users ensures that all relevant criticisms are addressed before an idea is endorsed. This approach ensures that the process is resilient to herding bias and groupthink.</p><p>A criticism is that ideas are still sorted based on voting rather than discussion. However, PSi voting comes only as a support to deliberation rather than its replacement. Users can influence each other, express the pros and cons of each idea, and express the strength of their support. Voting is not fundamental to the PSi process, while deliberation is. Voting can be replaced by any other aggregation method that ensures a univocal idea among the ones discussed is selected to move forward to the next round. In the future, large language models can be used to map discussions to a unique ranking of the ideas discussed. Although technically possible <ref type="bibr" target="#b54">[55]</ref>, whether algorithms should influence human decisions remains an open debate.</p><p>Aggregating information across parallel small-group discussions around the same question has the benefit of averaging out random noise and errors emerging from social interactions <ref type="bibr" target="#b43">[44,</ref><ref type="bibr" target="#b48">49]</ref>. While idiosyncratic elements of a discussion will tend to average out (e.g. who spoke first, who was more confident), errors that are systematically present across parallel discussions will not. For example, controversial or emotional topics, such as using nuclear energy to reduce carbon emissions, might bias the collective decision away from the best decision. However, our preliminary results suggest that even on a highly controversial topic such as abortion rights in the US, less polarizing and emotionally charged ideas tend to receive more support. Importantly, modeling and empirical work is needed to validate the PSi method. The preliminary results presented here are promising, but open questions remain. Are PSi decisions better than the average decision (i.e. weak synergy)? Are they better than expert decisions (i.e. strong synergy) <ref type="bibr" target="#b1">[2]</ref>? Are PSi decisions influenced by the frequency of similar ideas. Cultural evolution research suggests that ideas that are popular (i.e., salient) prior to social interaction have an advantage in contagion dynamics, independent of their quality <ref type="bibr" target="#b47">[48]</ref>. Data collection and behavioral modeling will help determine under what conditions the system succeeds and when it fails.</p><p>Another known limitation in the current system is that the group outcome belongs, by definition, to the set of ideas initially submitted by the users in round 1. Some of the benefits of discussing with other people might come from creating new ideas by merging solutions or building on top of other people's answers. Social groups exhibit search dynamics and innovation (e.g., via skill complementarity and coordination) that allows them to discover solutions that experts may not identify due to a lack of diversity in their views <ref type="bibr" target="#b1">[2]</ref>. In the Extensions section, we relax this constraint, introducing an idea synthesis feature that allows users to submit new ideas during the discussion.</p><p>Several of the limitations above can be addressed without changing the fundamental contribution of this system, namely, the ability to scale deliberative decision-making to thousands, millions, or even billions of synchronous people. This ability opens up opportunities to widen collective participation and democratize decision-making. The Mayor of London's Office for Policing and Crime and the community interest company Black Thrive Global recently used PSi for a London-wide consultation on community-led police scrutiny and accountability <ref type="bibr" target="#b7">[8]</ref>, suggesting that the potential societal impact is immense. The PSi method promises to produce fairer outcomes by lowering the barriers to meaningful large-scale public conversations. Beyond democratic participation, large-scale deliberation can produce positive outcomes for businesses and organizations by enabling a wider exchange of ideas, aligning values, and fostering innovation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">EXTENSIONS</head><p>We proposed several extensions to relax some of the constraints described in our method. The first extension relaxes the constraint that the group outcome must belong to the set of ideas submitted by the users in round 1. One way to relax this design is by allowing users to incur a little cost to add ideas to the fold during the discussion. While delaying convergence, introducing a few new ideas can improve the collective decision process, building consensus or favoring compromise. This feature allows the user to introduce one new idea at any point during the discussion. This can be used to synthesize existing ideas or to introduce new ideas that were sparked by the conversation. Each user can only use this option once to ensure idea convergence.</p><p>The convergence delay introduced by the idea synthesis feature (Equation 1) has an upper bound of 2r. In this "worst-case" scenario, all users wait until the last round to add a new idea, essentially restarting the process. We ran 1000 simulations (n=1024, m=2) where, on each discussion round, a random number of users uses their bonus idea ( <ref type="figure" target="#fig_3">Figure 5</ref>, red lines) and compared it with the baseline convergence dynamic of Equation 1 (blue line). The second extension of the PSi mechanism is the input to the deliberative decision-making system. In this paper, each user submitted a 30-second voice note and a short idea title. However, many other types of input can be used. For instance, much research on collective intelligence and the wisdom of crowds has used numerical estimation tasks where participants are asked to enter numerical estimations of quantities, dates or measures <ref type="bibr" target="#b23">[24,</ref><ref type="bibr" target="#b30">31]</ref>. Finally, some experiments used graphical representations and GUIs to allow group members to share answers with each other and with the experimenter <ref type="bibr" target="#b45">[46,</ref><ref type="bibr" target="#b53">54]</ref>. No matter the type of interface used to input individual answers, the PSi method can be used as a deliberative process to discuss those answers in a group setting.</p><p>A third extension is to introduce more effective group composition procedures to form tables, compared to random assignment. Recent evidence suggests that a better approach to reduce polarization on political issues is to match people who share issue-irrelevant features <ref type="bibr" target="#b4">[5]</ref>.</p><p>A fourth and last extension of the base PSi method is based on the aggregation mechanism used during a deliberation round. In this paper, we presented dot voting as the information aggregation method to select, out of the ideas discussed, one idea that moves to the next round. Dot voting can represent preference distributions (mean and variance) over alternative options rather than single-point preferences. Contrary to other voting mechanisms that express belief strength, such as quadratic voting, this method is easily understandable by laypeople. However, alternative aggregation methods should be explored. 1-person-1-vote is a common voting mechanism. Quadratic voting has several important properties, making it a desirable voting strategy <ref type="bibr" target="#b50">[51,</ref><ref type="bibr" target="#b51">52]</ref>. Non-voting options can be explored too. For instance, large language models (LLMs) and foundation models can be tuned to maximize the expected approval of a linguistic statement for a group of people with potentially diverse opinions <ref type="bibr" target="#b3">[4]</ref>. These promising new avenues pave the way for aggregation methods based on natural language.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>Fig 1. PSi interface. a) The user is prompted to answer the discussion question by submitting an "idea". They record a short voice note and choose a title for their idea. b) The user is randomly assigned to a small discussion group. They are prompted to discuss a subset of the ideas and vote on the best ones. A timer on the left of the user interface helps users keep track of time. c) Each user at a table can allocate a number of vote credits to all ideas except for their idea in the first round of discussion. This limitation is introduced to reduce the risk of deadlocks on the first round. Dot voting allows capturing the mean and the variance of the preference distribution. In the figure, the user expresses a stronger preference for the first idea than the following ideas.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig 2 .</head><label>2</label><figDesc>PSi algorithm. Each row represents a different round of discussion, starting from the top (round 1) and proceeding to the bottom (round 3). Circles represent tables, rectangles represent rooms, colours represent individual users and unique ideas, and on/off light bulbs represent winning or losing ideas.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig 3 .</head><label>3</label><figDesc>Algorithm scalability. a) Time, in minutes, needed by the PSi algorithm to converge to a collective decision as a function of the total number of people n (x-axis) and the time (in minutes) allowed to discuss in each group (y-axis). The plot assumes a table size of five people per table.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>5 (</head><label>5</label><figDesc>For instance, a PSi discussion with 1,000 people and a table size of five ( converges in five rounds of discussion = this scenario, each user only interacts with 25 people (5 people per</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig 4 .</head><label>4</label><figDesc>(a) Ideas submitted during the discussion were individually encoded into word embedding vectors and projected onto a 2D Cartesian plane. The resulting coordinates are passed through a clustering algorithm which highlighted two main clusters of submitted ideas. The blue cluster included ideas on the legal aspects of abortion ("Laws surrounding abortion access need to consider the cause of the pregnancy as well as the needs of mother and child.") and the red cluster included ideas about the medical aspects of abortion ("Doctors and patients have exclusive rights to medical decisions."). (b) inverse correlation between the number of votes an idea received during the discussion and its polarization score. The polarization score was computed as the fraction of Republicans who voted for the idea out of all people who discussed the idea.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig 5 .</head><label>5</label><figDesc>Idea convergence with and without idea synthesis. The blue line represents the expected convergence according to equation 1 (without idea synthesis). The orange lines represent the empirical convergence dynamics of 1000 simulations with idea synthesis. Idea synthesis increases the amount of discussion rounds to reach convergence but this number is bound to 2r.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>table '</head><label>'</label><figDesc></figDesc><table><row><cell></cell><cell></cell><cell>s discussion. The attacker</cell></row><row><cell>2</cell><cell>3</cell><cell></cell></row><row><cell>must influence</cell><cell>tables in round 2,</cell><cell>in round 3, and so on. To influence the decision of the</cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">The London Interdisciplinary School, Whitechapel, London, UK 1 People Supported Technologies Ltd. ThirdFloor, 20 Old Bailey, London, United Kingdom, EC4M7AN</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Statistical mechanics of complex networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Réka</forename><surname>Albert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Albert-László</forename><surname>Barabási</surname></persName>
+		</author>
+		<idno type="DOI">10.1103/RevModPhys.74.47</idno>
+		<ptr target="https://doi.org/10.1103/RevModPhys.74.47" />
+	</analytic>
+	<monogr>
+		<title level="j">Rev. Mod. Phys</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="page" from="47" to="97" />
+			<date type="published" when="2002-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Task complexity moderates group synergy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Abdullah</forename><surname>Almaatouq</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mohammed</forename><surname>Alsobay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ming</forename><surname>Yin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Duncan</forename><forename type="middle">J</forename><surname>Watts</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.2101062118</idno>
+		<ptr target="https://doi.org/10.1073/pnas.2101062118" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<date type="published" when="2021-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">The network limits of infectious disease control via occupation-based targeting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Demetris</forename><surname>Avraam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nick</forename><surname>Obradovich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Niccolò</forename><surname>Pescetelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Manuel</forename><surname>Cebrian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alex</forename><surname>Rutherford</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41598-021-02226-x</idno>
+		<ptr target="https://doi.org/10.1038/s41598-021-02226-x" />
+	</analytic>
+	<monogr>
+		<title level="j">Sci. Rep</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">22855</biblScope>
+			<date type="published" when="2021-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Michiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Martin</forename><forename type="middle">J</forename><surname>Bakker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hannah</forename><forename type="middle">R</forename><surname>Chadwick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">Henry</forename><surname>Sheahan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lucy</forename><surname>Tessler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jan</forename><surname>Campbell-Gillingham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nat</forename><surname>Balaguer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amelia</forename><surname>Mcaleese</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><surname>Glaese</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew</forename><forename type="middle">M</forename><surname>Aslanides</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christopher</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Summerfield</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/2211.15006" />
+		<imprint/>
+	</monogr>
+	<note>2022. Fine-tuning language models to find agreement among humans with diverse preferences. arXiv [cs.LG</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Reducing opinion polarization: Effects of exposure to similar people with differing political views</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stefano</forename><surname>Balietti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lise</forename><surname>Getoor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><forename type="middle">G</forename><surname>Goldstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Duncan</forename><forename type="middle">J</forename><surname>Watts</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.2112552118</idno>
+		<ptr target="https://doi.org/10.1073/pnas.2112552118" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<date type="published" when="2021-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Social learning strategies modify the effect of network structure on group performance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Barkoczi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mirta</forename><surname>Galesic</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/ncomms13109</idno>
+		<ptr target="https://doi.org/10.1038/ncomms13109" />
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Commun</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">13109</biblScope>
+			<date type="published" when="2016-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Network dynamics of social influence in the wisdom of crowds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><surname>Becker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Devon</forename><surname>Brackbill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Damon</forename><surname>Centola</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1615978114</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1615978114" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page" from="5070" to="5076" />
+			<date type="published" when="2017-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Black Voices On Policing: A Blueprint to Improve Locally-led Engagement &amp; Scrutiny. Mayor of London&apos;s Office for Policing and Crime</title>
+		<idno>Black Thrive Global. 2022</idno>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The relation between public speaking anxiety and social anxiety: a review</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Anke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Marcia</forename><forename type="middle">J W</forename><surname>Blöte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anne</forename><forename type="middle">C</forename><surname>Kint</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Miers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Westenberg</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.janxdis.2008.11.007</idno>
+		<ptr target="https://doi.org/10.1016/j.janxdis.2008.11.007" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Anxiety Disord</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="305" to="313" />
+			<date type="published" when="2009-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Chris Tar, Yun-Hsuan Sung, Brian Strope, and Ray Kurzweil</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Cer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yinfei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sheng-Yi</forename><surname>Kong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nan</forename><surname>Hua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nicole</forename><surname>Limtiaco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rhomni</forename><surname>St</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Noah</forename><surname>John</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mario</forename><surname>Constant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Steve</forename><surname>Guajardo-Cespedes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Yuan</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1803.11175" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>Universal Sentence Encoder. arXiv [cs.CL</note>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Essai sur l&apos;application de l&apos;analyse à la probabilité des decisions rendues à la pluralité des vois. de l&apos;Imprimerie Royale</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Condorcet</forename><surname>Marquis De</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1785" />
+			<pubPlace>Paris</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Self-organization and collective behavior in vertebrates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Iain</forename><forename type="middle">D</forename><surname>Couzin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jens</forename><surname>Krause</surname></persName>
+		</author>
+		<ptr target="https://books.google.com/books?hl=en&amp;lr=&amp;id=-XJFTJ6xsYcC&amp;oi=fnd&amp;pg=PA1&amp;dq=schooling+couzin+2003&amp;ots=qtqLXPELOi&amp;sig=XV6HijoobMiVgsaYqHFpc6BxQpU" />
+	</analytic>
+	<monogr>
+		<title level="j">Adv. Stud. Behav</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="10" to="1016" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Bystander intervention in emergencies: diffusion of responsibility</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Darley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Latané</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/h0025589</idno>
+		<ptr target="https://doi.org/10.1037/h0025589" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Pers. Soc. Psychol</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="377" to="383" />
+			<date type="published" when="1968-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Google news personalization: scalable online collaborative filtering</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Abhinandan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mayur</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ashutosh</forename><surname>Datar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shyam</forename><surname>Garg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Rajaram</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1242572.1242610</idno>
+		<ptr target="https://doi.org/10.1145/1242572.1242610" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 16th international conference on World Wide Web (WWW &apos;07)</title>
+		<meeting>the 16th international conference on World Wide Web (WWW &apos;07)<address><addrLine>Banff, Alberta, Canada; New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2007-05-08" />
+			<biblScope unit="page" from="271" to="280" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Language as a coordination tool evolves slowly</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tamas</forename><surname>David</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">-</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robin</forename><forename type="middle">I M</forename><surname>Dunbar</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rsos.160259</idno>
+		<ptr target="https://doi.org/10.1098/rsos.160259" />
+	</analytic>
+	<monogr>
+		<title level="j">R Soc Open Sci</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">160259</biblScope>
+			<date type="published" when="2016-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Democratic forecast: Small groups predict the future better than individuals and crowds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Guillaume</forename><surname>Dezecache</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Martin</forename><surname>Dockendorff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dardo</forename><forename type="middle">N</forename><surname>Ferreiro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ophelia</forename><surname>Deroy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bahador</forename><surname>Bahrami</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xap0000424</idno>
+		<ptr target="https://doi.org/10.1037/xap0000424" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Exp. Psychol. Appl</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="525" to="537" />
+			<date type="published" when="2022-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">The crisis of democracy and the science of deliberation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><forename type="middle">S</forename><surname>Dryzek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">André</forename><surname>Bächtiger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simone</forename><surname>Chambers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><forename type="middle">N</forename><surname>Druckman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrea</forename><surname>Felicetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><forename type="middle">S</forename><surname>Fishkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><forename type="middle">M</forename><surname>Farrell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Archon</forename><surname>Fung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amy</forename><surname>Gutmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hélène</forename><surname>Landemore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jane</forename><surname>Mansbridge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sofie</forename><surname>Marien</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">A</forename><surname>Neblo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simon</forename><surname>Niemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Maija</forename><surname>Setälä</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rune</forename><surname>Slothuus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jane</forename><surname>Suiter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dennis</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><forename type="middle">E</forename><surname>Warren</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.aaw2694</idno>
+		<ptr target="https://doi.org/10.1126/science.aaw2694" />
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page" from="1144" to="1146" />
+			<date type="published" when="2019-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Coevolution of neocortical size, group size and language in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I M</forename><surname>Dunbar</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/s0140525x00032325</idno>
+		<ptr target="https://doi.org/10.1017/s0140525x00032325" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="681" to="694" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Group discussion as interactive dialogue or as serial monologue: the influence of group size</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Fay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Garrod</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Carletta</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/1467-9280.00292</idno>
+		<ptr target="https://doi.org/10.1111/1467-9280.00292" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychol. Sci</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="481" to="486" />
+			<date type="published" when="2000-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Consulting the Public through Deliberative Polling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fishkin</surname></persName>
+		</author>
+		<ptr target="http://www.jstor.org/stable/3325851" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Policy Anal. Manage</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="128" to="133" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Experimenting with a Democratic Ideal: Deliberative Polling and Public Opinion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><forename type="middle">S</forename><surname>Fishkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><forename type="middle">C</forename><surname>Luskin</surname></persName>
+		</author>
+		<idno type="DOI">10.1057/palgrave.ap.5500121</idno>
+		<ptr target="https://doi.org/10.1057/palgrave.ap.5500121" />
+	</analytic>
+	<monogr>
+		<title level="j">Acta Politica</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="284" to="298" />
+			<date type="published" when="2005-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Social Influence Undermines the Wisdom of the Crowd in Sequential Decision Making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vincenz</forename><surname>Frey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arnout</forename><surname>Van De Rijt</surname></persName>
+		</author>
+		<idno type="DOI">10.1287/mnsc.2020.3713</idno>
+		<ptr target="https://doi.org/10.1287/mnsc.2020.3713" />
+	</analytic>
+	<monogr>
+		<title level="j">Manage. Sci</title>
+		<imprint>
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="4273" to="4286" />
+			<date type="published" when="2021-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Smaller crowds outperform larger crowds and individuals in realistic task conditions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mirta</forename><surname>Galesic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Barkoczi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Konstantinos</forename><surname>Katsikopoulos</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/dec0000059</idno>
+		<ptr target="https://doi.org/10.1037/dec0000059" />
+	</analytic>
+	<monogr>
+		<title level="j">Decisions</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="1" to="15" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Vox Populi</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Francis</forename><surname>Galton</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/075450a0</idno>
+		<ptr target="https://doi.org/10.1038/075450a0" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page" from="450" to="451" />
+			<date type="published" when="1907-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Co-construction&quot; in deliberative democracy: lessons from the French Citizens&apos; Convention for Climate</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Louis-Gaëtan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bénédicte</forename><surname>Giraudet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hazem</forename><surname>Apouey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simon</forename><surname>Arab</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Philippe</forename><surname>Baeckelandt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nicolas</forename><surname>Bégout</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathalie</forename><surname>Berghmans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jean-Yves</forename><surname>Blanc</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><surname>Boulin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dimitri</forename><surname>Buge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amy</forename><surname>Courant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Adrien</forename><surname>Dahan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jean-Michel</forename><surname>Fabre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Maxime</forename><surname>Fourniau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurence</forename><surname>Gaborit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hélène</forename><surname>Granchamp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurent</forename><surname>Guillemot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hélène</forename><surname>Jeanpierre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jean-François</forename><surname>Landemore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Antonin</forename><surname>Laslier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Claire</forename><surname>Macé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sylvain</forename><surname>Mellier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Théophile</forename><surname>Mounier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ana</forename><surname>Pénigaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christiane</forename><surname>Póvoas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bernard</forename><surname>Rafidinarivo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Reber</surname></persName>
+		</author>
+		<idno type="DOI">10.1057/s41599-022-01212-6</idno>
+		<ptr target="https://doi.org/10.1057/s41599-022-01212-6" />
+	</analytic>
+	<monogr>
+		<title level="j">Humanities and Social Sciences Communications</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="16" />
+			<date type="published" when="2022-06" />
+		</imprint>
+	</monogr>
+	<note>Romane Rozencwajg, Philippe Stamenkovic, Selma Tilikete, and Solène Tournus. 2022</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Experimental evidence for scale-induced category convergence across populations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Douglas</forename><surname>Guilbeault</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrea</forename><surname>Baronchelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Damon</forename><surname>Centola</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-020-20037-y</idno>
+		<ptr target="https://doi.org/10.1038/s41467-020-20037-y" />
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Commun</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page">327</biblScope>
+			<date type="published" when="2021-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Wisdom of crowds and collective decision-making in a survival situation with complex information integration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daisuke</forename><surname>Hamada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Masataka</forename><surname>Nakayama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jun</forename><surname>Saiki</surname></persName>
+		</author>
+		<idno type="DOI">10.1186/s41235-020-00248-z</idno>
+		<ptr target="https://doi.org/10.1186/s41235-020-00248-z" />
+	</analytic>
+	<monogr>
+		<title level="j">Cogn Res Princ Implic</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">48</biblScope>
+			<date type="published" when="2020-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">The Maturing Concept of E-Democracy: From E-Voting and Online Consultations to Democratic Value Out of Jumbled Online Chatter</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Martin</forename><surname>Hilbert</surname></persName>
+		</author>
+		<idno type="DOI">10.1080/19331680802715242</idno>
+		<ptr target="https://doi.org/10.1080/19331680802715242" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Information Technology &amp; Politics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="87" to="110" />
+			<date type="published" when="2009-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Groups of diverse problem solvers can outperform groups of high-ability problem solvers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lu</forename><surname>Hong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Scott</forename><forename type="middle">E</forename><surname>Page</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.0403723101</idno>
+		<ptr target="https://doi.org/10.1073/pnas.0403723101" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">101</biblScope>
+			<biblScope unit="page" from="16385" to="16389" />
+			<date type="published" when="2004-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">The role of discussion in changing opinion regarding a matter of fact</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jenness</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/h0074620</idno>
+		<ptr target="https://doi.org/10.1037/h0074620" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Abnorm. Soc. Psychol</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="279" to="296" />
+			<date type="published" when="1932-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Counteracting estimation bias and social influence to improve the wisdom of crowds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Albert</forename><forename type="middle">B</forename><surname>Kao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrew</forename><forename type="middle">M</forename><surname>Berdahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrew</forename><forename type="middle">T</forename><surname>Hartnett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew</forename><forename type="middle">J</forename><surname>Lutz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joseph</forename><forename type="middle">B</forename><surname>Bak-Coleman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christos</forename><forename type="middle">C</forename><surname>Ioannou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Xingli</forename><surname>Giam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Iain</forename><forename type="middle">D</forename><surname>Couzin</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rsif.2018.0130</idno>
+		<ptr target="https://doi.org/10.1098/rsif.2018.0130" />
+	</analytic>
+	<monogr>
+		<title level="j">J. R. Soc. Interface</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page">141</biblScope>
+			<date type="published" when="2018-01-30" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Decision accuracy in complex environments is often maximized by small group sizes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Albert</forename><forename type="middle">B</forename><surname>Kao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Iain</forename><forename type="middle">D</forename><surname>Couzin</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rspb.2013.3305</idno>
+		<ptr target="https://doi.org/10.1098/rspb.2013.3305" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Biol. Sci</title>
+		<imprint>
+			<biblScope unit="volume">281</biblScope>
+			<biblScope unit="page">1784</biblScope>
+			<date type="published" when="2014-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Modular structure within groups causes information loss but can improve decision accuracy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Albert</forename><forename type="middle">B</forename><surname>Kao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Iain</forename><forename type="middle">D</forename><surname>Couzin</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rstb.2018.0378</idno>
+		<ptr target="https://doi.org/10.1098/rstb.2018.0378" />
+	</analytic>
+	<monogr>
+		<title level="j">Philos. Trans. R. Soc. Lond. B Biol. Sci</title>
+		<imprint>
+			<biblScope unit="volume">374</biblScope>
+			<biblScope unit="page">1774</biblScope>
+			<date type="published" when="2019-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Why are conversations limited to about four people? A theoretical exploration of the conversation size constraint</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jaimie</forename><surname>Arona Krems</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jason</forename><surname>Wilkes</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.evolhumbehav.2018.09.004</idno>
+		<ptr target="https://doi.org/10.1016/j.evolhumbehav.2018.09.004" />
+	</analytic>
+	<monogr>
+		<title level="j">Evol. Hum. Behav</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="140" to="147" />
+			<date type="published" when="2019-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Deliberation, cognitive diversity, and democratic inclusiveness: an epistemic argument for the random selection of representatives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hélène</forename><surname>Landemore</surname></persName>
+		</author>
+		<ptr target="http://www.jstor.org/stable/41931805" />
+	</analytic>
+	<monogr>
+		<title level="j">Synthese</title>
+		<imprint>
+			<biblScope unit="volume">190</biblScope>
+			<biblScope unit="page" from="1209" to="1231" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Many hands make light the work: The causes and consequences of social loafing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kipling</forename><surname>Bibb Latane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stephen</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Harkins</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0022-3514.37.6.822</idno>
+		<ptr target="https://doi.org/10.1037/0022-3514.37.6.822" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Pers. Soc. Psychol</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="822" to="832" />
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Understanding the influence of all nodes in a network</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Glenn</forename><surname>Lawyer</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/srep08665</idno>
+		<ptr target="https://doi.org/10.1038/srep08665" />
+	</analytic>
+	<monogr>
+		<title level="j">Sci. Rep</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">8665</biblScope>
+			<date type="published" when="2015-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">The Network Structure of Exploration and Exploitation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Lazer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Allan</forename><surname>Friedman</surname></persName>
+		</author>
+		<idno type="DOI">10.2189/asqu.52.4.667</idno>
+		<ptr target="https://doi.org/10.2189/asqu.52.4.667" />
+	</analytic>
+	<monogr>
+		<title level="j">Adm. Sci. Q</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="page" from="667" to="694" />
+			<date type="published" when="2007-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Marjan</forename><surname>Ghazvininejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Abdelrahman</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ves</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1910.13461" />
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv</note>
+	<note>cs.CL</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">How social influence can undermine the wisdom of crowd effect</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jan</forename><surname>Lorenz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Heiko</forename><surname>Rauhut</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Frank</forename><surname>Schweitzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dirk</forename><surname>Helbing</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1008636108</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1008636108" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page" from="9020" to="9025" />
+			<date type="published" when="2011-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Collaborative learning in networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Winter</forename><surname>Mason</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Duncan</forename><forename type="middle">J</forename><surname>Watts</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1110069108</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1110069108" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="764" to="769" />
+			<date type="published" when="2012-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">The Effects of Virtual Audience Size on Social Anxiety during Public Speaking</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Fariba</forename><surname>Mostajeran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Berk</forename><surname>Melik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Frank</forename><surname>Balci</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simone</forename><surname>Steinicke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jürgen</forename><surname>Kühn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gallinat</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/VR46266.2020.00050</idno>
+		<ptr target="https://doi.org/10.1109/VR46266.2020.00050" />
+	</analytic>
+	<monogr>
+		<title level="m">2020 IEEE Conference on Virtual Reality and 3D User Interfaces (VR)</title>
+		<imprint>
+			<date type="published" when="2020-03" />
+			<biblScope unit="page" from="303" to="312" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Enhancement of dominant attitudes in group discussion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>David</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">George</forename><forename type="middle">D</forename><surname>Myers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bishop</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/h0031920</idno>
+		<ptr target="https://doi.org/10.1037/h0031920" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Pers. Soc. Psychol</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="386" to="391" />
+			<date type="published" when="1971-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Aggregated knowledge from a small number of debates outperforms the wisdom of large crowds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joaquin</forename><surname>Navajas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tamara</forename><surname>Niella</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gerry</forename><surname>Garbulsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bahador</forename><surname>Bahrami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mariano</forename><surname>Sigman</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-017-0273-4</idno>
+		<ptr target="https://doi.org/10.1038/s41562-017-0273-4" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="126" to="132" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Clustering and preferential attachment in growing networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Newman</surname></persName>
+		</author>
+		<idno type="DOI">10.1103/PhysRevE.64.025102</idno>
+		<ptr target="https://doi.org/10.1103/PhysRevE.64.025102" />
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. E Stat. Nonlin. Soft Matter Phys</title>
+		<imprint>
+			<biblScope unit="volume">64</biblScope>
+			<biblScope unit="page">25102</biblScope>
+			<date type="published" when="2001-08" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">The Wisdom of the Network: How Adaptive Networks Promote Collective Intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alejandro</forename><surname>Noriega-Campero</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Abdullah</forename><surname>Almaatouq</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Krafft</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Abdulrahman</forename><surname>Alotaibi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mehdi</forename><surname>Moussaid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alex</forename><surname>Pentland</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1805.04766" />
+		<imprint>
+			<date type="published" when="2018-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Innovative citizen participation and new democratic institutions : Catching the deliberative wave</title>
+		<idno>OECD. 2020</idno>
+		<ptr target="https://www.oecd-ilibrary.org/sites/339306da-en/index.html?itemId=/content/publication/339306da-en" />
+		<imprint>
+			<date type="published" when="2020-06-15" />
+		</imprint>
+	</monogr>
+	<note>Retrieved</note>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Dominant words rise to the top by positive frequency-dependent selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><surname>Pagel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><surname>Beaumont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrew</forename><surname>Meade</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Annemarie</forename><surname>Verkerk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andreea</forename><surname>Calude</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1816994116</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1816994116" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page" from="7397" to="7402" />
+			<date type="published" when="2019-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Modularity and composite diversity affect the collective gathering of information online</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Niccolò</forename><surname>Pescetelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alex</forename><surname>Rutherford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Iyad</forename><surname>Rahwan</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-021-23424-1</idno>
+		<ptr target="https://doi.org/10.1038/s41467-021-23424-1" />
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Commun</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">3195</biblScope>
+			<date type="published" when="2021-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">The cognitive niche: Coevolution of intelligence, sociality, and language</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Steven</forename><surname>Pinker</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.0914630107</idno>
+		<ptr target="https://doi.org/10.1073/pnas.0914630107" />
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="page" from="8993" to="8999" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title level="m" type="main">Radical Markets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><forename type="middle">A</forename><surname>Posner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">Glen</forename><surname>Weyl</surname></persName>
+		</author>
+		<idno type="DOI">10.23943/9781400889457</idno>
+		<ptr target="https://doi.org/10.23943/9781400889457" />
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>Princeton University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Voting squared: Quadratic voting in democratic politics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><forename type="middle">A</forename><surname>Posner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">Glen</forename><surname>Weyl</surname></persName>
+		</author>
+		<ptr target="https://heinonline.org/hol-cgi-bin/get_pdf.cgi?handle=hein.journals/vanlr68&amp;section=15" />
+	</analytic>
+	<monogr>
+		<title level="j">Vanderbilt Law Rev</title>
+		<imprint>
+			<biblScope unit="volume">68</biblScope>
+			<biblScope unit="page">441</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Generalized network dismantling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Xiao-Long</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Niels</forename><surname>Gleinig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dirk</forename><surname>Helbing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nino</forename><surname>Antulov-Fantulin</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1806108116</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1806108116" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page" from="6554" to="6559" />
+			<date type="published" when="2019-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Amplifying prediction accuracy using Swarm A.I</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Louis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Niccolò</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Pescetelli</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/intellisys.2017.8324329</idno>
+		<ptr target="https://doi.org/10.1109/intellisys.2017.8324329" />
+	</analytic>
+	<monogr>
+		<title level="m">Intelligent Systems Conference (IntelliSys</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="61" to="65" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Louis</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gregg</forename><surname>Willcox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hans</forename><surname>Schumann</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/2310.13702" />
+		<title level="m">Conversational Swarm Intelligence (CSI) Enables Rapid Group Insights. arXiv</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note>cs.HC</note>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">The Difference: How the Power of Diversity Creates Better Groups, Firms, Schools and Societies By Scott E. Page Princeton University Press</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Scott</surname></persName>
+		</author>
+		<idno type="DOI">10.1353/sof.0.0247</idno>
+		<ptr target="https://doi.org/10.1353/sof.0.0247" />
+	</analytic>
+	<monogr>
+		<title level="j">Social Forces</title>
+		<imprint>
+			<biblScope unit="volume">88</biblScope>
+			<biblScope unit="page" from="471" to="473" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>424 pages. $27.95 cloth</note>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Polis: Scaling Deliberation by Mapping High Dimensional Opinion Spaces</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christopher</forename><surname>Small</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Bjorkegren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Timo</forename><surname>Erkkilä</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lynette</forename><surname>Shaw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Colin</forename><surname>Megill</surname></persName>
+		</author>
+		<idno type="DOI">10.6035/recerca.5516</idno>
+		<ptr target="https://doi.org/10.6035/recerca.5516" />
+	</analytic>
+	<monogr>
+		<title level="j">RPA</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2021-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Citizen deliberation is the gateway to a better politics</title>
+		<ptr target="https://www.economist.com/open-future/2019/03/11/citizen-deliberation-is-the-gateway-to-a-better-politics" />
+	</analytic>
+	<monogr>
+		<title level="j">Economist</title>
+		<imprint>
+			<date type="published" when="1843-06-15" />
+		</imprint>
+	</monogr>
+	<note>Retrieved</note>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">Politicians should take citizens&apos; assemblies seriously</title>
+		<idno>The Economist. 2020</idno>
+		<ptr target="https://www.economist.com/leaders/2020/09/17/politicians-should-take-citizens-assemblies-seriously" />
+	</analytic>
+	<monogr>
+		<title level="j">Economist</title>
+		<imprint>
+			<date type="published" when="1843-06-15" />
+		</imprint>
+	</monogr>
+	<note>Retrieved</note>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+		<title level="m" type="main">Origins of Human Communication</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Tomasello</surname></persName>
+		</author>
+		<ptr target="https://play.google.com/store/books/details?id=T3bqzIe3mAEC" />
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">War, space, and the evolution of Old World complex societies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Turchin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Thomas</forename><forename type="middle">E</forename><surname>Currie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Edward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sergey</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gavrilets</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1308825110</idno>
+		<ptr target="https://doi.org/10.1073/pnas.1308825110" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci. U. S. A</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page" from="16384" to="16389" />
+			<date type="published" when="2013-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Twelve (not so) angry men: Managing conversational group size increases perceived contribution by decision makers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bridget</forename><forename type="middle">M</forename><surname>Waller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lorraine</forename><surname>Hope</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nina</forename><surname>Burrowes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Edward</forename><forename type="middle">R</forename><surname>Morrison</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/1368430211407099</idno>
+		<ptr target="https://doi.org/10.1177/1368430211407099" />
+	</analytic>
+	<monogr>
+		<title level="j">Group Process. Intergroup Relat</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="835" to="843" />
+			<date type="published" when="2011-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Large teams develop and small teams disrupt science and technology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lingfei</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dashun</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><forename type="middle">A</forename><surname>Evans</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41586-019-0941-9</idno>
+		<ptr target="https://doi.org/10.1038/s41586-019-0941-9" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">566</biblScope>
+			<biblScope unit="page" from="378" to="382" />
+			<date type="published" when="2019-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

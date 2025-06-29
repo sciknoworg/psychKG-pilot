@@ -1,0 +1,1316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">A method, framework, and tutorial for efficiently simulating models of decision-making</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathan</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+							<email>nathan.j.evans@uon.edu.au</email>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Department of Psychology</orgName>
+								<orgName type="department" key="dep2">Department of Psychology</orgName>
+								<orgName type="institution">Vanderbilt University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">A method, framework, and tutorial for efficiently simulating models of decision-making</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T12:51+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Decision-making -Evidence accumulation models -Random number generation -Probability density approximation</keywords>
+			</textClass>
+			<abstract>
+				<p>Evidence accumulation models (EAMs) have become the dominant models of rapid decision-making. Several variants of these models have been proposed, ranging from the simple linear ballistic accumulator (LBA) to the more complex leaky-competing accumulator (LCA), and further extensions that include time-varying rates of evidence accumulation or decision thresholds. Although applications of the simpler variants have been widespread, applications of the more complex models have been fewer, largely due to their intractable likelihood function and the computational cost of mass simulation. Here, I present a framework for efficiently fitting complex EAMs, which uses a new, efficient method of simulating these models. I find that the majority of simulation time is taken up by random number generation (RNG) from the normal distribution, needed for the stochastic noise of the differential equation. To reduce this inefficiency, I propose using the well-known concept within computer science of &quot;look-up tables&quot; (LUTs) as an approximation to the inverse cumulative density function (iCDF) method of RNG, which I call &quot;LUT-iCDF&quot;. I show that when using an appropriately sized LUT, simulations using LUT-iCDF closely match those from the standard RNG method in R. My framework-which I provide a detailed tutorial on how to implement-includes C code for 12 different variants of EAMs using the LUT-iCDF method, and should make the implementation of complex EAMs easier and faster.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Evidence accumulation models (EAMs; <ref type="bibr" target="#b46">Stone, 1960)</ref> are currently the dominant modelling framework within rapid decision-making, having aided our understanding of stop-signal paradigms <ref type="bibr" target="#b30">(Matzke, Dolan, Logan, Brown, &amp; Wagenmakers, 2013)</ref>, absolute identification <ref type="bibr" target="#b2">(Brown, Marley, Donkin, &amp; Heathcote, 2008)</ref>, performance optimality <ref type="bibr" target="#b45">(Starns &amp; Ratcliff, 2012;</ref>, clinical populations <ref type="bibr" target="#b26">(Ho et al., 2014)</ref>, performance improvement over practice <ref type="bibr" target="#b13">(Evans, Brown, Mewhort, &amp; Heathcote, 2018)</ref>, more complex decisions <ref type="bibr" target="#b23">(Hawkins et al., 2014)</ref>, and having provided links to other types of data, such as personality measures <ref type="bibr" target="#b16">(Evans, Rae, Bushmakin, Rubin, &amp; Brown, 2017)</ref>, genetic information <ref type="bibr" target="#b17">(Evans, Steyvers, &amp; Brown, 2018)</ref> and neural recordings <ref type="bibr" target="#b18">(Forstmann et al., 2011)</ref>. EAMs propose that decisions are made through a process where evidence accumulates for each of the different decision alternatives at some rate (known as the "drift rate") until the evidence for one of these alternatives reaches some threshold level of evidence (known as the "decision threshold"), where a response is triggered. Importantly, EAMs are able to accounting for the well known speed-accuracy tradeoff (SAT) by analyzing response time and accuracy data in unison, and estimate theoretically meaningful parameters from the observed response time distributions <ref type="bibr" target="#b8">(Donkin, Averell, Brown, &amp; Heathcote, 2009)</ref>.</p><p>Although all EAMs contain the general process described above, each EAM differs in the specifics of the proposed process. Where some EAMs have attempted to provide a parsimonious model suitable for easy application (e.g., the linear ballistic accumulation <ref type="bibr">[LBA;</ref>), several other EAMs have attempted to provide a more process-focused model definition. For example, the leaky-competing accumulator (LCA; <ref type="bibr" target="#b53">Usher &amp; McClelland, 2001</ref>) contains a process based upon what would be expected from underlying neural architecture, derived from findings within the neuroscience and neurophysiology literature (e.g., <ref type="bibr" target="#b40">Rumelhart, Hinton, McClelland, et al., 1986;</ref><ref type="bibr" target="#b44">Softky &amp; Koch, 1993;</ref><ref type="bibr" target="#b42">Shadlen &amp; Newsome, 1994;</ref><ref type="bibr" target="#b0">Amit &amp; Tsodyks, 1991;</ref><ref type="bibr" target="#b3">Chelazzi, Miller, Duncan, &amp; Desimone, 1993)</ref>. Beyond the LCA, several new proposals have incorporated time-varying drift rates <ref type="bibr" target="#b41">(Servant, Montagnini, &amp; Burle, 2014;</ref><ref type="bibr" target="#b14">Evans, Hawkins, Boehm, Wagenmakers, &amp; Brown, 2017)</ref> or decision thresholds <ref type="bibr" target="#b21">(Hawkins, Forstmann, Wagenmakers, Ratcliff, &amp; Brown, 2015)</ref>, where the values of these parameters systematically vary across the course of the trial. These proposals have included "urgency signals" that are applied to the accumulated evidence to prevent overly slow responses <ref type="bibr" target="#b6">(Cisek, Puskas, &amp; El-Murr, 2009;</ref><ref type="bibr" target="#b49">Thura, Beauregard-Racine, Fradet, &amp; Cisek, 2012)</ref>, piecewise models to account for objectively changing evidence over the course of the decision <ref type="bibr" target="#b29">(Holmes, Trueblood, &amp; Heathcote, 2016;</ref><ref type="bibr" target="#b28">Holmes &amp; Trueblood, 2017)</ref>, the use of single-cell recording data as direct input for the drift rates <ref type="bibr" target="#b32">(Purcell et al., 2010)</ref>, and decreases in the amount of evidence required to trigger a decision over time (i.e., collapsing thresholds; <ref type="bibr" target="#b7">Ditterich, 2006;</ref><ref type="bibr" target="#b10">Drugowitsch, Moreno-Bote, Churchland, Shadlen, &amp; Pouget, 2012)</ref>.</p><p>However, implementing these more complex EAMs often comes at a practical cost, where the probability density functions (PDFs) required to fit the models are either unknown, or computationally burdensome to implement. In contrast, the simple functional form of the LBA results in an analytically solvable PDF, which has helped the LBA become a useful tool for researchers in decision-making (e.g., <ref type="bibr" target="#b16">Evans, Rae, et al., 2017;</ref><ref type="bibr" target="#b26">Ho et al., 2014;</ref><ref type="bibr" target="#b8">Donkin, Averell, et al., 2009;</ref><ref type="bibr" target="#b29">Holmes et al., 2016;</ref><ref type="bibr" target="#b17">Evans, Steyvers, &amp; Brown, 2018)</ref>. Applications of models that contain unknown or intractable PDFs have relied on methods that involve mass simulation. Initially, these methods involved either "hand-tuning" of parameter values <ref type="bibr" target="#b49">(Thura et al., 2012)</ref>, small grid-based searches <ref type="bibr" target="#b50">(Tsetsos, Usher, &amp; Chater, 2010)</ref>, or minimization routines <ref type="bibr" target="#b14">Evans, Hawkins, et al., 2017)</ref>, with the best fitting parameters being determined by the smallest discrepancy between the data and the model predictions on some summary statistic (e.g., χ 2 ). More recent implementations have involved the use of pseudo-likelihood methods, such as probability density approximation <ref type="bibr">(PDA;</ref><ref type="bibr" target="#b52">Turner &amp; Sederberg, 2014;</ref><ref type="bibr" target="#b27">Holmes, 2015)</ref>, which involve fitting a density kernel to the model predictions generated through simulation, allowing a simulation-based PDF to be obtained for the model <ref type="bibr" target="#b51">(Turner, Schley, Muller, &amp; Tsetsos, 2018)</ref>. PDA provides several benefits over the minimization methods, allowing the models to be fit with likelihood-based methods of estimation, such as Bayesian methods that allow for more complete methods of selecting between competing models <ref type="bibr" target="#b15">(Evans, Howard, Heathcote, &amp; Brown, 2017;</ref><ref type="bibr">Gronau et al., 2017)</ref>. However, pseudo-likelihood methods also require mass simulation, with a large number of simulated trials being required to ensure an accurate estimate of the PDF. Unfortunately, this can result in more complex EAMs being practically impossible to fit, due to the large amount of time taken up by mass simulation.</p><p>Here, I present a framework for efficiently fitting complex EAMs, which uses a new, efficient method of simulating these models. My method, which I call LUT-iCDF, uses the well-known concept within computer science of "look-up tables" (LUTs) to provide a fast approximation of the inverse cumulative density function (iCDF) method of random number generation (RNG) for the normal distribution, which will be explained in more detail in the next section "The LUT-iCDF Method". My framework includes C code for simulating 12 different variants and sub-variants of EAMs, R wrappers that make the C code easy to use, and a basic implementation of PDA in R to allow these models to be fit in maximum likelihood or Bayesian frameworks (though the C code and R wrappers can be used within any simulation-based fitting framework, such as χ 2 ). My method of RNG is also generalizable to any model where RNG from the normal distribution is a large time cost for the simulations (e.g., any stochastic differential equation). Within this article I provide a full description and testing of my LUT-iCDF method of RNG from the normal distribution, a tutorial on how to implement the included code, and a brief description of the models included (with references to where further details can be found). Overall, the aim of this article is to make the implementation of complex EAMs easier and faster, in an attempt to increase their usage.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The LUT-iCDF Method</head><p>In this section I detail my proposed method for fast RNG from the normal distribution. Specifically, I show the large computational cost of RNG from the normal distribution. From there, I explain my method and show the associated speed increase in simulation time. Lastly, I discuss some theoretical limitations of my method, but show that in practical applications my method leads to identical results as the standard RNG function in R.</p><p>The programming language C has been used to provide faster performance in some previous applications of complex <ref type="bibr">EAMs (e.g., Hawkins, Wagenmakers, et al., 2015;</ref><ref type="bibr" target="#b14">Evans, Hawkins, et al., 2017;</ref><ref type="bibr" target="#b54">Voss &amp; Voss, 2007)</ref>. Specifically, C is a programming language that underlies several mainstream data analysis programming languages, such as R (R Core Team, 2014) and MATLAB. In general, C implementations can be faster than those of mainstream data analysis programming languages, but also be harder to create. However, the simulation process for most EAMs can be performed within a short amount of code using basic mathematical functions, making them fairly simple to implement in C with large potential increases in computation speed. An example of these speed increases for each of the models in my framework can be seen in <ref type="table">Table 1</ref>. In all cases, implementing the model in C (column 4) is at least twice as fast as implementing the model in R (column 2).</p><p>However, one commonly overlooked aspect that can have a large impact on simulation <ref type="table">Table 1</ref>: Displays the mean (standard deviation) computation time over 100 independent runs to simulate each of the models in my framework (rows) for 10,000 trials of 200 time-steps each. Columns display the names of the models, and different methods of simulation: R code using the "rnorm" function, R code using the LUT-iCDF method, C code using the "norm rand()" function, and C code using the LUT-iCDF method. In all cases, the LUT-iCDF method was implemented with a granularity of 0.0001. Within the table, "DIFF" refers to the diffusion model, "P" refers to a piecewise extension, "TV" refers to a time-varying drift rate extension, and "DB" refers to a time-varying threshold extension. Note that all of these timing benchmarks are based on my computer, and will differ between different hardware and software. However, these benchmarks serve as an example of the relative speed-up gained using the LUT-iCDF method.  <ref type="bibr" target="#b36">(Ratcliff, 1978</ref>) -one of the most commonly used EAMS -using C 's "norm rand()" function for the RNG of the stochastic noise, simulating 10,000 trials that each contain 200 time-steps takes an average of 165ms (SD = 8ms). However, when only running the deterministic parts of the code (i.e., setting the stochastic noise to a fixed value), the simulation takes an average of only 6ms (SD = 1ms), meaning that the RNG through "norm rand()" is taking up more than 96% of the simulation time. Another RNG method that is easy to implement is the inverse cumulative density function (iCDF), which requires generating random uniform numbers between 0 and 1 (i.e., U [0, 1]) and taking their iCDF under the standard normal distribution. However, the simulation 1 still takes an average of 122ms (SD = 5ms), meaning that over 95% of the simulation time is still being taken up by RNG.</p><p>To reduce this inefficiency, I propose using a look-up table (LUT) -a concept from computer science -to approximate the iCDF method of RNG, which I call LUT-iCDF.</p><p>LUTs are commonly used when specific calculations are computationally costly relative to other elements of the code, and these calculations have to be performed repeatedly throughout the process. LUTs map "before calculation" values to their respective "after calculation" values, meaning that these computationally taxing calculations only need to be performed once. A classic example of the use of LUTs is the calculation of p-values before advancements in computing made integrating the tails of these distributions trivial,</p><p>where the test statistic and degrees of freedom were "looked-up" within a table to find the respective p-value. However, my LUT-iCDF method is also able to remove the inefficiency of having to search the LUT for the matching before calculation element (i.e., the "lookingup" process) by converting the uniformly distributed numbers (i.e., U [0, 1]) to uniformly distributed integers that match the size of the table (i.e., U <ref type="bibr">[1, N ]</ref>, where N is the number of elements in the LUT). Provided that the LUT corresponds to symmetric and equally spaced elements from the U [0, 1], which I describe how to create below, the randomly generated integers can be directly used as randomly generated indexes of the LUT, and the LUT element corresponding to the index is a random sample from the standard normal distribution.</p><p>The implement of the LUT-iCDF method requires 4 simple steps, which can be seen as a flow-chart in <ref type="figure" target="#fig_1">Figure 1</ref>. The process begins by generating a sequence of symmetrical (i.e., centred on 0.5), equally spaced numbers between 0 and 1 (non-inclusive, as 0 and 1 reflect −∞ and ∞ of the standard normal, respectively), which creates an unbiased approximation of a uniform distribution between 0 and 1. An easy way to do this is to generate a sequence of numbers with granularity (i.e., spacing) x, which start at 0 + x and finish at 1 − x, as shown in Step 1 and Step 2 of <ref type="figure" target="#fig_1">Figure 1</ref>. Next, the iCDF is calculated for each number in the sequence, and these iCDF values are stored in the LUT, which contains</p><formula xml:id="formula_0">1−x x elements (</formula><p>Step 3). Lastly, random uniformly distributed integers are generated that have a minimum value of 1 and a maximum value of the total number of elements in the LUT, and the integers form a random index of the LUT, with the corresponding elements of the LUT being samples from the standard normal distribution (Step 4). As shown in <ref type="table">Table 1</ref>, the implementation of the LUT-iCDF method greatly increases simulation speed in both R (column 3) and C (column 5) code, with the simulation of the diffusion model for 10,000 trials of 200 time-steps only taking 27ms (SD = 2ms), meaning that RNG is taking up approximately 78% of the time, in contrast to the 95%+ of standard methods.</p><p>Step 1: Pick a granularity level, x x = 0.01</p><p>Step 2: Generate a sequence, y, between 0 and 1, non-inclusive, by increments of x y = 0.01, 0.02, …, 0.98, 0.99</p><p>Step 3: Calculate a vector, z, of the normal (Gaussian) inverse cumulative density of y z = -2.33, -2.05, …, 2.05, 2.33</p><p>Step  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Assessing the LUT-iCDF approximation accuracy</head><p>As mentioned above, the LUT-iCDF method involves some level of approximation, and therefore, could potentially lead to inaccuracies. Importantly, the accuracy of the approximation to the normal distribution is dependent on the granularity of the sequence that approximates the U [0, 1], meaning that a small granularity should be used to create a large number of points in the LUT-iCDF approximation. Specifically, granularities that are too large will result in "truncations" of the approximated normal distribution, where values from certain parts of the distribution are never sampled, such as the tails. However, granularities that are too small will result in the LUT becoming large, and sufficiently large LUTs may cause increases in computation time. how inaccuracies in the approximation of the standard normal distribution influence the approximation of the diffusion process (right column). For the smallest granularity (x = 0.1; top row) the LUT-iCDF produces a poor approximation of the normal distribution, with the samples forming 9 separate spikes at the 9 different values in the LUT. The poor approximation of the normal distribution is reflected in the diffusion process, as the LUT-iCDF simulation produces responses that are more likely to be slower and correct than when simulating using the actual normal distribution. The second granularity (x = 0.01; second row) provides an improvement, with the LUT-iCDF producing a good approximation of the normal distribution in most regions. However, the approximation becomes poorer in the tails, showing behaviour similar to the previous granularity and resulting in the Kolmogorov-Smirnov (KS) test suggesting that the distributions differ from one another (KS = 0.01, p &lt; 0.001), which also continues to influence the diffusion process (correct responses: KS = 0.025, p &lt; 0.001; incorrect responses: KS = 0.03, p &lt; 0.001).</p><p>The third granularity (x = 0.001; third row) provides a very close approximation to the normal distribution, with only the tails of the LUT-iCDF approximated distribution (i.e., SD &gt; 3) showing any noticeable deviations from the normal distribution, and the KS test failing to suggest that there are any differences between the distributions (KS = 0.001, p = 0.242). However, these minor deviations appear to still cause deviations in the predictions of the diffusion process: although the simulation of the diffusion process using the LUT-iCDF and the actual normal distribution are difficult to visually distinguish between, the KS test continues to suggest that these distributions differ from one another (correct responses: KS = 0.003, p = 0.001; incorrect responses: KS = 0.005, p = 0.006).  For the largest granularity included (x = 0.0001; bottom row) the LUT-iCDF appears to provide a near identical approximation to the normal distribution, both visually and in terms of the KS test (KS = 0.001, p = 0.828). This accurate approximation also carries over to the simulation of the diffusion process, with the distributions for correct (KS = 0.001, p = 0.738) and incorrect (KS = 0.002, p = 0.749) responses generated by the LUT-iCDF approximation being near identical to using the actual normal distribution, both visually and in terms of the KS test. Based on this assessment, it appears that the LUT-iCDF method a granularity of 0.0001 (i.e., 10 −4 ) provides an accurate approximation of the diffusion process, and that RNG from a LUT of this size (i.e., 9,999 elements) is approximately as quick as generating with the smallest LUT assessed (9 elements; both took approximately 13ms to generate 1,000,000 normally distributed samples). Although the granularity could potentially be made even smaller in an attempt ensure the accuracy of the approximation, further decreases (i.e., x = 0.00001) began to result in large increases in computation time (normal = 19ms, diffusion = 603ms), which I discuss further in the next sub-section on LUT augmentations. A further assessment of the approximation accuracy of the LUT-iCDF method with a granularity of 0.0001 can be seen in <ref type="figure" target="#fig_5">Figure 3</ref>, which compares the simulation of each of the models in my framework (which will each be discussed in detail in the "Models" section) with LUT-iCDF to those using the actual normal distribution.</p><p>In all cases, the LUT-iCDF with 0.0001 granularity appears to provide a near identical approximation, both visually and according to KS tests, suggesting that this granularity generally appears to provide an accurate approximation of the normal distribution and the simulation of EAMs. Therefore, I recommend the use of the 0.0001 granularity (i.e., 9,999 table elements), which I implement in all of my included code; however, the granularity can be easily changed within the code, which I explain in the "Implementation" section. Smirnov test for equivalent distributions, "p" refers to the p-value for the Kolmogorov-Smirnov test, "DIFF" refers to the diffusion model, "P" refers to a piecewise extension, "TV" refers to a time-varying drift rate extension, and "DB" refers to a time-varying threshold extension.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Potential LUT augmentations</head><p>As discussed previously, my LUT-iCDF method is able to remove the inefficiency of searching the LUT by using uniformly distributed integers that match the size of the table.</p><p>This requires that the elements of the LUT correspond to the iCDF of symmetric and equally spaced elements from the U [0, 1], which I implement in all of my code. However, there may be situations where using a non-symmetric and/or non-equally spaced LUT may be more efficient, as removing these constraints may allow the LUT to be reduced in size.</p><p>Here I briefly explore two of these possibilities, and assess under what conditions they would provide faster sampling from the normal distribution.</p><p>One possibility to reduce the size of the LUT would be to only use the elements corresponding to the positive values of the normal distribution. As each half of the LUT provides duplicate information in absolute magnitude (e.g., the iCDF of 0.6 is 0.253, and the iCDF of 0.4 is -0.253), the size of the LUT could be halved without any loss of information. However, this would mean that the random uniform integer would not directly correspond to an index of the LUT, meaning that a few extra lines of code -including an "if" statement, which can be computationally expensive -need to be added. A comparison of computation time for the standard LUT-iCDF (column 2) and the halved version (column 3) for different granularities can be seen in <ref type="table">Table 2</ref>. Interestingly, when the LUT is small, the extra lines of code required for the halved version cause it sample more slowly than the standard LUT-iCDF method. However, as the granularity is decreased this discrepancy also decreases, until the halved version becomes faster than the standard LUT-iCDF (x = 10 −7 ). Therefore, the halved LUT may provide a more efficient LUT in situations where a fine-grained approximation is required.</p><p>Another possibility to reduce the size of the LUT would be to create a standard LUT, which requires directly mapping to before calculation values to their closest match- <ref type="table">Table 2</ref>: Displays a comparison in computation time for generating 1,000,000 samples from the normal distribution between the LUT-iCDF method, the version with a halved LUT ("Halved"), and the version that requires directly mapping to before calculation values to their closest matching after calculation value ("Direct mapping") for different granularities (rows). Note that the final two rows were not calculated for the "Direct mapping" version, due to the large computation time. would also require the implementation of a search algorithm to find the after calculation value that provides the closest match to the before calculation value, which could result in additional computational overheads. A comparison of computation time for the standard LUT-iCDF (column 2) and the directly mapping version (column 4) for different granularities can be seen in <ref type="table">Table 2</ref>. Interestingly, the added computational time required to search the LUT is much greater than the other parts of the process, meaning that the size of the LUT would need to be greatly reduce (e.g., 9,999,999 elements to 99 elements) to make the direct mapping version faster than the LUT-iCDF (or, alternatively, a much more efficient search algorithm would need to be used).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Implementation</head><p>In this section I provide a tutorial on how to implement the code within my framework. Specifically, I explain how to use and call the C code within R. After that, I detail the R simulation wrappers that I have included to call the C code, which should provide users with an easier method of implementation than directly calling the C code. I also provide a brief worked example on how to use the code through simulating the LBA.</p><p>Lastly, I discuss the PDA code that I have included, and the likelihood function code that combines the simulations and PDA method to produce a pseudo-likelihood approximation for the model. Based on this tutorial, interested readers should be able to implement my simulation code (and my PDA code, where required) into their current fitting methods, giving them the ability to efficiently fit any of these complex EAMs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Compiling and loading the C code</head><p>Here, I explain how to implement the C code within R. <ref type="table" target="#tab_2">Tables 3 and 4 provide most</ref> of the key details on the C code included in my framework. <ref type="table" target="#tab_2">Table 3</ref> provides the different variables that are passed into the C code and the different models that require them, and <ref type="table" target="#tab_3">Table 4</ref> displays which code files are associated with which models. Importantly, when a variable is labeled as an integer, it must be passed to the C code as an integer (i.e., "as.integer(VARIABLE)"), and when it is labeled as a double, it must be passed to the C code as a double. Failing to make each variable the correct type will result in the C code either crashing R, or returning incorrect results. An example of how to call the C code for each model can be seen within the R simulation code wrappers.</p><p>A few things need to be set up before using the C code. Firstly, the code must be compiled, which is a relatively easy process in R. Specifically, the C code can be compiled by typing "system('R CMD SHLIB codeName.c')" into the R console while in the same working directory as the C code, which will create a compiled file. The extension of the compiled file will differ based on the compiler and operating system. For Mac OS and Linux the C code is usually compiled into a ".so" file, and for Windows a ".dll" file. All of the code within my framework assumes that the compiled file has a ".so" extension, but this can be easily changed for users where the code is compiled into another type of file.</p><p>Once the code is compiled, the compiled file needs to be loaded into the R environment, which can be done with "dyn.load('codeName.so')". Examples of these steps can be seen within any of the "simulate" R files that call the C code for simulation.</p><p>Using the R wrappers to call the C code Next, I detail the R wrappers that I have included for simulating the models and how to use them. <ref type="table" target="#tab_4">Table 5</ref> provides the variables that are passed into the main function in the R wrapper for each model, and <ref type="table" target="#tab_3">Table 4</ref> provides the file that contain the R wrapper for simulating each model. An example of how to call the R wrappers for each model can The elements that are passed into these R wrappers can be placed into 3 general categories: simulation requirements, stochastic differential equation requirements, and LUT requirements. The simulation requirements are the basic variables required to run the simulation, which for all models include the variable "N", and the vector "params". Importantly, the "params" vector needs to be a vector of named parameter values, with the names being specific to the model being implemented. The stochastic differential equation requirement are for all models within this class (i.e., every model except from the LBA and pLBA), and are the "maxCounter" and "stepSize" variables. By convention the time-step is defined in seconds, meaning that a time-step of 1ms should be entered as 0.001. Lastly, the LUT requirements are those needed for the LUT-iCDF method, and are the vector "use.table" and the variable "n.table.options".</p><p>It is also important to note that there are some key differences between the R wrappers of the different broad classes of models. In addition to the input variables discussed above, the piecewise and time-varying models each require additional input variables. The piecewise models require the variable "swapTime", which is the time (in seconds) when the model switches to the "after evidence change" drift rates. Piecewise models also require the "params" vector to contain drift rates for both before and after the change in. The timevarying drift-rate models no longer include the drift rate parameter(s) in the "params" vector, which are instead contained in the input vector "v", which is "maxCounter" in length and contains the drift rate for each time-step. For the LCA, "v" is instead a matrix,</p><p>where the rows are the drift rates for each time-step and the columns are the different response alternatives. The time-varying threshold models no longer include the threshold parameter(s) in the "params" vector, which are instead contained in the input vectors "aU"</p><p>and "aL", which are "maxCounter" in length and contain the upper and lower thresholds for each step, respectively. For the LCA, the time-varying threshold is instead a matrix called "a", where the rows are the thresholds for each time-step and the columns are the different response alternatives.</p><p>In general, the contents of the main function in each R wrapper is relatively simple and mostly involves re-arranging variables into an appropriate format for the C code.</p><p>However, one important part that users may be unfamiliar with is calling the C code. This involves using a variable called "tmp" (though the name of the variable is unimportant), and calling a function called ".C". The inputs to this function are the names of the function in the C code being called, and the different input parameters required for the C code function. After calling the ".C" function, "tmp" becomes a list with each element being an input variable, though the vectors for the response time and responses (i.e., 'tmp$rt'</p><p>and 'tmp$resp') will now be from the simulation, rather than the original vector of zeros.</p><p>The LUT for the LUT-iCDF method is created at the top of each R wrapper, before the main function that runs the simulation. The first line provides a value for the variable "use.interval" , which is the granularity of the LUT. This can be easily made larger or smaller as the user desires, though the results in "Assessing the LUT-iCDF approximation accuracy" should be considered before making any changes. The next line creates a sequence from 0 + x to 1 − x in increments of x, where x is granularity, and obtains the iCDF of the standard normal distribution for each of these values, which are placed in the LUT vector "use.table". The last line obtains the size of the LUT and places it into the variable "n.table.options".</p><p>Worked example: Simulating the LBA Here, I provide a brief worked example of how to use the R wrappers and C code described above to simulate from the linear ballistic accumulator (LBA; ). I also show how simulating from my framework differs from the recent R package rtdists (https://CRAN.R-project.org/package=rtdists), which may make my EFFICIENTLY SIMULATING MODELS OF DECISION-MAKING framework easier for users familiar with rtdists. All code for this worked example can be found within the "Worked-example" folder, which includes 2 previously discussed files ("lba.c" and "simulate-lba.R") that are called by the example code, "lba-example.R".</p><p>The example code ("lba-example.R") begins by clearing the workspace on line 2.</p><p>Lines 4 and 5 (currently commented out, as they are only need to be performed once)</p><p>compile the C code and install the rtdists package, respectively. Lines 7-9 load in the necessary functions from the R wrapper and the rtdists package. Line 12 creates the "params" vector, which consists of named values that correspond to the LBA parameters, and can easily be changed by the user. Lines 15-18 calculate the analytic PDF for the LBA using the rtdists package, where line 15 creates an interval of points to obtain the density for, and lines 17 and 18 obtain the PDF for response alternatives 1 and 2, respectively.</p><p>Line 21 uses the rtdists package to simulate 50,000 trials from the LBA, and lines 23 and 24 obtain a kernel density estimate for these simulated trials -for response alternatives 1 and 2, respectively -to compare to the analytic PDF.</p><p>Line 27 uses the "simulate.lba" function from my framework to simulate 50,000 trials from the LBA, and lines 29 and 30 obtain a kernel density estimate for these simulated trials -for response alternatives 1 and 2, respectively -to compare to the rtdists simulations and analytic PDF. As can be gathered from this relatively brief explanation, implementing my framework is relatively easy, and can be done within a few lines of code. Lines 34 onwards plot the densities from the rtdists analytic PDF, the rtdists simulation, and the simulation from my framework, which allows users to quickly assess how well the simulations are approximating the exact analytic density, and how well the simulations from my framework are approximating regular simulations. More precise details on the accuracy of my LUT-iCDF method can be found in "Assessing the LUT-iCDF approximation accuracy".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Obtaining a pseudo-likelihood function with PDA</head><p>As discussed in the introduction, some recent applications of complex EAMs with intractable PDFs have involved pseudo-likelihood methods, such as probability density approximation (PDA; <ref type="bibr" target="#b52">Turner &amp; Sederberg, 2014;</ref><ref type="bibr" target="#b27">Holmes, 2015)</ref>. PDA involves simulating a large number of trials from the model and fitting a density kernel to these model predictions, which creates a approximate PDF for the model. Importantly, PDA allows models with intractable PDFs to be applied using state-of-the-art methods, such as Bayesian parameter estimation. A more detailed explanation of PDA can be found in <ref type="bibr" target="#b52">Turner and Sederberg (2014)</ref> or <ref type="bibr" target="#b27">Holmes (2015)</ref>.</p><p>To help make these state-of-the-art methods more accessible for models within my framework, I have included R code that implements the full PDA process, where data and parameters are input and an approximated PDF is output. The relevant PDA file for each type of model can be found in <ref type="table" target="#tab_3">Table 4</ref>. In each PDA file, the function "log.dens.like" performs the PDA process and is relatively simple: most input variables have been discussed previously, and the output is a single number, which is the log-likelihood of the data given the parameters. Specifically, there are 4 new input variables: "data", "conds", "bandwidth", and "simulateFunction". The first, "data", is a list of three elements: "Cond", a vector of the condition that each trial was from, "Resp", a vector of the response alternative that was chosen for each trial, and "Time", a vector of the response time for each trial. The second, "conds", is a vector of the conditions used within the experiment. The third, "bandwidth", is the bandwidth of the density kernel to be used in the PDA smoothing (Holmes, 2015 recommends using Silverman's 'rule of thumb'; <ref type="bibr" target="#b43">Silverman, 1986</ref>). The fourth, "simulateFunction", is the simulation function for the model, which is the name of the main function in the R wrapper (e.g., for the regular diffusion model, this would be "simulate-DIFF"). The code within the "log.dens.like" function mostly involves re-structuring the inputs to be in the correct format for the PDA code, and looping over conditions, which the parameter values might vary between. For models with time-varying components, these components must be specified within the "log.dens.like" function.</p><p>The "log.dens.like" function calls another function in the file, "Log.likelihood.fun", which is the PDA part of the process. The inputs for the "Log.likelihood.fun" function have each been explained previously, and the output of the function is a list. The first element of the list is itself a list, with each element of this inner list containing the approximated densities for the response times corresponding to one of the response alternatives. The second element of the main list is the number of trials that had not reached a threshold at the maximum number of time-steps (i.e., "maxCounter"; only relevant for stochastic differential equations), which can be used to penalize models and parameter sets that produce several non-terminating trials. Within the "Log.likelihood.fun" function, the first line simulates trials with the input parameter values and model simulation function. From here, the code loops over response alternatives, and performs the PDA process to obtain a PDF approximation for each response time in the data that had a response in favour of that alternative. In complex terms, this involves performing a convolution with a Gaussian filter to get an estimate of the PDF, and then using linear interpolation to obtain the density for each data point. In simple terms, this involves using R's "density" function to obtain a PDF estimate, and then simply finding the discrete point of this function that most closely matches each data point with R's "approx" function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Models</head><p>Finally, I outline all of the variants and sub-variants of EAMs that I provide simulation code for. Generally speaking, my framework covers all of the currently well-known EAMs, as well as extensions of them to time-varying drift-rate or decision thresholds. All simulation code uses the LUT-iCDF method for RNG from the normal distribution.</p><p>The Linear Ballistic Accumulator (LBA)</p><p>The LBA is one of the simplest and most commonly applied models of rapid decisionmaking, which proposes a process of independent, noiseless evidence accumulation for each alternative <ref type="figure" target="#fig_7">(Figure 4, panel A)</ref>. The sources of variability within the model are in the form of a truncated normal drift rate distribution (though see <ref type="bibr" target="#b47">Terry et al., 2015</ref> for other potential distributions) with mean v and standard deviation s (with s fixed to 1 for scaling purposes, see , and a uniform starting point distribution starting at 0 and ending at A, where A is always less than the threshold value b. The mean drift rate also differs between the alternatives, with the drift rate of the response accumulator that "matches" the stimuli (v c ) being estimated separately from that one that "mismatches" (v e ). In addition, the model assumes some time is dedicated to perceptual encoding and motor processes, which is labeled "non  Piecewise. Recent research within rapid decision-making has begun to investigate paradigms with evidence that systematically changes across a trial (e.g., <ref type="bibr" target="#b29">Holmes et al., 2016;</ref><ref type="bibr" target="#b14">Evans, Hawkins, et al., 2017)</ref>, which fall outside of the scope of standard EAMs. <ref type="bibr" target="#b29">Holmes et al. (2016)</ref> proposed a "piecewise linear approximation" to account for paradigms with one or more systematic changes in evidence, in the form of the piecewise LBA (pLBA; <ref type="figure" target="#fig_7">Figure 4</ref>, panel A). Specifically, the pLBA proposed by <ref type="bibr" target="#b29">Holmes et al. (2016)</ref> contains a standard LBA process up until the evidence systematically changes. After the change, the evidence is assumed to continue to accumulate unchanged for some additional amount of time, reflecting some potential delay in the uptake of new information process (t delay ).</p><p>After the delay, the drift rates for each alternative immediately change to reflect the new state of evidence. The pLBA adds 3 potential parameters to the standard LBA: a t delay parameter, and the new mean drifts rates for the matching and mismatching accumulators after the evidence change.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The Diffusion model</head><p>The diffusion model <ref type="bibr" target="#b36">(Ratcliff, 1978)</ref> is the most commonly applied model of rapid decision-making, which proposes a process of dependent evidence accumulation where evidence for one alternative counts as evidence against the other alternative <ref type="figure" target="#fig_7">(Figure 4, panel   B</ref>). The accumulation process is also subject to moment-to-moment noise, being the Wiener process with σ fixed to 0.1 (by convention) to solve a scaling issue. The simplest form of the diffusion model only contains 4 free parameters: the drift rate (v), the threshold (a), the starting point (z, which in the diffusion directly reflects response bias), and the nondecision time (ter). There have also been 3 extensions that add between trial variability to 3 of the standard parameters: the drift rate, through a normal distribution with standard deviation s v <ref type="bibr" target="#b36">(Ratcliff, 1978)</ref>, the starting point, through a uniform distribution with width s z <ref type="bibr" target="#b37">(Ratcliff &amp; Rouder, 1998)</ref>, and the non-decision time, through a uniform distribution with width s ter <ref type="bibr" target="#b38">(Ratcliff &amp; Tuerlinckx, 2002)</ref>. The addition of all three of these parameters is known as the "full" diffusion model, which gives the model 7 general parameters: v, a, z, ter, s v , s z , and s ter .</p><p>Piecewise. The piecewise diffusion model (pDDM; <ref type="bibr" target="#b28">Holmes &amp; Trueblood, 2017)</ref>, like the pLBA, attempts to account for paradigms with systematically changing evidence via a simple piecewise linear approximation to a change in drift rate. As with the pLBA, the accumulation in the pDDM is identical to the regular diffusion until the evidence changes.</p><p>After the change and some estimated delay (i.e., t delay ), the drift rate immediately changes to reflect the new evidence, which is another estimated free parameter, resulting in an additional 2 free parameters in the model beyond the diffusion.</p><p>Time-varying Drift Rate. The previously discussed "piecewise" models provide a simple way of accounting for paradigms where evidence systematically varies across a trial.</p><p>However, another option is to implement a stochastic differential equation with a timevarying drift rate, where instead of the drift rate being constant throughout the trial, it has the ability to differ on every time-step of the process. Time-varying models are usually constrained by the drift rate either being some transformation of the current evidence <ref type="bibr" target="#b14">(Evans, Hawkins, et al., 2017)</ref>, or being determined by some time-varying function <ref type="bibr" target="#b41">(Servant et al., 2014)</ref>. Time-varying models have also been previously used in situations where the evidence remains constant throughout a trial, but there is some input to directly guide how the drift rate should change over the trial, such as neural activity <ref type="bibr" target="#b32">(Purcell et al., 2010)</ref>.</p><p>Time-varying Boundaries. One of the key assumptions of the diffusion model has been that the decision thresholds remain fixed over the course of a trial, where the same amount of evidence is required to trigger a decision regardless of the time spent on the decision. However, recent research has suggested that decision-making may involve time-varying thresholds, and more specifically collapsing thresholds, which decrease as decision time increases <ref type="figure" target="#fig_7">(Figure 4, panel B</ref>; <ref type="bibr" target="#b6">Cisek et al., 2009;</ref><ref type="bibr" target="#b7">Ditterich, 2006;</ref><ref type="bibr" target="#b10">Drugowitsch et al., 2012;</ref><ref type="bibr" target="#b4">Churchland et al., 2011;</ref><ref type="bibr" target="#b49">Thura et al., 2012</ref>, though also see <ref type="bibr" target="#b21">Hawkins, Forstmann, et al., 2015)</ref>. Time-varying thresholds are usually defined according to some function over time, such as the 3 parameter Weibull function used by <ref type="bibr" target="#b21">Hawkins, Forstmann, et al. (2015)</ref> for collapsing thresholds. However, there is no consensus on a single dynamic threshold that should be applied, other than that it should be decrease the threshold over time.</p><p>However, where possible it is best to use a theoretically motivated function, and the choice of the function should be defined before analysis to limit the model's flexibility.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The Leaky-Competing Accumulator (LCA)</head><p>The LCA <ref type="bibr" target="#b53">(Usher &amp; McClelland, 2001</ref>) is one of the most complex EAMs, which was designed to be reflective of underlying neural architecture and proposes a process that contains several dependencies and non-linearities. Specifically, the LCA uses the general accumulator framework (e.g., the LBA in <ref type="figure" target="#fig_7">Figure 4</ref>, panel A) with several added components, such as inhibition and excitation between alternatives that are estimated as a single parameter of the balance between these two processes (β; positive values indicate stronger inhibition). The LCA also contains a leakage component λ, where evidence gradually leaks away as the time from its accumulation increases, and moment-to-moment noise through the Wiener process (with σ fixed to 0.1, by convention, to solve a scaling issue). Overall, this gives the LCA 6 general parameters: 3 in common with the LBA (v, b, t 0 ), and 3 unique parameters (β, λ, σ). It should also be noted that recent research has found many of the LCA parameters to show poor recovery in specific experimental paradigms, meaning that inferences made directly on the estimated parameter values may be spurious <ref type="bibr" target="#b31">(Miletić, Turner, Forstmann, &amp; van Maanen, 2017)</ref>.</p><p>Piecewise. Although a piecewise LCA has not previously been implemented, I have included code to do so in the same manner as the pLBA.</p><p>Time-varying Drift Rate. As discussed for the diffusion model, time-varying drift rates provide another simple method of modelling changes in evidence. Time-varying drift rates have also been used in another situation for the LCA: paradigms where the evidence remains constant within the task, but a second source of data is used as input to drive the drift rate. Specifically, <ref type="bibr" target="#b32">Purcell et al. (2010)</ref> used filtered single-cell recordings of monkeys from each time-step within a trial to drive the drift rate for the LCA, meaning that the drift rate was a time-varying process purely determined by neural input. However, the implementation of this model has only been performed by the original researchers, and only through basic methods (i.e., χ 2 ), due to the computationally taxing nature of simulating this model. Using this framework, researchers familiar with EAMs can implement and test these interesting, neurally driven models using more advanced methods, provided that the neural data is made openly available for others to analyze, as previous researchers have done (e.g., <ref type="bibr" target="#b39">Roitman &amp; Shadlen, 2002)</ref>.</p><p>Time-varying Boundaries. Like the time-varying boundaries for the diffusion model, I provide code in my framework to implement an LCA with collapsing boundaries. Interestingly, few have considered the implications of how collapsing thresholds may interact with the additional LCA components of leakage and lateral inhibition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The Urgency-Gating Model (UGM)</head><p>The UGM is a recent proposal within the rapid decision-making literature, which proposes that evidence is barely accumulated, and decisions are mostly on based upon novel input <ref type="bibr" target="#b6">(Cisek et al., 2009;</ref><ref type="bibr" target="#b49">Thura et al., 2012)</ref>. Specifically, the UGM takes the same basic form as the "simple" diffusion model <ref type="figure" target="#fig_7">(Figure 4, panel B</ref>). However, in order to ensure that only novel evidence is considered, the UGM contains a low-pass filter with a time-constant (τ ) of under 250ms, resulting in rapid evidence leakage. In order to prevent decisions from taking too long, the evidence on each time-step is multiplied by an urgency signal (u) that increases with increasing time, which can be estimated as a free parameter or scale linearly with time. More specific details of this UGM implementation can be seen in  and <ref type="bibr" target="#b14">Evans, Hawkins, et al. (2017)</ref>.</p><p>Time-varying Drift Rate. As discussed for the diffusion model, time-varying drift rates provide another simple method of modelling changes in evidence. This model was also used in <ref type="bibr" target="#b14">Evans, Hawkins, et al. (2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusions</head><p>This article aimed to provide a method, framework, and tutorial for fitting complex evidence accumulation models that do not have an analytic likelihood function. Specifically, within this article I proposed a method, LUT-iCDF, for efficiently simulating decisionmaking models, or any type of random number generation from the normal distribution.</p><p>LUT-iCDF involves using a look-up table to approximate the inverse cumulative density function method of random number generation, greatly cutting down the time taken to simulate these models, as random number generation from the normal distribution standardly can take up over 95% of the total simulation time. Importantly, I showed that LUT-iCDF with a large number of table elements closely approximates standard methods of random number generation from the normal distribution. In order to allow others to easily and efficiently implement LUT-iCDF for complex EAMs, I provided a framework that includes C and R code for 12 different variants of EAMs. Lastly, this article provided a detailed tutorial and worked example on how to implement my code, which should allow researchers who are familiar with fitting simpler EAMs to extend their research to involve EFFICIENTLY SIMULATING MODELS OF DECISION-MAKING complex EAMs.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 .</head><label>1</label><figDesc>A flow-chart of my proposed look-up table approximation to the inverse cumulative density function method (LUT-iCDF) of random number generation from the normal distribution. The columns, from left to right, show the written steps, the associated R code, and an example.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 2</head><label>2</label><figDesc>provides an assessment of the accuracy of different LUT-iCDF granularities (different rows) in approximating the standard normal distribution (left column), and</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 2 .</head><label>2</label><figDesc>Displays a comparison between the "rnorm" function in R (red) and a C implementation of my LUT-iCDF method (black) for 1,000,000 samples from the normal distribution (left column) and 1,000,000 simulated trials of the diffusion model (right column), for different granularities of theLUT-iCDF (rows). For the diffusion model simulations, response time distributions corresponding to responses for the second alternative are plotted as negative values on the x-axis, to make the distributions for different responses more easily distinguished. In all plots, "CT" refers to the computation time of taking the 1,000,000 samples, "KS" refers to the test statistic of the nonparametric Kolmogorov-Smirnov test for equivalent distributions, and "p" refers to the p-value for the Kolmogorov-Smirnov test.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 3 .</head><label>3</label><figDesc>Displays a comparison between the "rnorm" function in R (red) and a C implementation of my LUT-iCDF method with granularity 0.0001 (black) for 1,000,000 simulated trials of each of the models in my framework (different panels). Response time distributions corresponding to responses for the second alternative are plotted as negative values on the x-axis, to make the distributions for different responses more easily distinguished. In all plots, "CT" refers to the computation time of taking the 1,000,000 samples, "KS" refers to the test statistic of the non-parametric Kolmogorov-</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>-decision time" (t 0 ). Overall, this gives the LBA 5 general parameters: v, s, A, b, and t 0 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 4 .</head><label>4</label><figDesc>A: Displays an example of the accumulation process of the LBA. Black lines indicate the accumulation in the standard LBA for two different alternatives (solid line and dashed line). The red line displays a change in evidence in the stimuli, and the blue lines display how the accumulation for the alternatives in a piecewise extension diverge from those in the regular LBA. B: Displays an example of the accumulation process of the diffusion model. The flat grey lines display the standard fixed thresholds, and the linearly decreasing flat lines display a collapsing threshold with a linear collapse.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 3 :</head><label>3</label><figDesc>Displays the input variables for the C code in my framework. The input variable "parameters" refers to the multitude of variables that are the unique to each model.</figDesc><table><row><cell cols="2">Variable name Variable type</cell><cell>Description</cell></row><row><cell>nRespAlt</cell><cell>integer</cell><cell>The number of response alternatives. Only for models</cell></row><row><cell></cell><cell></cell><cell>with separate accumulation rates</cell></row><row><cell>n</cell><cell>double</cell><cell>The number of trials to be simulated</cell></row><row><cell>resp</cell><cell>double</cell><cell>A vector of length "n" that is entered as 0's and returned as a</cell></row><row><cell></cell><cell></cell><cell>number corresponding to the response alternative chosen</cell></row><row><cell>rt</cell><cell>double</cell><cell>A vector of length "n" that is entered as 0's and returned as</cell></row><row><cell></cell><cell></cell><cell>the response time in seconds</cell></row><row><cell>h</cell><cell>double</cell><cell>The time-step used. Only for models with within-trial noise</cell></row><row><cell>maxiter</cell><cell>double</cell><cell>The maximum number of steps run performing terminating the</cell></row><row><cell></cell><cell></cell><cell>with within-trial noise</cell></row><row><cell>swapTime</cell><cell>double</cell><cell>The time at which the change of evidence occurs within the</cell></row><row><cell></cell><cell></cell><cell>model. Only for piecewise models</cell></row><row><cell>rangeLow</cell><cell>integer</cell><cell>The lowest possible index of the look-up table (always 0)</cell></row><row><cell>rangeHigh</cell><cell>integer</cell><cell>The highest possible index of the look-up table (number</cell></row><row><cell></cell><cell></cell><cell>of elements of the table minus 1)</cell></row><row><cell>randomTable</cell><cell>double</cell><cell>A vector that contains the iCDF LUT</cell></row><row><cell>"parameters"</cell><cell></cell><cell></cell></row></table><note>double Multiple variables, which are unique to each model. All parameters need to be entered as type "double"</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table 4 :</head><label>4</label><figDesc>Displays the different models included within my framework (rows), and the relevant C code file, R code wrapper file, and PDA code (in R) file.</figDesc><table><row><cell>Model</cell><cell>C code</cell><cell>R wrapper</cell><cell>PDA code</cell></row><row><cell>LBA</cell><cell>lba.c</cell><cell>simulate-lba.R</cell><cell>PDA.R</cell></row><row><cell>LBA piecewise</cell><cell>plba.c</cell><cell>simulate-plba.R</cell><cell>PDA p.R</cell></row><row><cell>Diffusion</cell><cell>DIFF.c</cell><cell>simulate-DIFF.R</cell><cell>PDA.R</cell></row><row><cell>Diffusion piecewise</cell><cell>pDIFF.c</cell><cell>simulate-pDIFF.R</cell><cell>PDA p.R</cell></row><row><cell cols="4">Diffusion time-varying drift rate DIFF-tv.c simulate-DIFF-tv.R PDA tv.R</cell></row><row><cell cols="4">Diffusion time-varying thresholds DIFF-db.c simulate-DIFF-db.R PDA db.R</cell></row><row><cell>LCA</cell><cell>lca.c</cell><cell>simulate-lca.R</cell><cell>PDA.R</cell></row><row><cell>LCA piecewise</cell><cell>plca.c</cell><cell>simulate-plca.R</cell><cell>PDA p.R</cell></row><row><cell>LCA time-varying drift rate</cell><cell>lca-tv.c</cell><cell>simulate-lca-tv.R</cell><cell>PDA tv.R</cell></row><row><cell>LCA time-varying thresholds</cell><cell>lca-db.c</cell><cell>simulate-lca-db.R</cell><cell>PDA db.R</cell></row><row><cell>UGM</cell><cell>ugm.c</cell><cell>simulate-ugm.R</cell><cell>PDA.R</cell></row><row><cell cols="2">UGM time-varying drift rate ugm-tv.c</cell><cell>simulate-ugm-tv.R</cell><cell>PDA tv.R</cell></row></table><note>be seen within the example PDA pseudo-likelihood functions that I have included.</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4"><head>Table 5 :</head><label>5</label><figDesc>Displays the input variables for the R wrapper code in my framework, and which classes of models the input variables are applicable for.</figDesc><table><row><cell cols="2">Variable name Variable type</cell><cell>Description</cell></row><row><cell>N</cell><cell>double</cell><cell>The number of trials to be simulated</cell></row><row><cell>params</cell><cell>double</cell><cell>A vector of named parameters for the model to be simulated</cell></row><row><cell>v</cell><cell>double</cell><cell>A vector (or in the case of the LCA, a matrix) of the drift rate for each</cell></row><row><cell></cell><cell></cell><cell>time step of the simulation. Only for time-varying drift rate models</cell></row><row><cell>aU</cell><cell>double</cell><cell>A vector of the upper threshold for each time step of the simulation.</cell></row><row><cell></cell><cell></cell><cell>Only for time-varying threshold models</cell></row><row><cell>aL</cell><cell>double</cell><cell>A vector of the lower threshold for each time step of the simulation.</cell></row><row><cell></cell><cell></cell><cell>Only for time-varying threshold models</cell></row><row><cell>stepSize</cell><cell>double</cell><cell>The time-step used</cell></row><row><cell>swapTime</cell><cell>double</cell><cell>The time at which the change of evidence occurs within the model.</cell></row><row><cell></cell><cell></cell><cell>Only for piecewise models</cell></row><row><cell>maxCounter</cell><cell>double</cell><cell>The maximum number of steps run performing terminating the</cell></row><row><cell></cell><cell></cell><cell>simulated trial</cell></row><row><cell>n.table.options</cell><cell>integer</cell><cell>The number of elements in the LUT</cell></row><row><cell>use.table</cell><cell>double</cell><cell>A vector that contains the iCDF LUT</cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">My code for the standard iCDF implementation was adapted from that on John D. Cook's website: https://www.johndcook.com/blog/normal cdf inverse/</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Quantitative study of attractor neural network retrieving at low spike rates: I. substratespikes, rates and neuronal gain. Network: Computation in neural systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Amit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tsodyks</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1991" />
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="259" to="273" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">The simplest complete model of choice response time: linear ballistic accumulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="153" to="178" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">An integrated model of choices and response times in absolute identification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A J</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Donkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">396</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">A neural basis for visual search in inferior temporal cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Chelazzi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">K</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Desimone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="issue">6427</biblScope>
+			<biblScope unit="page">345</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Chaudhuri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Variance as a signature of neural computations during decision making</title>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page" from="818" to="831" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Decisions in changing conditions: the urgency-gating model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cisek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Puskas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>El-Murr</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">37</biblScope>
+			<biblScope unit="page" from="11560" to="11571" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Evidence for time-variant decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ditterich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">European Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="3628" to="3641" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Getting more from accuracy and response time data: Methods for fitting the linear ballistic accumulator</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Donkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Averell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1095" to="1110" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">The overconstraint of response time models: Rethinking the scaling problem</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Donkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1129" to="1135" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">The cost of accumulating evidence in perceptual decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moreno-Bote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Churchland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="3612" to="3628" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">People adopt optimal policies in simple decision-making, after practice and guidance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="597" to="606" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Bayes factors for the linear ballistic accumulator model of decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Behavior research methods</title>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="page" from="589" to="603" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Refining the law of practice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Mewhort</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">592</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">The computations that support simple decision-making: A comparison between the diffusion and urgency-gating models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Boehm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific reports</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">16433</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Model flexibility analysis does not measure the persuasiveness of a fit</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">L</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">339</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Need for closure is associated with urgency in perceptual decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Rae</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bushmakin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rubin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Memory &amp; Cognition</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="13" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Modeling the covariance structure of complex datasets using cognitive models: An application to individual differences and the heritability of cognitive ability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive science</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The speed-accuracy tradeoff in the elderly brain: a structural model-based approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tittgemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Derrfuss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Imperati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="issue">47</biblScope>
+			<biblScope unit="page" from="17242" to="17249" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">F</forename><surname>Gronau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sarafoglou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Matzke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Boehm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marsman</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">A tutorial on bridge sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Steingroever</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of mathematical psychology</title>
+		<imprint>
+			<biblScope unit="volume">81</biblScope>
+			<biblScope unit="page" from="80" to="97" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Revisiting the evidence for collapsing boundaries and urgency signals in perceptual decisionmaking</title>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="2476" to="2484" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">N</forename><surname>Flynn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Louviere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Integrating cognitive process and descriptive models of attitudes and preferences</title>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive science</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="701" to="735" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Discriminating evidence accumulation from urgency signals in speeded decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of neurophysiology</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="40" to="47" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Functional connectivity of negative emotional processing in adolescent depression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">C</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cassey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hoang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of affective disorders</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page" from="65" to="74" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">A practical guide to the probability density approximation (pda) with improved implementation and error characterization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Holmes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">68</biblScope>
+			<biblScope unit="page" from="13" to="24" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Bayesian analysis of the piecewise diffusion decision model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Holmes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Trueblood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Behavior research methods</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="1" to="14" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">A new framework for modeling decisions about changing information: The piecewise linear ballistic accumulator model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Holmes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Trueblood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page" from="1" to="29" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Bayesian parametric estimation of stop-signal reaction time distributions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Matzke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">V</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">D</forename><surname>Logan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1047</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Parameter recovery for the leaky competing accumulator model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miletić</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">U</forename><surname>Forstmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Van Maanen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page" from="25" to="50" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Purcell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Heitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Schall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">D</forename><surname>Logan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Palmeri</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Neurally constrained modeling of perceptual decision making</title>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1113</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title level="m" type="main">R: A language and environment for statistical computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>R Core Team</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>Computer software manual</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Austria</forename><surname>Vienna</surname></persName>
+		</author>
+		<ptr target="http://www.R-project.org/" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Modeling response times for two-choice decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Rouder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="347" to="356" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Estimating parameters of the diffusion model: Approaches to dealing with contaminant reaction times and parameter variability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Tuerlinckx</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="438" to="481" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Roitman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">21</biblScope>
+			<biblScope unit="page" from="9475" to="9489" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title level="m" type="main">A general framework for parallel distributed processing. Parallel distributed processing: Explorations in the microstructure of cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E</forename><surname>Rumelhart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Mcclelland</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1986" />
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="45" to="76" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Conflict tasks and the diffusion framework: Insight in model constraints based on psychological laws</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Servant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Montagnini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Burle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">72</biblScope>
+			<biblScope unit="page" from="162" to="195" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Noise, neural codes and cortical organization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Newsome</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current opinion in neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="569" to="579" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">Density estimation for statistics and data analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">W</forename><surname>Silverman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1986" />
+			<publisher>CRC press</publisher>
+			<biblScope unit="volume">26</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">The highly irregular firing of cortical cells is inconsistent with temporal integration of random epsps</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Softky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Koch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="334" to="350" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Age-related differences in diffusion model boundary optimality with both trial-limited and time-limited tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Starns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="139" to="145" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Models for choice-reaction time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Stone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page" from="251" to="260" />
+			<date type="published" when="1960" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Terry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Barnwal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Generalising the drift rate distribution for linear ballistic accumulators</title>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">68</biblScope>
+			<biblScope unit="page" from="49" to="58" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Decision making by urgency gating: theory and experimental support</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Thura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Beauregard-Racine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C.-W</forename><surname>Fradet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cisek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neurophysiology</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="2912" to="2930" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Preference reversal in multiattribute choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Tsetsos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Chater</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">1275</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Competing models of multi-attribute, multi-alternative preferential choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Schley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Muller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Tsetsos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="329" to="362" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">A generalized, likelihood-free method for posterior estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Sederberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="227" to="250" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">The time course of perceptual choice: the leaky, competing accumulator model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Mcclelland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">550</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Fast-dm: A free program for efficient diffusion model analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Voss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="767" to="775" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,1253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Using recurrent neural network to estimate irreducible stochasticity in human choice-behavior</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yoav</forename><surname>Ger</surname></persName>
+							<email>yoavger@mail.tau.ac.il</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Sagol School of Neuroscience</orgName>
+								<orgName type="institution" key="instit2">Tel Aviv University</orgName>
+								<address>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shahar</forename><surname>Moni</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nitzan</forename><surname>Shahar</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Sagol School of Neuroscience</orgName>
+								<orgName type="institution" key="instit2">Tel Aviv University</orgName>
+								<address>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">TAD -Center of AI &amp; Data Science</orgName>
+								<orgName type="institution">Tel Aviv University</orgName>
+								<address>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="department">School of Psychological Sciences</orgName>
+								<orgName type="institution">Tel Aviv University</orgName>
+								<address>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Using recurrent neural network to estimate irreducible stochasticity in human choice-behavior</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Theoretical computational models are widely used to describe latent cognitive processes. However, these models do not equally explain data across participants, with some individuals showing a bigger predictive gap than others. In the current study, we examined the use of theory-independent models, specifically recurrent neural networks (RNN), to classify the source of a predictive gap in the observed data of a single individual. This approach aims to identify whether the low predictability of behavioral data is mainly due to noisy decision-making or miss-specification of the theoretical model. First, we used computer simulation in the context of reinforcement learning to demonstrate that RNNs can be used to identify model miss-specification in simulated agents with varying degrees of behavioral noise. Specifically, both prediction performance and the number of RNN training epochs (i.e., the point of early stopping) can be used to estimate the amount of stochasticity in the data. Second, we applied our approach to an empirical dataset where the actions of low IQ participants, compared with high IQ participants, showed lower predictability by a well-known theoretical model (i.e., Daw&apos;s hybrid model for the two-step task). Both the predictive gap and the point of early stopping of the RNN suggested that model miss-specification is similar across individuals. This led us to a provisional conclusion that low IQ subjects are mostly noisier compared to their high IQ peers, rather than being more miss-specified by the theoretical model. We discuss the implications and limitations of this approach, considering the growing literature in both theoretical and data-driven computational modeling in decision-making science.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Humans' behavior is thought to arise from a set of multidimensional, complex, and latent cognitive processes. Theoretical computational models allow researchers to handle this complexity by putting forward a set of mathematical descriptions that map assumed latent cognitive processes to observed behavior <ref type="bibr" target="#b6">(Daw et al., 2011b;</ref><ref type="bibr" target="#b35">Smith and Ratcliff, 2004)</ref>. By fitting a theoretical model (also sometimes termed 'symbolic' models) to the observed behavior, the researcher is able to draw conclusions regarding the estimation and architecture of the latent cognitive processes <ref type="bibr" target="#b41">(Wilson and Collins, 2019)</ref>. While this approach has already led to substantial scientific findings <ref type="bibr" target="#b24">(Montague et al., 2012;</ref><ref type="bibr" target="#b31">Rescorla, 1972)</ref>, it still faces a major challenge since the true underlying model is always left unknown <ref type="bibr" target="#b3">(Box, 1979)</ref>.</p><p>Specifically, theoretical computational models usually stem from strict theoretical assumptions that can differ from the true cognitive mechanism that led to the observed behavior, a problem termed 'model misspecifications' <ref type="bibr" target="#b1">(Beck et al., 2012;</ref><ref type="bibr" target="#b26">Nassar and Frank, 2016)</ref>. Moreover, the issue of model misspecification is even more critical when considering that most studies in the field focus on group differences and therefore might neglect individual variation in the expressed models <ref type="bibr" target="#b37">(Stephan et al., 2009;</ref><ref type="bibr" target="#b32">Rigoux et al., 2014</ref>). In the current study, we address the fundamental methodological problem of theoretical model misspecification by using well-established theory-independent models, a family of highly flexible models that require no prior theoretical specification.</p><p>Imagine that you are working on a theoretical question that you have addressed well by assembling a computational model that, after much effort, can replicate and mimic empirical observations. Still, some data will not be accurately predicted by the model, leaving an open question regarding the possibility that better specification of the model (i.e., changing some mechanisms, adding additional processes) would better capture the pattern in your observations. Currently, to address the issue of model misspecification, methodology in theoretical computational science calls for researchers to perform a model comparison analysis <ref type="bibr" target="#b41">(Wilson and Collins, 2019)</ref>. Here, the researcher is encouraged to put forward a set of different candidate models and quantify which model is most plausible given the observed data <ref type="bibr" target="#b27">(Palminteri et al., 2017</ref>). Yet, even after a rigorous process of model comparison, the best-fitting model will still have what seems like room for improvement. This leaves an unanswered question regarding the possibility that yet another different model that was not described by the researcher might better explain and predict the observations <ref type="bibr" target="#b9">(Eckstein et al., 2021;</ref><ref type="bibr" target="#b22">McElreath, 2020)</ref>.</p><p>The distance in terms of variance between observed and predicted model behavior is typically termed the predictive gap. The predictive gap between individuals' behavior and model prediction can be attributed to two factors: The first is model misspecification, as mentioned above. Here, the individual's true behavior-generating model is different from the one suggested by the researcher <ref type="bibr" target="#b1">(Beck et al., 2012;</ref><ref type="bibr" target="#b26">Nassar and Frank, 2016)</ref>. The second factor is stochasticity, which refers to true noise or the natural randomness in human behavior <ref type="bibr" target="#b10">(Faisal et al., 2008;</ref><ref type="bibr" target="#b12">Findling et al., 2019)</ref>. The underlying assumption is that some variance in behavior is unpredictable and therefore represents irreducible variance. The assumption of irreducible variance is well accepted across scientific disciplines <ref type="bibr" target="#b16">(Griffiths and Schroeter, 2018)</ref>, and it suggests that even Laplace's demon <ref type="bibr" target="#b15">(Gleick, 2011)</ref>, a metaphorical demon that is assumed to have access to all mechanisms and processes in the universe, would not be able to produce perfect predictions. Both model misspecification and irreducible noise influence the predictive gap, yet identifying the contribution of each factor may lead to different implications. A predictive gap attributed mostly to model misspecification suggests that the researcher needs to increase the space of candidate models to further reduce the gap. However, a predictive gap attributed mostly to irreducible noise suggests that such improvement is mostly out of reach.</p><p>More recently, data-driven approaches based on neural networks have emerged as an alternative modeling paradigm in cognitive research <ref type="bibr" target="#b8">(Dezfouli et al., 2019b;</ref><ref type="bibr" target="#b36">Song et al., 2021)</ref>. These networks, which are models trained to learn directly from data rather than relying on theoretical assumptions about human behavior, have been shown to surpass typical theoretical models in pure action prediction <ref type="bibr" target="#b8">(Dezfouli et al., 2019b;</ref><ref type="bibr" target="#b36">Song et al., 2021)</ref>. The key property of these models is that a priori, the models' parameters do not directly map to some underlying cognitive process. Instead, the free parameters (i.e., weights) are iteratively adjusted during training to improve the network's predictive capability for a desired objective function <ref type="bibr" target="#b21">(LeCun et al., 2015)</ref>. Furthermore, unlike classical theoretical models, neural networks are overparameterized models that include a large number of learnable free parameters. This property allows the network high flexibility and the ability to approximate a wide range of functions <ref type="bibr" target="#b34">(Siegelmann and Sontag, 1992;</ref><ref type="bibr" target="#b18">Hornik et al., 1989)</ref>, including functions believed to arise from human cognition <ref type="bibr" target="#b0">(Barak, 2017)</ref>. For example, <ref type="bibr" target="#b8">Dezfouli et al. (2019b)</ref> trained a recurrent neural network <ref type="bibr">(RNN)</ref> to predict future human actions in a two-armed bandit task. Their study indicated that the RNN is capable of surpassing baseline RL models in action prediction. In another work, <ref type="bibr" target="#b13">Fintz et al. (2022)</ref> trained an RNN model to predict future human actions in a four-armed bandit task. They showed that the RNN was able to capture atypical behaviors such as choice alternations and win-shift-lose-stay, which common cognitive models failed to capture. Finally, <ref type="bibr" target="#b36">Song et al. (2021)</ref> trained an RNN model to predict the choices of humans in a reinforcement learning task that included a rich space of possible states and actions. They showed that the RNN was able to outperform the best-known cognitive model. However, the high flexibility of neural networks also comes with the disadvantage that these networks are often considered black box models. Despite attempts to interpret the networks' latent space <ref type="bibr" target="#b7">(Dezfouli et al., 2019a)</ref>, it is still not clear how to efficiently interpret behavior using them, which is a major goal in cognitive research <ref type="bibr" target="#b17">(Hasson et al., 2020;</ref><ref type="bibr" target="#b42">Yarkoni and Westfall, 2017)</ref>. In this study, we aim to leverage the network's high flexibility and predictive capability to address the problem of identifying misspecification in theoretical computational models, using two different estimates:</p><p>(a) Predictive performance. We assume that, for a fixed dataset, the flexibility of neural networks would enable them to capture the mapping between independent variables and dependent variables, up to a point where the remaining predictive gap is primarily due to noise rather than model misspecification (see <ref type="figure">Fig. 1a</ref>). Therefore, we hypothesize that across different true genera-a b <ref type="figure">Figure 1</ref>: Hypothetical illustration for using theory-independent models to explore the fit of theoretical models to human behavior. (a) Predictive performance -we illustrate the predictive gap for three hypothetical models: First, the true data-generating model (i.e., forever unknown to the researcher; green) where the remaining gap is due to an irreducible noise component in the individual's behavior. Second, a hypothetical alternative theoretical model (e.g., specified by a researcher; purple), where the remaining predictive gap reflects both irreducible noise and model misspecification. Finally, a hypothetical theory-independent model (turquoise) is assumed to reflect a predictive gap that is mainly due to model misspecification compared with the alternative model, yet does not provide a clear theoretical interpretation. We, therefore, assume that theory-independent models can be used to inform researchers about the amount of improvement that can be further gained by assembling additional theoretical models. (b) Point of early stopping -when training a network, we can examine its performance against a validation set as a function of the number of epochs used for training the parameters (x-axis). The point of early stopping reflects the maximum number of training epochs with the best predictive performance, just before the network starts to overfit the data (i.e., learn patterns that are due to noise; indicated by a yellow star). Here, we illustrate two hypothetical learning curves reflecting the point of early stopping for low-noise (purple line) and high-noise (blue line) datasets. Specifically, we illustrate the notion that the point of early stopping can reflect the amount of noise in the data, so a lower point of early stopping reflects noisier data (considering a fixed number of observations for the two datasets and network size).</p><p>tive models, neural networks will reach a predictive gap that closely resembles the predictive gap that remains when the true generative model is known. As a result, theory-independent models can serve as an upper benchmark against which the new data can be predicted based on previous observations. If, for some individuals, the theoretical model is severely misspecified, we expect to observe a significant improvement in our ability to predict unseen data using theory-independent models. However, if an individual is simply exhibiting a noisier pattern of behavior, we anticipate little to no improvement when using theory-independent models.</p><p>(b) Point of early stopping. Neural networks are prone to overfitting, where they fit too closely to the training data and fail to generalize to new datasets <ref type="bibr" target="#b21">(LeCun et al., 2015)</ref>. To mitigate overfitting, a common technique called early stopping is used <ref type="bibr" target="#b2">(Bishop and Nasrabadi, 2006)</ref>. In early stopping, the network is trained for multiple epochs, and the predictive performance on a validation set is monitored. Initially, the performance improves as the number of epochs increases, but there comes a point where the network starts learning patterns that reflect noise rather than true underlying patterns in the data. The point of early stopping is determined as the epoch at which the best prediction is achieved. We propose that the point of early stopping largely reflects the amount of noise in the data. With a fixed dataset and network size, an earlier stopping point indicates noisier data (see <ref type="figure">Fig. 1b</ref>). The rationale behind this hypothesis is that, under certain realistic assumptions, the probability of stopping at an earlier epoch is higher for a sequence with more noise. This is because the noisy sequence has a lower ratio of true signal to noise, resulting in less information learned by the algorithm over the course of training. Using the point of early stopping to estimate irreducible noise has advantages, including the potential to require fewer data compared to using network predictive accuracy to estimate model misspecification.</p><p>Estimating the upper bound of the prediction accuracy of the true data generation model using predictive accuracy typically necessitates three sets of data per individual <ref type="bibr">(training, validation, and test)</ref>. This approach may also require initial auxiliary data for pre-training the recurrent neural network (RNN) to achieve optimal results. However, estimating the point of early stopping can be accomplished with only two sets of data per individual (training and validation). Additionally, this approach may benefit from initializing the network with random weights instead of a pre-trained RNN, as it allows for estimating the maximum possible variance in the optimal epoch estimate among individuals.</p><p>In the present study, our aim is to estimate model miss-specification in individual participants.</p><p>We propose a method that utilizes theory-independent models, specifically recurrent neural networks (RNNs), which possess high flexibility in learning complex features from data without manual engineering. In Study 1, we conducted simulations involving three groups, each consisting of N = 100 simulated agents performing a two-step reinforcement learning decision task. Each group of agents followed a specific data-generating model, and the agents differed in the level of true noise present in their actions.</p><p>We assumed three hypothetical labs, with each lab having knowledge of only one data-generating model, thus miss-specifying two-thirds of the agents. We demonstrated that the predictive performance of a pre-trained RNN using three data sets per agent (training, validation, test) could be used to classify whether an agent was miss-specified by the lab's theoretical model. Additionally, we showed that the number of optimal training epochs for an RNN with random weights and fewer data (training and validation, without a test set) could serve as an estimate for comparing the amount of noise in agent data, given a fixed dataset and RNN architecture. Next, in Study 2, we analyzed an empirical dataset with N = 54 participants who completed three sessions of a two-step decision task in a lab setting. We examined the fit of a well-known theoretical model (Daw's hybrid model) to participants with different IQ levels. We found that the theoretical model showed a systematically poorer fit to participants with low IQ compared to those with high IQ. By utilizing RNN predictive performance and optimal epochs estimates, we classified the source of the low theoretical model fit in low IQ participants. Our findings converged to suggest that the percentage of model miss-specification did not differ between low and high IQ individuals. Instead, low IQ individuals exhibited noisier decision-making compared to their high IQ counterparts. We propose that theory-independent models, such as RNNs, can be valuable in classifying model miss-specification. However, we acknowledge the limitations of our approach and discuss potential directions for future research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Study 1</head><p>We begin by applying our method to simulated data, where different types of artificial agents governed by distinct generating models performed a two-step task <ref type="bibr" target="#b5">(Daw et al., 2011a)</ref>. This simulation allowed us to evaluate our approach using artificial data, where we knew the true underlying data-generating model and the level of true noise for each agent. Our main objective was to assess the ability of theory-independent models to inform us about the factors contributing to a poorer fit of a theoretical model, specifically model miss-specification or irreducible noise. To accomplish this, we introduced three theoretical models (Hybrid model-based/model-free, Habit, and K-dominant hand) and two theoryindependent models (logistic regression and RNN). We generated data from the three theoretical models and fitted all five models to the data from each respective theoretical model. Subsequently, we utilized the predictive capability of the RNN and logistic regression models, as well as the number of optimal training epochs for the RNN, to estimate and distinguish between model miss-specification and stochastic behavior.</p><p>Method Two-step-task. To test our hypothesis, we employed an exemplar two-step reinforcement learning task, which has been widely utilized in computational modeling studies (see <ref type="figure" target="#fig_0">Fig. 2a</ref>; <ref type="bibr" target="#b5">Daw et al. (2011a)</ref>). Each trial of the task consisted of two stages. In the first stage, participants made a choice between two actions, labeled as action A and action B. These actions probabilistically led to one of two possible second-stage states. Action A predominantly led to State-I in the second stage, while action B primarily led to State-II (common transition). However, there was also a minority of trials where the actions led to the opposite states, meaning action A led to State-II and action B led to State-I (rare transition). The probabilities of common and rare transitions were set at 0.7 and 0.3, respectively, and remained constant throughout the task. In the second stage, participants again made a choice between two additional actions and received a binary reward of $0 (no reward) or $1 (reward). The reward probability varied randomly across trials (see <ref type="figure" target="#fig_0">Fig. 2b</ref>). At the first stage, participants choose between two options (A or B) that probabilistically lead to one of two second-stage states, with a fixed transition probability of 70% ("common") or 30% ("rare"). In the second stage, participants choose between two options (C/D or E/F) to obtain rewards. (b) The reward probability for each second-stage choice is determined by a random walk drift. (c) An example of a trial sequence in the two-step task.</p><p>Theoretical models. We consider three different theoretical models that generate choice behavior in the two-step task.</p><p>(a) Hybrid model. The first model we considered was the hybrid model originally suggested by <ref type="bibr" target="#b5">Daw et al. (2011a)</ref>, which assumes that agents' choice behavior is determined by a weighted combination of both model-based (MB) and model-free (MF) RL algorithms <ref type="bibr" target="#b38">(Sutton and Barto, 2018)</ref>. The contribution of each algorithm is modulated by the free parameter weight w. The weighted value of each first-stage action is calculated according to,</p><formula xml:id="formula_0">Q net (s 1 , a 1 ) = w • Q M B (s 1 , a 1 ) + (1 − w) • Q M F (s 1 , a 1 ),<label>(1)</label></formula><p>where Q M F (s 1 , a 1 ) is the model-free action value in the first stage updated trial-by-trial and</p><formula xml:id="formula_1">Q M B (s 1 , a 1 )</formula><p>is the mentally calculated model-based estimation. The MF Q-values were initiated at zero and updated according to action and reward history as follows,</p><formula xml:id="formula_2">Q M F (s 1 , a 1 ) = Q M F (s 1 , a 1 ) + α 1 • Q M F (s 2 , a 2 ) − Q M F (s 1 , a 1 ) + α 1 • λ • r t − Q M F (s 2 , a 2 ) , (2) Q M F (s 2 , a ) = Q M F (s 2 , a 2 ) + α 2 • r t − Q M F (s 2 , a 2 ) ,<label>(3)</label></formula><p>where α 1 , α 2 are the learning rates free parameters of the first and second stage respectively, λ is the discount factor parameter, and r t ∈ [0, 1] is the received reward. The model-based action value of the first stage Q M B (s 1 , a 1 ) is calculated according to,</p><formula xml:id="formula_3">Q M B (s 1 , a 1 ) = s 2 ∈S P (s 2 |s 1 , a 1 ) max a 2 ∈A Q M B (s 2 , a ),<label>(4)</label></formula><p>where </p><formula xml:id="formula_4">P (s 2 |s 1 , a 1 )</formula><formula xml:id="formula_5">) = Q M F (s 2 , a 2 ).</formula><p>We used a SoftMax choice rule for both the first and second choices. The SoftMax choice rule transforms the action values to distribution over the action according to,</p><formula xml:id="formula_6">P (s 1 , a 1 ) = exp β 1 • Q net (s 1 , a 1 ) ã∈A exp β 1 • Q net (s 1 ,ã) ,<label>(5)</label></formula><formula xml:id="formula_7">P (s 2 , a 2 ) = exp β 2 • Q M F (s 2 , a 2 ) ã∈A exp β 2 • Q M F (s 2 ,ã) ,<label>(6)</label></formula><p>where β 1 and β 2 are inverse-temperature parameters of the first and second stages respectively.</p><p>This parameter controls the level of stochasticity in the action selection, where β → 0 corresponds to random choices and β → ∞ for deterministically choosing the highest value action. Overall, the model includes six free parameters</p><formula xml:id="formula_8">θ hybrid = {w, α 1 , α 2 , λ, β 1 , β 2 }</formula><p>(b) Habit model. According to a habit model, agents tend to repeat previously taken actions regardless of their outcome . Here, agents' choices are influenced only by previous actions, independent of any transition or reward history. The model keeps track of past action selection in the form of habit strengths, denoted as H, and are similar in spirit to the Q-values described in the previous hybrid model. These values are initiated at 0.5 and updated on both stages of the task according to,</p><formula xml:id="formula_9">H(s 1 , a) =    H(s 1 , a i ) + α 1 • 1 − H(s 1 , a i ) H(s 1 , a j ) + α 1 • 0 − H(s 1 , a j ) ,<label>(7)</label></formula><formula xml:id="formula_10">H(s 2 , a) =    H(s 2 , a i ) + α 2 • 1 − H(s 2 , a i ) H(s 2 , a j ) + α 2 • 0 − H(s 2 , a j ) ,<label>(8)</label></formula><p>where α 1 , and α 2 are the learning rates free parameters of the first and second stages respectively.</p><p>H(s, a) is the habit strengths matrix of all possible states, and a is the vector of all actions available in the corresponding state. We denote the action selected in the current trial as a i and the unchosen action as a j . The updating rule increases the value of the action selected (a i ) toward 1 and the other unselected action (a j ) toward 0. Like the hybrid model, we used SoftMax choice rule for both the first and second choices,</p><formula xml:id="formula_11">P (s 1 , a 1 ) = exp β 1 • H (s 1 , a 1 ) ã∈A exp β 1 • H (s 1 ,ã) ,<label>(9)</label></formula><formula xml:id="formula_12">P (s 2 , a 2 ) = exp β 2 • H (s 2 , a 2 ) ã∈A exp β 2 • H (s 2 ,ã) ,<label>(10)</label></formula><p>Overall, the model includes four free parameters</p><formula xml:id="formula_13">θ habit = {α 1 , α , β 1 , β 2 } (c) K dominated-hand model (K-DH).</formula><p>In this model, an action is selected in a random fashion with some bias towards one action over the other (e.g., due to hand dominancy; note that in the simulation we assigned each action to the same response-key, thus a bias towards one response-key translates directly to a tendency to choose one action over the alternative). In this model, the agent is assumed to change the preference for the dominant hand across a sequence of K actions.</p><p>For example, in K = 2 the agent will have two probabilities (defined by two fixed parameters; p 1 , p 2 ) representing the preference for the dominant hand as a function of position in the two trials' sequence. The K-dominant hand model is therefore designed to generate a random sequence of choices (e.g., A, B, A, B . . . ) with some systematic repetitions. Here, we included agents with a fixed K = 2 for the first stage and K = 1 for each of the two-second stages, which resulted in a similar number of free parameters as other models in this work. Specifically, the probability of selecting action a i at each state of the task is given by,</p><formula xml:id="formula_14">p(s 1 , a i ) = p t mod 2 ,<label>(11)</label></formula><formula xml:id="formula_15">p(s 2 , a i ) = p 2 , p(s 3 , a i ) = p 3 ,<label>(12)</label></formula><p>Where p 0 /p 1 are the probabilities of selecting action a i in the first stage on the even/odd trials, respectively, and p 2 /p 3 are the probabilities of selecting action a i at each second stage state respectively. The probability of selecting the other action at each state is always set to be the complementary probability (i.e., 1 − p(s, a i )). Overall, the model includes four free parameters</p><formula xml:id="formula_16">θ K−DH = {p 0 , p 1 , p 2 , p 3 }.</formula><p>Theory-independent models. We used two theory-independent models. Unlike the theoretical models which are used both to generate, fit, and predict choice data, the theory-independent models were used only to fit and predict choice data.</p><p>(a) Recurrent neural network (RNN). The first theory-independent model we considered was a three-layer recurrent neural network architecture. Our RNN consisted of an: (i) input layer, (ii) hidden layer, and (iii) output layer. At each step, the RNN input was the last trial's first-stage action, reward, and transition type. The output at each step is a probability distribution over the current trial's first-stage actions. The hidden layer was based on a single-layer gated recurrent unit (GRU; Cho et al. <ref type="formula">2014</ref>with five hidden units.</p><formula xml:id="formula_17">x t = [r t−1 , a t−1 , t t−1 ],<label>(13)</label></formula><formula xml:id="formula_18">r t = σ(W r x t + U r h t−1 + b r ),<label>(14)</label></formula><p>z</p><formula xml:id="formula_19">t = σ(W z x t + U z h t−1 + b z ),<label>(15)</label></formula><p>242ĥ</p><formula xml:id="formula_20">t = ϕ(W h x t + U h (r t ⊙ h t−1 ) + b h ),<label>(16)</label></formula><formula xml:id="formula_21">h t = (1 − z t ) ⊙ h t−1 + z t ⊙ĥ t ,<label>(17)</label></formula><formula xml:id="formula_22">o t = W o h t + b o ,<label>(18)</label></formula><formula xml:id="formula_23">p(a t = A) = e ot i e o i ,<label>(19)</label></formula><p>Where x t is the input vector and h t−1 is the previous hidden state vector. σ is the logistic sigmoid function, ⊙ is the Elementwise Hadamard product, ϕ is the hyperbolic tangent function. r t represents the reset gate, z t the update gate, and h t the candidate activation vectors. </p><formula xml:id="formula_24">W r , W z , W</formula><formula xml:id="formula_25">θ RNN = {W r , W z , W o , U r , U z , U h , b r , b z , b h , W o , b o }.</formula><p>The total number of free parameters is dependent on the size of the hidden layer (192 for 5 hidden units). Importantly, in the supplementary information, we provide additional analysis where we varied the number of hidden units of the hidden GRU layer (2 and 10). We found similar results, suggesting that at least with the current task, our approach is not sensitive to the size of the network (see S2 in the SI)</p><formula xml:id="formula_26">(b) Logistic Regression (LR).</formula><p>The second theory-independent model we considered was a logistic regression model, where the probability of taking the first-stage action is determined by a linear combination of the history of past actions, rewards, and transition, up to j trials back.</p><formula xml:id="formula_27">x = β 0 + j β j a a t−j + β j r r t−j + β j t t t−j + β j a×r a t−j r t−j +β j a×t a t−j t t−j + β j r×t r t−j t t−j + β j a×r×t a t−j r t−j t t−j ,<label>(20)</label></formula><formula xml:id="formula_28">p(a t = | β) = 1 + e −x ,<label>(21)</label></formula><p>The dependent and independent variables were coded as follows: a t : 1 for action A and -1 for action B (first stage actions, see <ref type="figure" target="#fig_0">Fig. 2</ref>). a t−j : 0.5 if the first state action j trials back was A and -0.5 otherwise. r t−j : 0.5 if j trials back was rewarded and -0.5 otherwise. t t−j : 0.5 if j trials back transition was common and -0.5 if it was rare. Overall, the model includes (1 + j × 7) free parameters</p><formula xml:id="formula_29">θ LR = {β 0 , β j a , β j r , β j t , β j a×r , β j a×t , β j r×t , β j a×r×t }.</formula><p>Simulating data and model fitting. First, we simulated choice-behavior of artificial agents on the two-step task (see <ref type="figure" target="#fig_0">Fig. 2</ref>), using the three distinct theoretical data-generating models (Hybrid, Habit, and K-DH). For each model, we simulated 100 agents with their true underlying free parameters sampled from a range of possible options (see <ref type="table">Table S1</ref> in the SI). Each agent was simulated for three blocks of 200 trials each. Then, we separately fitted all five models (three theoretical and two theory-independent)</p><p>to data simulated from all three theoretical models. In the supplementary information, we provide an additional analysis where we varied the lengths of each block (100 and 500 trials) and found similar results suggestive that our method (at least for the current task) is not sensitive to the amount of data (see S3 in the SI).</p><p>(a) Theoretical models. For each agent individually, we sought optimal parametersθ m under each of the three theoretical models (Hybrid, Habit, and K-DH) with maximum-likelihood estimation using only one of the agents' blocks (training-set). We repeated this procedure with 10 different initial search points and chose the optimalθ m using a withheld block (validation-set). Finally, the optimal parametersθ m were used to record the prediction on an additional withheld block (testset). We used SciPy library <ref type="bibr" target="#b39">(Virtanen et al., 2020)</ref> with the minimize function and L-BFGS-B method to extract best-fit parameters.</p><p>(b) RNN. We trained an individual RNN for each agent in a supervised manner with cross-entropy loss (maximum-likelihood) using Pytorch library <ref type="bibr" target="#b28">(Paszke et al., 2019)</ref>. We trained with Adam optimizer (Kingma and Ba, 2014) with a constant learning rate of 0.001. Crucially, unlike the other models, RNN's high flexibility may lead it to overfit the training data. This overfitting of the training dataset will result in a low generalization, making the model less useful for making predictions on new data. To prevent this, we used early stopping, a commonly used regularization method <ref type="bibr" target="#b2">(Bishop and Nasrabadi, 2006)</ref>. We therefore first pre-trained the RNN model using a new auxiliary synthetic dataset consisting of 200 agents from all three theoretical models pooled together. For the auxiliary synthetic data, agents were simulated for two blocks of 200 trials each (used as training and validation for generating the RNN pre-training). The pre-trained RNN model was then fine-tuned for each individual on the main synthetic dataset (see Simulating data and model fitting) using early stopping. Specifically, we used the three blocks of each agent as a train, validation (used for training using early stopping), and a test set used to estimate the predictive accuracy that we report in the results section for further analysis. To further allow an accurate and variable possible estimate of early stopping, we recorded the point of early stopping (using training and validation sets) for an individual RNN for each agent that was not pre-trained, and instead initialized with random weights. The point at which we stopped optimizing the network (i.e., the number of training epochs) was then used in the main analysis and referred as optimal epoch estimate.</p><p>(c) LR. We fitted a logistic regression model to the artificial data using scikit-learn library <ref type="bibr" target="#b29">(Pedregosa et al., 2011)</ref> with L-BFGS-B method, again using only one of the agents' blocks (training-set).</p><p>The individual coefficient of each agent was estimated using maximum-likelihood. The number of trials back k was determined using a withheld block (validation-set). Then we used the coefficient to predict the choices of a withheld block (test-set).</p><p>Model selection. We compare the different models by their predictive performance of left-out data of the first-stage choice. Hence, we adopted a cross-validation (CV) approach. Specifically, at each CV round, for each agent, and under each model, only one of the blocks (training-set) was used to estimate optimal parameters (θ m ). Then the optimal parameters were used to evaluate the predictions on a withheld block (test-set). We averaged across all withheld blocks (three in total) to obtain a single predictive score we denote as nLP m i (Negative log-probability; lower is better),</p><formula xml:id="formula_30">nLP m i = − B b=1 T t=1 log p(a i t |θ m ) |B| ,<label>(22)</label></formula><p>Where m denotes the fitted model, i the agent index, B the total number of blocks, T the total number of trials of the corresponding block,θ m denotes the optimal parameters under model m (maximumlikelihood parameters of the validation-set), and log p(a i t |θ m ) is the log-probability that the optimal parameters under model m assign to the first-stage action a t of the test-set.</p><p>Noise estimates. For each agent we quantified the amount of true noise (stochasticity) the agent holds in the first stage action, using his true underlying parameters. Specifically, within each group of agents that shared the same theoretical model we performed a min-max scaling. For the hybrid agents we used the agent's true inverse-temperature parameter of the first stage β 1 to calculate the amount of true noise as fellow,</p><formula xml:id="formula_31">noise = 1 − β i 1 − β min β max − β min ,<label>(23)</label></formula><p>Where β i 1 is the true first stage inverse-temperature of agent i and β min /β max is the true minimal/maximal inverse-temperature overall hybrid agents. We took the 1 -min-max scaling so that the hybrid agent with the minimal amount of noise will take a value of 0 and the agent with the maximal amount of noise will take the value of 1. For the habit agents, we performed the same calculation, using the true inverse-temperature parameter β 1 of the first stage.</p><p>For the K-DH agent, we used the true p 0 and p parameters to quantify the amount of true noise.</p><p>We measured the distance (in absolute value) between the true p 0 /p 1 parameters to 0.5 (i.e., completely random response policy) and summed these resulting distances,</p><formula xml:id="formula_32">δ = |p 0 − 0.5| + |p 1 − 0.5|,<label>(24)</label></formula><p>and then performed a min-max scaling as follows,</p><formula xml:id="formula_33">noise = 1 − δ i − δ min δ max − δ min ,<label>(25)</label></formula><p>That is, a K-DH agent that his true p 0 , p 1 = 0 (i.e., determinedly choose one of the actions at each trial)</p><p>will take the value 0. Conversely, a K-DH agent that his true p 0 , p 1 = 0.5 (i.e., choose randomly at each trial) will take the value 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>Classification of model miss-specification using predictive performance. Our first aim was to assess the ability of theory-independent models to predict agent choice data across each theoretical model. For each agent in the artificial dataset and for each cross-validation round, we used one block (training-set) to estimate optimal parameters (separately for each model). Then, the optimal parameters were used to predict the agent's first-stage choice data on a withheld block (test-set). We repeated this procedure for three rounds and averaged the predictive score over all withheld blocks (i.e., nLP m i ; see Eq. 22). Namely, for each agent we obtained 5 predictive scores, corresponding to the 5 models mentioned above (Hybrid, Habit, K-DH, RNN, LR). We found that across all theoretical models, RNN achieved the second-best predictive score, second only to the true generative model (see <ref type="figure">Fig. 3a</ref>). This suggests that RNN is flexible enough to approximate a wide range of different behavioral models. Moreover, we found that the Logistic regression model achieved a poorer predictive score of agent choice data, implying that the model is less expressive compared with RNN.</p><p>Next, we performed a hypothetical experiment in which three hypothetical labs estimated individual performance using a theoretical model. Each hypothetical lab was assumed to be aware of only one data-generating model, namely, 'Hybrid-lab', 'Habit-lab', and 'K-DH-lab'. The notion here is that we illustrate a hypothetical situation where unbeknownst to the research lab, subjects are performing the task under different models. For example, the hypothetical Hybrid-lab is assumed to be aware only of the hybrid model and wrongly assumes that all subjects acted according to the Hybrid model. In such a case, all agents with a true generative model of Habit and K-DH models will be misspecified. However, we assumed that the lab has no knowledge regarding these alternative models, and thus will fit the hybrid a b <ref type="figure">Figure 3</ref>: Classification of model-misspecification using the predictive performance of theory-independent models. Here, we tested our ability to identify model misspecification of theoretical models using RNN and Logistic regression. (a) Across three theoretical models (Hybrid, Habit, K-DH) we simulated 100 agents and predicted agents' actions using the same three theoretical models, RNN and logistic regression. We present on the y-axis differences in negative log-probability estimates for each fitted model against the true generative model. For example, the left panel depicts the difference in log-probability estimates across all five models for 100 agents simulated using the hybrid model. As expected, across all three generative theoretical models, RNN achieved the best performance score, second only to the true generative theoretical model (black lines represent 95% CI). (b) We calculated a confusion matrix for a hypothetical lab that is familiar only with one theoretical model and uses RNN or logistic regression to try and conclude whether a certain agent shows a high predictive gap due to model miss-specification. Each cell represents the average value across three classification rounds. We assumed one lab theoretical model as the true data-generating model in each round. Agents were then classified into two classes (assumed lab model or unknown model) based on the difference in predictive scores between the assumed theoretical model and a theory-independent model. For example, the top-left cell in the left confusion matrix indicates the percentage of agents (averaged over three classification rounds) better predicted by their true data-generating model than by the RNN. Results show good classification by RNN (Accuracy ≈ .86), and logistic regression (Accuracy ≈ .70), with better performance for RNN compared with logistic regression. Overall, these results suggest that RNN/logistic regression can be used to some extent to inform researchers regarding model-misspecification when using theoretical computational modeling.</p><p>model to all agents. We were interested in testing the extent to which theory-independent models (RNN, LR) can help such a lab to classify if a certain agent might be better explained by another unknown model compared to the hybrid model. For this aim, we performed three classification rounds, where at each round we assumed one hypothetical lab classified each agent into one of two classes: lab theoretical model or unknown alternative model. The classification was done based on the difference between the nLP m i scores of the assumed theoretical model and the two theory-independent models of each agent.</p><p>We averaged across all classification rounds and present two confusion matrices, classification by RNN and by Logistic regression (see <ref type="figure">Fig. 3b</ref>). Like before, we found that RNN achieved a higher classification accuracy of 86%, compared to the LR model which reached only 70% accuracy. This finding supports our claim that RNN can signify if a certain subject might be better explained by another unknown model. Importantly, to illustrate the robustness of our results, we provide a supplementary analysis where the exact same analysis was repeated across 100 and 500 observations per agent and found very similar results (see <ref type="figure">Fig. S3 in SI)</ref>. Furthermore, to assert that this effect is not due to averaging across all classification rounds in the supplementary information, we provide the confusion matrices for each hypothetical lab (Hybrid, Habit, K-DH). We found that across all hypothetical labs, the RNN achieved a higher true negative rate and a lower true positive rate compared to the LR model (see S4 in the SI).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>a b</head><p>Figure 4: Optimal epoch relation to true noise. For each agent we iteratively trained the RNN while examining its predictive ability. We then recorded for each agent the number of optimal epochs, which is the number of RNN training iterations that minimized underfitting and overfitting. (a) We found a strong association between the number of optimal RNN training epochs (y-axis) and the agent's true noise level. This result demonstrates that the number of optimal RNN epochs can be used as a proxy for the amount of information in a certain dataset (given a fixed number of observations and network size). (b) For illustration purposes, we plotted the RNN loss curves for agents with low vs. high levels of noise. Specifically, we present loss curves where for each RNN training epoch (x-axis) we estimate the predictive accuracy using a validation data set. We estimated the loss curves of 300 artificial agents (from three theoretical models) and divided them into two groups according to their true noise (high vs. low). We show that the point of optimal epoch (early stopping; denoted yellow star) was higher to agents with low internal noise.</p><p>Using the number of optimal epochs to estimate noise. When fitting an RNN we estimate the number of optimal training epochs that minimize both underfitting and overfitting. We reasoned that for a fixed number of observation and network parameters, the point of early stopping (henceforward, "optimal epochs") should also reflect the amount of noise/information in the behavioral data. Specifically, we hypothesized that the probability of stopping in an earlier epoch is higher for noisier agents since this probability is determined by the ratio between the true signal learned and the noise. To test our hypothesis, we examined the correlations between the number of optimal epochs and the amount of true noise each agent holds (see <ref type="figure">Fig. 4a</ref>). As expected, we found that agents with high levels of true noise in their data also showed lower number of optimal epochs (i.e., required less RNN parameter training) compared with less noisy agents [see <ref type="figure">Fig. 4a</ref>; linear correlation coefficient r = −.67, −.74, −.62</p><p>for the Hybrid, Habit, and K-DH agents respectively; p &lt; .001 across all correlation]. Importantly, we found that this result holds regardless of the agent's true underlying data-generating model, suggesting that the point of early stopping may be used as an index for the amount of true noise each participant holds. We performed the same analysis with different network sizes and different number of observations (i.e., trials) per agent and found very similar results (see <ref type="figure" target="#fig_0">Fig. S2 in SI)</ref>. Therefore, we conclude that the number of optimal epochs reflects the amount of information in the observed behavior. Note, that the number of optimal epochs is not an absolute estimate since on its own it can be influenced by other factors, including the number of observations and the size of the net.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Study 2</head><p>We now present an application of our method to an existing dataset, where humans performed an identical two-step task as reported in Study 1, at three different time points <ref type="bibr" target="#b19">(Kiddle et al., 2018)</ref>. We predict participants' behavior using a well-established hybrid model (see Hybrid model in Study 1 for further details) and demonstrate that low IQ is associated with a higher predictive gap. We put our method to use and examine whether action prediction of RNN can improve the predictive gap of the theoretical model.</p><p>Specifically, we assume that if low IQ participants are more frequently miss-specified by the hybrid model, then RNN will show a greater reduction of the predictive gap for low compared with high IQ individuals (see <ref type="figure">Fig. 5a</ref>). However, another possibility is that the higher predictive gap of low compared with high IQ participants in the theoretical hybrid model is mostly due to the noisier behavior of the low IQ participants' part. In that case, RNN should have a similar contribution to the predictive gap, regardless of IQ (see <ref type="figure">Fig. 5b</ref>).</p><p>Furthermore, we estimate the number of optimal epochs for each individual and examine the correlation with IQ. If low IQ participants' behavior is less predicted by the theoretical model mostly due to them being misspecified, then we should not observe any correlation between the optimal number of epochs and IQ (since across IQ participants are assumed to have a similar amount of information in their behavioral data). However, if the behavior of low IQ participants is noisier compared with high IQ, then we should expect a negative correlation between the number of epochs and IQ. a b <ref type="figure">Figure 5</ref>: Prediction scenarios for the use of RNN to examine model miss-specification as a function of IQ.</p><p>To demonstrate the ability to use RNN to identify model miss-specification, we illustrate two hypothetical associations between IQ and the difference in predictive performance for a theoretical hybrid model vs. RNN. (a) Prediction for a scenario where there is a higher frequency of model miss-specification among low vs. high IQ individuals: Here, we assume that low IQ participants are more frequently miss-specified by the theoretical hybrid model compared with high IQ individuals. Therefore, the prediction here is that for low IQ individuals, the RNN will provide higher predictive gap improvement compared with high IQ individuals. (b) Prediction for a scenario where there is equal frequency of model miss-specification among low vs. high IQ individuals: Here, we assume that the frequency of model miss-specification is similar across levels of IQ. Therefore, we predict no association between IQ and the change in predictive accuracy for RNN vs. the theoretical hybrid model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>Dataset. We studied a previously published dataset taken from NSPN U-Change Cognition Cohort <ref type="bibr" target="#b19">(Kiddle et al., 2018)</ref>. We focus on a subset of the dataset, of which healthy volunteers (ages 14 to 24 years; N = 54) performed the two-step task at three distinct time points (˜6 and˜18 months after the first measurement). At the first time point (Time-I), each subject performed the task for 121 trials, in the second (Time-II) 121 trials, and at the third (Time-III) 201 trials. In the preprocessing step, we omitted from the analysis trials with RTs below 150ms. The dataset also includes for each subject a Wechsler Abbreviated Scale of Intelligence <ref type="bibr" target="#b40">(Wechsler, 1999)</ref>. Importantly, we also utilized another subset of the NSPN dataset that included N = 515 individuals who performed the two-step task in only two different time points (Time-I: 121 trials, Time-III: 201 trials).</p><p>Model fitting. For each subject choice data, we fitted both the theoretical Hybrid model and a theory-independent RNN model. We followed the same procedure presented in Study 1, where at each cross-validation round (three in total), we used each subject three distinct measurements as a train, validation, and test sets respectively.</p><p>Hybrid. To comply with most studies that examined two-step task behavior using a hybrid model <ref type="bibr" target="#b5">(Daw et al., 2011a;</ref><ref type="bibr" target="#b14">Gillan et al., 2016;</ref><ref type="bibr" target="#b33">Shahar et al., 2019)</ref>, we included to the hybrid model described in Study 1 an additional first-stage choice perseveration parameter,</p><formula xml:id="formula_34">P (s 1 , a 1 ) = exp β 1 • (Q net (s 1 , a 1 ) + κ t (a)) ã∈A exp β 1 • (Q net (s 1 ,ã) + κ t (ã)) , κ t (a) =    κ if a = a t−1 0 otherwise ,<label>(26)</label></formula><p>where −0.5 &lt; κ &lt; 0.5 is the choice perseveration free-parameter so that κ &gt; 0 corresponded to selecting the same action as the previous trial and κ &lt; 0 corresponded to switching to the other action. All other model details were similar to the model presented in Study 1. Overall, the model includes seven free</p><formula xml:id="formula_35">parameters θ hybrid = {w, α 1 , α 2 , λ, β 1 , β 2 , κ}.</formula><p>RNN. The RNN architecture was identical to the one described in Study 1 (see Theory-independent models) We first pre-trained the RNN using a subset of the NSPN dataset consisting of N = 515 individuals who performed the two-step task at two different time points (Time-I: 121 trials, Time-III: 201 trials). As in Study 1, we used one block (from each individual) for training and the other block for validation. We then fine-tuned the pre-trained RNN weights to fit the choice behavior of each of the N = 54 individuals using three different blocks for each individual, following the same cross-validation procedure of Study 1. In this procedure, each subject's three distinct measurements were used as training, validation, and test sets, respectively, in three rounds. We were concerned that it might be that the pre-training set (N = 515, two sessions) had a different proportion of high/low IQ participants compared to the main set that we were interested in estimating (N = 54, three sessions). However, we tested and found that the distribution of IQ scores was similar for both subsets (M = 112.31, SD = 10.75 for N = 54 and M = 110.83, SD = 10.92 for N = 515; t(567) = −0.954, p = 0.34).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>Predictive performance. We began our investigation by estimating the correlation between IQ and the predictive score of the hybrid model. We found a positive correlation between individuals' IQ and the hybrid predictive score [see <ref type="figure">Fig. 6a</ref>; linear correlation coefficient r = 0.  <ref type="figure">Figure 6</ref>: Empirical association of the predictive score for the theoretical hybrid model, <ref type="bibr">RNN, and IQ. (a)</ref> Association between IQ and the predictive score obtained from a theoretical hybrid model, showing that low IQ individuals are associated with lower predictive accuracy (shaded area corresponds to the 95% confidence interval for the regression line). We assumed that if this association is mostly due to higher rates of model miss-specification in low compared with high IQ individuals, then RNN should overcome this difficulty and show similar predictive accuracy across both models. (b) Difference in the predictive score for the theoretical hybrid model vs. RNN. Across different IQ scores, we found no significant difference in the predictive score of one of the models over the other. This finding suggests that the lower predictive score of low IQ individuals is not due to systematic model miss-specification, but rather due to noisier behavior (shaded turquoise/purple areas signify better predictive score of the Hybrid/RNN models, respectively; shaded dark area corresponds to the 95% confidence interval for the regression line). (c) Posterior distribution for the interaction term from a Bayesian regression, suggesting no effect for the paired interaction of model-type (hybrid vs. RNN) and IQ on the model's predictive score. This null effect suggests that the association between IQ and predictive accuracy was similar for both hybrid and RNN models (soiled/dashed purple lines indicate median/zero, respectively; lower solid black line indicates 95% HDI ). These results suggest that the higher predictive gap of the theoretical model for low compared with high IQ individuals is mostly due to individual differences in the levels of behavioral noise rather than systematic model miss-specification.</p><p>should be able to overcome the miss-specification issue the hybrid model might have, thus leading to a similar predictive gap across IQ levels. However, if the association between IQ and predictive gap of the theoretical hybrid model is mostly due to noisy behavior in low compared with high IQ, then we should observe the same correlation between predictive gap and IQ for both the theoretical hybrid model and RNN (see <ref type="figure">Fig. 6b</ref>, linear correlation coefficient r = 0.07, p = 0.58).</p><p>To examine whether RNN's predictive accuracy shows an attenuated association with IQ compared to the theoretical hybrid predictive accuracy, we estimated the paired interaction of model-type (RNN vs.</p><p>Hybrid) and IQ on predictive accuracy estimates. Specifically, we fitted a hierarchical Bayesian regression model, where the dependent variable was the individual's predictive score (measured in negative logprobability) that was predicted using the individual's IQ score, model type (coded as -1 for hybrid and 1 for RNN), and their paired interaction. We found a main effect for IQ, such that individuals with higher IQ had higher log-probability scores (see <ref type="figure">Fig. S5a</ref> in the SI; posterior median = 0.614; 95% HDI between 0.022 and 1.208; probability of direction (pd) 97.9%). Moreover, we also found a main effect for Model-Type, such that the RNN model obtained on average a higher predictive score than the Hybrid (see <ref type="figure">Fig. S5b</ref> in the SI; posterior median = 9.577; 95% HDI between 6.94 and 12.2; probability of direction (pd) 100%).</p><p>Importantly, we did not find support for an interaction effect of IQ × Model-type on individuals'</p><p>predictive scores, suggesting that the association between IQ and predictive accuracy was similar for the RNN and hybrid models (see <ref type="figure">Fig. 6c</ref>; posterior median = -0.11; 95% HDI between -0.35 and 0.13; probability of direction (pd) 81.1%). This result suggests that RNN did not improve the predictive accuracy of the hybrid model more for low vs high IQ individuals. Specifically, the lack of interaction between model-type and IQ can be taken as evidence that the frequency of model miss-specification is not different in low vs. high IQ individuals. To further assert our finding, we now turn to examine the association between IQ and the number of optimal RNN epochs as a proxy for the amount of noise in the individual's data.</p><p>a b <ref type="figure">Figure 7</ref>: Association between IQ and individual's optimal epoch estimates. (a) Relation between the number of optimal RNN training epochs (y-axis) and IQ score (x-axis; shaded area corresponds to the 95% confidence interval for the regression line). We found that IQ significantly correlates with individuals' optimal RNN epoch estimates, such that lower IQ participants required fewer RNN training epochs to reach the optimal training point. (b) Loss curve of validation data averaged over the low IQ group (IQ &lt; 110; purple) and high IQ group (IQ &gt; 110; turquoise). The point of optimal epoch (early stopping) is denoted by a yellow star. We found that the optimal epoch for the high IQ group was significantly higher than that for the low IQ group. Overall, when combined with our simulation study demonstrating the association between the number of optimal RNN epochs and true noise (for a fixed number of observations and network size; see <ref type="figure">Fig. 4</ref>), these results suggest noisier decision-making for low IQ individuals compared to high IQ individuals. This finding, along with the results obtained from the RNN predictive accuracy (see <ref type="figure">Fig.6</ref>), suggests that low IQ individuals are not more frequently miss-specified compared to their high IQ peers.</p><p>peers. To further validate our finding that lower IQ individuals' choice data is noisier (rather than more frequently miss-specified), we examined the number of optimal RNN training epochs for each participant.</p><p>Here, we trained an individual RNN model for each subject initialized with random weights. We then examined the relationship between an individual's IQ score and their corresponding number of optimal RNN training epochs (i.e., the point at which we stopped training the RNN to avoid overfitting). We found a significant positive correlation, such that individuals with higher IQ had a higher number of optimal training epochs [see <ref type="figure">Fig. 7a</ref>; linear correlation coefficient r = 0.33, p &lt; 0.05, 95% CI (0.072, 0.597)]. To further illustrate this finding, we divided participants into two groups according to their IQ score -low/high (using the median as the threshold). We then recorded the prediction of the validation data of each participant throughout the training procedure and averaged within each of the two groups (see <ref type="figure">Fig. 7b</ref>). We found that the optimal epoch of the high IQ group was significantly greater (M = 332.80, SD = 178.06) than that of the low IQ group (M = 227.34, SD = 206.90; t(52) = 2.011, p &lt; 0.05). These findings suggest noisier behavior for low compared to high IQ individuals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>Developing a theoretical computational model requires the researcher to state theoretical assumptions regarding the investigated process, assumptions that might differ from the true data generating process, and thus exposed to the problem of model miss-specification. Here, we sought to construct a method that tackles this problem in the context of theoretical computational models of human decision-making behavior. Taking advantage of the high flexibility of theory-independent models (i.e., RNN), that are not theoretically constrained by assumptions of behavior, we proposed a method to indicate if a predictive gap observed in a single agent choice data is mostly due to model miss-specification or rather an inherent stochasticity in the behavior being modeled. We further suggest that the number of training epochs, used to reach an optimal balance between under and overfitting for RNN can be used as a relative estimate of noise in the individual behavior.</p><p>In Study 1, we validated our approach using simulated data from artificial agents generated by different theoretical models in a two-step multi-armed bandit task. By comparing the predictive performance of the RNN model with each theoretical model, we demonstrated the RNN's ability to determine whether a predictive gap observed in an individual agent is primarily due to model miss-specification or inherent stochasticity in their behavior. Additionally, we showed that the point of early stopping in the RNN training process is strongly associated with the level of true irreducible stochasticity in an agent's behavior. A higher number of optimal training epochs is indicative of less noise in the agent's behavior, given a fixed amount of data and network size. One practical advantage of using the point of early stopping is that it can be estimated using only two sets of data (training and validation), unlike predictive accuracy, which requires an additional test data set.</p><p>Next, in Study 2, we applied these methods to an empirical dataset of human participants performing the same two-step task. We found that Daw's hybrid model <ref type="bibr" target="#b5">(Daw et al., 2011a)</ref>, a well-known theoretical model, exhibited a consistently poorer fit to participants with low IQ compared to those with high IQ.</p><p>To investigate the source of this poorer fit, we individually fitted an RNN model to each participant and compared the predictive performance of both the hybrid model and the RNN model, as well as the point of early stopping for each participant. We observed that the RNN model showed a similar reduction in behavior prediction for both low and high IQ individuals, consistent with the hybrid model. Additionally, the RNN's optimal epoch estimates were systematically higher for high IQ individuals. These findings provide preliminary evidence suggesting that the behavior of low IQ participants is characterized by greater inherent noise, rather than being more mis-specified by the hybrid model, when compared to their high IQ counterparts.</p><p>The use of theory-independent neural network models fitted directly to behavioral data in decisionmaking tasks has garnered significant attention in recent years <ref type="bibr">(Dezfouli et al., 2019a,b;</ref><ref type="bibr" target="#b13">Fintz et al., 2022;</ref><ref type="bibr" target="#b30">Peterson et al., 2021;</ref><ref type="bibr" target="#b36">Song et al., 2021)</ref>. Previous research has highlighted the advantages of this approach by demonstrating that recurrent neural networks (RNNs) are capable of capturing behavioral features that traditional theoretical models struggle to replicate. In a groundbreaking study by <ref type="bibr" target="#b8">Dezfouli et al. (2019b)</ref>, it was shown that an RNN model fitted to participants performing a two-armed bandit task outperformed a typical reinforcement learning (RL) model in pure action prediction. This finding has been extended to more complex decision-making tasks such as the four-armed bandit <ref type="bibr" target="#b13">(Fintz et al., 2022</ref>) and build-your-own-stimulus tasks <ref type="bibr" target="#b36">(Song et al., 2021)</ref>. We believe that our work contributes to the growing body of research in the field, making four key contributions. Firstly, through simulation, we have validated the assertion that RNNs can achieve nearly optimal fit and approximate various behavioral models without the need for prior theoretical specification. Secondly, we introduce a novel application of the point of early stopping in RNN training.</p><p>Traditionally utilized to prevent overfitting, we demonstrate its utility as a unique individual measure of the amount of inherent noise present in both artificial and human behavioral choice data. Unlike predictive accuracy, which requires group-level pre-training and three data sets per individual <ref type="bibr">(training, validation, and test)</ref>, the point of early stopping only necessitates two data sets <ref type="bibr">(training and validation)</ref> and can be employed without empirical RNN pre-training. This allows for a more flexible estimate of stopping points between individuals. Thirdly, we present an application of the RNN model to human choice data in the context of a multi-stage two-step decision task, expanding upon previous research that has predominantly focused on single-stage tasks. Lastly, we utilize the RNN model to investigate the relationship between model miss-specification and individuals' intelligence scores.</p><p>Our work also addresses the question of inherent randomness or irreducible stochasticity in human behavior. The question of irreducible stochasticity has broader implications not only for cognitive science but also as a fundamental question in general science. We provide provisional evidence suggesting that individuals with lower intelligence scores exhibit noisier decision patterns that cannot be reduced by any model. However, several questions remain unanswered, such as identifying the specific stages of the decision-making process that underlie this behavioral variability. In our current work, we primarily focus on noise that arises from the deliberation process. This aligns with previous studies that have proposed the concept of "decision acuity" <ref type="bibr" target="#b25">(Moutoussis et al., 2021)</ref>, which represents a dimensional structure in core decision-making strongly related to the inverse temperature parameter (β). It suggests that decision variability originates from differences in reward sensitivities. However, another line of research has proposed the idea of "computation noise," which refers to random noise inherent to the learning process that corrupts the value updating of each action <ref type="bibr" target="#b12">(Findling et al., 2019;</ref><ref type="bibr" target="#b11">Findling and Wyart, 2021)</ref>. Further studies are needed to elucidate the extent to which these two factors contribute to the noisier decision patterns observed in individuals with lower intelligence. Another open question pertains to identifying the neural correlates and mechanisms underlying this variability. Nevertheless, the significant advantage of the current method is that researchers can use the number of optimal RNN epochs to estimate the amount of noise in observations without specifying a theoretical mechanism. This capability enhances the interpretation and utilization of theoretical models.</p><p>Several limitations should be considered in our proposed approach. First, fitting a data-driven neural network is evidently not enough to produce a comprehensive theoretical description of the data generation mechanisms. Currently, best practices for cognitive modeling <ref type="bibr" target="#b41">(Wilson and Collins, 2019)</ref> require identifying under what conditions the model struggles to predict the data (e.g., using posterior predictive checks), and describing a different theoretical model that could account for these disadvantages in prediction. However, identifying conditions where the model shortcomings in predictive accuracy are due to model misspecifications rather than noisier behavior is a challenging task. We propose leveraging data-driven RNNs as a supplementary tool, particularly when they significantly outperform existing theoretical models, followed by refined theoretical modeling to provide insights into what processes were mis-specified in the initial modeling effort.</p><p>Second, although we observed a robust association between the optimal number of epochs and true noise across varying network sizes and dataset sizes (see <ref type="figure" target="#fig_0">Fig. S2</ref>), additional factors such as network architecture and other model parameters (e.g., learning rate, see <ref type="figure">Fig. S7</ref>) might influence this estimation.</p><p>Further research is required to allow us to better understand how and why different factors change the number of optimal epochs for a given dataset before it can be applied with confidence to empirical investigations.</p><p>Third, the empirical dataset used in our study consisted of data collected from human participants at a single time point, serving as the training set for our RNN. The test set data, collected with a time interval of approximately ∼ 6 and ∼ 18 months, introduced the possibility of changes in participants' decision-making strategies over time. In our analysis, we neglected any possible changes in participants' decision-making strategies during that time, changes that may lead to poorer generalization performance of our approach. Thus, further studies are needed to eliminate such possible explanations.</p><p>Fourth, our simulations, albeit illustrative, were confined to known models, necessitating in-silico validation before extrapolating the efficacy of our approach to other model classes and tasks. Our aim was to showcase the potential benefits of using a data-driven approach, particularly when faced with unknown models. However, whether RNNs will provide optimal fits for tasks with more complex rules and long-term sequential dependencies remains uncertain.</p><p>Finally, while positive outcomes where RNNs surpass theoretical models can prompt insightful model refinement, caution is warranted in directly equating RNN performance with that of the generative model, as seen in our simulations (e.g., <ref type="figure">Fig. 3</ref>). We highlight that our empirical findings depict a more complex scenario, wherein the RNN enhanced the predictive accuracy for all participants uniformly. Notably, we also provide evidence supporting a null effect among individuals, with no consistent difference in RNN improvement over the theoretical model based on IQ. Although it remains conceivable that a different data-driven model could systematically heighten the predictive accuracy for individuals with lower IQs in this task, such a possibility seems less probable in light of the current findings.</p><p>To sum up, we show that both the predictive gap and the point of early stopping of neural networks can be used to estimate whether a certain predictive gap found for a theoretical model is mostly due to model miss-specification or irreducible noise. We hope this work will lead to further studies exploring the utilization of neural networks to enhance theoretical computational models.</p><p>Code availability The code is publicly available via: https://github.com/yoavger/using_rnn_ to_estimate_irreducible_stochasticity S2. Varying the size of the network hidden layer and the number of simu-</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>lated trials</head><p>To test how the network's hidden size and the number of simulated trials affect the relationship between the number of optimal epochs and the true noise each agent holds, we conducted a repeated analysis similar to study 1 in the main text. In this analysis, we simulated agents with varying trial lengths (100, 200, and 500 trials per block) and trained RNN models with different hidden sizes (2, 5, and 10 cells in the GRU layer). For each combination, we simulated 100 agents from each of the three theoretical models (Hybrid, Habit, and K-DH), resulting in a total of 300 agents. Subsequently, we fitted an RNN model to the behavior of each agent, training it with only one block and using a withheld block to determine the optimal epoch for each agent. Across all combinations, we observed a strong relationship between the number of optimal epochs and the true noise held by each agent. Specifically, agents with a high level of true noise were better explained by an RNN model trained with a small number of epochs, while agents with a low level of true noise were better explained by an RNN model trained with more epochs (see <ref type="figure" target="#fig_0">Fig. S2</ref>). <ref type="figure" target="#fig_0">Figure S2</ref>: Correlation matrix between optimal epoch and the true noise. Each square denotes the Pearson correlation between the number of optimal epochs and the true noise each agent holds. For each square, the correlation was calculated using agents that were simulated for 100, 200, or 500 trials (X-axis) and the RNN model hidden layer consists of 2, 5, or 10 cells in the hidden GRU layer (Y-axis). We found, across all combinations a negative relation such that longer training was most beneficial in predicting the action of agents with low levels of true noise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S3. Sensitivity to the lengths of simulated trials</head><p>To evaluate the sensitivity of our proposed method to the number of simulated trials, we conducted a repeated analysis similar to study 1 in the main text (see Classification of model miss-specification using predictive performance in the main text). Specifically, we generated a comparable artificial dataset to that of study 1, with the only difference being that we varied the number of simulated trials within each block (100 and 500 trials). Importantly, the size of the hidden GRU layer in the RNN was held constant at 5 cells across all conditions. Across all lengths of simulated trials, we observed a similar overall result to the main text. In particular, regardless of the theoretical models used, the RNN achieved the second-best predictive score, surpassed only by the true generative model (see <ref type="figure">Fig. S3, left panel)</ref>.</p><p>Additionally, the RNN model exhibited higher classification accuracy compared to the LR model (see <ref type="figure">Fig. S3</ref>, right panel). These findings suggest that our method is relatively insensitive to the number of trials used in the simulations.</p><p>200 trials 500 trials 100 trials <ref type="figure">Figure S3</ref>: Action prediction and agent classification for different lengths of simulated trials. The difference in the negative log-probability obtained by each model to each group of agents (left) and Classification of each agent (right) for various simulated trial lengths <ref type="bibr">[100,</ref><ref type="bibr">200 (Fig. 3</ref> in the main text), 500]. Overall RNN outperformed the LR model in both predictive score and classification accuracy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S4. Classification of model-misspecification within each theoretical model</head><p>In the main text, we presented the average results obtained from all classification rounds of the hypothetical experiment (see <ref type="figure">Fig. 3b</ref> in the main text). In this section, we provide the confusion matrices for each round, which display the classification performance of each hypothetical lab (see <ref type="figure">Fig. S4</ref>).</p><p>Across all theoretical models, we observed that the RNN achieved a higher true negative rate (bottom right square) compared to logistic regression. Specifically, the RNN exhibited a better ability to correctly identify cases where an agent was better explained by another unknown model. On the other hand, logistic regression demonstrated a higher true positive rate (upper right square) compared to the RNN. However, when considering overall classification accuracy, the RNN model outperformed logistic regression. This finding provides further support for our claim that the RNN model offers greater expressiveness compared to logistic regression. <ref type="figure">Figure S4</ref>: Agent classification of each hypothetical lab. Classification by <ref type="bibr">RNN (top)</ref> and Classification by LR (bottom). Across all theoretical models (Hybrid, Habit, and K-DH), RNN achieved a higher True negative rate (bottom right square) compared to Logistic regression. In addition, although RNN achieved a lower True positive rate (upper left square) compared to Logistic regression, the overall classification accuracy of the RNN model is higher.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RNN Logistic regression</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S5. Bayesian regression analysis</head><p>We provide two additional posterior distributions of the Bayesian regression coefficient, as discussed in Study 2 (see Predictive performance in the main text). Firstly, we observed a main effect for IQ, indicating that individuals with higher IQ scores had higher log-probability scores (see <ref type="figure">Fig. S5a</ref>; posterior median=0.614; 95% HDI between 0.022 and 1.208; probability of direction (pd) 97.9%). Secondly, We also found a main effect for Model-Type, such that the RNN model obtains on averaged higher predictive score than the Hybrid <ref type="figure">(Fig. S5b, posterior median=9</ref>.577; 95% HDI between 6.94 and 12.2; probability of direction (pd) 100%).</p><p>a b <ref type="figure">Figure S5</ref>: Posterior distribution for the regression coefficient. (a) Individual's IQ score and (b) model-type on predictive Log-probability scores (soiled/dashed purple lines indicate median/zero, respectively; lower solid black line indicates 95% HDI ). We found two main effects of individual's IQ and model-type on predictive Log-probability scores. Such that, low IQ participant's choices are less predictable than high IQ participant's and that on average the RNN model reaches a better predictive score than the Hybrid model. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S7. Association of the number of optimal epochs with model parameters</head><p>In the main text, we show that the noise parameter across different RL models is associated with the number of optimal epochs used to train an RNN <ref type="figure">(Figure 4</ref>). Here, we performed a linear regression where all model parameters were used to predict the number of optimal epochs per agent, allowing us to find further contributions of other model parameters to the empirical number of epochs. For the Hybrid model, we predicted the number of optimal epochs using α learning rates in both stages, inverse-temperature β parameters (both stages), MF-MB weight parameter, and eligibility trace. For the Habit model, we predicted the number of optimal epochs using α learning rates in both stages and inverse-temperature β parameters (both stages). Note that RNN was fitted only for first-stage choices, therefore we expected only first-stage parameters to predict the number of optimal epochs.</p><p>A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B.</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Hybrid model</head><p>Habit model <ref type="figure">Figure S7</ref>: Associations between all model parameters, and the optimal number of epochs. (A) Hybrid model. (B) Habit model. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 2 :</head><label>2</label><figDesc>Two-step task. (a)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>h are the input connection weight matrices, U r , U z , U h are the recurrent connection weight matrices, and b r , b z , b h are the bias vectors. h t represents the actual activation vector of the unit (current hidden state). h t is projected to the output layer with full connections via the weight matrix W o and bias vector b o . The output is then transformed with a SoftMax activation function to action probabilities. Overall, this model includes the following free parameters</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>While most studies have primarily focused on the high predictive performance of RNN models, there are also examples of leveraging RNNs to gain theoretical insights. For instance, Dezfouli, Ashtiani, et al. (2019) developed an autoencoder model utilizing an RNN encoder to map each participant's behavior into a low-dimensional latent space, which facilitated the study of individual differences and variation in decision-making strategies. In another study, Song et al. (2021) proposed an RNN model trained with an embedding specific to each participant, showing that these embeddings were effective in capturing differences in various cognitive variables. Thus, previous research has demonstrated that RNNs, unconstrained by specific theoretical assumptions, have the ability to capture and predict human behavior, resulting in remarkably low predictive gaps.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure S6 :</head><label>S6</label><figDesc>Optimal epoch relation to true noise. Replica ofFigure 4, with the noise parameter value unscaled.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head></head><label></label><figDesc>28, p &gt; 0.05, 95% CI (0.014, 0.548)] so that lower IQ was associated with a higher predictive gap. This finding can reflect a systematic miss-specification of individuals with low IQ by the hybrid model. Alternatively, it might be that low IQ is associated with noisy behavior which then led to a higher predictive gap. To address this question, we predicted individuals' actions using RNN and examined whether the association between individuals' predictive gap and IQ is attenuated when using RNN. If the association between IQ and predictive gap of the theoretical hybrid model is due to higher rates of model misspecification for low compared with high IQ individuals, then RNN would attenuate this association. Specifically, RNN</figDesc><table><row><cell>a</cell><cell>b</cell><cell>c</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table S7 :</head><label>S7</label><figDesc>Regression coefficients for model parameters predictive RNN's optimal epoch for first-stage choices</figDesc><table><row><cell></cell><cell>Standardized beta</cell><cell>CI95%</cell><cell>p-value</cell></row><row><cell cols="2">Hybrid model</cell><cell></cell><cell></cell></row><row><cell>β 1</cell><cell>0.76</cell><cell>[0.64 to 0.89]</cell><cell>&lt; .001</cell></row><row><cell>β 2</cell><cell>-0.02</cell><cell>[-0.14 to 0.10]</cell><cell>0.74</cell></row><row><cell>α 1</cell><cell>0.21</cell><cell>[0.08 to 0.33]</cell><cell>&lt; .01</cell></row><row><cell>α 2</cell><cell>0.38</cell><cell>[0.26 to 0.50]</cell><cell>&lt; .001</cell></row><row><cell>λ</cell><cell>0.11</cell><cell>[-0.08 to 0.24]</cell><cell>0.06</cell></row><row><cell>w</cell><cell>-0.08</cell><cell>[-0.20 to 0.04]</cell><cell>0.17</cell></row><row><cell cols="2">Habit model</cell><cell></cell><cell></cell></row><row><cell>β 1</cell><cell>0.75</cell><cell>[0.66 to 0.84]</cell><cell>&lt; .001</cell></row><row><cell>β 2</cell><cell>0.01</cell><cell>[-0.07 to 0.10]</cell><cell>0.78</cell></row><row><cell>α 1</cell><cell>0.51</cell><cell>[0.42 to 0.59]</cell><cell>&lt; .001</cell></row><row><cell>α 2</cell><cell>-0.06</cell><cell>[-0.16 to 0.02]</cell><cell>0.14</cell></row></table><note></note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>The study was funded by the Israel Ministry of Science and Technology, and the Israeli Science Foundation (Grant 2536/20 awarded to N.S.).</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Supplementary Information</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S1. Simulation specification</head><p>In study 1 we simulated 300 agents performing the two-step task <ref type="bibr" target="#b43">(Daw et al., 2011)</ref> for three blocks of 200 trials each. For each agent, his model parameters were sampled randomly according to <ref type="table">Table S1</ref>.  <ref type="table">Agents  100  100  100  # trials  200  200  200  # blocks  3  3  3</ref> </p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Recurrent neural networks as versatile tools of neuroscience research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current opinion in neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="1" to="6" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Not noisy, just wrong: the role of suboptimal inference in behavioral variability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Beck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Pitkow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="30" to="39" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Pattern recognition and machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Bishop</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Nasrabadi</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>Springer</publisher>
+			<biblScope unit="volume">4</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Robustness in the strategy of scientific model building</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Box</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Robustness in statistics</title>
+		<imprint>
+			<publisher>Elsevier</publisher>
+			<date type="published" when="1979" />
+			<biblScope unit="page" from="201" to="236" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Learning phrase representations using rnn encoder-decoder for statistical machine translation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Merriënboer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bahdanau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bougares</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Schwenk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1406.1078</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">Trial-by-trial data analysis using computational models. Decision making, affect, and learning: Attention and performance XXIII</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">23</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Disentangled behavioural representations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ashtiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Ghattas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Nock</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Ong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">32</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Models that learn how humans learn: the case of decision-making and its disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ramos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">W</forename><surname>Balleine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">1006903</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">What do reinforcement learning models measure? interpreting model parameters in cognition and neuroscience. Current opinion in behavioral sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wilbrecht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="128" to="137" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Noise in the nervous system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Faisal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Selen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Wolpert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature reviews neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="292" to="303" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">Computation noise in human learning and decision-making: origin, impact, function. Current Opinion in Behavioral Sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Findling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page" from="124" to="132" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Computational noise in rewardguided learning drives behavioral variability in volatile environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Findling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Skvortsova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dromnelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="2066" to="2077" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Using deep learning to predict human decisions and using cognitive models to explain deep learning models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fintz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Osadchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Hertz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific reports</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4736</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Characterizing a psychiatric symptom dimension related to deficits in goal-directed control. elife</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Gillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kosinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Whelan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Phelps</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">11305</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">The information: A history</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gleick</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Introduction to quantum mechanics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Schroeter</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>Cambridge university press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Direct fit to nature: an evolutionary perspective on biological and artificial neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Hasson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Nastase</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Goldstein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="416" to="434" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Multilayer feedforward networks are universal approximators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Hornik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Stinchcombe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>White</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural networks</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="359" to="366" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Cohort profile: the nspn 2400 cohort: a developmental sample supporting the wellcome trust neuroscience in psychiatry network</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kiddle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Inkster</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Prabhu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Moutoussis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Whitaker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">T</forename><surname>Bullmore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fonagy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">M</forename><surname>Goodyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International journal of epidemiology</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="18" to="19" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title level="m" type="main">Adam: A method for stochastic optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Deep learning. nature</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">521</biblScope>
+			<biblScope unit="page" from="436" to="444" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Statistical rethinking: A Bayesian course with examples in R and Stan</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mcelreath</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<publisher>CRC press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Habits without values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shenhav</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Ludvig</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">292</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Computational psychiatry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="72" to="80" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Decision-making ability, psychopathology, and brain connectivity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Moutoussis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Garzón</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Neufeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Bach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Rigoli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Goodyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bullmore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fonagy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hauser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="2025" to="2040" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Taming the beast: extracting generalizable knowledge from computational models of cognition. Current opinion in behavioral sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Nassar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="49" to="54" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">The importance of falsification in computational cognitive modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="425" to="433" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Pytorch: An imperative style, high-performance deep learning library</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Paszke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Massa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lerer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chanan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Killeen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gimelshein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Antiga</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">32</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Scikit-learn: Machine learning in python. the</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of machine Learning research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Using large-scale experiments and machine learning to discover theories of human decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Peterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Bourgin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Reichman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">372</biblScope>
+			<biblScope unit="issue">6547</biblScope>
+			<biblScope unit="page" from="1209" to="1214" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">A theory of pavlovian conditioning: Variations in the effectiveness of reinforcement and non-reinforcement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Rescorla</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Classical conditioning, Current research and theory</title>
+		<imprint>
+			<date type="published" when="1972" />
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="64" to="69" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies-revisited</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rigoux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="971" to="985" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Credit assignment to state-independent task representations and its relationship with model-based decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Shahar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">U</forename><surname>Hauser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Kievit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mcnamee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Moutoussis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Consortium</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the National Academy of Sciences</title>
+		<meeting>the National Academy of Sciences</meeting>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page" from="15871" to="15876" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">On the computational power of neural nets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">T</forename><surname>Siegelmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Sontag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the fifth annual workshop on Computational learning theory</title>
+		<meeting>the fifth annual workshop on Computational learning theory</meeting>
+		<imprint>
+			<date type="published" when="1992" />
+			<biblScope unit="page" from="440" to="449" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Psychology and neurobiology of simple decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in neurosciences</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="161" to="168" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Using recurrent neural networks to understand human reward learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Cai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page" from="1388" to="1394" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Penny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1004" to="1017" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Scipy 1.0: fundamental algorithms for scientific computing in python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Virtanen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gommers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">E</forename><surname>Oliphant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haberland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Burovski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Peterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Weckesser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bright</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature methods</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="261" to="272" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title level="m" type="main">Wechsler abbreviated scale of intelligence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wechsler</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Ten simple rules for the computational modeling of behavioral data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Elife</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">49547</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Choosing prediction over explanation in psychology: Lessons from machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Yarkoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Westfall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1100" to="1122" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Habits without values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shenhav</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Ludvig</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">292</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

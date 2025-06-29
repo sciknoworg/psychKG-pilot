@@ -1,0 +1,2004 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Efficient Learning of Predictive Maps for Flexible Planning</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Armin</forename><surname>Bazarjani</surname></persName>
+							<email>bazarjan@usc.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Southern California</orgName>
+								<address>
+									<settlement>Los Angeles</settlement>
+									<region>CA</region>
+								</address>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Southern California</orgName>
+								<address>
+									<settlement>Los Angeles</settlement>
+									<region>CA</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Payam</forename><surname>Piray</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">University of Southern California</orgName>
+								<address>
+									<settlement>Los Angeles</settlement>
+									<region>CA</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Efficient Learning of Predictive Maps for Flexible Planning</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T12:35+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Cognitive maps enable flexible behavior by providing internal representations of task structure that can be efficiently reused across different contexts. The successor representation (SR) offers a promising model for how these maps might be learned and computed in the brain, but its dependence on specific behavioral policies limits its ability to support flexible planning. Here, we introduce SR-IS, a novel model that combines temporal difference learning with importance sampling to construct policy-independent cognitive maps. We show that SR-IS learns representations that capture the underlying structure of the environment without being limited by the agent&apos;s current behavioral policy. These representations can be efficiently updated when the environment changes, enabling rapid behavioral adaptation without requiring extensive relearning. In a series of simulations, we demonstrate that SR-IS outperforms existing models in classic replanning tasks and provides a better account of both rodent and human behavior in spatial navigation experiments. The model uniquely explains a key behavioral finding: humans show greater flexibility in adapting to reward changes than to structural changes in their environment-an asymmetry that previous models failed to capture. Our findings bridge theoretical models of predictive maps with empirical observations of planning behavior, while providing new insights into how the brain might implement efficient yet flexible decision-making.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>The ability to flexibly plan and adapt to changing environments is a fundamental aspect of intelligent behavior, and understanding its underlying mechanisms remains a central goal in neuroscience and psychology <ref type="bibr" target="#b0">[1]</ref><ref type="bibr" target="#b1">[2]</ref><ref type="bibr" target="#b2">[3]</ref><ref type="bibr" target="#b3">[4]</ref><ref type="bibr" target="#b4">[5]</ref><ref type="bibr" target="#b5">[6]</ref> . It has been proposed that this ability relies on the brain's computational representations, known as cognitive maps, which organize task-related information in a flexible and efficient manner 3;7-13 . However, it is quite challenging to efficiently create representations that are shaped by our current goals and environment, but remain useful in the future. Despite numerous attempts, particularly those built on reinforcement learning (RL), existing computational models of planning face significant challenges. These models often struggle to achieve a balance between flexibility, efficiency in decision-making, and efficiency in updating their representations. Here, we introduce a new model to address these issues.</p><p>Reinforcement learning (RL) offers crucial insight into the brain's capacity for efficient and flexible behavior, stemming from its ability to reuse previous computations, a concept that aligns with cognitive maps <ref type="bibr" target="#b13">[14]</ref><ref type="bibr" target="#b14">[15]</ref><ref type="bibr" target="#b15">[16]</ref><ref type="bibr" target="#b16">[17]</ref><ref type="bibr" target="#b17">[18]</ref><ref type="bibr" target="#b18">[19]</ref><ref type="bibr" target="#b19">[20]</ref><ref type="bibr" target="#b20">[21]</ref><ref type="bibr" target="#b21">[22]</ref><ref type="bibr" target="#b22">[23]</ref> . However, a significant challenge lies in organizing these computations to adapt to new tasks, goals, or environmental changes, as the efficiency of reuse often conflicts with the need for flexibility <ref type="bibr" target="#b23">[24]</ref><ref type="bibr" target="#b24">[25]</ref><ref type="bibr" target="#b25">[26]</ref> . Consider this scenario: You leave your apartment for morning coffee, navigating the city while learning and updating your mental map of the city. The next day, your destination changes to the library. Ideally, your cognitive map should support this new goal without being constrained by yesterday's coffee shop route. While humans and animals may sometimes exhibit habitual behavior (like reflexively heading towards the coffee shop when stepping out of your house), they often demonstrate goal-directed or "model-based" behaviors <ref type="bibr" target="#b26">[27]</ref><ref type="bibr" target="#b27">[28]</ref><ref type="bibr" target="#b28">[29]</ref><ref type="bibr" target="#b29">[30]</ref><ref type="bibr" target="#b30">[31]</ref><ref type="bibr" target="#b31">[32]</ref> . These behaviors efficiently utilize mental representations of tasks and environments to achieve current objectives. The key challenge lies in understanding how these flexible yet efficient representations are constructed and updated <ref type="bibr">8;33</ref> .</p><p>The successor representation (SR) <ref type="bibr" target="#b33">34</ref> , a prominent proposal from RL, attempts to address this challenge by caching expectations about future state visits <ref type="bibr" target="#b34">[35]</ref><ref type="bibr" target="#b35">[36]</ref><ref type="bibr" target="#b36">[37]</ref><ref type="bibr" target="#b37">[38]</ref> . Importantly, the SR can be efficiently learned using the same "temporal-difference" (TD) <ref type="bibr" target="#b38">39</ref> algorithms that are popular in RL and have been influential in understanding the role of phasic dopamine responses as prediction errors representing the difference between observations and expectations <ref type="bibr" target="#b39">[40]</ref><ref type="bibr" target="#b40">[41]</ref><ref type="bibr" target="#b41">[42]</ref><ref type="bibr" target="#b42">[43]</ref><ref type="bibr" target="#b43">[44]</ref><ref type="bibr" target="#b44">[45]</ref><ref type="bibr" target="#b45">[46]</ref><ref type="bibr" target="#b46">[47]</ref> . In the case of SR, the TD prediction errors represent the difference between the observed and expected future state visits. However, while the SR can be efficiently learned and updated, it struggles with flexibility. This inflexibility stems from the SR's dependence on the specific policy used during learning-as the stored predictions reflect the agent's past behavior rather than the underlying structure of the environment. Its reliance on old decision policies limits its usefulness when goals or environmental transitions change, resulting in behavior that is far more rigid than that observed in humans and animals <ref type="bibr">21;48</ref> .</p><p>Building on theoretical advances from control theory <ref type="bibr">49;50</ref> , a new RL model, linear RL constructs a computational map similar to the SR, but under a default policy <ref type="bibr" target="#b50">51</ref> . This policy is independent of previous or current goals, and the resulting map, called the default representation, depicts the probability of visiting each future state when following this default policy. When the default policy is unbiased (e.g., uniform), the linear RL approach provides a highly accurate approximation of the optimal solution to RL problems, particularly those with deterministic transitions and specific goals <ref type="bibr" target="#b50">51</ref> . The solution offers two key advantages: First, it is a closed-form, linear solution that does not depend on future values or actions, allowing for efficient implementation with a single layer of a neural network. Second, it enables efficient computation of changes in the map when transitions are altered or new goals are introduced. Although these changes in representations are are massively complex (i.e., as large as a massive matrix with the size being the number of states in the environment), they can be efficiently constructed based on low-dimensional representations (i.e., another matrix whose size depends on changes in the environment). However, unlike the SR, there is no efficient TD algorithm for learning the default representation. In this work, we address this issue.</p><p>Here, we introduce SR-IS (Successor Representation with Importance Sampling), a new model that leverages the principles of importance sampling from probability theory. In our context, this technique allows us to compute an unbiased, general successor map while the world is experienced based on some specific goaldirected decision policy. Consider the coffee shop example again. As you leave your house to get coffee, you experience the successor states (future locations) based on your current decision policy, which is obviously shaped by your goal to get to the coffee shop. However, the computations that you ideally want to cache should be expected occupancy under a default policy (e.g., an unbiased uniform policy) that is independent of your current goal. Importance sampling enables us to do that.</p><p>We demonstrate that importance sampling can be effectively combined with the TD method to produce unbiased successor maps that are useful beyond the current goal and task. These maps represent likely future states under a default policy, despite being constructed from experiences derived based on a goal-directed decision policy. The solution is straightforward and closely resembles the classical TD algorithm for learning the SR. When the default and decision policies are matched, it reduces to the standard SR; otherwise, it smoothly debiases the SR. We show that such maps can be efficiently used within the linear RL framework, maintaining its advantages while also addressing its shortcoming. Importantly, the model explains aspects of human replanning behavior that earlier models struggled to account for <ref type="bibr" target="#b37">38</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model</head><p>Successor representation. In Markov decision tasks (such as navigating mazes or playing video games), an agent moves through a sequence of states. At each state, the agent receives a reward or punishment and must choose from available actions, which determine the next state. RL captures this process by maximizing the expected sum of future rewards, called the "value" function.</p><p>Finding the optimal value function requires solving a series of interdependent optimizations, as the standard RL objective has no closed-form solution. Since this is often intractable, one simplified approach instead assumes a fixed decision policy π and calculate the value function under that policy, V π (s). This represents the expected sum of (temporally discounted) future rewards from state s when following policy π. The SR emerges naturally from this framework, as V π (s) can be calculated using the expected future occupancy of each state s ′ along trajectories that start in state s and follow policy π.</p><formula xml:id="formula_0">M π (s, s ′ ) = E t=0 γ t I(s t = s ′ )|s 0 = s ,<label>(1)</label></formula><p>where s t is the state visited at time t, γ ∈ [0, 1] is the discount factor that downweights distal rewards, and I(s t = s ′ ) is an indicator function that is 1 if s t = s ′ and 0 otherwise. The superscript (π) in M π indicates that the expectation is taken with respect to the decision policy distribution, π. Thus, two physically adjacent states that predict divergent future states under the decision policy will have dissimilar representations, and two states that predict similar future states will have similar representations. The SR is typically represented as a matrix M π , where M π (s, s ′ ) is the element at position (s, s ′ ).</p><p>An online TD learning approach has long been used to learn the SR, M π , from experiences. This approach caches rows of M π and incrementally updates them after transitioning to a new state <ref type="bibr" target="#b33">34</ref> . Specifically, following a transition, the corresponding row of the state in which the transition was made from is updated as follows,</p><formula xml:id="formula_1">M π (s, :) ← (1 − α)M π (s, :) + α 1 T s + γM π (s ′ , :) ,<label>(2)</label></formula><p>where M π (s, :) is the sth row of the SR matrix, 1 T s is a binary row vector that is all zeros except for a 1 in the sth position, and α is the learning rate parameter that controls the step size at each iteration.</p><p>Linear RL. A new model "linear RL," dramatically simplifies reinforcement learning problems with terminal states by providing a closed-form solution to the value function <ref type="bibr" target="#b50">51</ref> , building on Todorov's planning as inference framework <ref type="bibr">49;50</ref> . This approach approximates the original problem by introducing a new gain function for each state, defined as that state's reward minus a control cost term. This control cost reflects the dissimilarity between the decision policy and a default policy, π d . Importantly, when the default policy is unbiased (e.g., uniform), the control cost term promotes stochastic behavior -traditionally useful for solving the exploreexploit dilemma -without biasing the resulting behavioral policy. As shown by Piray et al. this solution depends on a predictive map called the default representation (DR) which is similar to the SR, but crucially it is constructed with respect to the default policy and not the decision policy. This addresses a key deficiency of the SR, which depends on a fixed (and typically outdated) policy.</p><p>However, learning the DR online presents significant challenges. In any online RL problem, the agent must act according to the current decision policy, not a uniform (i.e., random) default policy. However, using these actions directly with the TD rule would result in learning the map under the decision policy rather than the desired default policy. The key question becomes: how can we act according to the current decision policy while learning representations under the default policy that will remain useful even after the current policy becomes irrelevant? Importance sampling. Importance sampling is a statistical method that enables efficient estimation of properties from a target probability distribution while sampling from an alternative distribution <ref type="bibr">52;53</ref> . It addresses a common challenge in statistics-calculating the expected value of a function under probability distribution p when we cannot solve the expectation analytically or sample directly from p. Simply drawing samples from a different distribution q would create a biased estimator, with the bias increasing the more q diverges from p. Importance sampling offers an elegant solution by drawing samples from the alternative distribution q (typically one that is easy to sample from) and correcting for the bias through "importance weights," which are calculated as the ratio p/q. These weights adjust for sampling discrepancy by increasing the influence of samples that are likely under p but unlikely under q, while decreasing the influence of samples that are unlikely under p but likely under q. This approach constructs an unbiased estimator of the expectation.</p><p>New model: SR with importance sampling (SR-IS) Let's now return to a fundamental challenge in representation learning: how can we act according to our current policy while building representations that will remain useful when that policy becomes irrelevant? Importance sampling provides the solution. While we act according to the decision policy, we can learn the predictive representation under the default policy by using importance weights. This creates an unbiased estimator of the default representation (i.e., the SR  <ref type="figure" target="#fig_0">Figure 1</ref>: The SR-IS model. (a) Showing the impacts that an agent's decision has on the importance sampling term, w(s, s ′ ). After training, the agent will have a decision policy that preferentially chooses to move to the right and go towards the higher reward, the default policy, on the other hand, is constant and uniform. Because moving towards the right is more probable under the agent's decision policy, the resulting importance sampling term is lower than if the agent were to choose the less probable action of moving leftwards. (b) High-level overview of the framework. We assume a classic reinforcement learning paradigm where our model, the agent, interacts with an environment. The interaction can be formalized with the agent acting on the environment with each resulting in a new state and reward. The agent's action is used to inform the importance sampling term which is then used, in conjunction with the classic TD update, to update the agent's internal state-state representation.</p><p>under the default policy). We call this approach SR with Importance Sampling (SR-IS), which modifies the traditional temporal difference learning algorithm:</p><formula xml:id="formula_2">M(s, :) ← (1 − α)M(s, :) + α 1 T s + γM(s ′ , :) w(s, s ′ ),<label>(3)</label></formula><p>where w(s, s</p><formula xml:id="formula_3">′ ) = π d (s ′ |s) π(s ′ |s)</formula><p>represents the importance weight. The superscript π is omitted as these representations are learned under the default policy, which we assume to be uniform throughout this work (though the framework generalizes to arbitrary default policies).</p><p>The importance weights w(s, s ′ ) correct for the discrepancy between the sampling distribution (decision policy π) and the target distribution (default policy π d ). Specifically, transitions that occur more frequently under π d than π receive higher weights, while transitions that are more probable under π than π d receive lower weights. This reweighting mechanism ensures unbiased estimation of the default policy's successor representation, despite experiencing state transitions generated by a potentially very different decision policy.</p><p>To illustrate the key mechanisms of the model, consider a simple environment where an agent faces a choice between two reward states equidistant from its current location <ref type="figure" target="#fig_0">(Figure 1a)</ref>. Although both states are equally accessible under a uniform default policy, they offer different rewards, with the right state providing a larger reward. The agent's decision policy appropriately favors movement toward the higher reward whenever it reaches this junction. This behavioral preference creates a systematic bias in the SR's representation: the connection between the agent's current state and the higher-reward state to the right is updated more frequently than the connection to the left state. As a result, the SR progressively overweights the representation of the more frequently visited state, despite both states being equally accessible in terms of their spatial distance from the agent's current state. This aspect of the model proves crucial for explaining animals' behavioral adaptation following reward revaluation in classical tasks where cognitive maps are thought to play a central role <ref type="bibr" target="#b2">3</ref> , which we will examine later.</p><p>Intuitively, the importance sampling term w(s, s ′ ) up-weights transitions that are more likely under the default policy π d and down-weights those that are more likely under the decision policy π <ref type="figure" target="#fig_0">(Figure 1a</ref>). By incorporating w(s, s ′ ) into the TD update rule (equation 3), the model is able to de-bias its learned policy from the decision policy ( <ref type="figure" target="#fig_0">Figure 1b)</ref>. This allows the model to learn a representation that is less biased towards the specific actions taken by the agent during training and instead captures the underlying dynamics of the environment. As a result, the model learns a more robust and adaptable cognitive map that can support flexible decision-making and generalization to new tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model Performance</head><p>SR-IS converges to the DR. Our first experimental result validates our approach by demonstrating that the representation learned by SR-IS converges to the "complete" (but unrealistic) representation obtained through matrix inversion <ref type="bibr" target="#b50">51</ref> . To test convergence we used a classic RL benchmark <ref type="bibr" target="#b53">54</ref> , the four-room environment <ref type="figure" target="#fig_1">(Figure 2a, b)</ref>.</p><p>In this environment, we compared three key quantities: the representation learned by SR-IS through online temporal difference learning with importance sampling, the representation learned by the standard SR without importance sampling, and the complete representation computed directly through matrix inversion. We measured the mean absolute difference between these representations as the two agents (SR, SR-IS) navigated the environment and updated their respective representations.</p><p>The results revealed that SR-IS converges to the complete representation as the number of learning steps increases, with the difference between the two representations approaching zero. This confirms that importance sampling enables the model to learn the correct underlying structure through experience alone, without requiring expensive matrix operations. In contrast, the standard SR without importance sampling converges to a distinctly different representation that reflects the specific policy used during training rather than the true environmental structure. The disparity between the two models will only become more pronounced as we move to larger and more complicated environments as the SR will accumulate increasingly more bias from its training policy. The error between SR and the complete representation will grow exponentially with the size of the state space, while SR-IS maintains convergence to the true representation regardless of environmental complexity.</p><p>SR-IS demonstrates cross-room planning efficiency. We next evaluated how the unbiased nature of SR-IS affects planning flexibility across different spatial domains. After training both models to navigate to an initial goal state (r 1 ) in the four-room environment, we evaluated their ability to replan routes to eight new goal states (r 2 , r 3 , ..., r 9 ). Two new goals were placed in the same room as r 1 , with the remaining six distributed evenly across the other three rooms. SR-IS demonstrated consistent performance across all goals, efficiently computing paths regardless of the goal's location relative to r 1 . In contrast, the SR model showed a dramatic spatial bias. While it maintained effectiveness for goals within the same room as r 1 , its performance degraded substantially for goals in other rooms. This disparity reflects the SR's policy dependence during initial training, it builds a representation biased toward frequently visited states under the r 1 -directed policy, limiting its ability to plan efficiently in less-visited regions. SR-IS overcomes this limitation through importance sampling, which enables learning of a globally valid representation that supports flexible planning across all spatial domains.</p><p>These results complement our convergence findings by demonstrating that SR-IS's theoretical advantages translate into practical benefits for spatial navigation and planning. The model's ability to maintain performance across spatially distinct regions highlights the importance of learning unbiased representations for flexible behavior.</p><p>The representation learned by SR-IS is able to replan with a single update. As shown by Piray &amp; Daw <ref type="bibr" target="#b50">51</ref> , one of the most important features of the default representation map used by the linear RL framework is that it can be efficiently and exactly updated when state transitions change. This capability builds on matrix algebra (specifically the Woodbury matrix inversion lemma <ref type="bibr">55;56</ref> ), which allows us to update the representation of M in place by accounting for local changes in the transition graph:</p><formula xml:id="formula_4">M = M old + ∆<label>(4)</label></formula><p>where ∆ is a low-rank, easy-to-compute change matrix whose rank equals the number of states with modified transitions (see Methods for the exact definition). This is important for adapting both to structural changes in the environment, such as new barriers (as we see later in the Tolman detour task), and when previous non-goal states become goals. Since SR-IS learns an unbiased representation, it can leverage the same efficient update method, inheriting all the computational advantages of the linear RL framework.</p><p>We conducted simulations in a maze environment to demonstrate this point. We first used the SR-IS model to learn the successor map from a starting state in one corner to a goal state in the opposite corner of the maze, (r 1 ). We then tested whether this learned representation, combined with Equation 4, could find the shortest path to various non-goal states, i.e., every other state in the maze. This analysis revealed that the SR-IS model can be efficiently reused to find the shortest path in all cases <ref type="figure" target="#fig_1">(Figure 2d</ref>, e). Unlike the four-room simulations <ref type="figure" target="#fig_1">(Figure 2a</ref>, c) where all target states were pre-defined goals, this scenario required the model to adapt to (r 2 ) transitioning from a non-goal to a goal state using Equation (4).</p><p>SR-IS replans on par with linear RL. We next compared SR-IS against a number of alternative models in the same 10x10 maze, including the Complete model (which uses matrix inversion to calculate its map) and the standard SR model. Each model first constructed a predictive map with an initial goal state r 1 ( <ref type="figure" target="#fig_1">Figure  2d</ref>). We then switched the goal to r 2 and evaluated how well each model could reuse its previous map to plan a new path. SR-IS not only found the shortest path during replanning but matched the performance of the Complete model ( <ref type="figure" target="#fig_1">Figure 2f</ref> )-a notable achievement given that the Complete model relies on computationally intensive matrix inversions that would be infeasible for biological systems.</p><p>Additionally, we see that the SR model, when tasked with replanning between different goal states, is only slightly more efficient than the random walk through the environment. For comparison, we also tested an enhanced version of SR, labeled SR*, which incorporates the Woodbury update. While one might expect this enhancement to help, it was mathematically clear from the outset that it would not: the SR fundamentally depends on the decision policy, which changes in response to modifications in both transition and goal structure -a complexity that cannot be adequately addressed with a simple low-rank update. Our analysis revealed that SR* was only marginally better than the SR and Random models. These results, as well as those shown in the four-room environment <ref type="figure" target="#fig_1">(Figure 2c</ref>), align with our theoretical understanding of the SR's policy dependence. As we discussed, the initial representation, learned with respect to the goal state r 1 , accumulates higher weights along frequently traversed paths, creating a biased map that overrepresents the states visited under the original policy <ref type="figure" target="#fig_0">(Figure 1a)</ref>. When the goal switches to r 2 , these inflated state representations-accumulated through repeated visits to states along the path to r 1 -continue to bias the value function and consequently the agent's policy, even though these states may be irrelevant or suboptimal for reaching r 2 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>SR-IS replans similar to humans</head><p>We next examine a set of replanning tasks that reveal intriguing but puzzling patterns of both flexibility and inflexibility in human behavior. These tasks, originally introduced by Russek et al. <ref type="bibr" target="#b36">37</ref> and later tested experimentally by Momennejad et al. <ref type="bibr" target="#b37">38</ref> , provide an ideal testbed for evaluating our model against existing alternatives. The experimental paradigm consists of three cleverly designed tasks that probe specific aspects of revaluation behavior. A key finding was that humans display an asymmetric pattern of flexibility across these replanning tasks -a pattern that could not be explained by either the SR model or even unrealistic model-based accounts (such as the Complete model shown in <ref type="figure" target="#fig_1">Figure 2</ref>).</p><p>The three tasks -termed reward, policy, and transition revaluation -are illustrated in <ref type="figure">Figure 3a</ref>. In these experiments, human subjects were initially trained to navigate a three-stage sequential task leading to one of three terminal states. The training phase was followed by a revaluation phase, during which participants either experienced a significant reward change in a previously disfavored terminal state or learned about a change in the transition structure. Importantly, they did not have to go through the entire task again to experience this change. In the final testing phase, the participants were placed back at the beginning of the maze. The results 38 showed that participants were generally able to modify their behavioral policy despite never having directly reached the new terminal state through actions in the maze. Interestingly, while human participants were, on average, able to replan in all three conditions, they displayed a lower sensitivity to the policy and transition revaluation tasks than to the reward revaluation task <ref type="figure">(Figure 3b</ref>). This was measured as a change in preference during the testing phase when the subjects, after being made aware of the change in the environment, were placed back in the original starting state. It was observed that after learning about the change in reward structure in both the reward and policy revaluation settings, and the change in transition structure in the transition revaluation setting, more participants choose the transition from state 1 to state 2 in the reward revaluation setting than in the policy and transition revaluation setting. This behavioral asymmetry is particularly intriguing because all three conditions presented participants with new information that should theoretically lead to the same optimal policy.</p><p>For the policy and transition revaluation tasks, the new optimal action requires a change in preference that is directly antithetical to the current policy. Even though the reward revaluation setting also requires humans to make a change in preference, the path from state 1 to state 2 was still rewarding and allowed the participant to still achieve the maximal reward, whereas in the policy and transition revaluation setting going to state 2 was never as rewarding as state 3. The SR model, which is learned with respect to the decision policy π used during the training phase, cannot adapt in the test phase for these settings.</p><p>The SR-IS model successfully replicates human behavior across all three revaluation tasks <ref type="figure">(Figure 3c</ref>). Through importance sampling, the model achieves the same rapid adaptations that humans show when faced with changes in reward or transition structure. This suggests that importance sampling serves as a computationally efficient bridge, combining the speed of cached predictions with the flexibility needed for rapid behavioral adaptation across diverse environmental changes. The model's success in explaining human behavior stems from integrating importance sampling into the SR Reconstruction of human data from the task <ref type="bibr" target="#b37">38</ref> , more participants changed their preference (policy) during reward revaluation than policy revaluation. We compare the human data with model performance showing the model's probability of switching states for the importance sampling (c), SR (d), and complete (e) models. The importance sampling model was able to most accurately capture this relationship between switching preferences in the reward and policy revaluation settings.</p><p>framework. This integration allows it to handle all three types of revaluation while naturally reproducing the performance patterns seen in humans <ref type="figure">(Figure 3c)</ref>. Importantly, the model also captures human limitations. While SR-IS is theoretically unbiased, it exhibits high variance in practice due to sampling variability. This variance is most pronounced when states that are rare under the current decision policy are common under the default policy. Since these states are sampled infrequently, they may require extensive TD learning to be properly evaluated. This limitation manifests particularly in the policy and transition revaluation tasks, where some simulated agents, like their human counterparts, fail to make optimal choices.</p><p>Neither the standard SR model nor the unrealistic Complete model can adequately explain this pattern of behavior <ref type="figure">(Figure 3d,e)</ref>. The standard SR model, being inherently policy-dependent, is expected to entirely fail at policy revaluation as it cannot update its cached predictions without direct experience under the new policy <ref type="bibr" target="#b36">37</ref> . Conversely, the Complete model, behaves like an optimal model-based agent, predicts equal performance across all three conditions -failing to capture the subtle suboptimality observed in human behavior.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>SR-IS solves the Tolman latent learning &amp; detour tasks</head><p>We next validate the SR-IS model using two of Tolman's classic animal paradigms -latent learning and detour tasks -which were instrumental in developing the cognitive map concept. Considering these tasks through the lens of RL, we can divide them into two different categories. The latent learning task can be viewed as changing the reward structure of the environment, whereas the detour task changes the physical, transition, structure of the environment through the addition of a barrier.</p><p>For the latent learning simulation, we use a version of Tolman's latent learning task <ref type="figure" target="#fig_3">(Figure 4a,b)</ref>. Rats were initially allowed to forage freely in a maze with two rewarding end boxes where they would receive an equal amount of reward in either end box. In the next phase, one of the boxes resulted in a shock without warning, devaluing that terminal state. This is a simple manipulation, yet one that normal model-free RL algorithms, like TD learning, cannot overcome because in order to update their previously learned estimates of long-term value or policy, they need to follow paths that lead from the chosen option to the less valuable outcome. Because this manipulation only changes the reward structure of the environment and not the transition structure, it is not a representative test to display policy dependence. Thus, the SR model should still be able to replan, after receiving the shock, to the rewarding terminal state whether or not it has importance sampling. Both models preferentially choose state s 2 which leads to reward r 2 rather than state s 1 , as s 1 leads to r 1 which is where the agents received the negative stimulus <ref type="figure" target="#fig_3">(Figure 4c,d</ref>).</p><p>The detour task was similar to those used in previous work <ref type="bibr">37;51</ref>  <ref type="figure" target="#fig_3">(Figure 4e)</ref>. In the task, the environment initially has three possible paths, with the agent preferentially choosing to go straight (state s 1 ) ( <ref type="figure" target="#fig_4">Figure 5g</ref>) as this is the shortest path to the reward. In the next phase, the path going straight is blocked <ref type="figure" target="#fig_4">(Figure 5f</ref> ) and the agent must be able to update its representation to account for the barrier, ideally choosing the next shortest path through state s 2 <ref type="figure">(Figure 3g,h)</ref>. The detour task highlights a key limitation of the SR model: due to its policy dependence, it cannot solve this task without extensive replay <ref type="bibr" target="#b36">37</ref> .</p><p>We make use of the low-rank update of Equation 4 in order to update the agent's state-state representation in a one-step fashion <ref type="figure">(Figure 3g</ref>). The updated representation results in a new optimized policy that will both avoid the obstacle while also preferentially selecting the next shortest path (going left into state s 2 ). As expected, the SR is unable to solve the detour task <ref type="figure">(Figure 3h)</ref>, the new policy based on the updated representation shows no change in preference as the agent mistakenly still prefers to go straight into state s 1 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>SR-IS results in a better match to rat and human navigation trajectories</head><p>The previous analyses demonstrated the advantages of the SR-IS model in experimental replanning paradigms with humans and rats. Here, we examine the model using the rich dataset from de Cothi et al., which stands out for both its comprehensive set of complex mazes and its more naturalistic experimental setup. de Cothi et al. <ref type="bibr" target="#b18">19</ref> conducted a comprehensive cross-species comparison using their "Tartarus maze" -an innovative experimental paradigm requiring rapid adaptation to changing environmental obstacles while maintaining goal-directed navigation.</p><p>In their experiment, the goal state was fixed and then they had both humans and rats navigate through 25 different maze configurations, each having 10 different starting states. Rats were tested with a physical instantiation, humans in immersive head-mounted virtual reality, and RL agents via simulation. They tested three different RL agents the SR, model-free (MF), and model-based (MB). Their findings revealed that both species showed remarkable similarity in their navigation patterns, with performance most closely matching SR agents. However, they noted that the SR model struggled with certain maze configurations, particularly those requiring significant policy changes -a limitation we hypothesized could be addressed through importance sampling.</p><p>During our analysis, we identified a previously undocumented phenomenon we termed "first-order policy dependence." This effect emerged through our observations of agent behavior between different starting locations. We observed that when the optimal policy for reaching the goal state from a previous starting location contradicted the optimal policy for the current starting location, the SR agent's performance significantly degraded.</p><p>For example, if the SR agent starts in a location where the optimal path to the goal state is to go to the upwards and then to the left it will struggle when it is then placed in a starting location requiring it to navigate upwards and then to the right. This challenge intensifies when multiple starting positions require similar navigational policies, as the agent develops an increasingly biased representation of the environment. Notably, both human and rodent subjects demonstrated superior flexibility, suggesting their ability to develop more generalized spatial representations that enable rapid adaptation to new starting positions.</p><p>Our analysis focuses on Mazes 15 and 22 <ref type="figure" target="#fig_4">(Figure 5a,d)</ref>, which exemplify first-order policy dependence through their barrier structures and starting location layouts. For these mazes, the SR-IS model shows higher correlation with both rat and human mean path lengths (across all starting points) compared to the standard SR model. Another form of policy dependence that was mentioned in the original work stemmed from the transition from one maze to another, we call this "second-order" policy dependence. This would occur if the preceding maze configuration had an optimal policy contradictory to the current configuration. For example, in the previous maze the agents had to navigate upwards from all the start locations but now they have to go downwards. Importance sampling was able to address this issue, showing a higher success rate across the different mazes, specifically the ones that suffered from this second-order policy dependence. Interestingly, humans also seemed to struggle more on these mazes as well, but not to the same degree as the SR agent ( <ref type="figure" target="#fig_0">Figure S1</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>The present work introduces SR-IS, a novel computational model that addresses a fundamental challenge in cognitive map construction: how to create task representations that are both flexibly reusable across contexts and computationally efficient through cached planning computations. This advances beyond previous RL approaches, which have been limited either by their reliance on specific policies (like SR) or by their dependence on computationally intensive and unrealistic processes (like model-based 5;29;37 accounts including linear RL 51 ).</p><p>At the core of SR-IS is a reweighting mechanism that systematically debiases learned representations. This term effectively rebalances the learning process by increasing the influence of transitions that are more likely under the default policy while reducing the impact of those dictated by the current decision policy. By incorporating this weighting into the TD learning framework, the model systematically removes biases stemming from specific decision policies and instead constructs a representation that better reflects the environment's inherent structure. This approach yields a more general and robust predictive map that maintains its utility across different tasks and goals, enabling flexible decision-making even in novel situations. Such an unbiased representation stands in contrast to traditional cached successor maps that are typically constrained by the specific experiences accumulated during training.</p><p>Our findings demonstrate that the SR-IS model successfully captures key aspects of human behavior in decision revaluation tasks while providing a computational account of observed behavioral asymmetries. In a series of tasks designed to test different forms of revaluation -including reward, policy, and transition revalu- ation -the SR-IS model exhibited patterns strikingly similar to those observed in human participants. Unlike humans and our model, the standard SR model fails to solve both policy and transition revaluation tasks due to its complete dependence on previously learned policies that become irrelevant after revaluation. Importantly, while both humans and the model showed the ability to adapt across all conditions, they displayed reduced sensitivity to policy and transition revaluation compared to reward revaluation. The SR-IS model suggests that this behavioral pattern emerges naturally from the mechanics of importance sampling. Although the method is theoretically unbiased, it exhibits increased variance in situations where some states are almost never visited under the current decision policy. This variance is particularly pronounced in policy and transition revaluation tasks, leading some simulated agents to make suboptimal choices -precisely matching the pattern observed across human participants. These results stand in marked contrast to both the standard SR model, which completely fails at policy and transition revaluation due to its inherent policy dependence, and the model-based system (including the linear RL model with matrix inversion), which incorrectly predicts uniform performance across all conditions. Thus, beyond providing a computationally efficient solution for flexible planning, the SR-IS model offers a mechanistic explanation for human behavioral patterns that previous approaches failed to capture.</p><p>Previous studies <ref type="bibr">37;38</ref> have introduced a wide array of SR variations, including a model-based version (SR-MB), a replay 57 version (SR-Dyna), as well as a hybrid model-based version (Hybrid SR-MB) as different attempts to solve the SR's problems. While these alternative solutions warrant consideration, they ultimately either share the same limitations as the base SR-TD model or become as computationally intensive as exhaustive search methods. In contrast, our SR-IS model successfully addresses the key challenges that previous approaches attempted to solve, while maintaining the efficiency and cost-effectiveness of SR-TD.</p><p>The SR-IS model seamlessly integrates with the linear RL framework while addressing its primary limitation: the absence of an efficient learning algorithm. Through importance sampling, the model develops default representations even during goal-directed policy execution, similar to how individuals construct a general cognitive map of their city while traveling specific routes. When paired with an unbiased default policy, this approach generates accurate approximations for optimal solutions to RL problems without sacrificing com-putational efficiency. Furthermore, the model is able to efficiently update its representations in response to environmental changes or new objectives. Critically, this update mechanism demonstrates stronger alignment with observed human and animal behavior in replanning scenarios.</p><p>The hippocampus is thought to be a central region for cognitive map construction, and recent work suggests that hippocampal place cells encode SR-like computations, potentially including those proposed in our SR-IS model <ref type="bibr" target="#b35">36</ref> . In simple environments, SR generates representations that share notable similarities with hippocampal place fields, producing radially symmetric activation patterns that adapt to environmental complexities. These adaptations parallel several documented properties of hippocampal place cells, including distortions around barriers <ref type="bibr" target="#b57">[58]</ref><ref type="bibr" target="#b58">[59]</ref><ref type="bibr" target="#b59">[60]</ref> and directional skewing with repeated traversals 61 . However, a theoretical inconsistency challenges the relationship between SR and hippocampal functioning. While key place cell effects, such as directional skewing, have been simulated using the policy-dependent property of SR <ref type="bibr" target="#b35">36</ref> , grid cell properties require a policy-independent successor map, as was previously noted <ref type="bibr" target="#b50">51</ref> . The SR-IS model potentially resolves this inconsistency by naturally producing a degree of directional skewing through sampling variability, particularly for states rarely visited under the decision policy, while ultimately constructing its map under the default policy -thereby accommodating both policy-dependent place cell effects and policy-independent grid cell properties. Furthermore, unlike the strong directional dependency produced by the standard SR model under decision policies, the directional skewing in SR-IS remains subtle, better matching empirical observations.</p><p>Recent work building upon the linear RL framework, proposed that cognitive maps could be learned through compositional positioning of object and barrier representations within an open-space baseline map <ref type="bibr" target="#b61">62</ref> . While SR-IS offers an alternative approach by creating maps purely through learning, these models can coexist complementarily -one explaining compositional map building and the other addressing learning-based map construction. Importantly, many situations, including the human revaluation tasks simulated in the current study, cannot be handled through compositional positioning of familiar barriers and objects. Thus, while the compositional model offers valuable insights, it cannot explain the specific behavioral patterns in revaluation tasks that are successfully captured by SR-IS.</p><p>Beyond cognitive science, our approach could guide the development of novel artificial intelligence systems that can plan efficiently and adapt to new situations. The successor representation has already influenced several advances in artificial intelligence, including the development of more generalized environmental features known as "successor features" <ref type="bibr" target="#b62">[63]</ref><ref type="bibr" target="#b63">[64]</ref><ref type="bibr" target="#b64">[65]</ref> ) and methods for sub-goal discovery <ref type="bibr">66;67</ref> . These applications leverage the SR's ability to create environmental representations that facilitate transfer learning, allowing systems to apply knowledge from one task to enhance performance on others <ref type="bibr">68;69</ref> . We propose that incorporating importance sampling could provide a straightforward yet powerful enhancement to these approaches. By addressing bias in the SR, importance sampling should yield more generalized features and more effective sub-goal identification, while maintaining computational efficiency.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>This section details the mathematical and computational framework underlying SR-IS, beginning with fundamental reinforcement learning concepts and building to our novel contributions. We first outline the basic reinforcement learning problem and temporal difference learning, then introduce the default representation that motivated our work. Finally, we describe how SR-IS enables efficient replanning and revaluation through importance sampling.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Reinforcement learning</head><p>Reinforcement learning addresses the problem of planning in a Markov decision process (MDP) framework, which consists of the following components <ref type="bibr" target="#b69">70</ref> : a set of states (s), a set of actions (a), a transition distribution P (s ′ |s, a) specifying the probability of transitioning from state s to state s ′ after taking action a, a reward function R(s) giving the expected immediate reward in state s, and a discount factor γ ∈ [0, 1] that discounts future rewards. The main objective in reinforcement learning is to estimate the value of each state, which is defined as the expected total future reward from that state onwards. Here, the expectation is taken to account for any randomness that may result from probabilistic state transitions or reward distributions. The value of state s under policy π is defined as the expected discounted cumulative reward if the agent chooses actions according to policy π.</p><formula xml:id="formula_5">V π (s) = E ∞ t=0 γ t R(s t )|π, s 0 = s ,<label>(5)</label></formula><p>where s t is the state visited at time t. The optimal value function is given by</p><formula xml:id="formula_6">V * (s) = R(s) + max a s ′ γP (s ′ |s, a)V * (s ′ ) .<label>(6)</label></formula><p>Value functions are central to RL, whether in the form of optimal value functions V * (s) or policy-dependent values V π (s). The challenge of reinforcement learning can fundamentally be understood as learning to accurately predict these value functions. particularly the optimal value function. Two distinct approaches have been developed to tackle this challenge. Model-based algorithms represent the first approach. These methods explicitly learn the environment's dynamics by learning the transition and the reward function. Once these functions are learned, value iteration algorithm can be employed to compute V * recursively unfolding Equation 6 into nested computations. The second approach is model-free RL, which directly updates a cached value of the estimate itself using algorithms such as TD-learning <ref type="bibr" target="#b38">39</ref> . After observing a transition s − → s ′ with a reward, R(s ′ ), we can calculate a reward prediction error, δ to update the value of our state, V (s).</p><formula xml:id="formula_7">δ = R(s) + γV (s ′ ) − V (s), V (s) ← V (s) + αδ,<label>(7)</label></formula><p>where α is the learning rate parameter which controls the step size of the agent as it updates its estimate of the value function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Successor representation</head><p>The SR, previously defined in Equations 1-2, has an important matrix formulation as shown by Russek et al <ref type="bibr" target="#b36">37</ref> . Let T π be the one-step transition matrix under policy π, where element T π ij represents the probability of transitioning from state i to state j. This transition matrix can be written as:</p><formula xml:id="formula_8">T π (s, s ′ ) = a π(a|s)P (s ′ |s, a).<label>(8)</label></formula><p>Using this transition matrix, the SR can be expressed as:</p><formula xml:id="formula_9">M π = (I − γT π ) −1 ,<label>(9)</label></formula><p>where I is the identity matrix and γ is the discount factor. This matrix formulation of the SR will be crucial for developing our model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Default representation</head><p>The linear RL model 51 provides a closed-form approximation to the optimal value function defined in Equation 6 for finite-horizon Markov decision problems, such as maze navigation towards a specific goal. At its core, this model optimizes behavior by maximizing a gain function that balances rewards against control costs. The gain function g for a state s is defined as:</p><formula xml:id="formula_10">g(s) = r(s) − λKL(π ∥ π d ),<label>(10)</label></formula><p>where r(s) represents the reward at state s, and λ &gt; 0 is a control cost parameter. The second term measures the divergence between two policies: the agent's decision policy π and a default policy π d under which the predictive map is built. This divergence is quantified using the Kullback-Leibler (KL) divergence, which equals zero only when the policies match exactly (π = π d ) and is positive otherwise. Throughout our simulations, we use a uniform default policy where all transitions to neighboring states are equally likely. A uniform random default policy introduces stochasticity into decision-making without biasing the decision policy toward any specific actions. It can be shown that the optimal value function V * (s) for this problem has an analytical solution, which can be viewed as an approximation to the value function of the original RL problem without control costs (Equation 6). To derive this solution, we first define the one-step state transition matrix T. Each element T ij represents the probability of transitioning from state i to state j under the default policy.</p><p>Next, we partition the state space into terminal states (containing goals) and nonterminal states. Let t = T g exp(r g /λ) be a vector determined by transitions from nonterminal to terminal states T g and their associated rewards r g . For a vector v * containing optimal values across all nonterminal states, we have:</p><formula xml:id="formula_11">exp(v * /λ) = D N N t,<label>(11)</label></formula><p>where D N N is the submatrix of the default representation (DR) matrix D corresponding to nonterminal states. The DR matrix is defined as:</p><formula xml:id="formula_12">D = (diag(exp(−r/λ)) − T) −1 ,<label>(12)</label></formula><p>where r is the reward vector across all states (assuming non-zero rewards at terminal states). If we assume that the reward at all nonterminal states is equal to cost c, then we can write D = γM, where we have defined γ = exp(−c/λ):</p><formula xml:id="formula_13">M = (I − γT) −1 ,<label>(13)</label></formula><p>Throughout the paper, we generally refer to both D and M as the DR matrix because they are simply related to each other through the constant γ, except where this might cause confusion. The DR matrix, defined in Equation 12, shares a strong similarity with the SR matrix (Equation 9) -in fact, the DR matrix can be understood as the SR under the default policy. Moreover, γ can be interpreted as equivalent to the discount factor in Equation 9.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Replanning</head><p>A key advantage of the linear RL framework and its DR matrix is that it enables efficient low-rank updates to the predictive map when the environment changes. This contrasts with both classic model-based approaches and the SR, which typically require recalculating the entire map even for minor environmental changes.</p><p>Formally, when an environmental change modifies matrix L 0 = diag(exp(−r/λ)) − T to a new matrix L (due to alterations in either T, r, or both), we can apply the Woodbury matrix inversion lemma <ref type="bibr">55;56</ref> . Given D 0 = L −1 0 , this lemma allows us to compute the new matrix D = L −1 through a computationally efficient low-rank update of D 0 . Now, let us introduce two sparse matrices R and C of size J × S and S × J respectively, where S is the total number of states and J is the number of states for which L 0 has changed. Let j = (j 1 , j 2 , . . . , j J ) be a vector of length J containing the indices of all those states, where j i denotes the i-th element of the vector. For each changed state, matrix R contains rows representing the difference between the corresponding rows in L and L 0 , such that R = L(j, :) − L 0 (j, :). Matrix C acts as a selection matrix: for each changed state j i , it contains a column with a value of 1 in row j i and zeros elsewhere. Using these matrices C and R, we can efficiently express the change in L 0 as:</p><formula xml:id="formula_14">L = L 0 + CR.<label>(14)</label></formula><p>Using this formulation, we can apply the Woodbury matrix inversion lemma <ref type="bibr">55;56</ref> to express D (the inverse of L) as a low-rank update of D 0 :</p><formula xml:id="formula_15">D = D 0 − D 0 CARD 0 ,<label>(15)</label></formula><p>where A = (I − RD 0 C) −1 . While this formulation still requires matrix inversion for replanning, it operates on a much smaller matrix: A has dimensions J × J, where J is the number of changed states and is typically much smaller than the total number of states S.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Simulation Parameters</head><p>All of the maze simulations used a custom maze environment created using OpenAI's gym <ref type="bibr" target="#b70">71</ref> . For all of the simulations we assumed a uniform default policy. Additionally, we use the cost to calculate the discount rate term, γ = exp(−c/λ), where c is the cost at non-terminal states.</p><p>For the convergence simulations in <ref type="figure" target="#fig_1">Figure 2a</ref>,b a 7 × 7 four-room maze was considered. The temperature and lambda parameters were both set to 1, the reward across all of the states was -0.2, the learning rate was set to 0.1, the models were trained for 15k steps, and we averaged the mean error across 40 runs. Here we define a "step" as when the agent takes an action, receives a reward, and consequently updates its representation. The terminal state was set to the bottom-right of the maze. For the four-room revaluation problem in <ref type="figure" target="#fig_1">Figure  2a</ref>,c we consider a the same 7 × 7 maze with the training goal state set to the top-right corner of the maze, the terminal state has a reward of 10 and the non-terminal states all have a reward of −0.1. For training the SR-IS model, we used a learning rate of 0.2 and both the temperature and lambda parameters were set to 1. We trained SR-IS for 30k steps and averaged across 20 runs. The parameters were all the same for the SR model except the non-terminal reward was 0. For the goal revaluation problem in <ref type="figure" target="#fig_1">Figure 2d</ref>,e a 10 × 10 maze was considered. The initial goal state was set to be in the bottom right corner of the maze at state. The reward at non-terminal states was set to be −1 and the reward at the terminal state(s) was set to 10. We used a learning rate of 0.25, a temperature parameter of 1.5, a lambda of 1, and trained for 80k iterations. After initially calculating the DR for the first terminal state, we moved the terminal state to every other open state and re-used the initial DR to solve for an updated DR using Equation 15. For the model comparison planning problem in <ref type="figure" target="#fig_1">Figure 2d</ref>,f we considered the same 10 × 10 maze as in the goal revaluation problem. For the Complete and SR-IS models the reward across all states was -0.8. For SR-IS, the learning rate was 0.05, and temperature and lambda were both 1. For the SR agent the reward at non-terminal states was 1, the reward at the terminal state was 10, the learning rate was 0.05, and the temperature was 1. We trained both the SR-IS and SR models for 80k steps and averaged the number of replanning steps across 20 simulations. It is important to note that unlike the analysis done by Piray &amp; Daw 51 , which computed a goal-independent representation, we require a goal state to test SR-IS as with no goal state the learning policy would be random and we would not need importance sampling.</p><p>For the replication of the experiment by Momennejad et al. <ref type="bibr" target="#b37">38</ref> in <ref type="figure">Figure 3a</ref>-e we followed the payout structure from the paper, with the exception of setting the reward a non-terminal states to be -1. We set the learning rate to be 0.15, temperature to be 0.6, lambda to 10. We trained the agents in a similar fashion to how the participants experienced the task where they started 14 times from state 1, 7 times from states 2 and 3, and 2 times from each terminal state. At test time we changed the temperature to 1.0 and averaged our results across 800 runs. To make the SR and DR directly comparable in this simulation, we added auxiliary terminal states, with each one connected to a corresponding goal state. For the latent learning task in <ref type="figure" target="#fig_3">Figure 4a</ref>-d, a 9 × 9 maze was considered. Initially, the agent learns a representation of the environment when the rewards for the terminal states are set to +5. After training, the reward in terminal state r 1 is changed to -5 and the representation is updated using equation (??). We used a learning rate of 0.2 and the temperature and beta values were both set to 1. We trained the agent for 2,500 steps. For the detour task in <ref type="figure" target="#fig_3">Figure 4e</ref>-h a 9 × 9 maze was considered. The reward across the non-terminal states was set to -0.1 and the reward at the terminal state was set to 10, the learning rate was set to 0.55, the temperature was set to 2, lambda to 1, and we trained for 80k steps. For this experiment we had to introduce two extra "tricks" to make it work as we expected in a fewer number of iterations. The first addition was using learning rate decay <ref type="bibr" target="#b71">72</ref> . For this we used exponential decay with an initial learning rate of 0.55, a decay rate of 0.99, and the decay steps to 150. The second trick we used was to add the minimum absolute z-value back to our z-values as the DR for a fewer number of iterations resulted in a sub-optimal application of the Woodbury update and we wanted to avoid negative values due to this.</p><p>For the simulation in <ref type="figure" target="#fig_4">Figure 5a</ref>-f we used the source code provided by De Cothi et al. <ref type="bibr" target="#b18">19</ref> . To simulate the SR-IS agent we modified their code for the SR agent by adding an importance sampling term outlined in equations (3) to the TD update for the SR agent. For the analysis in the main text, we computed the correlation between the reported human and rat path lengths with respect to the path lengths of the SR and SR-IS models. For the analysis in the supplementary material, we used the provided code for the original analysis, making a minor modification to it by adding our SR-IS agent.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>FIGURE 1</head><label>1</label><figDesc>FIGURE 1.4</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>SR-IS learns a more general representation than the SR and is capable of optimal replanning. (a) Four-room environment with agent start, blue circle, and initial reward state, r 1 , shown by the green square. (b) Mean absolute error convergence between complete and SR-IS models with/without importance sampling during navigation learning to r 1 . (c) Replanning comparison between SR and SR-IS models: after learning representation with respect to r 1 , agents replan to 8 new terminal states, r 2−9 , with 2 in the same room as r 1 and the other 6 evenly distributed in other rooms. SR-IS maintains efficiency across rooms while SR only replans effectively within the same room. (d) 10x10 maze with initial agent position shown by the blue circle and goal state, r 1 , shown by the green square. (e) Path lengths from start to all other states match optimal paths from exhaustive search, using single representation computed with respect to r 1 . (f ) Replanning performance comparison after initial training to r 1 : SR performs near random walk level, SR* with Woodbury update remains biased to previous reward, while SR-IS matches complete model performance in replanning to r 2 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>FIGURE 3 PhaseFigure 3 :</head><label>33</label><figDesc>SR-IS demonstrates similar replanning biases to humans. (a) The underlying structure of the reward, policy, and transition revaluation experiment's. (b)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 :</head><label>4</label><figDesc>Performance of SR-IS on Tolman's tasks. The mazes (a), (b) represent the task during the training and testing phase respectively. As before the blue circle represents the agent's current location, the green square represents the reward location, and the muted orange, green, and purple represent the states available for transition by the agent. (c) Shows the probability of transitioning to each state with importance sampling, and (d) shows the probability without importance sampling. The model with importance sampling is able to correctly update its DR and avoid the barrier.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 :</head><label>5</label><figDesc>SR-IS produces a closer match to rat and human path lengths. The mazes shown in panels (a, d) represent two distinctive examples selected from a total set of 25 mazes, each demonstrating the challenge of policy dependence that arises when navigating from different starting states. For both maze 15 (b, c) and maze 22 (e, f ), the SR-IS model demonstrates superior performance by achieving higher correlation coefficients with respect to path length when compared to the standard SR model, indicating better consistency in path planning across different starting positions.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Introduction and removal of reward, and maze performance in rats. University of California publications in psychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Charles</forename><forename type="middle">H</forename><surname>Edward Chace Tolman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Honzik</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1930" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Studies in spatial learning. ii. place learning versus response learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Edward C Tolman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Benbow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ritchie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kalish</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of experimental psychology</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">221</biblScope>
+			<date type="published" when="1946" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Cognitive maps in rats and men</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Edward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Tolman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Psychological Review</title>
+		<imprint>
+			<date type="published" when="1948" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Motivational control of goal-directed action</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anthony</forename><surname>Dickinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bernard</forename><surname>Balleine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Animal learning &amp; behavior</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="18" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Nathaniel D Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="1704" to="1711" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Reasoning, learning, and creativity: frontal lobe function and human decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anne</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Etienne</forename><surname>Koechlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS biology</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">1001293</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">The Hippocampus as a Cognitive Map</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O'</forename><surname>John</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lynn</forename><surname>Keefe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Nadel</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1978" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Timothy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Timothy</forename><forename type="middle">H</forename><surname>Behrens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Muller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shirley</forename><surname>Whittington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Alon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kimberly</forename><forename type="middle">L</forename><surname>Baram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Zeb</forename><surname>Stachenfeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kurth-Nelson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">What is a cognitive map? organizing knowledge for flexible behavior</title>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="page" from="490" to="509" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">How to build a cognitive map</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Whittington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mccaffary</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Jacob</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Timothy</forename><forename type="middle">Ej</forename><surname>Bakermans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Behrens</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1257" to="1272" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Human orbitofrontal cortex represents a cognitive map of state space</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Nicolas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ming</forename><forename type="middle">Bo</forename><surname>Schuck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Robert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">91</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1402" to="1412" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Two anatomically and computationally distinct learning signals predict changes to stimulus-outcome associations in hippocampus</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Erie D Boorman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jill</forename><forename type="middle">X</forename><surname>Vani G Rajendran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tim</forename><forename type="middle">E</forename><surname>O'reilly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Behrens</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">89</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1343" to="1354" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Path integration and the neural basis of the&apos;cognitive map&apos;</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Francesco</forename><forename type="middle">P</forename><surname>Bruce L Mcnaughton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ole</forename><surname>Battaglia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Edvard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">May-Britt</forename><surname>Moser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Moser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Reviews Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="663" to="678" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Space in the brain: how the hippocampal formation supports spatial cognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Hartley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Colin</forename><surname>Lever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Neil</forename><surname>Burgess</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John O'</forename><surname>Keefe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">369</biblScope>
+			<biblScope unit="page">20120510</biblScope>
+			<date type="published" when="1635" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">A neural substrate of prediction and reward</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wolfram</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P Read</forename><surname>Montague</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">275</biblScope>
+			<biblScope unit="issue">5306</biblScope>
+			<biblScope unit="page" from="1593" to="1599" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning: the good, the bad and the ugly</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current opinion in neurobiology</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="185" to="196" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning in the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="139" to="154" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">The algorithmic anatomy of model-based evaluation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nathaniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">369</biblScope>
+			<date type="published" when="1655" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Interplay of approximate planning strategies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Quentin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Níall</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Paul</forename><surname>Lally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Neir</forename><surname>Faulkner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Erich</forename><surname>Eshel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Seifritz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Samuel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><forename type="middle">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Roiser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="3098" to="3103" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Predictive maps in rats and humans for spatial navigation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nils</forename><surname>William De Cothi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eva-Maria</forename><surname>Nyberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carole</forename><surname>Griesbauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Fiona</forename><surname>Ghanamé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Julie</forename><forename type="middle">M</forename><surname>Zisch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lydia</forename><surname>Lefort</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Coco</forename><surname>Fletcher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sophie</forename><surname>Newton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Renaudineau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bendor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Biology</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">17</biblScope>
+			<biblScope unit="page" from="3676" to="3689" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Orbitofrontal cortex as a cognitive map of task space</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Robert C Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Yuji</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Geoffrey</forename><surname>Takahashi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Schoenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">81</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="267" to="279" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">The successor representation: its computational logic and neural substrates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Samuel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">33</biblScope>
+			<biblScope unit="page" from="7193" to="7200" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Prefrontal cortex as a meta-reinforcement learning system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Jane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Zeb</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dharshan</forename><surname>Kurth-Nelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dhruva</forename><surname>Kumaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hubert</forename><surname>Tirumala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><forename type="middle">Z</forename><surname>Soyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Demis</forename><surname>Leibo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew</forename><surname>Hassabis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Botvinick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="860" to="868" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning, fast and slow</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sam</forename><surname>Ritter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jane</forename><forename type="middle">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Zeb</forename><surname>Kurth-Nelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Charles</forename><surname>Blundell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Demis</forename><surname>Hassabis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="408" to="422" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">An approximately bayesian delta-rule model explains the dynamics of belief updating in a changing environment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Matthew R Nassar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Robert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Benjamin</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><forename type="middle">I</forename><surname>Heasly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gold</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="issue">37</biblScope>
+			<biblScope unit="page" from="12366" to="12378" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Hierarchically organized behavior and its neural foundations: A reinforcement learning perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Matthew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andew G</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Barto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">cognition</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="262" to="280" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Cognitive control over learning: creating, clustering, and generalizing task-set structure</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Anne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael J</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">190</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">States versus rewards: dissociable neural prediction error signals underlying model-based and model-free reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jan</forename><surname>Gläscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John P O'</forename><surname>Doherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="585" to="595" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Speed/accuracy trade-off between the habitual and the goal-directed processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mehdi</forename><surname>Keramati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amir</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Payam</forename><surname>Piray</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">1002055</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nathaniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Samuel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ben</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Raymond J</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Goals and habits in the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="312" to="325" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Neural computations underlying arbitration between model-based and model-free learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shinsuke</forename><surname>Sang Wan Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John P O'</forename><surname>Shimojo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Doherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">81</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="687" to="699" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Model-based learning protects against forming habits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ross</forename><surname>Claire M Gillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Elizabeth</forename><forename type="middle">A</forename><surname>Otto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">D</forename><surname>Phelps</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive, Affective, &amp; Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="523" to="536" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Learning task-state representations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yael</forename><surname>Niv</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1544" to="1553" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Improving generalization for temporal difference learning: The successor representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="613" to="624" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">The successor representation and temporal context</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Samuel J Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Christopher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Todd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kenneth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Norman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Per</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sederberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1553" to="1568" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">The hippocampus as a predictive map</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kimberly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Stachenfeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Matthew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Samuel</forename><forename type="middle">J</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1643" to="1653" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Predictive representations can link model-based reinforcement learning to model-free mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ida</forename><surname>Evan M Russek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Momennejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Matthew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Samuel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">D</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page">1005768</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">The successor representation in human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ida</forename><surname>Momennejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Evan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jin</forename><forename type="middle">H</forename><surname>Russek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Cheong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Matthew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">Douglass</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Samuel</forename><forename type="middle">J</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="680" to="692" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Learning to predict by the methods of temporal differences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Richard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sutton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Machine learning</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="9" to="44" />
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title level="m" type="main">A model of how the basal ganglia generate and use neural signals that predict reinforcement. Models of Information Processing in the Basal Ganglia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><forename type="middle">C</forename><surname>Houk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joel</forename><forename type="middle">L</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><forename type="middle">G</forename><surname>Beiser</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">A framework for mesencephalic dopamine systems based on predictive hebbian learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>P Read Montague</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Terrence</forename><forename type="middle">J</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sejnowski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1936" to="1947" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Ventral striatal dopamine reflects behavioral and neural signatures of model-based control during sequential decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lorenz</forename><surname>Deserno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Quentin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rebecca</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ralph</forename><surname>Boehme</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hans-Jochen</forename><surname>Buchert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anthony</forename><forename type="middle">A</forename><surname>Heinze</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Grace</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Raymond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andreas</forename><surname>Dolan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Florian</forename><surname>Heinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Schlagenhauf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1595" to="1600" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Variability in dopamine genes dissociates model-based and model-free reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bradley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kevin</forename><forename type="middle">G</forename><surname>Doll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">D</forename><surname>Bath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael J</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Frank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1211" to="1222" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">Midbrain dopamine neurons compute inferred and cached value prediction errors in a common framework</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Brian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><forename type="middle">L</forename><surname>Sadacca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Geoffrey</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Schoenbaum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">13665</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Dopamine selectively remediates &apos;model-based&apos;reward learning: a computational approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Madeleine</forename><forename type="middle">E</forename><surname>Sharp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Karin</forename><surname>Foerde</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daphna</forename><surname>Shohamy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Brain</title>
+		<imprint>
+			<biblScope unit="volume">139</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="355" to="364" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Dopamine enhances model-based over model-free choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Klaus</forename><surname>Wunderlich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Smittenaar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Raymond J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="418" to="424" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Bonsai trees in your head: how the pavlovian system sculpts goal-directed choices by pruning decision trees</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Quentin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Neir</forename><surname>Huys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Eshel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O'</forename><surname>Elizabeth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Luke</forename><surname>Nions</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Sheridan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><forename type="middle">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Roiser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">1002410</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">How green is the grass on the other side? frontopolar cortex and the evidence in favor of alternative courses of action</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Timothy</forename><forename type="middle">Ej</forename><surname>Erie D Boorman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Behrens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Mark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew Fs</forename><surname>Woolrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Rushworth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">62</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="733" to="743" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Linearly-solvable markov decision problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Emanuel</forename><surname>Todorov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2006" />
+			<biblScope unit="volume">19</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Efficient computation of optimal actions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Emanuel</forename><surname>Todorov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the national academy of sciences</title>
+		<meeting>the national academy of sciences</meeting>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page" from="11478" to="11483" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Linear reinforcement learning in planning, grid fields, and cognitive control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Payam</forename><surname>Piray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature communications</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4942</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Bayesian inference in econometric models using monte carlo integration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><surname>Geweke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Econometrica: Journal of the Econometric Society</title>
+		<imprint>
+			<biblScope unit="page" from="1317" to="1339" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Importance sampling: a review</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Surya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><forename type="middle">E</forename><surname>Tokdar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kass</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Wiley Interdisciplinary Reviews: Computational Statistics</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="54" to="60" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Between mdps and semi-mdps: A framework for temporal abstraction in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Doina</forename><surname>Richard S Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Satinder</forename><surname>Precup</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Singh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial intelligence</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="181" to="211" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Inverting modified matrices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Max</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Woodbury</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Memorandum Rept. 42, Statistical Research Group</title>
+		<imprint>
+			<date type="published" when="1950" />
+		</imprint>
+	</monogr>
+	<note>page 4. Princeton Univ.</note>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">Updating the inverse of a matrix</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>William</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Hager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SIAM review</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="221" to="239" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Dyna, an integrated architecture for learning, planning, and reacting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Richard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sutton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Sigart Bulletin</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="160" to="163" />
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">The effects of changes in the environment on the spatial firing of hippocampal complex-spike cells</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Robert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><forename type="middle">L</forename><surname>Muller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kubie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1951" to="1968" />
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">Spatial firing properties of hippocampal ca1 populations in an environment containing two visually identical regions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>William</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Skaggs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bruce L Mcnaughton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">20</biblScope>
+			<biblScope unit="page" from="8455" to="8466" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Local remapping of place cell firing in the tolman detour task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alice</forename><surname>Alvernhe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Etienne</forename><surname>Save</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bruno</forename><surname>Poucet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">European Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="1696" to="1705" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Experience-dependent asymmetric shape of hippocampal receptive fields</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mayank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mehta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew A</forename><surname>Quirk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="707" to="715" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<title level="m" type="main">Reconciling flexibility and Efficiency: Medial Entorhinal Cortex Represents a Compositional Cognitive Map</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Payam</forename><surname>Piray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nathaniel</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<idno type="DOI">http://biorxiv.org/lookup/doi/10.1101/2024.05.16.594459</idno>
+		<ptr target="http://biorxiv.org/lookup/doi/10.1101/2024.05.16.594459" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Deep reinforcement learning with successor features for navigation across similar environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jingwei</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jost</forename><forename type="middle">Tobias</forename><surname>Springenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joschka</forename><surname>Boedecker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wolfram</forename><surname>Burgard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="2371" to="2378" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">Successor features for transfer in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">André</forename><surname>Barreto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Will</forename><surname>Dabney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rémi</forename><surname>Munos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><forename type="middle">J</forename><surname>Hunt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Schaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Hado P Van Hasselt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Silver</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">30</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tejas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ardavan</forename><surname>Kulkarni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Simanta</forename><surname>Saeedi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Samuel</forename><forename type="middle">J</forename><surname>Gautam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Gershman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.02396</idno>
+		<title level="m">Deep successor reinforcement learning</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Eigenoption discovery through the deep successor representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marlos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Clemens</forename><surname>Machado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Xiaoxiao</forename><surname>Rosenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Miao</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gerald</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Murray</forename><surname>Tesauro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Campbell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Learning Representations (ICLR)</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">Count-based exploration with the successor representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marlos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Machado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Marc</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Bellemare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bowling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">AAAI Conference on Artificial Intelligence (AAAI)</title>
+		<imprint>
+			<biblScope unit="page">2020</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title level="a" type="main">Transfer learning for reinforcement learning domains: A survey</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Matthew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Stone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title level="a" type="main">Transfer in reinforcement learning: a framework and a survey</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alessandro</forename><surname>Lazaric</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Reinforcement Learning: State-of-the-Art</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2012" />
+			<biblScope unit="page" from="143" to="173" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Richard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrew</forename><forename type="middle">G</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Greg</forename><surname>Brockman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vicki</forename><surname>Cheung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ludwig</forename><surname>Pettersson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonas</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><surname>Schulman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jie</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wojciech</forename><surname>Zaremba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.01540</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Openai gym. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<monogr>
+		<title level="m" type="main">A stochastic approximation method. The annals of mathematical statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Herbert</forename><surname>Robbins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sutton</forename><surname>Monro</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1951" />
+			<biblScope unit="page" from="400" to="407" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

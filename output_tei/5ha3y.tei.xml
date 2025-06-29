@@ -1,0 +1,739 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Surprise acts as a reducer of outcome value in human reinforcement learning</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Motofumi</forename><surname>Sumiya</surname></persName>
+							<email>motofumisumiya@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Department of Cognitive and Psychological Sciences</orgName>
+								<orgName type="department" key="dep2">Graduate School of Informatics</orgName>
+								<orgName type="institution">Nagoya University</orgName>
+								<address>
+									<settlement>Aichi</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Japan Society for the Promotion of Science</orgName>
+								<address>
+									<settlement>Tokyo</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kentaro</forename><surname>Katahira</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Department of Cognitive and Psychological Sciences</orgName>
+								<orgName type="department" key="dep2">Graduate School of Informatics</orgName>
+								<orgName type="institution">Nagoya University</orgName>
+								<address>
+									<settlement>Aichi</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Surprise acts as a reducer of outcome value in human reinforcement learning</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:48+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Surprise</term>
+					<term>Reward prediction error</term>
+					<term>Reinforcement learning</term>
+					<term>Risk</term>
+					<term>Decision-making</term>
+					<term>Outcome value</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Surprise occurs because of differences between a decision outcome and its predicted outcome (prediction error), regardless of whether the error is positive or negative. It has recently been postulated that surprise affects the reward value of the action outcome itself; studies have indicated that increasing surprise, as absolute value of prediction error, decreases the value of the outcome. However, how surprise affects the value of the outcome and subsequent decision making is unclear. We suggested that, on the assumption that surprise decreases the outcome value, agents will increase their risk averse choices when an outcome is often surprisal. Here, we propose the surprise-sensitive utility model, a reinforcement learning model that states that surprise decreases the outcome value, to explain how surprise affects subsequent decision-making. To investigate the assumption, we compared this model with previous reinforcement learning models on a risky probabilistic learning task with simulation analysis, and model selection with two experimental datasets with different tasks and population. We further simulated a simple decision-making task to investigate how parameters within the proposed model modulate the choice preference. As a result, we found the proposed model explains the risk averse choices in a manner similar to the previous models, and risk averse choices increased as the surprise-based modulation parameter of outcome value increased. The model fits these datasets better than the other models, with same free parameters, thus providing a more parsimonious and robust account for risk averse choices. These findings indicate that surprise acts as a reducer of outcome value and decreases the action value for risky choices in which prediction error often occurs.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>INTRODUCTION</head><p>Decision making in everyday life depends on predicting outcomes associated with potential choices.</p><p>These choices can be defined through a reinforcement learning algorithm, a modelling framework that uses the prediction error as a learning signal to update future outcome expectations <ref type="bibr" target="#b0">[1]</ref>. Prediction error represents the difference between actual and expected outcomes, and has a positive or negative valence.</p><p>When a decision outcome exceeds expectations, the value associated with the chosen option is increased, making it more likely to be chosen again. When a decision outcome is less than expected, the value associated with the chosen option is decreased, making it less likely to be chosen again. Prediction error also functions as surprise, based on the degree of absolute prediction error. When people are confronted with unexpected events, regardless of its valence, they experience surprise. A greater surprise increases the strength of the association between outcome and expectations <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b2">3]</ref>. However, how surprise affects the value of outcome and subsequent decision making remains unclear.</p><p>Recent human and monkey experimental studies have shown that surprisal events or outcomes have a negative impact on individuals, even when the error is positive <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b4">5]</ref>. Topolinski and Strack <ref type="bibr" target="#b4">[5]</ref> employed facial electromyography to measure people's responses immediately following surprising information; they observed that participants flexed their corrugator muscles, corresponding to a furrowing of the eyebrows, which indicated negative valence. Knight et al. <ref type="bibr" target="#b3">[4]</ref> showed that, in a predictable food taking paradigm, rhesus monkeys were slower to accept unexpected offers and exhibited aversive reactions such as repeatedly turning their heads and looking away before accepting the food item, especially in response to better-than-expected offers. These studies indicate that surprise decreases, at least initially, the value of an event for individuals, and decreases the value of the offer associated with the event.</p><p>The function of surprise as reducer of outcome value can be explained from the perspective of predictive coding, a computational theory of how the brain facilitates perception from sensation by minimizing the prediction error between the expected and received sensory input <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b6">7]</ref>. Some researchers have proposed that surprise affects the reward value of a decision outcome <ref type="bibr" target="#b8">[8]</ref><ref type="bibr" target="#b9">[9]</ref><ref type="bibr" target="#b10">[10]</ref>, stating that an increase of surprise decreases the value of the outcome, since inconsistency corresponds to an uncertainty about what to do that is generally associated with negative affect. For example, Van de Cruys <ref type="bibr" target="#b9">[9]</ref> suggested that a positive affect is induced when prediction error is reduced, while a negative effect is induced when a 5 situation with lower prediction errors shifts to one with higher prediction errors. Further, understanding how surprise affects decision-making is important to understand the underlying mechanisms of psychiatric disorders, such as autism spectrum disorder (ASD), which is characterized by an avoidance of social situations in which prediction errors often happen <ref type="bibr" target="#b11">[11]</ref><ref type="bibr" target="#b12">[12]</ref><ref type="bibr" target="#b13">[13]</ref>.</p><p>Here, we propose the surprise-sensitive utility model, in which the degree of outcome surprise affects the outcome value. We investigated how the negative value of a surprise outcome affects subsequent decisions by using two reinforcement learning tasks, the risky probabilistic learning task <ref type="bibr" target="#b14">[14]</ref>, and the simple two-armed bandit task. We predicted that a surprise outcome that decreases the value of a decision outcome will decrease the preference for risky choices, in which prediction error often happens.</p><p>To investigate this prediction, we first simulated the risk sensitive learning task and compared our proposal model with previous computational models on the task. We validated the simulated results by performing model selection with real experimental data taken from Niv et al. <ref type="bibr" target="#b14">[14]</ref>. As we found a better fit of our proposed model to the dataset than previous models, we conducted model selection using an additional dataset, from Goris et al. <ref type="bibr" target="#b15">[15]</ref>, which utilized decision-making tasks unrelated with riskiness to investigate the generalizability of our proposed model to different task and population. We further simulated the same task and the simple two-armed bandit task to investigate how parameters within the proposed model modulate the choice preference.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model description</head><p>The Q-learning model is the base model of our surprise-sensitive utility model. The Q-learning model incorporates a Rescorla-Wagner rule where only the Q-value of the chosen option is updated by a prediction error. It explains the observed behavior by computing an action value ( + ) for each trial , which represents the expected outcome of the action. The Q-value of the chosen action is updated iteratively by a prediction error, which is the difference between the expected outcome ( ) and the actual received outcome . Based on Niv et al. <ref type="bibr" target="#b14">[14]</ref>, a decaying term of . /( + ) (with being the number of trials in which the consequences of stimulus S had been experienced) was added to a 6 learning rate , and termed 0 . For all models, the probability of choosing option i during trial is given by the softmax function:</p><formula xml:id="formula_0">( ( ) = ) = ( • ( )) ∑ A ( • ( ))</formula><p>where β is the inverse temperature parameter that determines the sensitivity of the choice probabilities to differences in the values, and K represents the number of possible actions. In this study, K = 2 unless otherwise stated. a(t) denote the option that was chosen at trial t.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RESULTS</head><p>We first simulated a risky probabilistic learning task from Niv et al. <ref type="bibr" target="#b14">[14]</ref> with 1,000 agents and compared the probability of opting for a safe choice using four different models: our proposed model (the surprisesensitive utility model) and the three previous models described in Niv et al. <ref type="bibr" target="#b14">[14]</ref> (the Q-learning model, the utility model, and the risk-sensitive Q-learning model) (see <ref type="table">Supplemental table 1</ref> and Methods for detail of each model). The previous winning model was the risk-sensitive Q-learning model which had separate learning rates in which positive and negative prediction errors have asymmetric effects on learning. As shown in <ref type="figure">Fig. 1</ref>, the surprise-sensitive utility model had a similar probability of choosing the sure option (risk aversion) as the risk-sensitive Q-learning model and the utility model. Also, probability of choosing a safe choice simulated with the proposed model was approximated to the result of real experimental data. Furthermore, within the surprise-sensitive utility model, we examined how the free parameters and are related to the risk sensitive choice. We found that risk aversion increased as modulation rate of surprise (d) increased in the surprise-sensitive utility model, <ref type="figure">(Fig. 2)</ref>, and that this tendency increased as the learning rate (α) increased.</p><p>We next conducted model selection with actual experimental data of risky probabilistic learning task from Niv et al. <ref type="bibr" target="#b14">[14]</ref> to investigate the fit of our model. We compared the model evidence of each model (log marginal likelihood), and found that the surprise-sensitive utility model had the largest value <ref type="figure">(Fig. 3A)</ref>. We then carried out a Bayesian model comparison to determine the best model to explain the choice behavior, and found that the surprise-sensitive utility model had a decisively higher protected exceedance probability, indicating that it is more frequent in the population than the other models ( <ref type="figure">Fig.    3B</ref>). Each estimated parameter of the model is shown in <ref type="figure">Supplemental Fig 1.</ref> We confirmed the estimated surprise decay parameter was positive even for a uniform prior boundary from -1 to 1 with one-sample T test (t(15)=9.34, p&lt;0.0001). These findings indicate that modelling the surprisal decay of outcome value led to a better fit to the dataset than separate learning rates.</p><p>In light of finding that our proposed model had a better fit to the dataset of Niv et al. <ref type="bibr" target="#b14">[14]</ref> than previous models, we then performed model selection using a dataset from Goris et al. <ref type="bibr" target="#b15">[15]</ref>. Here we utilized decision-making tasks unrelated with riskiness in order to investigate the generalizability of our proposed model to different tasks and populations. The dataset of Goris et al. <ref type="bibr" target="#b15">[15]</ref> consists of data from participants who performed a gamble task, a form of four-armed bandit task. Only the predictability of the gain was manipulated between choices. The authors did not fit the computational model to the data; we fitted the models from Niv et al <ref type="bibr" target="#b14">[14]</ref> plus our proposed model. Following calculation of model evidence and Bayesian model comparisons, we found the surprise-sensitive utility model had the largest value (Supplemental <ref type="figure">Fig 2A)</ref> and had a decisively higher protected exceedance probability (Supplemental <ref type="figure">Fig    2B)</ref>. Each estimated parameter of the model is shown in Supplemental <ref type="figure">Fig 2C.</ref> Our proposed model fitted these datasets better than the other models, with the same free parameters, thus providing a more parsimonious and robust account for human reinforcement learning.</p><p>This suggests that there should be some difference in the prediction regarding choice which given choice history and reward history. Therefore, finally, to investigate what kind of history dependence in the proposed model cause difference in prediction from other models, we simulated the two-armed bandit task and compared basic Q-learning model and surprise-sensitive utility model on the relationship between stay probability and reward history. We found a smaller stay probability in proximate reward conditions (r(t)=1), especially in the surprised reward condition (r(t)=1, r(t-1)=0), in the surprise-sensitive utility model compared to the Q-learning model <ref type="figure">(Fig. 4)</ref>. This suggested that a reward history that generated a larger surprise affected the stay probability. We further investigated how modulation parameter (d) affected the stay probability, and found that as the parameter increased, the stay probability of proximate reward conditions (r(t)=1) decreased <ref type="figure">(Fig. 5</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>DISCUSSION</head><p>In this study, we proposed the surprise-sensitive utility model in which prediction error works not only to update the prediction, but also to decrease the outcome value. As a result of simulation analysis, we found the surprise-sensitive utility model explains the risk averse choices in a similar manner to a previous model <ref type="bibr" target="#b14">[14]</ref>  <ref type="figure">(Fig. 1)</ref>. We further confirmed this result with model selection analysis with three actual experimental datasets <ref type="figure">(Fig. 3A, 3B &amp; Supplemental Fig. 2</ref>). These findings suggest that surprise can affect subsequent decision making by reducing outcome value.</p><p>In our proposed model, the probability of choosing the safe choice increased as the modulation of the rate of surprise (d) increased <ref type="figure">(Fig. 2)</ref>. This tendency was increased as the learning rate (α)</p><p>increased. This make sense, since both parameters are kind of sensitivity parameter for prediction error.</p><p>The modulation rate of surprise is a fixed parameter per agent, and agents whose modulation rate is set high are much more affected by a surprisal outcome. Since the learning rate is also a fixed parameter which affects the ability to acquire and update a prediction in response to prediction error, the agents whose outcome value is susceptible to surprise and have the highest learning rates might adjust their behavior quickly to avoid risky choices.</p><p>The proposed model fits these datasets better than the previous models, with same or fewer free parameters, thus providing a more parsimonious and robust account for risk averse choices. First this model fitted to the dataset of Niv et al. <ref type="bibr" target="#b14">[14]</ref> and Goris et al. <ref type="bibr" target="#b15">[15]</ref> than previous winning model, risk sensitive Q-learning model which utilized separate learning rate for positive or negative prediction error, having asymmetric effects on changes in predictions. It has been shown that the learning rate asymmetry is robust across experiments and the negative learning rate is generally higher than the positive learning rate, which may reflect risk aversion by being higher negative learning rate drives choices away from risky options <ref type="bibr" target="#b20">[20]</ref>. Thus, a result which our proposed model fitted these datasets well than asymmetric learning rates model imply the importance of nonlinear modulation of evaluation of outcomes itself.</p><p>Since surprise decay parameter decreases the outcome value with the influence of prediction error per trial, characteristics of the surprise-sensitive utility model is a smaller stay probability in proximate reward conditions (r(t)=1), especially in the surprised reward condition (r(t)=1, r(t-1)=0).</p><p>Also, as the parameter increase, the stay probability of proximate reward conditions (r(t)=1) decrease.</p><p>This suggested that a reward history that generated a larger surprise affected the stay probability and made the surprise-sensitive utility model well fitted to risk aversion tasks.</p><p>This surprise sensitive utility model may explain the symptomatic behavior of psychiatric disorders, such as ASD. Our results showed that a decreased outcome value, a reward history that generates larger surprises, and a higher modulation rate all negatively affected an agent's stay probability.</p><p>These findings indicate that agents who are susceptible to surprise avoid choosing the same choice, even when the proximate outcome is rewarded. Individuals with ASD prefer repetitive behaviors with perfect contingency that do not generate large surprises over social interaction, where contingency is non-perfect surprise is more likely <ref type="bibr" target="#b11">[11]</ref><ref type="bibr" target="#b12">[12]</ref><ref type="bibr" target="#b13">[13]</ref>. Previous models could not explain such preferential behaviors, since, in these models, a positive prediction error leads to a preference for the chosen option. However, in the surprise-sensitive utility model, the value of surprisal outcome decreases, which could explain the tendency to avoid social interaction and prefer repetitive behaviors. Also, on average, individuals with ASD are known to have a lower social motivation than neuro-typical people <ref type="bibr" target="#b21">[21]</ref><ref type="bibr" target="#b22">[22]</ref><ref type="bibr" target="#b23">[23]</ref><ref type="bibr" target="#b24">[24]</ref>. However, at the individual level, individuals with ASD exhibit highly variable levels of social motivation <ref type="bibr" target="#b25">[25]</ref>. The modulation parameter may be associated with these individual differences in social motivation within ASD. In the future, it may be useful to expand the use of this proposed model to investigate the differences in choice preference in individuals with ASD whose preference is influenced by the surprise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>Previously, the effect of surprise on the value of an outcome and subsequent decision making was unclear.</p><p>In this study, we proposed the surprise-sensitive utility model, a reinforcement learning model in which </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>METHODS Analysis 1: Simulation analysis with a risk sensitive task</head><p>We first simulated a risk sensitive task with 1,000 agents and compared the probability of choosing a safe choice on four models: our proposed model (the surprise-sensitive utility model) and three previous models described in Niv et al. <ref type="bibr" target="#b14">[14]</ref> ( For the free parameter of each model (α and β for the Q-learning model; α, β, and u for the utility model; α + , α -, and β for the risk sensitive model; α, β, and d for the surprise model), we estimated and utilized the median of the best-fitting parameter values from 16 participants' data in Niv et al. <ref type="bibr" target="#b14">[14]</ref> (see Analysis 2 for details of model fitting).</p><p>Furthermore, within the surprise-sensitive utility model, we examined how the free parameters and are related to the risk sensitive choice. For the surprise decay rate d, we simulated 1,000 values as the number of agents for three learning rates (0.2, 0.5, and 0.8).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Risky probabilistic learning task</head><p>The risky probabilistic learning task is described in detail in Niv et al. <ref type="bibr" target="#b14">[14]</ref>. Briefly, five different-colored stimuli (portrayed as casino-style slot machines or bandits) were randomly allocated to five payoff schedules: sure 40¢, sure 20¢, two sure 0¢ stimuli, and one variable-payoff risky stimulus associated with equal probabilities of 0¢ or 40¢ payoffs. Two types of trials were intermixed randomly:</p><p>choice trials and forced trials. In choice trials, two stimuli were displayed, and the subject was instructed to quickly select one of them. In forced trials, only one stimulus was displayed and the subject was forced to select it and obtain its associated outcome. The task consisted of 234 trials (three sessions of 78 trials).</p><p>Each trial comprised: (1) 30 "risk" choice trials involving a choice between the 20¢ stimulus and the 0/40¢ stimulus (target choice to assess subjects' behavioral risk sensitivity); (2) 20 "test" choice trials involving each of the pairs 40¢ versus 0/40¢, 20¢ versus 40¢, 0¢ versus 0/40¢, and 0¢ versus 20¢; <ref type="formula">(3) 24</ref>forced trials involving each of the stimuli (16 only for each of the 0¢ stimuli); and (4) 20 trials in which subjects chose between the two 0¢ stimuli.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Analysis 2-1: Model selection with actual experimental data</head><p>To investigate how the model fit to actual experimental data, we conducted model selection to define a model that fits best with the actual experimental data from Niv et al. <ref type="bibr" target="#b14">[14]</ref> presented on the author's homepage (http://www.princeton.edu/~nivlab/data.html). This dataset consists of data from 16</p><p>participants who conducted the same risk sensitive task as the simulation analysis.</p><p>The free parameters of each model for model fitting were as follows: α and β for the Q-learning model; α, β, and u for the utility model; α + , α -, and β for the risk sensitive model; α, β, and d for the surprise model (Supplemental table1). The learning rate was constrained to the range 0≦α (α + , α -)≦1</p><p>with a beta (2,2) prior distribution, and inverse temperature was constrained to 0≦β≦10 with a gamma (2,3) prior distribution. The utility parameter was constrained to the range 1≦u≦30 with a uniform prior distribution; these priors are based on Niv et al. <ref type="bibr" target="#b14">[14]</ref>. Additionally, the decay rate of the surprise model was constrained to -1≦d≦1 with a uniform prior distribution. We fit the parameters of each model with a maximum a posteriori (MAP) estimation using gradient descent and calculated the Laplace approximation <ref type="bibr" target="#b17">[17]</ref> to the log marginal likelihood (evidence) for each model. We used the R function "solnp" in the Rsolnp package <ref type="bibr" target="#b18">[18]</ref> to estimate the fitting parameters. We confirmed whether the estimated surprise decay parameter was positive or negative using a one-sample T test.</p><p>In the model selection, model evidences (Log marginal likelihood) for each model and participant were subjected to random-effects Bayesian Model Selection (BMS, spm_BMS in SPM12,</p><p>Stephan, Penny, Daunizeau, Moran, and <ref type="bibr" target="#b19">Friston, 2009)</ref>. Each model was assumed to occur in the population with a latent frequency estimated using variational Bayesian inference. Once these frequencies were estimated, we calculated the protected exceedance probability, defined as the probability that a particular model is more frequent in the population than all the other models, averaged over the probability of the null hypothesis that all models are equally frequent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Analysis 2-2: Model selection with actual experimental data</head><p>To ensure the fitting of the proposed model in different tasks and population, we also conducted the model selection with the actual experimental datasets from Goris et al. <ref type="bibr" target="#b15">[15]</ref> (https://osf.io/pkq3u) whose datasets are presented on the open science framework. The dataset included score of autism spectrum condition for each participant. However, we did not consider the participants' autistic score. This is because the purpose of this analysis is to confirm the fitness of newly proposed model among other model, but not to investigate the specific characteristics of psychiatric disorder, which would be done in the future study. Here we briefly describe their task and utilized computational models. thus we fitted the models from Niv et al <ref type="bibr" target="#b14">[14]</ref> and our above proposed model. The probability of choosing option i was calculated as the dataset of Niv et al. <ref type="bibr" target="#b14">[14]</ref>, but the number of possible actions (K =4). As the analysis for dataset of Niv et al. <ref type="bibr" target="#b14">[14]</ref>, we first calculated the log marginal likelihood (evidence) for each model with MAP estimation and then calculated the protected exceedance probability with BMS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Analysis 3: Simulation analysis with two-armed bandit task</head><p>To investigate the behavioral difference between models on a simple task, we simulated the simple two-armed bandit task and investigated the relationship between stay probability and reward history. We simulated 1,000 agents on the surprise-sensitive utility model and the basic Q-learning model, and compared the stay probability, defined as the probability of choosing same choice in the next trial, t+1, as the current trial, t, with the simple two-armed bandit task. In the task, agents chose one of two choices in which the probability of reward acquisition was different (0.8 vs. 0.2). The free parameters for 13 each model were: α = 0.3, β = for Q-learning; α = 0.3, β = 2, and d = 0.5 for the surprise model. In the proposed model, surprise decreased the outcome value, and thus lowered the stay probability of the proximate reward condition (r(t)=1), especially the surprisal reward condition (r(t-1)=0, r(t)=1), more than the basic Q-learning model predicted.</p><p>Furthermore, we investigated the influence of the modulation parameter (d) on the stay probability within the surprise-sensitive utility model. We predicted that the stay probability of the proximate reward condition (r(t)=1) would decrease as the modulation parameter increases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Disclosure of potential conflicts of interest</head><p>The authors have no conflicts of interest to declare </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>The surprise-sensitive utility model is a model in which the actual received outcome r is affected by the surprise (absolute value of prediction error). In this model, ( ) is the subjective utilitymodulated by surprise. The degree of modulation is controlled by a parameter . ( ) = ( ) − | ( ) − ( )| ( + ) = ( ) + 0 ( ( ) − ( ))</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>surprise decreases the outcome value. Comparing our proposed model with previous models, we found the new model explains risk averse choices as well as previous models. Risk averse choices increased as the surprise-based modulation parameter of outcome value increased. The present findings suggest that surprise can affect subsequent decision making by reducing outcome value. This proposed model could be the basis for a model linking the experimental data and the notion that surprise decreases outcome values.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>the Q-learning model, utility model, and risk-sensitive Q-learning model). The utility model is a Q-learning model that incorporates nonlinear subjective utilities for the different amounts of reward. In this model, U(t) is the subjective utility of the reward at time t: U0 = 0, U20 = 2, and U40 = u• 2. Value of u affect the utility curve. The risk-sensitive model is a Q-learning model in which positive and negative prediction errors have asymmetric effects on learning. Specifically, there are separate learning rates for positive and negative prediction errors: α + and αfor a positive or a negative prediction error, respectively.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>The dataset of Goris et al.<ref type="bibr" target="#b15">[15]</ref> consists of data from 163 participants who conducted a gamble task, a kind of four-armed bandit task, having 200 trials. Each of the four choices had an average reward outcome of € 250. Only the predictability of the gain was manipulated. The fixed choice always returned a gain of € 250. The other three choices returned a gain drawn from a normal distribution with mean € 250 and standard deviation of € 10, € 30, and € 70. They did not fit the computational model to the data,</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure captions:Fig. 1 Fig. 2 Fig. 3 Fig. 4 Fig. 5 20 Fig. 2 21 Fig . Fig. 4 23 Fig.</head><label>1234520221.423</label><figDesc>Probability of choosing the sure choice. Data are presented as the mean ± standard error Plot and second order polynomial fit for probability of choosing sure choices depending on modulation rate and learning rate Model selection Effect of reward history on stay probability of Q-learning model and surprise-sensitive utility model: Data are presented as the mean ± standard error Stay probability and modulation parameter. Data are presented as the mean ± standard errorFig. Probability of choosing the sure choice. Data are presented as the mean ± standard error Plot and second order polynomial fit for probability of choosing sure choices depending on modulation rate and learning rate Model selection A) Model evidence for each model. Data are presented as the mean (bars) and data value (plots and lines) per subject. B) Bayesian model selection Effect of reward history on stay probability of Q-learning model and surprise-sensitive utility model. Data are presented as the mean ± standard error Stay probability and modulation parameter. Data are presented as the mean ± standard error</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>This work was supported by the Grant for Research Fellow of JSPS to M.S. and JSPS KAKENHI Grants (JP18KT0021 and JP18K03173) to K.K.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Writing; Motofumi Sumiya, Kentaro Katahira</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Dopamine reward prediction error signalling: a twocomponent response</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Schultz</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/212111d0</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nat Rev Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="183" to="195" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Precisionweighting of superior frontal cortex unsigned prediction error signals benefits learning, is mediated by dopamine, and is impaired in psychosis. bioRxiv</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Haarsma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Fletcher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Griffin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Taverne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ziauddeen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Spencer</surname></persName>
+		</author>
+		<idno type="DOI">10.1101/558478</idno>
+		<ptr target="http://dx.doi.org/10.1101/558478" />
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Reinforcement Learning in Multidimensional Environments Relies on Attention Mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Daniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Geana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">C</forename><surname>Leong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radulescu</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.2978-14.2015</idno>
+	</analytic>
+	<monogr>
+		<title level="j">J Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page" from="8145" to="8157" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Too Good to Be True: Rhesus Monkeys React Negatively to Better-than-Expected Offers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Knight</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Klepac</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Kralik</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pone.0075768</idno>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS One</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">75768</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Corrugator activity confirms immediate negative affect in surprise</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Topolinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Strack</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2015.00134</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Front Psychol</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="1" to="8" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">A theory of cortical responses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rstb.2005.1622</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Philos Trans R Soc Lond B Biol Sci</title>
+		<imprint>
+			<biblScope unit="volume">360</biblScope>
+			<biblScope unit="page" from="815" to="851" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">Whatever next? Predictive brains, situated agents, and the future of cognitive science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Clark</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.1017/S0140525X12000477</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Behav Brain Sci</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page" from="181" to="204" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Uncertainty and stress: Why it causes diseases and how it is mastered by the brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Mcewen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.pneurobio.2017.05.004</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Prog Neurobiol</title>
+		<imprint>
+			<biblScope unit="volume">156</biblScope>
+			<biblScope unit="page" from="164" to="188" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Affective Value in the Predictive Mind</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Van De Cruys</surname></persName>
+		</author>
+		<idno type="DOI">10.15502/9783958573253</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Philos Predict Process</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="21" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Active Inference and Cognitive Consistency</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<idno type="DOI">10.1080/1047840X.2018.1480693</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol Inq</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="67" to="73" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Nearly, but clearly not, like me&quot;: Contingency preference in normal children versus children with autism</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gergely</surname></persName>
+		</author>
+		<idno type="DOI">10.1521/bumc.65.3.411.19853</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Bull Menninger Clin</title>
+		<imprint>
+			<biblScope unit="volume">65</biblScope>
+			<biblScope unit="page" from="411" to="426" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+	<note>The obscure object of desire</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Contingency detection in a complex world</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Northrup</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/0165025416668582</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Int J Behav Dev</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="723" to="734" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Precise minds in uncertain worlds : Predictive coding in autism</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Van De Cruys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Evers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Hallen R Van Der</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Eylen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Boets</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wagemans</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0037665</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol Rev</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="36" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>In press</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Neural prediction errors reveal a risk-sensitive reinforcement-learning process in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Edlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Doherty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.5498-10.2012</idno>
+	</analytic>
+	<monogr>
+		<title level="j">J Neurosci</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="551" to="562" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The relation between preference for predictability and autistic traits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Brass</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cambier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Delplanque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Wiersema</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Braem</surname></persName>
+		</author>
+		<idno type="DOI">10.1002/aur.2244</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Autism Res</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="11" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Altered learning under uncertainty in unmedicated mood and anxiety disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Aylward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Valton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">Y</forename><surname>Ahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Bond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Roiser</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-019-0628-0</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nat Hum Behav</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="1116" to="1123" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Bayes factors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Kass</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Raftery</surname></persName>
+		</author>
+		<idno type="DOI">10.1080/01621459.1995.10476572</idno>
+	</analytic>
+	<monogr>
+		<title level="j">J Am Stat Assoc</title>
+		<imprint>
+			<biblScope unit="volume">90</biblScope>
+			<biblScope unit="page" from="773" to="795" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Rsolnp &apos;: General Non-Linear Optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ghalanos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Theussl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Package</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+			<publisher>Cran</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Penny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuroimage.2009.03.025</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="1004" to="1017" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Do learning rates adapt to the distribution of rewards?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-014-0790-3</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychon Bull Rev</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="1320" to="1327" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Social reward processing in individuals with autism spectrum disorder: A systematic review of the social motivation hypothesis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bottini</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.rasd.2017.10.001</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Res Autism Spectr Disord</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="9" to="26" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Evaluation of the social motivation hypothesis of autism a systematic review and meta-analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">C</forename><surname>Clements</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Zoltowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">D</forename><surname>Yankowitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">E</forename><surname>Yerys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Herrington</surname></persName>
+		</author>
+		<idno type="DOI">10.1001/jamapsychiatry.2018.1100</idno>
+	</analytic>
+	<monogr>
+		<title level="j">JAMA Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page" from="797" to="808" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">The social motivation theory of autism</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chevallier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kohls</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Troiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">S</forename><surname>Brodkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Schultz</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2012.02.007</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Trends Cogn Sci</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="231" to="240" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Attenuated activation of the anterior rostral medial prefrontal cortex on self-relevant social reward processing in individuals with autism spectrum disorder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sumiya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Okamoto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Koike</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Tanigawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Okazawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kosaka</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.nicl.2020.102249</idno>
+	</analytic>
+	<monogr>
+		<title level="j">NeuroImage Clin</title>
+		<imprint>
+			<biblScope unit="page">102249</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Emotions surrounding friendships of adolescents with autism spectrum disorder in Japan : A qualitative interview study</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sumiya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Igarashi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Miyahara</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pone.0191538</idno>
+		<ptr target="https://doi.org/10.1371/journal.pone.0191538" />
+	</analytic>
+	<monogr>
+		<title level="j">PLoS One</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">191538</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

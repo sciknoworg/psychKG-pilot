@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Analysis of a stochastic dynamical model of word-by-word sentence comprehension</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2021-05-04">May 4, 2021</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Garrett</forename><surname>Smith</surname></persName>
+						</author>
+						<title level="a" type="main">Analysis of a stochastic dynamical model of word-by-word sentence comprehension</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2021-05-04">May 4, 2021</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:31+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>An important class of computational cognitive models is based on stochastic dynamical systems. The SWIFT model of eye-movement control (Engbert, Longtin, &amp; Kliegl, 2002) and the drift-diffusion model of perceptual decision making (Ratcliff, 1978), for example, have driven progress in part because of the mathematical tools that the models afford researchers in analyzing experimental data and deriving new predictions. Stochastic dynamical models have also been applied to word-byword reading comprehension; however, their influence has been limited so far by relatively ad hoc, analytically opaque implementations. Here, I describe a new model of incremental sentence comprehension that models the parsing process as a series of continuoustime, discrete-state random walks among potential syntactic analyses of the sentence so far. Reading can now be framed as a first-passage problem: how long does it take arrive at a complete parse of the sentence so far, given the preceding words? This note describes in detail the derivation of various stochastic quantities of interest, including predicted reading time distribution functions, and illustrates them with example simulations. The hope is that these analytical tools can drive new progress in the theory of word-byword reading comprehension.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Dynamical systems models of cognitive processes characterize behavior in terms of how the system under consideration changes in time <ref type="bibr" target="#b0">(Beer, 2000;</ref><ref type="bibr" target="#b33">van Gelder, 1998)</ref>. Dynamical systems models have generated new insights about cognitive phenomena. For example, the SWIFT model of eye-movement control during reading <ref type="bibr" target="#b6">(Engbert et al., 2002;</ref><ref type="bibr" target="#b7">Engbert, Nuthmann, Richter, &amp; Kliegl, 2005;</ref><ref type="bibr" target="#b24">Seelig et al., 2020)</ref>, which is closely related to the model discussed below, has been influential in understanding how certain properties of written text affect fine-grained saccade planning and timing. Similarly, the drift-diffusion model has guided studies of decision making over multiple decades <ref type="bibr" target="#b19">(Ratcliff, 1978;</ref><ref type="bibr" target="#b20">Ratcliff, Smith, Brown, &amp; McKoon, 2016)</ref>. These stochastic, dynamical models can attribute their theoretical and empirical success in part to their clear, tractable mathematical framing.</p><p>Stochastic dynamical models have also been used to understand and predict word-by-word sentence comprehension effects <ref type="bibr" target="#b1">(beim Graben, Gerth, &amp; Vasishth, 2008;</ref><ref type="bibr" target="#b3">Cho, Goldrick, &amp; Smolensky, 2017;</ref><ref type="bibr" target="#b14">Kempen &amp; Vosse, 1989;</ref><ref type="bibr" target="#b25">Smith, 2018;</ref><ref type="bibr" target="#b27">Smith, Franck, &amp; Tabor, 2018</ref><ref type="bibr" target="#b26">, 2021</ref><ref type="bibr" target="#b29">Stevenson, 1994;</ref><ref type="bibr" target="#b31">Tabor &amp; Hutchins, 2004;</ref><ref type="bibr" target="#b36">Vosse &amp; Kempen, 2000</ref>. The most common type of data to be explained is reading times, measured by recording eye movements or by self-paced reading <ref type="bibr" target="#b13">(Just, Carpenter, &amp; Woolley, 1982)</ref>. Examples of previous dynamical sentence comprehension models include <ref type="bibr" target="#b31">Tabor and Hutchins (2004)</ref> and <ref type="bibr" target="#b27">Smith et al. (2018)</ref>, who used stochastic differential equations to model changes in the relative strengths of competing parses. While the range of empirical phenomena that these and related models can explain is considerable, they have not been widely adopted. One reason for this is their relatively complicated mathematical implementations, which hamper formal analysis and parameter fitting. This makes extending or even reproducing previous results difficult.</p><p>Recently, <ref type="bibr" target="#b26">Smith (2021)</ref> proposed a new dynamical theory of the sentence comprehension process. The model, called mparse, is based on the idea that sub-steps in the parsing process at each word correspond to discrete states that the model explores stochastically. This continuous-time Markov process can be described using the master equation, a set of deterministic ordinary differential equations that describe how the probability of different states changes in time <ref type="bibr" target="#b34">(van Kampen, 2007)</ref>. In contrast with most previous stochastic dynamical models in sentence comprehension, implementing mparse's dynamics using the master equation provides a well-understood and readily analyzable framework for exploring the model's behavior. As described below, mparse makes word-by-word reading time predictions by asking how long it takes the model to reach a complete parse of the sentence so far, thus framing the question as a first-passage time problem. The purpose of this note is to explain and summarize the relevant results on first passage time statistics as a complement to the descriptions of one-step systems typically discussed in textbooks <ref type="bibr" target="#b10">(Gardiner, 1985;</ref><ref type="bibr" target="#b21">Redner, 2001;</ref><ref type="bibr" target="#b34">van Kampen, 2007)</ref>. While mparse is used to illustrate the math, the results are applicable to any continuous-time, discrete state stochastic process, with potential for broader application in cognitive science. The results are not new, but applying them to a model of sentence comprehension is new (to the best of my knowledge). The hope is that by summarizing the first-passage results here, they can be applied more readily in psycholinguistic models and cognitive science more generally.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">The mparse model</head><p>At each word w in a sentence, mparse creates n w discrete states which represent partial or complete parses of the string of words that has been encountered so far. For simplicity, we assume that the model "knows" a set of head-dependent relationships that are allowed in the language it is processing. The head is the word that licenses the existence of the dependent, which in turn modifies the head <ref type="bibr" target="#b9">(Gaifman, 1965;</ref><ref type="bibr" target="#b12">Hays, 1964;</ref><ref type="bibr" target="#b15">Kübler, McDonald, &amp; Nivre, 2009)</ref>. For simplicity, dependencies are not labeled with a type (like subject or determiner), although the grammar can be extended to include typed dependencies <ref type="bibr" target="#b15">(Kübler et al., 2009;</ref><ref type="bibr" target="#b26">Smith, 2021)</ref>.</p><p>As a first example, consider the string the cat. After reading these two words, mparse creates three discrete states (see <ref type="figure" target="#fig_0">Fig. 1</ref>). The first is a no-structure state: no dependencies are established between the words. The second is a state consisting of the parse in which the attaches as the dependent of cat, the most complete parse of these two words. The dependency between the and cat in <ref type="figure" target="#fig_0">Fig. 1</ref> is shown by the thin arcs pointing from the head to the dependent word. The final state is identical to the previous state but represents the decision to move on to the next word. This state is an absorbing state; once the model reaches it, it cannot go back and visit other states. Instead the next word is input and processing resumes again with an updated state space. The no-structure and complete-parse states are transient states. Within each state, the thin arcs point from the head to the dependent. Note that the parses in the complete parse and absorbing states are identical; jumping to the latter marks the decision to move on to the next word of the sentence.</p><p>Having enumerated the states available at word w, mparse then jumps stochastically between states that differ by a single link (nearest-neighbor transitions). This continuous-time Markov process can be described using the master equation <ref type="bibr" target="#b34">(van Kampen, 2007)</ref>. For each state n, the master equation describes how the probability p n of that state changes in time. Jumps between state n and state m (shown as thick arrows in <ref type="figure" target="#fig_0">Fig. 1</ref>) occur at the rates W nm , which is the probability of jumping from m to n per unit time. The master equation for state n can thus be written as dp</p><formula xml:id="formula_0">n (t) dt = m =n W nm p m (t) − p n (t) m =n W mn</formula><p>The master equation describes how probability flows into state n from other states m (first term) and how it flows away from n to other states m (second term). The master equation can also be written in matrix form as Eq. 1:</p><formula xml:id="formula_1">dp(t) dt = Wp(t)<label>(1)</label></formula><p>The matrix W contains the transition rates W nm with the diagonal elements W nn = m =n W mn , and p(t) is a column vector containing all of the p n (t). Note that for an absorbing state a, W na = 0 ∀n = a. Once mparse reaches a, it cannot return to the other states (called transient states; note the lack of thick arrows leaving the absorbing state in <ref type="figure" target="#fig_0">Fig. 1</ref>). Instead, mparse reads in the next word, updates its state space with any new states made available by the presence of the new word, and resumes the random walk again.</p><p>To solve the master equation, we must provide an initial probability distribution over states p(0). At first word of the sentence, all probability is placed on the no-structure state (p n (0) = δ n,no struct. ), but for later words, p(0) depends on the processing at the previous word (see below). Given the initial state, the formal solution to the master equation is</p><formula xml:id="formula_2">p(t) = e Wt p(0) = ∞ l=0 t l l! W l p(0)<label>(2)</label></formula><p>The solution can also be written in terms of the n w left and right eigenvectors (l and r) and eigenvalues (λ) of the matrix W <ref type="bibr" target="#b17">(Oppenheim, Shuler, &amp; Weiss, 1977)</ref>:</p><formula xml:id="formula_3">p(t) = nw j=1 (l j p(0))r j e λ j t</formula><p>where denotes the transpose of a vector. Using the dynamics governed by this master equation, mparse explores the set of partial parses (i.e., its states) that is possible at each word w until it gets absorbed in an absorbing state. For the string the cat, mparse can jump between the transient no-structure and complete-parse states shown in <ref type="figure" target="#fig_0">Fig. 1</ref> until it jumps to the absorbing state. At that point, the model inputs the next word (e.g., sleeps), adds new states depending on the parses available with the new word (e.g., having a dependency between sleeps and cat), and repeats the whole process until there are no more words in the sentence to input. The state it reaches at the end of the last word corresponds to the parse it builds for the whole sentence. In the next section, I show how we can use the master equation approach of mparse to provide formulas for a number of first-passage statistics and apply them to a simple example sentence.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">First-passage time statistics</head><p>Given this formal model, we want to know how long it takes to process each word or a string of words. We can model this as a first passage time problem, where we ask how long and with what probability mparse reaches a particular absorbing state. To make the discussion more concrete, I will use the ambiguous sentence in Ex. <ref type="formula" target="#formula_1">(1):</ref>(1)</p><p>The ranger saw the hunter with binoculars.</p><p>This sentence can either be interpreted as the ranger using the binoculars to see the hunter (the "instrument" parse) or as the ranger seeing the binocularscarrying hunter (the "modifier" parse; see <ref type="figure" target="#fig_1">Fig. 2</ref>). The first interpretation requires that the prepositional phrase with binoculars attaches as the dependent of the verb saw, while the second requires that with binoculars be the dependent of the noun phrase the hunter. All of the results below are implemented in Python at https://tinyurl.com/MparseDemo. After reading saw the hunter with the binoculars, mparse explores the transient states ("No structure," "Partial parse," "Instrument parse," and "Modifier parse" in <ref type="figure" target="#fig_1">Fig. 2</ref>) by jumping between states that differ only by a single dependency link. If the model is in either the instrument or modifier parse, there is some probability that it can jump to the corresponding absorbing state instead of jumping back to a different transient state. To model reading times, we ask how long it takes mparse to find an absorbing state. We can also ask what the probabilities are of ending up in the instrument or modifier absorbing states. I now show how to calculate these quantities and use them to make reading time predictions.</p><p>For concreteness, the W matrix for this example is listed in 3 below.</p><formula xml:id="formula_4">W =           W 00 W 10 0 0 0 0 W 10 W 11 W 12 W 13 0 0 0 W 21 W 22 0 0 0 0 W 31 0 W 33 0 0 0 0 W 42 0 0 0 0 0 0 W 53 0 0          <label>(3)</label></formula><p>. . . saw the hunter with binoculars. (1). The numbers serve as labels for the states in the equations in the text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Exit time distribution</head><p>For many sentences, there will be a single absorbing state for most words in the sentence. But in general, there can be more than one absorbing state, as shown in <ref type="figure" target="#fig_1">Fig. 2</ref> for Ex. (1). A first question we can ask is how long it takes to find either one of the absorbing states (it does not matter which), the exit time from the transient states into one of the absorbing states <ref type="bibr" target="#b34">(van Kampen, 2007)</ref>. To do this, we begin by partitioning the matrix W into submatrices T and A.</p><formula xml:id="formula_5">W = T 0 A 0</formula><p>The matrix T contains the transitions within the set T of transient states, and the matrix A contains the transitions from the transient states to the absorbing states (given by the set A). The 0 are zero matrices of appropriate dimension. The vectors p T and p A denote the vectors of probabilities of the transient and absorbing states, respectively, with p T (t) + p A (t) = 1 ∀t. The matrices and vectors for the example sentence are:</p><formula xml:id="formula_6">T =      W 00 W 10 0 0 W 10 W 11 W 12 W 13 0 W 21 W 22 0 0 W 31 0 W 33      A = 0 0 W 42 0 0 0 0 W 53 p T =      p 0 p 1 p 2 p 3      p A = p 4 p 5</formula><p>The total probability of having already reached an absorbing states at time t is S(t) = a∈A p a (t). Thus, the probability of being absorbed into any absorbing state in the time between t and t + dt is given by the time derivative of S(t). This quantity is the exit time distribution f (t):</p><formula xml:id="formula_7">f (t) = dS(t) dt =</formula><p>a∈A dp a (t) dt = dp A dt Substituting in the relevant terms from Eq. 1 and Eq. 2 and noting that the absorbing states only receive probability from the transient states, we arrive at the explicit form of the exit time distribution:</p><formula xml:id="formula_8">f (t) = Ap T (t) = Ae Tt p T (0)<label>(4)</label></formula><p>The matrix exponential can be evaluated numerically (as done in the demonstration online at https://tinyurl.com/MparseDemo) or by substituting in the eigenvalue decomposition shown above.</p><p>The m-th non-central moment µ m of f (t) is given by solving µ m = ∞ 0 t m f (t)dt <ref type="bibr" target="#b17">(Oppenheim et al., 1977)</ref>:</p><formula xml:id="formula_9">µ m = (−1) m m!1 T −m p T (0)</formula><p>The vector 1 is a vector of ones of length |T |. Thus, the mean exit time is µ 1 = −1 T −1 p T (0), and the variance is µ 2 − µ 2 1 = 21 T −2 p T (0) − µ 2 1 . In mparse, the exit time distribution at each word or multi-word region (Eq. 4), along with its mean and variance, can be compared to human reading time distributions. Eq. 4 can also be used as the basis for a likelihood function for fitting parameters in the matrix W to human experimental data.</p><p>Without loss of generality, we can set all of the W nm = 1.0 to illustrate. The exit time distribution (in arbitrary time units) for the example sentence is shown in <ref type="figure" target="#fig_3">Fig. 3</ref>. The mean of the distribution is 4.0 and the variance is 10.0. Note that the mean exit time is considerably higher than the mode of the exit time distribution (approximately 1.5); this is due to positive skew in the exit time distribution. Long exit times are possible because the model will sometimes jump around among the transient states for a long time before finally jumping to an absorbing state.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Multiple absorbing states</head><p>The example sentence in Ex. (1) has more than one absorbing state, each corresponding to a possible analysis of the sentence. In cases such as this, we can go beyond the exit time distribution and calculate the probability of finding different absorbing states (called the splitting probabilities) and the probability distribution of times to reach one absorbing state before any of the others (the conditional first passage times; van Kampen, 2007). As noted above, probability flows to the absorbing states exclusively from the transient states, so the solution to the master equation for just the absorbing states is Eq. 5:</p><formula xml:id="formula_10">p A (t) = Ae Tt p T (0)<label>(5)</label></formula><p>To figure out the splitting probability π a for the a-th absorbing state, we integrate Eq. 5 over time <ref type="bibr" target="#b32">(Valleriani, Li, &amp; Kolomeisky, 2014;</ref><ref type="bibr" target="#b34">van Kampen, 2007)</ref>:</p><formula xml:id="formula_11">π a = ∞ 0 p a (t)dt</formula><p>Plugging in Eq. 5 and solving the integral, we arrive at</p><formula xml:id="formula_12">π a = ∞ 0 [Ae Tt p T (0)] a dt = −[AT −1 p T (0)] a<label>(6)</label></formula><p>where <ref type="bibr">[•]</ref> a denotes the ath element of the vector in brackets. Eq. 6 holds for all absorbing states a.</p><p>For the example sentence, if we assume mparse starts in the no-structure state (p T (0) = [1, 0, 0, 0] ), the splitting probabilites are [0.5, 0.5] . If, on the other hand, we assume that speakers of English prefer the modifier parse (i.e., the hunter has the binoculars; <ref type="bibr" target="#b8">Frazier, 1978)</ref> and increase the transition rates W 31 and W 53 to 2.0 instead of 1.0, we get splitting probabilities of [0.27, 0.73] , a preference for attaching with the binoculars as the modifier of hunter.</p><p>Once we have the splitting probabilities π a for the absorbing states a, we can now calculate the conditional first-passage time distributions for each a. The conditional first-passage time distribution for a is the distribution of first passages to a conditional on not having been absorbed in another absorbing state a . This contrasts with the exit time, which is the time to reach any absorbing state at all instead of a particular one. Instead of summing across all of the absorbing states in Eq. 4, we take each element of the vector A exp(Tt)p T (0) and normalize by the corresponding splitting probability:</p><formula xml:id="formula_13">f a (t) = [Ae Tt p T (0)] a π a<label>(7)</label></formula><p>Eq. 7 thus gives the probability distribution of getting absorbed in state a given the initial condition p(0). This can lead directly to differing predictions about reading times conditional which structure is built when processing a word. The conditional first-passage time distributions for the two absorbing states are shown in <ref type="figure" target="#fig_5">Fig. 4</ref>.  The mean conditional first passage time is given in Eq. 8 <ref type="bibr" target="#b18">(Polizzi, Therien, &amp; Beratan, 2016)</ref>:</p><formula xml:id="formula_14">τ a = 1 π a ∞ 0 tf a (t)dt = [T −2 p T (0)] a π a<label>(8)</label></formula><p>For the example sentence (including the bias for the modifier parse), the mean first-passage time to the instrument parse is 2.85 and 2.68 to the modifier parse. These are considerably shorter than the mean exit time. This is because the mean first-passage times are conditioned on not being absorbed by a different absorbing state. Intuitively, if mparse is to be absorbed in a particular absorbing state, then the probability of that happening decreases each time it makes a jump within the transient states. Getting absorbed in a particular state is more probable if mparse takes a faster, more direct path, rather than jumping around in the transient states for a while. Indeed, <ref type="bibr" target="#b32">Valleriani et al. (2014)</ref> show via an analysis of the Taylor series expansion of the first-passage time density that the dominant terms correspond to the shortest paths from the initial state to the absorbing state.</p><p>In most of these equations, it is necessary to specify the initial probability distribution at each word p(0). As noted above, at the first word, all of the probability is placed on the no-structure state. This initial state is also used here for illustration purposes. For each subsequent word, though, the splitting probabilities from the previous word should be used as the initial conditions. In this way, the results of parsing at word w − 1 affect the parsing at word w. In the example, though, p(0) is set to have all probability on the no-structure state for simplicity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Discussion and conclusion</head><p>Using the example sentence in (1), the ranger saw the hunter with the binoculars, I have summarized a set of first-passage time statistics for the continuous-time, discrete-state Markov model of sentence comprehension, mparse <ref type="bibr" target="#b26">(Smith, 2021)</ref>. These statistics can be used to generate predictions from mparse and compare them to human reading time data. The exit time and conditional first-passage time distributions at a word can be used as the predicted distribution of reading times at that word in the human experiment. These distributions can also form the basis of a likelihood function for fitting free parameters in the W matrix to human data. In <ref type="bibr" target="#b26">Smith (2021)</ref>, the entries of W are scaled by a free parameter τ that controls the time scale of the processing time predictions so that they are directly comparable to human reading times. Work is underway to fit individual-level τ parameters hierarchically to understand how individual differences in parsing speed relate to effect sizes in experimental sentences. Such model-based data analysis has led to great progress in other fields of cognitive science (e.g., in understanding forced-choice decision making; <ref type="bibr" target="#b20">Ratcliff et al., 2016)</ref>. The hope is that by making a process model a part of the data analysis pipeline, we can discover areas where the process model provides a good fit to the data (and therefore possibly a plausible explanation for them) and where the fit is poorer (indicating a need to revise the model; see also, <ref type="bibr" target="#b11">Guest &amp; Martin, 2021)</ref>.</p><p>Having a tractable likelihood function also facilitates quantitative model comparison <ref type="bibr" target="#b23">(Schütt et al., 2017)</ref>, either using likelihood ratio tests or Bayes factors (which utilize the marginal likelihood, taking into account uncertainty in the parameters). To my knowledge, mparse is the first dynamical model of sentence process for which a likelihood function is available, which opens the door to much more informative model comparison efforts than have been possible with previous models (e.g., <ref type="bibr" target="#b3">Cho et al., 2017;</ref><ref type="bibr" target="#b14">Kempen &amp; Vosse, 1989;</ref><ref type="bibr" target="#b27">Smith et al., 2018</ref><ref type="bibr" target="#b28">Smith et al., , 2021</ref><ref type="bibr" target="#b29">Stevenson, 1994;</ref><ref type="bibr" target="#b31">Tabor &amp; Hutchins, 2004;</ref><ref type="bibr" target="#b36">Vosse &amp; Kempen, 2000</ref>. These newly possible model comparison techniques will finally make testing the viability of the dynamical approach to sentence comprehension feasible.</p><p>An interesting future application of the conditional first-passage times and splitting probabilities relates to comprehension questions. In reading experiments, it is common to include comprehension questions that query participants' understanding of the sentences and to try to understand how they interpret them. Obviously, the link between word-by-word processing and comprehension question performance is indirect; answering a question after reading a sentence relies on, among other things, participants' fallible memory of the sentence. However, performance on comprehension questions is commonly understood to at least partially reflect what happened when reading the sentence (e.g., <ref type="bibr" target="#b4">Christianson, Hollingworth, Halliwell, &amp; Ferreira, 2001;</ref><ref type="bibr" target="#b28">Smith et al., 2021;</ref><ref type="bibr" target="#b30">Swets, Desmet, Clifton, &amp; Ferreira, 2008;</ref><ref type="bibr" target="#b35">Villata, Tabor, &amp; Franck, 2018)</ref>. If, in a particular experimental item, building the correct parse was less likely than in another condition, i.e., the splitting probabilities differ, we might expect participants' performance on comprehension questions to differ to a similar degree. Thus, the splitting probabilities at a critical region in a sentence could be used as predictions of comprehension question accuracy.</p><p>The conditional first-passage time distributions could be used in a similar way. Mparse predicts that, when there is more than one absorbing state, there can be different conditional first-passage times, as we saw with the example sentence with a bias toward the modifier parse. If we assume that splitting probabilities for a critical region correlate with comprehension question accuracy, then it is also reasonable to assume that reading times in that region should differ based on comprehension question accuracy. Thus, mparse can be used to generate new, testable predictions that directly relate comprehension question performance to online reading time behavior.</p><p>Finally, we anticipate that the mparse framework will scale up to broad-coverage parsing, that is, it should be possible to implement a version of mparse that can process arbitrary input sentences, as advocated for by <ref type="bibr" target="#b5">Crocker and Brants (2000)</ref>, for example. A common critique of dynamical models of sentence processing is that they are too complicated to handle more than a couple of sentence types with a single set of parameters (e.g., <ref type="bibr" target="#b2">Bicknell &amp; Levy, 2009)</ref>. Work is underway to extract a large set of dependency rules from gold-standard parsed corpora (e.g., <ref type="bibr" target="#b16">Nivre et al., 2016)</ref>. Once the set of possible dependencies between words is set, it is possible to set up mparse to process any sentence that uses those rules <ref type="bibr" target="#b26">(Smith, 2021)</ref>, making large-scale tests of the robustness of mparse in comparison with other broad-coverage parsing models (e.g., <ref type="bibr" target="#b22">Roark, Bachrach, Cardenas, &amp; Pallier, 2009)</ref> possible.</p><p>Overall, the first-passage time techniques summarized here should provide a convenient reference to spur further model development and new experiments in incremental sentence comprehension. The mparse model was used to illustrate the techniques; however, they apply to any finite-state system governed by the master equation, including the one-step processes typically handled in detail in textbooks <ref type="bibr" target="#b10">(Gardiner, 1985;</ref><ref type="bibr" target="#b21">Redner, 2001;</ref><ref type="bibr" target="#b34">van Kampen, 2007)</ref>. By adding new mathematical tools to the toolbox of computational cognitive modeling of language comprehension, we hope to make new and unexpected discoveries in a more principled and less ad hoc way.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Network of possible transitions between the states (surrounded by boxes) available after reading the cat. Thick arrows indicate possible jumps between states.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Network of possible transitions between the states available after reading Ex.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 3 :</head><label>3</label><figDesc>Exit time distribution for Ex. (1).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 4 :</head><label>4</label><figDesc>Conditional first-passage time distributions for Ex. (1), assuming a bias toward the modifier parse.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Acknowledgments This research was funded by the University of Potsdam. Many thanks to Prof. Dr. Shravan Vasishth for comments on an earlier version of this paper.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Dynamical approaches to cognitive science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Beer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="91" to="99" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Towards dynamical system models of language-related brain potentials</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Beim Graben</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gerth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vasishth</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11571-008-9041-5</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Neurodynamics</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="229" to="255" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">A model of local coherence effects in human sentence processing as consequences of updates from bottom-up prior to posterior beliefs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Bicknell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Levy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 10th Annual Meeting of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT) Conference</title>
+		<meeting>the 10th Annual Meeting of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT) Conference<address><addrLine>Boulder, Colorado, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="page" from="665" to="673" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Incremental parsing in a continuous dynamical system: Sentence procesing in Gradient Symbolic Computation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Goldrick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Smolensky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Linguistics Vanguard</title>
+		<imprint>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Thematic roles assigned along the garden path linger</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Christianson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hollingworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Halliwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ferreira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Psychology</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="368" to="407" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Wide-coverage probabilistic sentence processing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Crocker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Brants</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Psycholinguistic Research</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="647" to="669" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">A dynamical model of saccade generation in reading based on spatially distributed lexical processing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Engbert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Longtin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kliegl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Vision Research</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="621" to="636" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">SWIFT: A dynamical model of saccade generation during reading</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Engbert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Nuthmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Richter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kliegl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="777" to="813" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">On comprehending sentences: Syntactic parsing strategies (Unpublished doctoral dissertation)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Frazier</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1978" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Connecticut</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Dependency systems and phrase-structure systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Gaifman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Information and Control</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="304" to="337" />
+			<date type="published" when="1965" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Handbook of stochastic methods for physics chemistry and the natural sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Gardiner</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1985" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">How computational modeling can force theory building in psychological science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guest</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Martin</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/1745691620970585</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Dependency theory: A formalism and some observations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Hays</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Language</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="511" to="525" />
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Paradigms and processes in reading comprehension</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Just</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Carpenter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Woolley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="228" to="238" />
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Incremental syntactic tree formation in human sentence processing: A cognitive architecture based on activation decay and simulated annealing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kempen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Vosse</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Connection Science</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="273" to="290" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Dependency parsing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kübler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nivre</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+			<publisher>Morgan &amp; Claypool Publishers</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Universal dependencies v1: A multilingual treebank collection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nivre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-C</forename><surname>De Marneffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ginter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Goldberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hajič</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Zeman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the tenth international conference on language resources and evaluation</title>
+		<meeting>the tenth international conference on language resources and evaluation</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Stochastic processes in chemical physics: The master equation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Oppenheim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Shuler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Weiss</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1977" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Mean first-passage times in biology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Polizzi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Therien</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">N</forename><surname>Beratan</surname></persName>
+		</author>
+		<idno>doi: 10.1002/ ijch.201600040</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Israel Journal of Chemistry</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="page" from="816" to="824" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="59" to="108" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Diffusion decision model: Current issues and history</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="260" to="281" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">A guide to first-passage processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Redner</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001" />
+			<publisher>Cambridge University Press</publisher>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Deriving lexical and syntactic expectation-based measures for psycholinguistic modeling via incremental top-down parsing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Roark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bachrach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Cardenas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Pallier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2009 conference on empirical methods in natural language processing</title>
+		<meeting>the 2009 conference on empirical methods in natural language processing</meeting>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="page" from="324" to="333" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Likelihood-based parameter estimation and comparison of dynamical cognitive models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Schütt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">O M</forename><surname>Rothkegel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Truckenbrod</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Wichmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Engbert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="505" to="524" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Bayesian parameter estimation for the SWIFT model of eye-movement control during reading</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Seelig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Rabe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Malem-Shinitski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Risse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Engbert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">A theory of timing effects in a self-organizing model of sentence processing (Unpublished doctoral dissertation)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Smith</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Connecticut</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Mparse: A new framework for self-organized, incremental sentence comprehension</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Smith</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.4674276</idno>
+		<ptr target="https://osf.io/k6rnx/(Underreview" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">A self-organizing approach to subjectverb number agreement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Franck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Tabor</surname></persName>
+		</author>
+		<idno>doi: 10.1111/ cogs.12591</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="issue">S4</biblScope>
+			<biblScope unit="page" from="1043" to="1074" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Encoding interference effects support self-organized sentence processing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Franck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Tabor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Psychology</title>
+		<imprint>
+			<biblScope unit="page">124</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Competition and recency in a hybrid network model of syntactic disambiguation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Stevenson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Psycholinguistic Research</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="295" to="322" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Underspecification of syntactic ambiguities: Evidence from self-paced reading</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Swets</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Desmet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ferreira</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/MC.36.1.201</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Memory &amp; Cognition</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="201" to="216" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Evidence for self-organized sentence processing: digging-in effects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Tabor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hutchins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: Learning, Memory, and Cognition</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="431" to="450" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Unveiling the hidden structure of complex stochastic biochemical networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Valleriani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B</forename><surname>Kolomeisky</surname></persName>
+		</author>
+		<idno type="DOI">10.1063/1.4863997</idno>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Chemical Physics</title>
+		<imprint>
+			<biblScope unit="issue">064101</biblScope>
+			<biblScope unit="page">140</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">The dynamical hypothesis in cognitive science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Van Gelder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="615" to="665" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title level="m" type="main">Stochastic processes in physics and chemistry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">G</forename><surname>Van Kampen</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007" />
+			<publisher>Elsevier</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Encoding and retrieval interference in sentence comprehension: Evidence from agreement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Villata</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Tabor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Franck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1" to="16" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Syntactic structure assembly in human parsing: a computational model based on competitive inhibition and a lexicalist grammar</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Vosse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kempen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page" from="105" to="143" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">The Unification Space implemented as a localist neural net: predictions and error-tolerance in a constraint-based parser</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Vosse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kempen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Neurodynamics</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="331" to="346" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

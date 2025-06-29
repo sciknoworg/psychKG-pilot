@@ -1,0 +1,1165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Towards a computational model of responsibility judgments in sequential human-AI collaboration</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stratis</forename><surname>Tsirtsis</surname></persName>
+							<email>stsirtsis@mpi-sws.org</email>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Manuel</forename><surname>Gomez-Rodriguez</surname></persName>
+							<email>manuelgr@mpi-sws.org</email>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tobias</forename><surname>Gerstenberg</surname></persName>
+							<email>gerstenberg@stanford.edu</email>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Software Systems</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">Stanford University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Towards a computational model of responsibility judgments in sequential human-AI collaboration</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:24+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>responsibility</term>
+					<term>counterfactual simulation</term>
+					<term>sequential decision making</term>
+					<term>human-AI collaboration</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>When a human and an AI agent collaborate to complete a task and something goes wrong, who is responsible? Prior work has developed theories to describe how people assign responsibility to individuals in teams. However, there has been little work studying the cognitive processes that underlie responsibility judgments in human-AI collaborations, especially for tasks comprising a sequence of interdependent actions. In this work, we take a step towards filling this gap. Using semiautonomous driving as a paradigm, we develop an environment that simulates stylized cases of human-AI collaboration using a generative model of agent behavior. We propose a model of responsibility that considers how unexpected an agent&apos;s action was, and what would have happened had they acted differently. We test the model&apos;s predictions empirically and find that in addition to action expectations and counterfactual considerations, participants&apos; responsibility judgments are also affected by how much each agent actually contributed to the outcome.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Imagine a future where every car is supported by an AI agent with autonomous driving capabilities. Jane starts driving her car manually, she makes a quick stop to leave her kids at school, and then she enters her car again. Alan, her AI driving assistant, offers to drive her to work, she accepts, and she relaxes while enjoying the ride. Alan follows a path, different from the one she would have followed, that seems to have less traffic than usual. Unbeknownst to both of them, there is a car crash blocking a street and they need to turn around and find another (longer) way. As a result, Jane arrives late at work. Who is responsible for the delay? Alan for taking a path that was blocked or Jane for letting the AI drive in the first place? Both of them, since they both drove part of the commute, or none of them, since they didn't know about the accident?</p><p>Questions about responsibility are ubiquitous in our everyday lives and humans make responsibility judgments intuitively even about complex situations such as the one described above. Cognitive scientists have developed and tested different theories about the cognitive process underpinning responsibility judgments <ref type="bibr" target="#b0">(Alicke, 2000;</ref><ref type="bibr" target="#b9">Chockler &amp; Halpern, 2004;</ref><ref type="bibr" target="#b15">Gerstenberg &amp; Lagnado, 2010;</ref><ref type="bibr" target="#b33">Shaver, 2012)</ref>. However, the increasing development of AI systems that assist and collaborate with humans, rather than replacing them <ref type="bibr" target="#b4">(Balazadeh Meresht et al., 2022;</ref><ref type="bibr" target="#b10">De et al., 2020</ref><ref type="bibr" target="#b11">De et al., , 2021</ref><ref type="bibr" target="#b27">Mozannar et al., 2022;</ref><ref type="bibr" target="#b28">Okati et al., 2021;</ref><ref type="bibr" target="#b31">Raghu et al., 2019;</ref><ref type="bibr" target="#b34">Straitouri et al., 2021;</ref><ref type="bibr" target="#b41">Wilder et al., 2021)</ref>, calls for more empirical and theoretical research to shed light on the way humans make responsibility judgments in situations involving human-AI teams <ref type="bibr" target="#b8">(Cañas, 2022)</ref>. Recent work in that area has identified several factors that influence responsibility judgments <ref type="bibr" target="#b1">(Awad et al., 2020;</ref><ref type="bibr" target="#b25">Lima et al., 2021;</ref><ref type="bibr" target="#b26">Longin et al., 2023)</ref>. However, this work has not attempted to characterize the underlying cognitive processes that support such judgments. Our work takes a step towards filling this gap by introducing a computational model to predict responsibility judgments for human-AI teams in environments where the two agents collaborate and act sequentially.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Responsibility &amp; counterfactual reasoning</head><p>Existing theories about the cognitive process of responsibility attribution have established strong ties with causality <ref type="bibr" target="#b30">(Pearl, 2009)</ref> and counterfactual reasoning <ref type="bibr" target="#b7">(Byrne, 2016;</ref><ref type="bibr" target="#b19">Kahneman et al., 1982;</ref><ref type="bibr" target="#b32">Roese, 1997)</ref>. Humans tend to consider an object, event, action or agent as (causally) responsible for an outcome if they can mentally simulate an alternative reality where that outcome would have been different if the candidate cause had not existed or occurred in the first place <ref type="bibr" target="#b5">(Beckers, 2023;</ref><ref type="bibr" target="#b9">Chockler &amp; Halpern, 2004;</ref><ref type="bibr" target="#b17">Gerstenberg et al., 2018;</ref><ref type="bibr" target="#b18">Halpern &amp; Kleiman-Weiner, 2018;</ref><ref type="bibr" target="#b22">Lagnado et al., 2013;</ref><ref type="bibr" target="#b23">Langenhoff et al., 2021;</ref><ref type="bibr" target="#b36">Triantafyllou et al., 2022;</ref><ref type="bibr" target="#b42">Wu &amp; Gerstenberg, 2024;</ref><ref type="bibr" target="#b44">Wu et al., 2023;</ref><ref type="bibr" target="#b45">Xiang et al., 2023;</ref><ref type="bibr" target="#b46">Zultan et al., 2012)</ref>. In that context, <ref type="bibr" target="#b14">Gerstenberg et al. (2021)</ref> have developed the counterfactual simulation model (CSM), a computational model that accurately predicts the extent to which people perceive an object (e.g., a moving billiard ball) as a cause of an observed outcome (e.g., potting another ball). Specifically, using a physics engine to approximate people's intuitive understanding of physics <ref type="bibr" target="#b16">(Gerstenberg &amp; Tenenbaum, 2017;</ref><ref type="bibr" target="#b39">Ullman et al., 2017)</ref>, the model performs (stochastic) simulations of counterfactual situations where the candidate cause (e.g., the moving billiard ball) is removed from the scene or slightly perturbed. Then, it predicts participants' causal judgments based on the estimated probability that the outcome would have been different had the respective intervention on the candidate cause taken place.</p><p>More recently, <ref type="bibr" target="#b43">Wu et al. (2022</ref><ref type="bibr" target="#b44">Wu et al. ( , 2023</ref> have explored extensions of the CSM in social settings using Markov decision processes (MDPs) <ref type="bibr" target="#b35">(Sutton &amp; Barto, 2018)</ref> as generative models of agent behavior. Reminiscent of the results in the phys-  <ref type="figure">Figure 1</ref>: Illustration of a commute in our semi-autonomous driving environment. The human agent (Jane) and the AI are both in the same car and their goal is to reach the workplace within the time limit shown above the grid. The sign indicates that the AI is in control. The grid contains three traffic spots, one congested ( ) and two non congested ( ), whose status is initially known only to the AI. It also contains a road closure ( ) which is known to the human but unknown to the AI. Obstacles that are unknown to the agent in control but known to the other agent appear faded. The arrow signs marked on the car (e.g., ) indicate the direction that the driver in control is planning to follow. The 3 × 3 rectangle around the car represents the agents' field of view via which they discover obstacles that are previously unknown to them. Here, the accident ( ) present at the top row of the grid becomes visible only after the car goes next to it and it enters the agent's field of view.</p><p>ical domain, they have shown that the CSM predicts people's judgments about the extent that a decision of a psychological agent caused an outcome based on counterfactual simulations where that agent has made a different decision <ref type="bibr" target="#b43">(Wu et al., 2022)</ref>. However, in the context of responsibility attribution, the shift of focus from physical objects to agents introduces additional complexity, since an agent's actions are conditioned on their epistemic state <ref type="bibr" target="#b5">(Beckers, 2023;</ref><ref type="bibr" target="#b13">Franklin et al., 2022;</ref><ref type="bibr" target="#b18">Halpern &amp; Kleiman-Weiner, 2018;</ref><ref type="bibr" target="#b20">Kirfel &amp; Lagnado, 2021)</ref>. To explore this further, <ref type="bibr" target="#b44">Wu et al. (2023)</ref> have experimented with a gridworld environment where an agent is trying to achieve an outcome in the presence of a second (potentially adversarial) agent. They have proposed an extension of the CSM that additionally models the first agent's belief about the second agent's intention and explains responsibility judgments by combining counterfactual simulations with intention inferences (Kleiman-Weiner et al., 2015).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Our contributions</head><p>We further extend the CSM by developing and experimenting with a stylized but rich semi-autonomous driving environment, where a human and an AI agent collaborate towards a common objective. A distinctive feature of the setting we focus on is that the two agents share the same goal but have partial and differing knowledge about elements of the physical environment they operate in. As a result, they hold different beliefs about the state of the world, which they update either via direct observations or via inferences from each other's actions <ref type="bibr" target="#b3">(Baker et al., 2009)</ref>. Moreover, the two agents take a series of interdependent actions, and their relationship is asymmetric, with the human having (some) control over the actions of the AI which, in turn, plays an assistive role. We propose a model of responsibility for the human and the AI that relies on counterfactual simulations to estimate how unexpected an agent's action was, and what would have happened had each agent acted differently. In an online experiment, we find that participants' responsibility judgments about the human are affected by counterfactuals and are wellcaptured by our model. On the other hand, a simpler model based solely on the actual contribution to the outcome captures responsibility judgments about the AI.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Computational model</head><p>We develop a 2D gridworld environment that simulates and illustrates stylized cases of commute. 1 Below, we start by providing a high-level description of our environment. Then, we formalize its main elements, and we introduce a generative model of agent behavior. Building upon that, we propose a model to predict responsibility judgments about the human and the AI agent in individual commutes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Environment description</head><p>Consider the illustration in <ref type="figure">Figure 1</ref>: The two agents (human &amp; AI) are in a car, which is initially placed at the bottom left corner of an 8 × 8 grid consisted of black and white (road) tiles. The grid is known to both agents a priori and they both share a common goal -to reach the human's workplace at the top right corner within a given time limit. The simulation proceeds in time steps and, at each time step, the car is controlled either by the AI or the human. The agent who is in control can move the car horizontally or vertically by one tile per time step. Moving to a tile is possible only if it is white (i.e., a road) and it is not blocked by a road closure or an accident. The grid may also contain traffic spots that are either congested or not congested for the entire commute, with congested ones causing the car to remain idle for 10 time steps. Each agent has only partial knowledge of potential obstacles in the environment. The human knows about road closures and the locations of the traffic spots but not about their congestion status. The AI knows everything about traffic spots but it is unaware of road closures. Lastly, accidents may appear randomly on any tile, and they are unknown to both of them. Each agent discovers a previously unknown obstacle only once it enters their field of view surrounding the car.</p><p>The two agents collaborate with each other by switching control of the car. One of them starts driving and, at a randomly chosen time step, the AI asks the human whether they want to switch control for the remainder of the commute. If the AI is driving, it requests confirmation to continue; if the human is driving, the AI asks whether it should take control of the car. The human decides based on the information they have about the environment at the time, and we will refer to this decision as the switching decision. The agent who is in control after that point drives until they reach the workplace (success) or until time runs out (failure).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Formal framework</head><p>Our environment can be described using the framework of decentralized partially observable MDPs <ref type="bibr" target="#b6">(Bernstein et al., 2002;</ref><ref type="bibr" target="#b29">Oliehoek, Amato, et al., 2016;</ref><ref type="bibr" target="#b36">Triantafyllou et al., 2022)</ref>. Therein, an episode unfolds over T time steps (here, the time limit to reach the workplace) and includes more than one agent (here, the human and the AI) who act independently. At each time step t, the process is characterized by a state s s s t ∈ S and, in our case, contains information about the world such as the location of the car and the identity of the current driver. The two agents take actions a H,t ∈ A H , a AI,t ∈ A AI , that correspond to doing nothing, moving on the grid, offering or accepting/rejecting to switch control and combinations thereof. A function f S : S ×A H ×A AI → S controls the (deterministic) transitions between states and, at each time step, the agents receive a numerical reward -a positive value if the car has reached the workplace and −1 otherwise. Their goal is to maximize their total reward. Moreover, each agent is characterized by a belief P agent about the state of the world and takes actions a sampled from a (stochastic) policy π agent (a | P agent ).</p><p>Beliefs &amp; observations Here, we focus on the agents' beliefs and their (partial) observability model, which form the basis for our generative model of agent behavior and the responsibility model we present next. The two agents start with their own prior beliefs, formalized as two distributions P H , P AI over all states in S, where the uncertainty originates from their partial knowledge about obstacles (i.e., traffic spots, road closures, accidents) that may be present on the grid.</p><p>Since the human is aware of road closures, their prior belief has zero probability on states s s s whose road closures do not match with the true state s s s 0 . Moreover, since accidents are unexpected, we set the prior probability of any state that contains an accident to a negligible amount close to zero. To model the human's ignorance about the congestion status of K usual traffic spots in the grid, we set their prior uniformly over states corresponding to the 2 K different combinations of congestion status. The AI's prior is defined in a similar way, ensuring that the AI knows the true congestion status of traffic spots but ignores potential road closures and accidents.</p><p>At each time step, the two agents receive an observation o o o t = FOV(s s s t ) that includes all the obstacles within their field of view. Based on this observation, both agents update their beliefs about the state of the world by eliminating any state that would contradict their field of view, that is,</p><formula xml:id="formula_0">P agent (s s s | o o o t ) ∝ 1 [o o o t = FOV(s s s)] • P agent (s s s) ∀s s s ∈ S,</formula><p>where 1[•] denotes the indicator function. Moreover, whenever the AI is in control of the car, the human receives an enhanced observation o o o t = (FOV(s s s t ), a AI,t ) that also includes the AI's action. Motivated by prior work that models action understanding as Bayesian inverse planning <ref type="bibr" target="#b3">(Baker et al., 2009</ref><ref type="bibr" target="#b2">(Baker et al., , 2017</ref>, we assume that they update their belief about the congestion status of the traffic spots based on the direction that the AI intends to move. Let a AI,t = d denote a movement in direction d (e.g., d = LEFT) and π H be the human's policy. The human performs a Bayesian update on their belief by considering the likelihood that they would have chosen direction d if they had the same belief as the AI. Formally, letP AI be a function that takes as input a state s s s and returns a belief (i.e., a distribution over states) oblivious to any road closures in s s s that have not yet entered the agents' field of view. The human's Bayesian update, as described above, takes the form</p><formula xml:id="formula_1">P H (s s s | a AI,t = d) ∝ π H d |P AI (s s s) • P H (s s s) ∀s s s ∈ S.</formula><p>Generative model of agent behavior Similar to prior work, we consider the human and the AI to behave as approximate planners <ref type="bibr" target="#b43">(Wu et al., 2022</ref><ref type="bibr" target="#b44">(Wu et al., , 2023</ref>, who tend to take the shortest path to the workplace. We assume that they choose a direction with a probability inversely proportional to ETA(d | P agent ), that is, the time they expect they will need to reach the workplace if their next movement is in direction d.</p><p>To compute ETA(d | P agent ), we run Dijkstra's algorithm (Dijkstra, 1959) on a graph whose nodes correspond to tiles of the grid and edge weights represent the time required to move from one tile to the other averaged over states following from the agent's belief P agent . Then, an agent's policy is given by the softmax</p><formula xml:id="formula_2">π agent (d | P agent ) ∝ e −τ•ETA(d | P agent ) .<label>(1)</label></formula><p>Whenever the AI is in control, it selects a movement direction (e.g., LEFT) and, with a probability p switch , it may also ask the human for confirmation (e.g., LEFT &amp; ASK). If the human is in control, the AI decides between asking the human to switch or doing nothing, again with probability p switch .</p><p>When the human encounters a prompt by the AI, they have to make a switching decision, that is, to decide whether they or the AI will drive the second half of the commute. We assume they behave rationally and they choose between the two options proportionally to their probability of a successful outcome S. Let P(S | P H , SWITCH), P(S | P H , ¬SWITCH) be the success probability estimates of the human for each option. We assume that the human estimates these via Monte Carlo simulations. For the option that corresponds to them driving the second half, they perform L simulations of their driving behavior using Eq. 1 and compute the total success rate. For the option involving the AI, they sample L possible states s s s ∼ P H and, for each sample, they simulate the AI's driving using Eq. 1 and the beliefP AI (s s s) introduced earlier. Based on the estimated probabilities of success, the human makes a (stochastic) decision a sw ∈ {SWITCH, ¬SWITCH} using the softmax π H (a sw | P H ) ∝ e θ•P(S | P H ,a sw ) .</p><p>(2)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Responsibility model</head><p>Given a commute instance generated by our environment, we predict responsibility judgments as a function of probabilities estimated by performing counterfactual simulations that use the aforementioned generative model. In our experiment, we focus on failure instances and thus, the counterfactual probabilities we consider here focus on counterfactual successes.</p><p>Human responsibility We predict that participants hold the human responsible for an observed failure relative to the extent that they would have succeeded had they made a different switching decision. Let a sw denote the observed switching decision of the human. Then, we write the counterfactual probability of success as P(S | a sw , do(¬a sw )), where do(•) denotes a counterfactual intervention <ref type="bibr" target="#b30">(Pearl, 2009)</ref>. Due to the multiplicity of counterfactual interventions in sequential decision-making <ref type="bibr" target="#b38">(Tsirtsis &amp; Gomez-Rodriguez, 2023;</ref><ref type="bibr" target="#b37">Tsirtsis et al., 2021)</ref> and the varying sensitivity of responsibility to each intervention's expectancy <ref type="bibr" target="#b17">(Gerstenberg et al., 2018;</ref><ref type="bibr" target="#b30">Petrocelli et al., 2011)</ref>, our model also considers the extent to which the alternative switching decision was expected. We will refer to this quantity as counterfactual expectancy, and we assume it is given by π H (¬a sw | P H ) and is proportional to the likelihood of success associated with the altenative decision (see Eq. 2). Our responsibility model considers the effects of the two factors both individually and jointly:</p><formula xml:id="formula_3">r H = α 1 + α 2 π H (¬a sw | P H ) + α 3 P(S | a sw , do(¬a sw )) + α 4 π H (¬a sw | P H ) • P(S | a sw , do(¬a sw )) (3)</formula><p>AI responsibility Our proposed model for the AI predicts that participants hold the AI responsible for an observed failure relative to the extent that the two agents would have succeeded if the AI had not assisted at all, and we write that counterfactual probability as P(S | AI, do(¬AI)). Moreover, since the AI plays a more supportive role, we assume the participants' primary responsibility judgment is for the human, and the AI responsibility is complementary to the former. Let 1[AI] denote the event that the AI drove for at least one tile.</p><p>Then, our responsibility model takes the form</p><formula xml:id="formula_4">r AI = β 1 +β 2 1[AI]P(S | AI, do(¬AI))+β 3 (r max −r H ). (4)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experiment</head><p>Our experiment asks participants to assign responsibility in a human-AI collaboration task (see <ref type="figure">Figure 1)</ref>. We compare participants' responsibility judgments to the predictions of our responsibility model as well as a set of alternative models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>Participants The experiment was preregistered 2 and conducted online via Prolific. We recruited 50 participants (age: M = 37, SD = 12; gender: 31 female, 18 male, and 1 undisclosed; race: 5 Asian, 2 African American, 4 Multiracial, 38 White, and 1 undisclosed) who received $12/hour.</p><p>Procedure Participants were introduced to the semiautonomous driving environment and the behavior of the two agents within it. They were asked 6 comprehension questions that they had to answer correctly before proceeding to the main experiment. The experiment consisted of 16 trials where the agents failed to reach the target destination on time.</p><p>On each trial, participants first watched an interactive stepby-step illustration of the respective commute, and then, they were asked to provide responsibility judgments while watching a video replay of the commute. The two questions ("to what extent is the [human / AI] responsible for not reaching on time?") were presented separately, and participants provided their responses with two continuous sliders ranging from 0 ("Not at all") to 100 ("Very much"). The average completion time of the experiment was 21 minutes (SD = 10).</p><p>Design The 16 trials of our experiment consist of 8 twin trials: pairs of trials where the observed commutes are exactly the same, but a small difference between the two grids alters the counterfactual outcome that would have occurred had the human made a different switching decision (see <ref type="figure">Fig. 2</ref> for examples). To ensure participants do not recognize twin trials, we mirrored the twin gridworlds on the diagonal. The 8 twin trials manipulate 3 main factors: (i) whether the AI or the human is the initial driver, (ii) whether they switch control, and (iii) whether the decision of the human (not) to switch control was right or wrong at the moment that it was made. We will refer to that last factor as the human's decision quality, and we consider a decision to be right if the human believes that it leads to a higher probability of success (see Eq. 2). Across all trials, the path that each agent follows was sampled from our generative model given by Eq. 1. To manipulate factors (ii) and (iii), we generated switching decisions manually.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results &amp; Discussion</head><p>Do counterfactual outcomes influence human responsibility judgments? We investigate to what extent the way participants assign responsibility to the human differs depending on whether they would have reached the workplace on time had they made a different switching decision. To this end, we focus on pairs of twin trials and perform the following analysis. Let r H (p,tw <ref type="bibr">[S]</ref>) and r H (p,tw[F]) denote the respon-  <ref type="figure">Figure 2</ref>: Examples of twin trials and human responsibility judgments. Each illustration shows a joint summary of two trials whose observed paths, outcomes, and decisions made by the agents are exactly the same. The grids of the two trials differ only in the congestion status of traffic spots illustrated as half colored ( ). In the trial where the traffic spot is not congested, had the human made a different switching decision, the agent who would have driven the second half would have reached the workplace on time following the dashed line. In the trial where the traffic spot is congested, the counterfactual outcome would have been a failure, same as the observed outcome. The figure below each illustration shows participants' judgments about the human's responsibility in the two twin trials. Colored points show means, and error bars show bootstrapped 95% confidence intervals. Each pair of gray points connected with a line shows the judgments of a single participant across the two twin trials. sibility that a participant p assigns to the human in two twin trials with a counterfactual success (S) and failure (F), respectively. We denote as</p><formula xml:id="formula_5">∆ H (p,tw) = r H (p,tw[S]) − r H (p,tw[F])</formula><p>their difference. To quantify the effect of counterfactual outcomes on responsibility judgments, we fit a Bayesian linear mixed effects model with a fixed global intercept and random coefficients for each participant and pair of trials (i.e., ∆ H ∼ 1 + (1 | p) + (1 |tw)). We observe that the global intercept's posterior mean is positive and equal to 6.48 (95% CI: [−0.75, 13.78]), which indicates that counterfactuals have a moderate effect on participants' judgments. To better understand this effect consider the examples in <ref type="figure">Figure 2</ref>. Many (but not all) participants hold the human more responsible for failing to reach on time whenever a different switching decision would have made a difference in the outcome. However, participants' judgments vary considerably, with some of them assigning equal or slightly less responsibility to the human. Does the human's decision quality make a difference to responsibility judgments? We first look at the average responsibility assigned to the human and the AI across trials where the human's switching decision is right and wrong, respectively. <ref type="figure" target="#fig_2">Figure 3a</ref> shows that the AI's average responsibility remains the same independently of the human's decision quality, while the human's responsibility increases when their decision was wrong. Moreover, across all trials, participants hold the human more responsible than the AI. Additionally, we explore whether the effect of counterfactual outcomes on human responsibility judgments ∆ H varies depending on the quality of the switching decision. To test this, we use a dummy variable called decision, and set its value to 0 if the human's switching decision was right and 1 if it was wrong. We fit a Bayesian linear mixed effects model that includes an additional coefficient measuring the effect of the new variable (i.e., ∆ H ∼ 1+decision+(1+decision | p)+ (1 |tr)). We observe that the mean for the posterior of the fixed coefficient of decision is positive and equal to 7.27 (95% CI: <ref type="bibr">[−5.67, 22.94]</ref>). While its positive value indicates that participants may focus more on counterfactual outcomes whenever the observed switching decision was wrong, the effect is weak (the credible interval does not exclude 0). This can also be seen by looking directly at the distributions of ∆ H across pairs of twin trials with right and wrong decisions respectively (see <ref type="figure" target="#fig_2">Figure 3b</ref>). The two distributions are concentrated around zero but, in the case of wrong decisions, the distribution has a relatively larger mass on the positive side.</p><p>How well do the responsibility models capture participants' judgments? We start by estimating the required probabilities π H (¬a sw | P H ), P(S | a sw , do(¬a sw )) and  <ref type="figure">Figure 4</ref>: Responsibility judgments and model predictions per trial. Each point corresponds to one of our 16 trials, with the x-value showing the respective model prediction and the y-value showing the participants' average responsibility judgment. Different panels show results for the human and the AI under three models: (i) a simple model based on each agent's actual contribution to the outcome, (ii) an extension of the first model that also considers each trial's difficulty, and (iii) our proposed models given by Eqs. 3, 4. Across all panels, error bars indicate bootstrapped 95% confidence intervals. P(S | AI, do(¬AI)) associated with each trial. We fix the hyperparameters τ and θ to the values 2 and 8 respectively and perform 300 Monte Carlo simulations in each grid. Then, we use the estimated probabilities along with participants' responsibility judgments to fit two Bayesian linear mixed effects models that take the form of Eqs. 3, 4 while also including random intercepts for individual participants. Additionally, we fit two baseline models. The first one assigns responsibility proportional to the respective agent's actual contribution to the outcome, measured as the number of time steps that the agent was in control of the car. For the human, we fit a model of the form r H ∼ 1 + T H + (1 | p), where T H denotes the number of time steps that the human was in control and p denotes an individual participant. Similarly, for the AI, we fit a model that uses T AI , the number of time steps that the AI was in control. The second baseline model is an extension of the first that includes the difficulty of the respective grid as an additional term, measured as the total number of obstacles (i.e., road closures, traffic spots, and accidents).</p><p>To evaluate the different models, we first compare their average predictions per trial. <ref type="figure">Figure 4</ref> shows the averaged model predictions per trial against participants' judgments. Our human responsibility model has the lowest RMSE and the highest correlation coefficient compared to the two baselines. In contrast, we observe that participants' judgments about the AI are best captured by the actual contribution model, although they didn't vary much across trials. Because the models differ in their number of free parameters, we also compare them via approximate leave-one-out cross-validation <ref type="bibr" target="#b40">(Vehtari et al., 2017)</ref> along with lesioned models that only contain individual components of our human responsibility model (i.e., each additive term in Eq. 3). In total, we compare six models: (i) counterfactual expectancy, (ii) counterfactual probability of success, (iii) additive effect of (i, ii), (iv) multiplicative effect of (i, ii), (v) actual contribution, and (vi) our full model given by Eq. 3. <ref type="table" target="#tab_0">Table 1</ref> summarizes the results, which show that our model performs best overall. However, we observe that, when running cross-validations on individual participant responses, the actual contribution model best captures the most participants, followed by the model that uses counterfactual expectancy as predictor.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>Although our responsibility model performed best overall, there were large individual differences (see <ref type="table" target="#tab_0">Table 1</ref>). Those may arise from varying conceptions for how responsibility should be determined for human-AI collaborations and from participants' varying levels of motivation to carefully reason through the different scenarios <ref type="bibr" target="#b24">(Lieder &amp; Griffiths, 2020)</ref>.</p><p>Our work opens up many interesting avenues for future work. Since the actual contribution model best captured the participants' judgments about the AI, it would be interesting to explore the relative importance of actual and counterfactual contribution, as well as how this mixture differs when making judgments about humans and AI agents <ref type="bibr" target="#b45">(Xiang et al., 2023)</ref>. In our setting, the AI and the human agent differ mainly in terms of what they know. It would be interesting to study settings where the agents differ in what they can do, too. To fit our responsibility model, we have set fixed values for the hyperparameters controlling the uncertainty of the model. In future work, it would be useful to conduct additional experiments to fit those hyperparameters by directly asking participants about counterfactual outcomes and the expectancy of the two agents' actions. Lastly, in our setting, the agents switch control at most once, and it would be interesting to explore situations that feature a more frequent back and forth between human and AI.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>(a) The AI starts driving, unaware of the road closure (b) The AI asks for confirmation to go right and Jane rejects (c) Jane takes control of the car but encounters an accident (d) Time runs out and they fail to reach the workplace</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Distribution of ∆ H vs. decision quality Effects of decision quality. In panel (a), error bars indicate bootstrapped 95% confidence intervals. In panel (b), dashed lines show the means of the two distributions, and shaded areas illustrate 95% confidence intervals.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc>Model comparison. ∆elpd measures the predictive performance difference between each model and the best one. Lower values indicate worse performance. N-best shows the number of participants best captured by each model.</figDesc><table><row><cell>Model</cell><cell>∆elpd (se)</cell><cell>N-best</cell></row><row><cell>our model</cell><cell>0 (0)</cell><cell>3</cell></row><row><cell cols="3">additive effect counterfactual expectancy multiplicative effect actual contribution counterfactual prob. of success −54.8 (10.5) 3 7 −2.4 (2.6) 11 −5.0 (3.6) 5 −27.5 (8.0) −46.3 (11.1) 21</cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">Our code and data are accessible at https://github.com/ciclstanford/responsibility sequential</note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2">https://osf.io/5ajzd</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>We thank Lara Kirfel for providing feedback on an early version of the manuscript and Sarah A. Wu, Sunny Yu and Nina Corvelo-Benz for their feedback on the experimental setup. We would also like to give credit to creators Freepik, Creartive, Smashicons, surang and juicy fish from flaticon.com whose icons we have used to design our experiment. Tsirtsis and Gomez-Rodriguez acknowledge support from the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation programme (grant agreement No. 945719). Gerstenberg acknowledges support from the Stanford Institute for Human-Centered Artificial Intelligence (HAI).</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Culpable control and the psychology of blame</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Alicke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological bulletin</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">556</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Drivers are blamed more than their automated cars when both make mistakes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Awad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Levine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kleiman-Weiner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dsouza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shariff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Bonnefon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Rahwan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="134" to="143" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Rational quantitative attribution of beliefs, desires and percepts in human mentalizing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Jara-Ettinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Action understanding as inverse planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="329" to="349" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Learning to switch among agents in a team</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Balazadeh Meresht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>De</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Singla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions on Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">2022</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1" to="30" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Beckers</surname></persName>
+		</author>
+		<title level="m">Moral responsibility for AI systems. Thirty-seventh Conference on Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">The complexity of decentralized control of markov decision processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Bernstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Givan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Immerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zilberstein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Mathematics of operations research</title>
+		<imprint>
+			<date type="published" when="2002" />
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="819" to="840" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Counterfactual thought. Annual review of psychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Byrne</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="page" from="135" to="157" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Ai and ethics when human beings collaborate with ai agents</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Cañas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in psychology</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">836650</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Responsibility and blame: A structural-model approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Chockler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Halpern</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Artificial Intelligence Research</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="93" to="115" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Regression under human assistance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>De</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Koley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ganguly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="2611" to="2620" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>De</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Okati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zarezade</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+		<title level="m">Classification under human assistance. Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page" from="5905" to="5913" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">A note on two problems in connexion with graphs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Dijkstra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Numerische mathematik</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="269" to="271" />
+			<date type="published" when="1959" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Causal framework of artificial autonomous agent responsibility</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Franklin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ashton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Awad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lagnado</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2022 AAAI/ACM Conference on AI, Ethics, and Society</title>
+		<meeting>the 2022 AAAI/ACM Conference on AI, Ethics, and Society</meeting>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page" from="276" to="284" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">A counterfactual simulation model of causal judgments for physical events</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Lagnado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">936</biblScope>
+		</imprint>
+	</monogr>
+	<note>Psychological review</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Spreading the blame: The allocation of responsibility amongst multiple agents</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Lagnado</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="166" to="171" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">515Intu-itive Theories. In The Oxford Handbook of Causal Reasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017-06" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Lucky or clever? from expectations to responsibility judgments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nagel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kleiman-Weiner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Lagnado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">177</biblScope>
+			<biblScope unit="page" from="122" to="141" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Towards formal definitions of blameworthiness, intention, and moral responsibility</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Halpern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kleiman-Weiner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">32</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kahneman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Slovic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tversky</surname></persName>
+		</author>
+		<title level="m">Judgment under uncertainty: Heuristics and biases. Cambridge university press</title>
+		<imprint>
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Causal judgments about atypical actions are influenced by agents&apos; epistemic states</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kirfel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lagnado</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">212</biblScope>
+			<biblScope unit="page">104721</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Inference of intention and permissibility in moral decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kleiman-Weiner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Levine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+			<publisher>CogSci</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Causal responsibility and counterfactuals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Lagnado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Zultan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive science</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1036" to="1073" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Predicting responsibility judgments from dispositional inferences and causal attributions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Langenhoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Halpern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Psychology</title>
+		<imprint>
+			<biblScope unit="page">101412</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Resource-rational analysis: Understanding human cognition as the optimal use of limited computational resources. Behavioral and brain sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Human perceptions on moral responsibility of ai: A case study in ai-assisted bail decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Lima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Grgić-Hlača</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Cha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems</title>
+		<meeting>the 2021 CHI Conference on Human Factors in Computing Systems</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="page" from="1" to="17" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Intelligence brings responsibility-even smart ai assistants are held responsible</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Longin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bahrami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Deroy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Iscience</title>
+		<imprint>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page">26</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Mozannar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bansal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fourney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Horvitz</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2210.14306</idno>
+		<title level="m">Reading between the lines: Modeling user behavior and costs in ai-assisted programming</title>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Differentiable learning under triage</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Okati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>De</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="9140" to="9151" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Oliehoek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Amato</surname></persName>
+		</author>
+		<title level="m">A concise introduction to decentralized pomdps</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Counterfactual potency</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pearl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">V</forename><surname>Petrocelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Percy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Sherman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">L</forename><surname>Tormala</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of personality and social psychology</title>
+		<imprint>
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">30</biblScope>
+			<date type="published" when="2009" />
+			<publisher>Cambridge university press</publisher>
+		</imprint>
+	</monogr>
+	<note>Causality</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Raghu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Blumer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kleinberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Obermeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mullainathan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1903.12220</idno>
+		<title level="m">The algorithmic automation problem: Prediction, triage, and human effort</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Counterfactual thinking</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Roese</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological bulletin</title>
+		<imprint>
+			<biblScope unit="volume">121</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">133</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">The attribution of blame: Causality, responsibility, and blameworthiness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Shaver</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012" />
+			<publisher>Springer Science &amp; Business Media</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Straitouri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Singla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">B</forename><surname>Meresht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2109.11328</idno>
+		<title level="m">Reinforcement learning under algorithmic triage</title>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Actual causality and responsibility attribution in decentralized partially observable markov decision processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Triantafyllou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Singla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Radanovic</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2022 AAAI/ACM Conference on AI, Ethics, and Society</title>
+		<meeting>the 2022 AAAI/ACM Conference on AI, Ethics, and Society</meeting>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page" from="739" to="752" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Counterfactual explanations in sequential decision making under uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tsirtsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>De</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="30127" to="30139" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Finding counterfactually optimal action sequences in continuous state spaces</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tsirtsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gomez-Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="volume">36</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Mind games: Game engines as an architecture for intuitive physics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Spelke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Battaglia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="649" to="665" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Practical bayesian model evaluation using leave-one-out crossvalidation and waic</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vehtari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gabry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and computing</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="1413" to="1432" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Learning to complement humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Wilder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Horvitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kamar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Twenty-Ninth International Joint Conference on Artificial Intelligence</title>
+		<meeting>the Twenty-Ninth International Joint Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">If not me, then who? responsibility and replacement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="page">105646</biblScope>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">That was close! a counterfactual simulation model of causal judgments about decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sridhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page">44</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">A computational model of responsibility judgments from counterfactual simulations and intention inferences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sridhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="page">45</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Actual and counterfactual effort contribute to responsibility attributions in collaborative tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Xiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Landy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Cushman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Vélez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="page">105609</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Finding fault: Causality and counterfactuals in group attributions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Zultan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gerstenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Lagnado</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="429" to="440" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

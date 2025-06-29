@@ -1,0 +1,1690 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">The Value of Abstraction</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mark</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Princeton University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Abel</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Brown University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Thomas</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution">Princeton University</orgName>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+							<email>mlittman@cs.brown.edu</email>
+							<affiliation key="aff3">
+								<orgName type="institution">Brown University</orgName>
+							</affiliation>
+							<affiliation key="aff4">
+								<orgName type="institution">Brown University</orgName>
+								<address>
+									<settlement>Providence</settlement>
+									<region>RI</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">The Value of Abstraction</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:53+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>abstraction</term>
+					<term>reinforcement learning</term>
+					<term>bounded rationality</term>
+					<term>planning</term>
+					<term>problem solving</term>
+					<term>rational analysis</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Agents that can make better use of computation, experience, time, and memory can solve a greater range of problems more effectively. A crucial ingredient for managing such finite resources is intelligently chosen abstract representations. But, how do abstractions facilitate problem solving under limited resources? What makes an abstraction useful? To answer such questions, we review several trends in recent reinforcement-learning research that provide insight into how abstractions interact with learning and decision making. During learning, abstraction can guide exploration and generalization as well as facilitate efficient tradeoffs-e.g., time spent learning versus the quality of a solution. During computation, good abstractions provide simplified models for computation while also preserving relevant information about decision-theoretic quantities. These features of abstraction are not only key for scaling up artificial problem solving, but can also shed light on what pressures shape the use of abstract representations in humans and other organisms.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>In spite of bounds on space, time, and data, people are able to make good decisions in complex scenarios. What enables us to do so? And what might equip artificial systems to do the same? One essential ingredient for making complex problem solving tractable is a capacity for exploiting abstract representation.</p><p>To illustrate why abstractions are needed for adaptive decision making, consider hiking in a forest <ref type="figure" target="#fig_0">(Figure 1)</ref>. A river runs from mountains in the north down south through the forest, and you have set up camp in a clearing just east of the river. As the sun begins to set, you find yourself west of the river and want to return to camp. How do you accomplish this task? You might reason, "Since I am on the west side of the river, I probably want to cross the river to get to the east side of the river and then walk towards my campsite." Such a compact thought is possible because you have abstract representations for that support decision making: These include the general notion of being in a location relative to the axis of the river, or the rough ideas of crossing the river and moving towards the campsite.</p><p>Without abstractions, decision making would be confined to specific, low-level states and actions-e.g., "At the current state, rotate your left leg 25 • , place it down beside the rock on the path, then swing your arm forward...". In a huge and complex scenario like navigating through a forest, this approach is both cognitively unwieldy and, in a fundamental sense, computationally intractable <ref type="bibr" target="#b8">(Bellman, 1957;</ref><ref type="bibr" target="#b15">Bylander, 1994</ref>). The difficulty is due to decision-making costs that arise from two interrelated sources. First, agents need to learn about their environment, which costs time and experience (e.g., via exploration) <ref type="bibr" target="#b33">(Kakade, 2003)</ref>. Second, agents need to compute decision-theoretic quantities, which costs memory and thought (e.g., via planning) <ref type="bibr" target="#b41">(Littman, Dean, &amp; Kaelbling, 1995)</ref>. As problems grow, these costs grow exponentially. Abstractions are essential because they enable decision makers to manage the growth of these costs.</p><p>Within psychology and neuroscience, abstraction plays a key role in the hierarchical learning and organization of motor sequences <ref type="bibr" target="#b39">(Lashley, 1951;</ref><ref type="bibr" target="#b60">Rosenbaum, Kenny, &amp; Derr, 1983;</ref><ref type="bibr" target="#b59">Rosenbaum, Inhoff, &amp; Gordon, 1984)</ref>, habits <ref type="bibr" target="#b10">(Botvinick, 2008;</ref><ref type="bibr" target="#b20">Dezfouli &amp; Balleine, 2013;</ref><ref type="bibr" target="#b58">Ribas-Fernandes et al., 2011)</ref>, and planning <ref type="bibr" target="#b66">(Solway et al., 2014;</ref><ref type="bibr" target="#b11">Botvinick &amp; Weinstein, 2014)</ref>. For this reason, researchers in artificial intelligence (AI) and reinforcement learning (RL) have long been interested in how to leverage abstraction to provide human-like solutions to human-level problems <ref type="bibr" target="#b19">(Dayan &amp; Hinton, 1993;</ref><ref type="bibr" target="#b61">Sacerdoti, 1974;</ref><ref type="bibr" target="#b21">Dietterich, 2000;</ref><ref type="bibr" target="#b25">Givan, Dean, &amp; Greig, 2003;</ref><ref type="bibr" target="#b3">Andre &amp; Russell, 2002;</ref><ref type="bibr" target="#b6">Barto &amp; Mahadevan, 2003)</ref>. In this paper, we discuss work in AI and RL that helps elucidate how abstractions support efficient decision making in both people and machines.</p><p>Research in AI and RL focuses on two broad types of abstraction. First, state abstractions treat certain configurations of the environment as similar by aggregating them or assigning them shared features. For instance, in the hiking example, being west of the river is not a single concrete configuration of the environment, but rather an abstract representation that covers many concrete states (e.g., being different distances west of the river). Second, temporal abstractions (often called "options") are temporally extended macro-actions that describe a general course of action. For example, the idea of crossing the bridge is not a single specific action, but rather captures many possible courses of action.</p><p>State and temporal abstractions enable compact representation of a domain. For instance, <ref type="figure" target="#fig_1">Figure 2a</ref> represents the hiking example as a graph where nodes are specific configurations of the environment (i.e., ground states) and edges are transitions to new configurations resulting from taking actions. The appropriate abstractions could induce the simpler problem representation in <ref type="figure" target="#fig_1">Figure 2b</ref>. This new model ignores irrelevant details like the color of specific trees while capturing useful distinctions such as your location relative to the river. As a result, it supports efficient learning and requires little thought to reason about compared to the original version.</p><p>The foregoing discussion sketches out how abstractions can support efficient decision making. But how could it work in practice? Here, we dive into recent work in AI and RL that provides some answers. Specifically, we focus on three ways in which abstractions have been shown to facilitate efficient and scalable decision making. First, abstractions guide exploration and generalization by systematically modifying the distribution of learning experiences. In particular, abstractions can guide how agents explore and generalize based on environmental structure or representational simplicity. Second, abstractions facilitate efficient tradeoffs in learning. For example, they enable learning time and optimality to be exchanged as well as support optimal transfer between tasks. Finally, abstraction is essential for simplifying computation. For instance, abstractions influence the cost of computing a good plan by inducing simpler or more complex planning models. In the following sections, we discuss each of these benefits of abstraction. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Abstractions Guide Exploration and Generalization</head><p>Suppose during your camping trip you want to learn to fish. At first, you try a few spots along the river at random. But soon, you notice a pattern: Certain areas have more vegetation, others have less. This information provides a new and more efficient way for you to organize your fishing attempts. For example, you could fish areas with high and low vegetation to gain a range of experiences about how it affects your catch. Or, on your first trip you may learn that your best catch was in high vegetation areas, so that on your second trip to a different river, you seek out similar areas. Here, the abstract concept of river vegetation guides your exploration in the current fishing task and tracks a generalizable feature relevant to future tasks, which both allow you to make better use of your limited time and experience.</p><p>In RL, abstractions similarly facilitate efficient learning by guiding exploration and generalization. But what is the basis of this guidance? Put another way, the concept of vegetation is useful, but what determines the identification of such a concept in general? Below, we discuss two ways in which abstractions can guide learning: domain structure and representational simplicity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Domain Structure</head><p>Many domains have meaningful structure based on the topology of state connections. In the hiking example, being west of the river is an intuitive abstract state because all the locations west of the river are more connected to one another and less connected to locations east of the river. Early research in RL identified a number strategies for learning abstractions based on clustering or graph-theoretic notions like "bottleneck" states (Şimşek &amp; <ref type="bibr" target="#b65">Barto, 2004)</ref>. More recent methods generalize such approaches to learn abstractions based on the state connectivity induced by a domain's structure. For instance, the successor representation <ref type="bibr" target="#b18">(Dayan, 1993;</ref><ref type="bibr" target="#b24">Gershman, Moore, Todd, Norman, &amp; Sederberg, 2012;</ref><ref type="bibr" target="#b50">Momennejad et al., 2017)</ref> and successor features <ref type="bibr" target="#b5">(Barreto et al., 2017;</ref><ref type="bibr" target="#b38">Kulkarni, Saeedi, Gautam, &amp; Gershman, 2016)</ref> are state abstractions based on how likely an agent is to visit other states or features. A similar idea underpins eigenoptions <ref type="bibr" target="#b43">(Machado, Bellemare, &amp; Bowling, 2017;</ref><ref type="bibr" target="#b44">Machado, Rosenbaum, et al., 2017;</ref><ref type="bibr" target="#b45">Mahadevan, 2005)</ref>. Specifically, both successor representations and eigen-options involve decomposing an a domain's structure into a set of "principal components" that compactly represent how certain regions of a domain are connected or will be visited.</p><p>Thus, being west of the river and being east of the river could emerge as successor-based state abstractions due to the connectivity and visitation of their respective ground states. A corresponding eigen-option would express the temporally abstract action of going from the west side to the east side since action sequences falling in this category capture a principal source of variance in connectivity. Notably, abstractions based on state connectivity encode information about the dynamics of a domain separate from its reward structure. These reward-agnostic representations can be learned either offline or during task learning, but, in either case, they provide an especially powerful and efficient way to adapt when rewards change or when transferring to tasks with related dynamics.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Representational Simplicity</head><p>Abstractions also guide exploration and generalization based on representational simplicity. Simplicity plays a key role in understanding representations in humans <ref type="bibr" target="#b16">(Chater &amp; Vitányi, 2003;</ref><ref type="bibr" target="#b62">Sanborn, Bourgin, Chang, &amp; Griffiths, 2018)</ref> and machines <ref type="bibr" target="#b40">(Li &amp; Vitányi, 2008)</ref>. For finite decision makers, simplicity is important because it enables compression, the representation of information using less physical space (e.g., memory).</p><p>In RL, a number of methods have been developed that leverage a bias towards representational simplicity. For example, curiosity-driven learning <ref type="bibr" target="#b63">(Schmidhuber, 1991;</ref><ref type="bibr" target="#b56">Oudeyer, Kaplan, &amp; Hafner, 2007;</ref><ref type="bibr" target="#b7">Bellemare et al., 2016;</ref><ref type="bibr" target="#b57">Pathak, Agrawal, Efros, &amp; Darrell, 2017;</ref><ref type="bibr" target="#b55">Ostrovski, Bellemare, Oord, &amp; Munos, 2017;</ref><ref type="bibr" target="#b37">Kulkarni, Narasimhan, Saeedi, &amp; Tenenbaum, 2016</ref>) pits a motivation to learn a simple, compressed representation of the world against a desire for new experiences that do not easily fit within that representation. Placing these two processes in competition with one another prevents the drive for simplicity from compressing everything into a single undifferentiated representation (the ultimate abstraction) that cannot support high quality decisions and instead pushes the system to adaptively explore a range of qualitatively different parts of a task. Doing so ultimately allows the architecture to both represent the world compactly and explore it efficiently.</p><p>Simplicity also plays a role in the Option-Critic framework <ref type="bibr" target="#b4">(Bacon, Harb, &amp; Precup, 2017;</ref><ref type="bibr" target="#b28">Harb, Bacon, Klissarov, &amp; Precup, 2018;</ref>), a neural network architecture that simultaneously learns abstract macro-actions and the value of low-level actions that constitute them. By concurrently learning at multiple levels of abstraction, the agent acquires a representation that leads to better transfer to new tasks. The process at play is closely related to the notion of a "blessing of abstraction" in causal learning <ref type="bibr" target="#b26">(Goodman, Ullman, &amp; Tenenbaum, 2011)</ref> and regularization in supervised learning <ref type="bibr" target="#b9">(Bishop, 2006)</ref>: A bias towards simple, unifying representations not only saves on representational space, but also prevents overfitting to a particular task. An important consequence of this bias is that the agent is able to transfer to new tasks more efficiently.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Abstractions Facilitate Efficient Tradeoffs</head><p>Decision making and learning involve tradeoffs when space, time, and data are limited. But, it is important that these tradeoffs be made efficiently (i.e., without unnecessary costs). Here, we discuss how abstractions can efficiently trade off learning time and optimality, as well as minimize negative transfer between tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Learning Time and Optimality</head><p>Imagine that every morning you wake up at your campsite and need to navigate to the bridge crossing the river. What kind of abstract states would be useful? It depends on how much time you have to spend learning. One option is to learn every tree, rock, and shortcut through the forest in great detail. Doing so has the benefit of ensuring you learn a highly efficient route to the bridge. An alternative strategy is to learn a less detailed representation of the forest that takes you to an obvious landmark-e.g., the river-and then take a simple path to the bridge. This second approach may be more costly in terms of the physical actions taken or time navigating, but is simpler and faster to learn. Depending on how much time and data are available, it may be better for the agent to pursue the second strategy than the first.</p><p>Learning the simpler but suboptimal policy depends on the resolution of the state abstractions used-i.e., the amount of detail one is willing to keep or ignore about the environment. In RL, a number of approaches use abstraction in this manner to efficiently balance optimality and learning time <ref type="bibr" target="#b30">(Jiang, Kulesza, &amp; Singh, 2015;</ref><ref type="bibr" target="#b54">Ortner, 2013)</ref>. For instance, if abstractions are represented by aggregating ground states into clusters, adaptively modulating the size of the clusters and granularity of the state representation controls this tradeoff <ref type="bibr" target="#b68">(Taiga, Courville, &amp; Bellemare, 2018;</ref><ref type="bibr" target="#b7">Bellemare et al., 2016;</ref><ref type="bibr" target="#b46">Mandel, Liu, Brunskill, &amp; Popovic, 2016)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Optimizing Transfer between Tasks</head><p>Abstractions also facilitate effective transfer from one task to another. Transfer can be positive <ref type="bibr" target="#b67">(Sutton, Precup, &amp; Singh, 1999;</ref><ref type="bibr" target="#b34">Konidaris &amp; Barto, 2007;</ref><ref type="bibr" target="#b4">Bacon et al., 2017;</ref><ref type="bibr" target="#b69">Topin et al., 2015)</ref>, but it can also be negative <ref type="bibr" target="#b32">(Jong, Hester, &amp; Stone, 2008)</ref>. Ideally, an agent would learn abstractions that avoid negative transfer as much as possible while increasing the possibility of positive transfer. One setting in which this approach is feasible is in lifelong learning, in which an agent is assumed to be continuously receiving tasks from a distribution of tasks. Given separate phases of discovering and using temporal abstractions, it is possible to ensure that any learned options only help later learning and decision making <ref type="bibr" target="#b14">(Brunskill &amp; Li, 2014)</ref>. Used properly, temporal abstractions can also guarantee that the amount of data needed for learning is reduced even within a single task <ref type="bibr" target="#b23">Fruit, Pirotta, Lazaric, &amp; Brunskill, 2017)</ref>. For agents with limited time, such abstractions can play a critical role in ensuring efficient and effective use of data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Abstractions Simplify Computation</head><p>Computation is costly for people <ref type="bibr" target="#b27">(Griffiths, Lieder, &amp; Goodman, 2015)</ref> as well as artificial agents <ref type="bibr" target="#b61">(Russell, 1997)</ref>. For example, if you were to plan a hike back to your campsite, you could simulate possible routes from your current state or "work backwards" from your final destination. These cognitive operations require time and mental effort. However, the total cost of computation depends directly on the model such operations occur over <ref type="bibr" target="#b25">(Givan et al., 2003)</ref>. Planning can be easier given a good abstract representation (e.g., compare <ref type="figure" target="#fig_1">Figure 2a</ref> and <ref type="figure" target="#fig_1">Figure 2b)</ref>. Recent work in RL leverages this intuition to efficiently scale planning to complex domains. Here, we focus on two broad approaches: algorithmspecific abstractions, in which an abstraction scheme is tailored to take advantage of particular features of a planning algorithm, and end-to-end approaches, in which learning ab-stractions for planning occurs in the context of a more general learning architecture.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Algorithm-Specific Abstractions</head><p>Algorithms such as Monte Carlo Tree Search <ref type="bibr" target="#b0">(Abramson, 1987;</ref><ref type="bibr" target="#b17">Coulom, 2006;</ref><ref type="bibr">Browne et al., 2012)</ref> are based on the notion of forward simulation: From an initial state, candidate plans are generated, evaluated, and the best is chosen. The major problem for these algorithms is branching: Each additional timestep into the future increases the number of plans to evaluate multiplicatively. To keep branching manageable, state-aggregation techniques simplify models by only storing relevant information. For instance, by treating all states with the same optimal action as identical, branching due to stochasticity in action outcomes can be reduced <ref type="bibr" target="#b29">(Hostetler, Fern, &amp; Dietterich, 2014;</ref><ref type="bibr" target="#b1">Anand, Grover, Mausam, &amp; Singla, 2015;</ref><ref type="bibr" target="#b2">Anand, Noothigattu, Mausam, &amp; Singla, 2016)</ref>. Along similar lines, the model used for planning can be simplified by aggregating states that lead to the same possible outcomes within a few time steps <ref type="bibr" target="#b31">(Jiang, Singh, &amp; Lewis, 2014)</ref>.</p><p>An alternative to forward simulation is backwards induction, which involves starting from possible future states and propagating information backwards to possible precursor states. Abstractions can also assist computation in backward induction. For instance, value iteration <ref type="bibr" target="#b8">(Bellman, 1957)</ref> repeatedly "sweeps" over a set of states and backs up information to each precursor state. Since each iteration involves looking at every state in the planning model, it is extremely sensitive to the number of possible states. However, by incorporating temporal abstractions into the planning model, more information can be propagated further backwards on each sweep <ref type="bibr" target="#b47">(Mann &amp; Mannor, 2014)</ref> and it becomes possible to more efficiently trade off error in the approximation of future rewards with computation <ref type="bibr" target="#b48">(Mann, Mannor, &amp; Precup, 2015)</ref>.</p><p>Finally, relaxing the goal of planning provides opportunities to leverage powerful abstractions. For instance, plan feasibility seeks to determine whether a plan can be constructed that satisfies some set of constraints. Since the goal is no longer optimality but simply satisfiability, relevant aspects of the task can be translated into symbolic logic and efficiently tested <ref type="bibr" target="#b35">(Konidaris, Kaelbling, &amp; Lozano-Perez, 2014</ref><ref type="bibr" target="#b49">McDermott et al., 1998)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>End-to-end Efficient Planning</head><p>Another approach is to learn planning abstractions while also learning everything else about a task in an end-to-end manner with neural networks. Using abstractions for planning is especially important because planning in a ground state space (e.g., the pixels of a video game) is only possible for short time horizons <ref type="bibr" target="#b51">(Oh, Guo, Lee, Lewis, &amp; Singh, 2015)</ref>. To address these limitations, architectures have been developed that learn and use abstract representations for planning. In particular, the abstract representation needs to be trained to predict future rewards, thus preserving the most relevant information for decision making in the planning model <ref type="bibr" target="#b53">(Oh, Singh, &amp; Lee, 2017;</ref><ref type="bibr" target="#b64">Silver et al., 2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>Abstractions are key for efficiently scaling decision making. In particular, recent research in RL demonstrates how state and temporal abstractions guide exploration and generalization, facilitate efficient tradeoffs, and simplify computations. In the context of learning and decision making with limited resources, abstractions enable agents to strategically manage finite space, time, and data, which is necessary for scaling problem solving to complex tasks.</p><p>For psychologists, this analysis raises questions about why biological agents like humans have certain types of abstract representations. For instance, humans and other organisms may have certain abstractions not only because they facilitate effective exploration and generalization but because they support fast planning or modulate critical tradeoffs during learning. Future work in both computer science and psychology will need to identify other pressures that can shape abstraction learning-such as the need to communicate and coordinate with others-to offer a clearer understanding of the value of abstraction.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflict of Interest Statement</head><p>The authors declare no conflict of interest.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Annotated References</head><p>• (**) (Bacon et al., 2017) -Proposes option-critic architecture that demonstrates the effectiveness of jointly learning abstract and low-level policies.</p><p>• (*) <ref type="bibr" target="#b30">(Jiang et al., 2015)</ref> -Analyzes how state aggregation learning schemes can be used to efficiently trade off data and solution quality, which is key when data is costly or finite.</p><p>• (*) <ref type="bibr" target="#b44">(Machado, Rosenbaum, et al., 2017</ref>) -Combines learning eigen-options with learning successor representations, which both leverage the transition structure of a domain for learning abstract representations.</p><p>• (**) <ref type="bibr" target="#b57">(Pathak et al., 2017)</ref> -Implements curiosity as an intrinsic reward signal based on an agent's error when predicting the outcome of actions to enable effective representation learning even in the absence of external rewards.</p><p>• (*) <ref type="bibr" target="#b53">(Oh et al., 2017)</ref> -Proposes the Value Prediction Network architecture that learns an internal model composed of abstract states for efficient model-based planning.</p><p>• (*) <ref type="bibr" target="#b5">(Barreto et al., 2017)</ref> -Introduces a generalization of successor representations <ref type="bibr" target="#b18">(Dayan, 1993)</ref> that enables efficient transfer across tasks with shared causal structure.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>An environment, an agent, and the agent's abstract representation of a domain.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>(a) A domain in all of its complexity, and (b) the representation induced by an effective set of state and temporal abstractions for this domain. The representation in (b) facilitates efficient learning and computation, unlike the one in (a).</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">The Expected-Outcome Model of Two-Player Games (Unpublished doctoral dissertation)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Abramson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1987" />
+			<pubPlace>New York, NY, USA</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Columbia University</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Anand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Grover</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mausam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Singla</surname></persName>
+		</author>
+		<title level="m">ASAP-UCT: Abstraction of State-Action Pairs in UCT. Twenty-Fourth International Joint Conference on Artificial Intelligence</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Anand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Noothigattu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mausam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Singla</surname></persName>
+		</author>
+		<title level="m">OGA-UCT: On-the-Go Abstractions in UCT. Twenty-Sixth International Conference on Automated Planning and Scheduling</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">State Abstraction for Programmable Reinforcement Learning Agents</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Andre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Russell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Eighteenth national conference on artificial intelligence</title>
+		<meeting><address><addrLine>Menlo Park, CA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>American Association for Artificial Intelligence</publisher>
+			<date type="published" when="2002" />
+			<biblScope unit="page" from="119" to="125" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">The option-critic architecture</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-L</forename><surname>Bacon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Precup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the conference aaai</title>
+		<meeting>the conference aaai</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="1726" to="1734" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Successor features for transfer in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Barreto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Dabney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Munos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Hunt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Schaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">P</forename><surname>Van Hasselt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="4055" to="4065" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">Recent advances in hierarchical reinforcement learning. Discrete event dynamic systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="41" to="77" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Unifying count-based exploration and intrinsic motivation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bellemare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Srinivasan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ostrovski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Schaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Saxton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Munos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="1471" to="1479" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Dynamic programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bellman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1957" />
+			<publisher>Princeton University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Bishop</surname></persName>
+		</author>
+		<title level="m">Pattern Recognition and Machine Learning</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Hierarchical models of behavior and prefrontal function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/J.TICS.2008.02.009</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="201" to="208" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Model-based hierarchical reinforcement learning and human action control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Weinstein</surname></persName>
+		</author>
+		<idno type="DOI">10.1098/rstb.2013.0480</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society B: Biological Sciences</title>
+		<imprint>
+			<biblScope unit="volume">369</biblScope>
+			<biblScope unit="page" from="20130480" to="20130480" />
+			<date type="published" when="1655" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Browne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Powley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Whitehouse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Lucas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">I</forename><surname>Cowling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Rohlfshagen</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">A survey of monte carlo tree search methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Colton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Computational Intelligence and AI in games</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="43" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">PAC-inspired option discovery in lifelong reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Brunskill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International conference on machine learning</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="316" to="324" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The computational complexity of propositional STRIPS planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Bylander</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page" from="161" to="204" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Simplicity: a unifying principle in cognitive science?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Chater</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Vitányi</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/S1364-6613(02)00005-0</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="19" to="22" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Efficient Selectivity and Backup Operators in Monte-Carlo Tree Search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Coulom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International conference on computers and games</title>
+		<imprint>
+			<date type="published" when="2006" />
+			<biblScope unit="page" from="72" to="83" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Improving generalization for temporal difference learning: The successor representation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="613" to="624" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Feudal reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="1993" />
+			<biblScope unit="page" from="271" to="278" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Actions, Action Sequences and Habits: Evidence That Goal-Directed and Habitual Action Control Are Hierarchically Organized</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">W</forename><surname>Balleine</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1003364</idno>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Hierarchical reinforcement learning with the maxq value function decomposition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">G</forename><surname>Dietterich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Artificial Intelligence Research</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="227" to="303" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Exploration-exploitation in MDPs with options</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fruit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lazaric</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1703.08667</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Regret minimization in MDPs with options without prior knowledge</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fruit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pirotta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lazaric</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Brunskill</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="3169" to="3179" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">The successor representation and temporal context</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">T</forename><surname>Todd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Norman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Sederberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1553" to="1568" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Equivalence notions and model minimization in markov decision processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Givan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Greig</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">147</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="163" to="223" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Learning a theory of causality</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">110</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Rational Use of Cognitive Resources: Levels of Analysis Between the Computational and the Algorithmic</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/tops.12142</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="217" to="229" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">When Waiting Is Not an Option: Learning Options With a Deliberation Cost</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-L</forename><surname>Bacon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Klissarov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Precup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Thirty-Second AAAI Conference on Artificial Intelligence</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title level="m" type="main">State Aggregation in Monte Carlo Tree Search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hostetler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Dietterich</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page">7</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Abstraction selection in model-based reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kulesza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 32nd international conference on machine learning</title>
+		<editor>F. Bach &amp; D. Blei</editor>
+		<meeting>the 32nd international conference on machine learning<address><addrLine>Lille, France</addrLine></address></meeting>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="179" to="188" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Improving UCT planning via approximate homomorphisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lewis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2014 international conference on autonomous agents and multi-agent systems</title>
+		<meeting>the 2014 international conference on autonomous agents and multi-agent systems</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1289" to="1296" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">The utility of temporal abstraction in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">K</forename><surname>Jong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hester</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Stone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Conference on Autonomous Agents and Multiagent Systems</title>
+		<meeting>the Conference on Autonomous Agents and Multiagent Systems</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="page" from="299" to="306" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">On the sample complexity of reinforcement learning (Unpublished doctoral dissertation)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Kakade</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003" />
+		</imprint>
+		<respStmt>
+			<orgName>University of London, England</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Building portable options: Skill transfer in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Konidaris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the International Joint Conference on Artificial Intelligence</title>
+		<meeting>the International Joint Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="895" to="900" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Constructing symbolic representations for high-level planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Konidaris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Kaelbling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Lozano-Perez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Aaai</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1932" to="1938" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Konidaris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Kaelbling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Lozano-Perez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">From Skills to Symbols: Learning Symbolic Representations for Abstract High-Level Planning</title>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">61</biblScope>
+			<biblScope unit="page" from="215" to="289" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Hierarchical deep reinforcement learning: Integrating temporal abstraction and intrinsic motivation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Kulkarni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Narasimhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Saeedi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="3675" to="3683" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Kulkarni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Saeedi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gautam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.02396</idno>
+		<title level="m">Deep successor reinforcement learning</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">The problem of serial order in behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">S</forename><surname>Lashley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Cerebral mechanisms in behavior; the hixon symposium</title>
+		<meeting><address><addrLine>Oxford, England</addrLine></address></meeting>
+		<imprint>
+			<publisher>Wiley</publisher>
+			<date type="published" when="1951" />
+			<biblScope unit="page" from="112" to="146" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title level="m" type="main">An Introduction to Kolmogorov Complexity and Its Applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Vitányi</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-0-387-49820-1</idno>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Springer</publisher>
+			<pubPlace>New York, NY; New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">On the complexity of solving markov decision problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Kaelbling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the eleventh conference on uncertainty in artificial intelligence</title>
+		<meeting>the eleventh conference on uncertainty in artificial intelligence</meeting>
+		<imprint>
+			<date type="published" when="1995" />
+			<biblScope unit="page" from="394" to="402" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Machado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tesauro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Campbell</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1712.04065</idno>
+		<title level="m">The eigenoption-critic framework</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">A laplacian framework for option discovery in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Machado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Bellemare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bowling</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1703.00956</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Machado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Rosenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tesauro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Campbell</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1710.11089</idno>
+		<title level="m">Eigenoption discovery through the deep successor representation</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Proto-value functions: Developmental reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 22nd international conference on machine learning</title>
+		<meeting>the 22nd international conference on machine learning</meeting>
+		<imprint>
+			<date type="published" when="2005" />
+			<biblScope unit="page" from="553" to="560" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Efficient bayesian clustering for reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y.-E</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Brunskill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Popovic</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the International Joint Conference on Artificial Intelligence</title>
+		<meeting>the International Joint Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Scaling up approximate value iteration with options: Better policies with fewer iterations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mannor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International conference on machine learning</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="127" to="135" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Approximate value iteration with temporally extended actions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mannor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Precup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Artificial Intelligence Research</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page" from="375" to="438" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">Pddl-the planning domain definition language</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mcdermott</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ghallab</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Howe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Knoblock</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Veloso</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Wilkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">The successor representation in human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Momennejad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Russek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Cheong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41562-017-0180-8</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="680" to="692" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Oh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Action-conditional video prediction using deep networks in atari games</title>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<biblScope unit="page" from="2863" to="2871" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Value prediction network</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Oh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="6118" to="6128" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Adaptive aggregation for reinforcement learning in average reward Markov decision processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ortner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of Operations Research</title>
+		<imprint>
+			<biblScope unit="volume">208</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="321" to="336" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">Count-based exploration with neural density models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ostrovski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Bellemare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Oord</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Munos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International conference on machine learning</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="2721" to="2730" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Intrinsic motivation systems for autonomous mental development</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-Y</forename><surname>Oudeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">V</forename><surname>Hafner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE transactions on evolutionary computation</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="265" to="286" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Curiosity-driven Exploration by Self-supervised Prediction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pathak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Efros</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Darrell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 34th international conference on machine learning</title>
+		<meeting>the 34th international conference on machine learning</meeting>
+		<imprint>
+			<publisher>JMLR</publisher>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page" from="2778" to="2787" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">A Neural Signature of Hierarchical Reinforcement Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ribas-Fernandes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Solway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Diuk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mcguire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Barto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/J.NEURON.2011.05.042</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">71</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="370" to="379" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Choosing between movement sequences: A hierarchical editor model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Rosenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Inhoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Gordon</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0096-3445.113.3.372</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="372" to="393" />
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+		<title level="m" type="main">Hierarchical control of rapid movement sequences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Rosenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Kenny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Derr</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0096-1523.9.1.86</idno>
+		<imprint>
+			<date type="published" when="1983" />
+			<publisher>American Psychological Association</publisher>
+			<biblScope unit="volume">9</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Planning in a hierarchy of abstraction spaces</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Sacerdoti</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/S0004-3702(97)00026</idno>
+		<ptr target="https://doi.org/10.1016/0004-3702(74)90026-5" />
+	</analytic>
+	<monogr>
+		<title level="j">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">94</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="115" to="135" />
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+	<note>Artificial Intelligence</note>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Representational efficiency outweighs action efficiency in human program induction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sanborn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Bourgin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 40th annual meeting of the cognitive science society</title>
+		<editor>T. Rogers, M. Rau, X. Zhu, &amp; C. Kalish</editor>
+		<meeting>the 40th annual meeting of the cognitive science society<address><addrLine>Austin, TX</addrLine></address></meeting>
+		<imprint>
+			<publisher>Cognitive Science Society</publisher>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="2400" to="2405" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">A possibility for implementing curiosity and boredom in model-building neural controllers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. of the international conference on simulation of adaptive behavior: From animals to animats</title>
+		<meeting>of the international conference on simulation of adaptive behavior: From animals to animats</meeting>
+		<imprint>
+			<date type="published" when="1991" />
+			<biblScope unit="page" from="222" to="227" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<monogr>
+		<title level="m" type="main">The predictron: end-to-end learning and planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Van Hasselt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hessel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Schaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Harley</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>JMLR</publisher>
+		</imprint>
+	</monogr>
+	<note>Degris, T</note>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Using relative novelty to identify useful temporal abstractions in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ö</forename><surname>Simşek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1015330.1015353</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Twenty-first international conference on machine learningicml &apos;04</title>
+		<meeting><address><addrLine>New York, New York, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2004" />
+			<biblScope unit="page">95</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">Optimal Behavioral Hierarchy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Solway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Diuk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Córdova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Yee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/jour-nal.pcbi.1003779</idno>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page">1003779</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title level="a" type="main">Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Precup</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="181" to="211" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<monogr>
+		<title level="m" type="main">Approximate exploration through state abstraction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Taiga</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Courville</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bellemare</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>ICML Workshop on Exploration in RL</note>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title level="a" type="main">Portable option discovery for automated learning transfer in object-oriented Markov decision processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Topin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Haltmeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Squire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Winder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Desjardins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Macglashan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the International Joint Conference on Artificial Intelligence</title>
+		<meeting>the International Joint Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="3856" to="3864" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

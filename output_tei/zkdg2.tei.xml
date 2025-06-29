@@ -1,0 +1,1935 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main"></title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:26+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>How does the similarity between stimuli affect our ability to learn appropriate response associations for them? In typical laboratory experiments learning is investigated under somewhat ideal circumstances, where stimuli are easily discriminable. This is not representative of most real-life learning, where overlapping &quot;stimuli&quot; can result in different &quot;rewards&quot; and may be learned simultaneously (e.g., you may learn over repeated interactions that a specific dog is friendly, but that a very similar looking one isn&apos;t). With two experiments, we test how humans learn in three stimulus conditions: one &quot;best case&quot; condition in which stimuli have idealized and highly discriminable visual and semantic representations, and two in which stimuli have overlapping representations, making them less discriminable. We find that, unsurprisingly, decreasing stimuli discriminability decreases performance. We develop computational models to test different hypotheses about how reinforcement learning (RL) and working memory (WM) processes are affected by different stimulus conditions. Our results replicate earlier studies demonstrating the importance of both processes to capture behavior. However, our results extend previous studies by demonstrating that RL, and not WM, is affected by stimulus distinctness: people learn slower and have higher across-stimulus value confusion at decision when stimuli are more similar to each other. These results illustrate strong effects of stimulus type on learning and demonstrate the importance of considering parallel contributions of different cognitive processes when studying behavior.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Humans are efficient learners, but how fast we learn, depends heavily on what we learn about. For example, a teacher learning the name of two new transfer students may only need to be told their names once, but they may need much more trial and error for each student if they're learning the name of the entire class at the same time. Furthermore, if the students look alike, learning may require even more effort. Here, we formally explore how stimulus discriminability (in a semantic and visual domain) impacts learning, and whether the multiple processes involved in learning are affected differently.</p><p>Specifically, we investigate stimulus discriminability in a stimulus-action association task in which both reinforcement learning (RL) and working memory (WM) processes are utilized (e.g., <ref type="bibr" target="#b12">Collins &amp; Frank, 2012)</ref>. Reinforcement learning (RL) broadly refers to the process that characterizes how people learn incrementally through valenced feedback <ref type="bibr" target="#b67">(Sutton &amp; Barto, 1998)</ref>. Working memory (WM) is a flexible, but capacity-limited process involved in actively maintaining perceptually unavailable information over a short period of time <ref type="bibr" target="#b15">(Cowan, 2017)</ref>. While there has been an increase in investigating the interplay between these two essential processes (for a review, see <ref type="bibr" target="#b75">Yoo &amp; Collins, 2022)</ref>, there still is much to be learned about how the two interact in different settings.</p><p>For example, researchers in both RL and WM fields consider stimulus carefully when designing experiments, but each field tends to focus on different aspects of stimuli. RL studies tend to use a variety of stimuli across tasks. Sometimes they use stimuli with low semantic information, such as gabor patches, fractals, and foreign alphabet characters (e.g., <ref type="bibr" target="#b19">Farashahi, Rowe, Aslami, Lee, &amp; Soltani, 2017;</ref><ref type="bibr" target="#b41">Niv et al., 2015;</ref><ref type="bibr" target="#b46">Oemisch et al., 2019;</ref><ref type="bibr" target="#b72">Wilson &amp; Niv, 2012;</ref><ref type="bibr" target="#b73">Wunderlich, Beierholm, Bossaerts, &amp; O'Doherty, 2011;</ref><ref type="bibr" target="#b49">Radulescu, Niv, &amp; Ballard, 2019;</ref><ref type="bibr" target="#b16">Daw, Gershman, Seymour, Dayan, &amp; Dolan, 2011)</ref>, under the assumption that relying on stimuli that are easy to name and have high semantic discriminability (i.e., have different names), such as different common objects, shapes, and colors (e.g., <ref type="bibr" target="#b12">Collins &amp; Frank, 2012;</ref><ref type="bibr" target="#b9">Collins, 2018;</ref><ref type="bibr" target="#b20">Farashahi, Xu, Wu, &amp; Soltani, 2020)</ref>, may affect behavior (perhaps by employing more explicit processes like WM). WM studies' choice of stimuli is much more explicit, due to traditional WM being formalized as being modality specific (i.e., containing separate visual and verbal storage units; <ref type="bibr" target="#b2">Baddeley &amp; Hitch, 1974)</ref>. Stimuli that are nameable (e.g., spoken words, digits, or words) are considered to relate to verbal WM (e.g., <ref type="bibr" target="#b14">Conrad, 1964)</ref>, while less easily nameable stimuli (e.g., orientations, spatial frequencies) correspond to visual WM (e.g., <ref type="bibr" target="#b35">Luck &amp; Vogel, 1997;</ref><ref type="bibr" target="#b70">Wilken &amp; Ma, 2004)</ref>.</p><p>From previous research, it is apparent that there is some consideration of how different stimuli may affect behavior. However, it is still unclear how stimulus discriminability affects RL, WM, or their interplay. How do different types of stimuli affect RL and WM processes during an associative learning task? Specifically, are RL and WM differently affected by how distinct stimuli are? To address our question, we designed and collected data on two stimulus-response association learning experiments, manipulating stimulus discriminability. Learning was measured in three stimulus conditions. There is evidence that human learning differs for abstract and naturalistic stimuli <ref type="bibr" target="#b20">(Farashahi et al., 2020)</ref>, so one of our primary criteria when choosing stimulus sets was for them to be similarly "naturalistic" and similarly familiar (vs. novel). Our first condition, the "Standard" condition, we used a standard stimulus set, in which the stimuli images that were discriminable visually and semantically. Second, the "Text" condition had stimuli which were simply text printed of different nouns, designed to limit visual information while maintaining semantic information.</p><p>Finally, in our "Variants" condition, stimulus sets contained different example images of the same noun, designed to decrease semantic discriminability across stimuli without simplifying the stimuli themselves (i.e., images alone had full semantic information, but as a group caused interference by all being associated with the same name). We investigated the effect of these conditions through behavioral comparisons of learning behavior across the three conditions and two load conditions, as well as computational modeling to try to understand changes in the underlying RL and WM processes across conditions.</p><p>Generally, we predicted that both RL and WM would be necessary to capture behavior in all conditions, but that the processes would behave differently across the three stimulus conditions.</p><p>However, due to 1) the fact that both Text and Variants conditions likely had lowered discriminability in both visual and semantic dimensions and 2) the potentially competing effects between RL and WM, it was difficult to predict exactly how changes in RL, WM, and their interplay would affect the ultimate behavioral performance across conditions. Take, for example, the Variants condition vs. the Standard condition. An assumption in the RL literature is that learning associations from stimuli with semantic information (e.g., Standard condition) may recruit "more explicit" processes like WM, and thus that a Variants condition could avoid contamination from explicit processes and better access to implicit learning ones. However, the assumption that decreasing semantic discriminability would lower the contribution of WM in learning is untested. In fact, the visual WM literature consistently demonstrates that WM representations need not be verbalizable at all.</p><p>Additionally, people are able to reliably discriminate between WM representations of naturalistic stimuli with the same label <ref type="bibr" target="#b6">(Brady, Störmer, &amp; Alvarez, 2016)</ref>. Similarly, if RL is indeed an implicit process, as often hinted in the literature, then stimulus condition should not impact it much.</p><p>However, if RL instead relies heavily on distinct semantic information across stimuli, performance should suffer in the Variants condition. Thus, while we had a strong prediction that stimulus type would impact learning, and could impact the different processes supporting learning in different ways, we did not have a strong prediction as to the exact nature of this impact. We designed the study with an eye to behavioral modeling to help understand the intertwined processes.</p><p>Our results confirmed that stimulus type impacted learning; we observed lower performance in the Variants and Text conditions relative to the Standard condition, demonstrating that overall discriminability is important in learning. The behavioral deficit was particularly pronounced in the Variants condition. Through computational modeling, we found that stimulus conditions seemed to specifically affect RL, and not WM.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Experiment</head><p>In Experiment 1, participants completed a Conditional Associative Learning paradigm, learning correct stimulus-action associations through feedback.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Experimental Methods</head><p>2.1.1 Participants 88 participants were recruited through Amazon Mechanical Turk (MTurk), provided informed and written consent, and verified they were adults. The study was in accordance with the Declaration of Helsinki and was approved by the Institutional Review Board of University of California, Berkeley <ref type="bibr">(IRB 2016-01-0820)</ref>. Participants received $0.50 base payment for participating, and earned bonus payments for the time they spent on the task and their accuracy. Participants were informed that each correct response would increase their payment, and were reminded of this when starting each block. On average, participants made $3.30 and spent 42 minutes on the task. Participants who were performing below chance after the fourth or eighth block were discontinued from completing the task, but were compensated for their time. Participants who performed under 40% accuracy overall were additionally excluded from further analyses. 19 participants did not complete the task and 10 participants did not meet the accuracy threshold, leaving 59 participants in the final online sample.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.2">Experimental design</head><p>Participants completed a Conditional Associative Learning paradigm <ref type="bibr" target="#b48">(Petrides, 1985)</ref>, adapted to investigate the contributions of RL and WM in learning <ref type="bibr" target="#b12">(Collins &amp; Frank, 2012;</ref><ref type="bibr" target="#b10">Collins, Brown, Gold, Waltz, &amp; Frank, 2014)</ref>. At the beginning of each block, participants viewed a screen that displayed the set of stimuli that would be used on that block. They were instructed that each stimulus had a single correct button press associated with it, and that their goal was to learn the correct association using trial-and-error. On each trial in the block, participants viewed a centrallypresented stimulus from this set and had up to 1500 milliseconds to press one of three buttons on a keyboard to respond ( <ref type="figure">Figure 1A</ref>). Participants received binary, deterministic reward feedback after each response indicating whether the response was correct for this stimulus. If participants failed to respond within 1500ms, the screen indicated "response too slow," and were coded as nonresponses for subsequent analyses. Each stimulus was presented approximately 13 times within a block (stimuli were presented as few as 11 and as many as 14 times). Participants learned sets of either 3 or 6 images (stimuli) at a time, resulting in two set sizes for analysis. The larger set size (6 stimuli) resulted in greater WM load as well as longer delay times between repetitions of the same stimulus, and thus were more difficult. Because all stimuli were presented approximately the same number of times, the total number of trials per block was either 39 or 78. All blocks had the same number of keypress options (3), and the information about any stimulus-key pairing was not informative of any others within or across blocks (i.e., it was not the case in the stimuli blocks that each stimulus mapped to a different key). Thus, chance performance was 33%.</p><p>In addition to the set size condition, each block also belonged to one of the three following stimulus conditions ( <ref type="figure">Figure 1B</ref>):</p><p>• Standard: stimuli are images of different subcategory members belonging to the same category (e.g., vegetables: broccoli, celery, potato), and easily discriminable both semantically and visually.</p><p>• Text: stimuli are words printed in black letters on a white background, corresponding to subcategory name (e.g., the words "broccoli", "celery", "potato"). This condition is designed to provide full semantic information as Standard, but lowered visual discriminability within stimulus set.</p><p>• Variants: stimuli are different images of the same subcategory (e.g., different images of broccoli). This condition is designed to provide rich visual information, but limited distinct semantic information relative to the Standard condition -each image within a set was designed to call to mind the same word to limit the ability to have unique verbal labels for each image.</p><p>One of our primary criteria for choosing the stimuli across conditions was for them to be similarly naturalistic and familiar/recognizable to the participants. There is evidence that humans learn differently between abstract and naturalistic stimuli <ref type="bibr" target="#b20">(Farashahi et al., 2020)</ref>. Furthermore, differences in familiarity could also impact learning. Stimuli in the Standard condition were based on prior studies using the RLWM design <ref type="bibr" target="#b12">(Collins &amp; Frank, 2012)</ref>, and were taken from ImageNet, a crowdsourced dataset commonly used to train the computer vision networks on image classification.</p><p>Variants condition images were also acquired from ImageNet, but chosen to call to mind the same word. Based on reported verbal strategies from prior studies using RLWM tasks, we predicted that allowing for extraneous visual variance could lead to alternative labeling strategies (for example, labeling a broccoli on a farm "farm" and a broccoli on a kitchen table as "table"), so we additionally minimized the possibility of additional distinguishing features (e.g., all images of broccoli on a plain background). While there is less visual discriminability in the Variants condition than the Standard one, the images are certainly not perceptually confusable, for they vary along lower-level visual dimensions (e.g., broccoli in different orientations, of different size, shades of green). Ultimately to keep stimuli naturalistic, we opted to use images that alone, had full semantic information (i.e., were individually nameable), but as a group caused interference (i.e., were all associated with the same name).</p><p>With similar motivation, we chose to use Text for a condition that had full semantic information while limiting visual information. While it would have been ideal to use images that looked alike but depicted different things, we could not think of such visual stimuli while satisfying the naturalistic and familiar constraints we imposed on our stimulus conditions. We thus compromised by simply writing the words out (i.e., showing a picture of black letters on a white screen), lowering visual information overall without sacrificing semantic information.</p><p>Each block had a unique category (e.g., vegetables, farm animals, clothing items), so a participant would not see, for example, stimuli corresponding to "farm animals" in both the Standard and Variants conditions. Which category was assigned to each stimulus condition, and what order they were presented in, was counterbalanced across participants, so participants saw different subsets of the entire stimulus set. The block order of the set size and stimulus conditions were also pseudorandomized across participants. Participants completed two blocks per set size x stimulus condition as well as one practice and one final block, completing a total of 780 trials over 14 blocks.</p><p>We did not consider the first and last block in any analyses to remove potential effects of practice or fatigue, leaving 702 trials for analysis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Experimental Results</head><p>Learning was successful in all conditions, indicated by an increasing proportion of correct responses as a function of stimulus iteration ( <ref type="figure">Figure 1C</ref>). As in prior studies using the RLWM design, participants responded slower in the set size 6 blocks than in the set size 3 blocks. However, a two-way repeated measures ANOVA with stimulus condition, set size, and their interaction showed that while the difference between the set sizes was significant (p &lt; .001), there was no effect of stimulus condition (p = .62) on reaction time, nor an interaction between condition and set size (p = .57). Reaction times are not analyzed further, but are shown in <ref type="figure">Supplementary Figure 6</ref>.</p><p>To describe experimental effects on accuracy, we conducted a two-way repeated-measures ANOVA with stimulus condition, set size, and their interaction as independent variables, as well as separate intercept terms for each participant. There was a significant effect of set size, such that set size 3 blocks had overall better mean performance (M = .79, SEM = .02) than set size 6 blocks (M = .66, SEM = .02, F (1, 58) = 106.2, p &lt; .001, <ref type="figure">Figure 1C</ref>), supporting the involvement of WM in learning and replicating prior work using this paradigm (e.g., <ref type="bibr" target="#b9">Collins, 2018)</ref>. There was a significant main effect of condition (F (2, 116) = 43.95, p &lt; .001), such that performance in the Variants condition (M = .66, SEM = .02) was significantly lower than both Standard (M = .78, SEM = .02, p &lt; .001) and Text conditions (M = .74, SEM = .02, p &lt; .001). Standard and Text conditions were not significantly different (p = .18). The p-values for posthoc tests are Bonferroni corrected. Finally, there was a significant interaction between condition and set size (F (2, 116) = 6.803, p = .002); this was due to a stronger effect of condition in set size 6 (F (2, 116) = 38.8, p &lt; .001) than set size 3 blocks (F (2, 116) = 8.71, p &lt; .001). This suggests that stimuli differences are more critical for learning when learning more stimulus-action associations simultaneously.</p><p>While the ANOVA reveals gross overall effects, it neglects the progress of learning across set sizes and conditions; to better qualify this experimental effect we conducted a logistic regression.</p><p>For each participant and condition, we investigated whether we can predict trial-by-trial accuracy based on the previous number of correct outcomes for that stimulus, the set size, and the delay since last correct. We found results consistent with previously reported studies (e.g., <ref type="bibr" target="#b12">Collins &amp; Frank, 2012;</ref>, such that the probability of a correct response on the current trial was positively related to previous number of correct (as expected from incremental RL-like learning), and negatively related to set size and delay in all conditions (as expected from WM contributions to learning; predictors are illustrated in <ref type="figure">Figure 1D</ref>). Vari.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Variants</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Standard</head><formula xml:id="formula_0">Text Broccoli Potato Celery +1 0 . . . J K L J K L</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Stand. Text</head><p>Figure 1: Experiment 1 task and learning curves. A. Behavioral task. Participants learn through trial and error, with veridical, deterministic feedback, the correct response to each stimulus. B. Example "vegetable" stimuli, for the three different stimulus conditions: Standard, Text, Variants. Stimulus categories were different for each block, so participants would never see (for example) a broccoli in multiple learning blocks. C. Learning curves (M ± SEM over participants)</p><p>show the proportion of correct choices as a function of the number of times a stimulus has been encountered within a block (stimulus iteration), for each stimulus condition (color) and set size (value/saturation). While 11 stimulus iterations are illustrated, some stimuli were presented more times. D. Logistic regression weights (hyperbolic tangent transformed) for each condition <ref type="bibr">(colors)</ref> and participant (dots; error bars indicate M ± SEM across participants).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Modeling methods</head><p>While descriptive statistics allow us to qualify the effects of set size and learning for each condition, these tests do not allow us to understand how the underlying processes, RL and WM, produce these behavioral differences across conditions. For this, we turn to behavioral modeling. Like previous publications using similar tasks and models (e.g., <ref type="bibr" target="#b12">Collins &amp; Frank, 2012;</ref><ref type="bibr" target="#b69">Viejo, Khamassi, Brovelli, &amp; Girard, 2015;</ref><ref type="bibr" target="#b31">Jafarpour, Buffalo, Knight, &amp; Collins, 2022)</ref>, we assume participants' responses depend on both RL and WM processes. We describe the general "RLWM" framework, then consider different models that make different condition-specific predictions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1">General model formulation</head><p>In this section, we describe the building blocks of the models we will be testing. We describe the basic learning rules for the RL and WM processes and how a policy is derived from each process's representation of stimulus-action associations.</p><p>Learning rules In this section, we discuss the learning rules for the RL and WM processes. We refer to the stimulus (s) action (a) value pairs as Q-value for RL process, Q(s, a), as is standard in the model free reinforcement learning literature, and the corresponding stimulus-action association pairs for WM process as WM, WM(s, a). When we refer to operations that apply to both functions interchangeably, we generalize using the term "value function," which we denote V (s, a).</p><p>RL learning rule. This is the classic Rescorla-Wagner model, in which the observer iteratively learns the value of each stimulus-action response through trial-and-error feedback. After observing reward r t , the participant updates the Q-value as follows:</p><formula xml:id="formula_1">∀s, a Q 0 (s, a) = 1 N a Q t+1 (s, a) ← − Q t (s, a) + α(r t+1 − Q t (s, a)),</formula><p>where N a is the number of possible actions (3 in our experiment) and α is the learning parameter.</p><p>The larger α, the more informative the current trial is in the Q-value. To allow for learning asymmetry (e.g., <ref type="bibr" target="#b21">Frank, Moustafa, Haughey, Curran, &amp; Hutchison, 2007;</ref><ref type="bibr" target="#b42">Niv, Edlund, Dayan, &amp; O'Doherty, 2012;</ref><ref type="bibr" target="#b24">Gershman, 2015;</ref><ref type="bibr" target="#b66">Sugawara &amp; Katahira, 2021)</ref>, we use two different learning rates for positive (correct) and negative (incorrect) rewards. We fit models in which both α and α − are free parameters, as well models in which α − is fixed to 0 (e.g., <ref type="bibr" target="#b74">Xia et al., 2021;</ref><ref type="bibr" target="#b17">Eckstein et al., 2022)</ref>. In the main manuscript, we report only the models in which α − = 0, for relaxing this assumption did not improve model fit and did not change the main results or conclusions (Supplementary 6.7.2).</p><p>WM learning rule. The WM observer updates the association value of stimulus-action pairs immediately to the observed reward, but this "perfect" information is subject to memory decay.</p><p>The value association update is as follows:</p><formula xml:id="formula_2">∀s, a WM 0 (s, a) = 1 N a WM t+1 (s, a) ← − r t+1 ,</formula><p>for r = 1, which can be thought of as a Rescorla-Wagner update rule with an α = 1 and α − = 0.</p><p>The WM decay is implemented by, on every trial, having all stimulus-action associations decay towards their starting value:</p><formula xml:id="formula_3">∀s, a WM t+1 (s, a) ← − (1 − λ)WM t+1 (s, a) + λWM 0 (s, a),</formula><p>where λ is the decay rate. With this formulation, WM's stored values regress to uninformative values, WM (s, a), for items that have been seen longer ago.</p><p>Calculating response probability. We assume that the observer chooses action a i with probability based on a softmax function: <ref type="bibr">s,ai)</ref> 3 i=1 e βVt <ref type="bibr">(s,ai)</ref> , where β is the inverse temperature parameter and controls the stochasticity in choice, with higher values leading to a more deterministic choice of the best value action. Here, we fix β to an arbitrarily high number, 100. Fixing β to a high number enforces behavior we find to be a necessary theoretical baseline: it simulates behavior that is true to the way WM is theorized (it enforces a close to perfect one-back WM policy under low load) whilst still being consistent with the general formulation of RL models. Additionally, it is common practice in "RLWM" models (e.g., <ref type="bibr" target="#b31">Jafarpour et al., 2022;</ref><ref type="bibr" target="#b37">McDougle &amp; Collins, 2020)</ref>, and improves interpretability of parameters (i.e., parameter recovery is only successful when β is fixed). V t (s, a i ) depends on the given state s, action a i , and process (RL vs. WM).</p><formula xml:id="formula_4">p V (a i |s) = e βVt(</formula><p>Perseveration. Models with perservation incorporate the tendency of agents to respond based on previous actions, irrespective of the current stimulus and reward (e.g., <ref type="bibr" target="#b66">Sugawara &amp; Katahira, 2021</ref>).</p><formula xml:id="formula_5">V t (s, a i ) = V t (s, a i ) + ϕC t (a i ),</formula><p>where ϕ denotes how strongly a participant perseverates in their responses, and C t (a i ) is the choice trace vector of action a i . The models in the main text set C t (a i ) = 1 if the choice on trial t − 1 was a i , and 0 otherwise. (We fit all models without perseveration, and fits were significantly worse across models. We additionally allow perseveration choice to be affected by trials more than one trial back, with decay parameter τ ; this addition does not approve the fits. Details can be found in Supplementary 6.7.3).</p><p>Response policy. The probability of responding action a i given state s, p(a i |s) is a weighted sum of the contribution from the RL and WM process.</p><formula xml:id="formula_6">p(a i , s) = ω n p WM (a i |s) + (1 − ω n )p RL (a i |s),</formula><p>where the mixture weight ω n is a value between 0 and 1, corresponding to the WM contribution for blocks with set size n. In a fully RL-driven model, ω n = 0; in a fully WM-driven model, ω n = 1.</p><p>We predict that ω 6 &lt; ω 3 because there is lower WM contribution in higher set size conditions, but we do not impose this constraint during model fitting.</p><p>Random responses. We additionally assume that, with proportion ϵ, participants randomly choose an action. We are agnostic to whether this behavior reflects a response lapse, a random guess, or greedy exploration. The final response policy at time t, π t is thus</p><formula xml:id="formula_7">π t (a i |s) = (1 − ϵ)p(a i |s) + ϵ N a .</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2">Models</head><p>In this section, we describe the six models we considered. All models assume that both RL and WM are involved in the learning process, but make different assumptions about whether and how each of the two processes are affected by stimulus conditions. We did not consider models in which only RL or only WM are involved, for neither would be able to capture data across set sizes, let alone across conditions ( <ref type="figure" target="#fig_1">Supplementary Figure 22)</ref>. First, we test three models in which RL process is affected specifically. We test one model in which condition-differences in learning are assumed to be a result of different learning rates (RL learning rate). We test alternative models that assume confusion within a stimulus set results in noisier learning: either that updating the current stimulus accidentally updates other stimuli in the same block (RL credit assignment), or that retrieving the values of the current stimulus is confused with other stimuli (RL decision confusion). Second, we consider two models in which the WM process is affected specifically, either through differing decay (WM decay) or decision confusion (WM decision confusion) across conditions. Finally, we consider a model that assumes that the RL and WM processes aren't changed in isolation based on stimulus condition, but the interaction between the two (RL WM weight). This model hypothesizes that the observer relies on RL and WM to different degrees, depending on stimulus condition. Alternative assumptions, different specifications for perseveration or nonzero negative learning rate α − are presented in Supplementary Materials 6.7, but these did not better explain our data than the models presented here.</p><p>Condition-specific RL learning rate. Motivated by the observation that stimulus condition influences accuracy, we first consider a model which assumes that stimulus condition impacts how quickly RL updates Q-values. We implement this assumption by fitting three separate α parameters, one for each stimulus condition. We denote the learning parameter for Standard, Text, and Variants stimuli as α s , α t , and α v , respectively.</p><p>Condition-specific RL credit assignment. In the "RL credit assignment" observer, we test the assumption that the lowered performance in different conditions is not due to lowered learning rates, but increased difficulty to distinguish the stimuli which leads to credit assignment confusion. Credit assignment confusion occurs when updating Q values not only for the current trial's stimulus, but also for other stimuli, leading to potential future interference between stimuli.</p><p>For example, when a reward is obtained for a given choice and stimulus, the rewarded choice would also be credited to other stimuli, although those stimuli may require a different correct action.</p><p>With standard RL and WM learning rules, the observer only updates state-action values for the current stimulus, s i . With credit assignment confusion, all other stimuli in the current block (which are not relevant to the current trial) are also updated to a lesser degree, parameterized by weight 0 ≤ η ≤ 1:</p><formula xml:id="formula_8">∀s j ̸ = s i : V t+1 (s j , a) ← − V t (s j , a) + αη(r t+1 − V t (s i , a)).</formula><p>We fit credit assignment confusion parameters to Text and Variants conditions only, denoted η t and η v , respectively. We did attempt to fit a model with credit assignment confusion in the Standard condition, η s , and did not include in the main manuscript because parameter recovery was not successful for that model; this is likely because a combination of other parameters (e.g., α, β, λ, ϵ) can characterize noise in a way that is behaviorally difficult to distinguish from credit assignment alone. In this sense, we assume that any credit assignment confusion in the Standard condition would be generally captured by noise parameters, and that the additional confusion in the Text and Variants conditions would be captured by the condition-specific parameters. This additional confusion is our primary interest, for we are interested in the difference in performance across conditions.</p><p>Condition-specific RL decision confusion. In the "RL decision confusion" observer, we test the assumption that the lowered performance in different conditions is due to across-stimulus decision confusion when the observer is calculating their response policy. In other words, the confusion is not in the encoding of the state-action values (like the RL credit assignment model), but the retrieval of values when making a decision. Decision confusion is implemented during the decision stage, such that all stimuli in the current block that are not relevant to the current trial are also used to calculate the response policy for the RL process:</p><formula xml:id="formula_9">V ′ t (s, a i ) = (1 − ζ)V t (s, a i ) + ζ 1 N s − 1 ¬s V t (¬s, a i ) ,<label>(1)</label></formula><p>where N s is number of stimuli, parameter ζ is a scalar between 0 and 1, and indicates how much across-stimulus decision confusion there is. A value of 0 indicates no decision confusion, and a value of 1 would indicate full confusion. We fit decision confusion parameters for the Text and Variants conditions, denoted ζ t and ζ v , respectively. Like in the RL credit assignment model, we implicitly assume there is no RL decision confusion in the Standard condition, ζ s = 0, for modeling parsimony and recoverability, or that RL decision confusion is absorbed by other noise in that condition. In that sense, again, this model assumes additional processes in the Text and</p><p>Variants conditions, to attempt to capture observed performance drops.</p><p>Condition-specific WM decay In this model, we test the assumption that WM decay is solely responsible for performance differences across conditions. Rather than learning the values faster in certain conditions, we just remember the associations better. We denote the WM decay for Standard, Text, and Variants stimuli as λ s , λ t , and λ v , respectively.</p><p>Condition-specific WM decision confusion This model is the WM analog to the RL decision confusion model. In this model, we test the assumption that participants have acrossstimulus decision confusion when calculating the response policy for the WM process, according to Equation 1.</p><p>Condition-specific weight In this model, we test the assumption that different weights between the RL and WM processes results in different behavior, rather than condition differences resulting from changes in either process. So, when encountering different stimuli, either system could be modulated to have a larger or smaller effect. In this model, the weights ωs differ across condition and set size, and are denoted with subscript. For example, ω 6s corresponds to the RLWM weight of a set size 6 Standard stimulus condition. We include the simplifying assumption that the differences across conditions in set size 3 blocks are minimal, and use ω 3 for all set size stimulus conditions. Thus, the Condition-specific weight model has four ω parameters, ω 3 , ω 6s , ω 6t , and ω 6v .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.3">Parameters and estimation</head><p>The parameters for each model, θ are displayed in <ref type="table" target="#tab_0">Table 1</ref>. All models we consider contain the following fitted base parameters: RL learning rules with positive learning rate α, WM with forgetting rate λ, perseveration with proportion ϕ, response policies which are a weighted combination of RL and WM components with a weighted sum (determined by weight ω 3 and ω 6 for set size 3 and 6, respectively), and random responses with proportion ϵ. Model-specific parameters are presented in the, aptly named, "Model-specific parameters" column.</p><p>For each participant and each model, we maximized the logarithm of the likelihood (LL) of the data given the parameters and model log(p(data|θ)), using fmincon in MATLAB with 20 random starting points. The largest LL, LL * , and the associated parameter θ are assumed to be the global maximum-likelihood parameter estimates.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model</head><p>Base parameters Model-specific parameters </p><formula xml:id="formula_10">RL learning rate α s , λ, ϕ, ω 3 , ω 6 , ϵ α t , α v RL credit assignment α, λ, ϕ, ω 3 , ω 6 , ϵ η t , η v RL decision confusion α, λ, ϕ, ω 3 , ω 6 , ϵ ζ t , ζ v WM decay α, λ s , ϕ, ω 3 , ω 6 , ϵ λ t , λ v WM decision confusion α, λ, ϕ, ω 3 , ω 6 , ϵ ζ t , ζ v RL WM weight α, λ, ϕ, ω 3 , ω 6s , ϵ ω 6t , ω 6v</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.4">Model and parameter recovery</head><p>A crucial, but often overlooked, step in interpreting model parameters and in quantitative model comparison is making sure parameter values are meaningful and that models are identifiable <ref type="bibr" target="#b40">(Nilsson, Rieskamp, Wagenmakers, &amp; Nilsson, 2011;</ref><ref type="bibr" target="#b47">Palminteri, Wyart, &amp; Koechlin, 2017;</ref><ref type="bibr" target="#b71">Wilson &amp; Collins, 2019)</ref>. In order to establish the interpretability of model parameters, one should test that the same parameters that generate a data set are the ones estimated through the model parameter estimation method. Successful parameter recovery exists when one is able to "recover" the same (or similar) parameter values that generated the data.</p><p>Successful model recovery is an important step for making conclusions from quantitative model comparisons. Successful model recovery occurs when the same model that generates a data set is the model that best fits it (according to your chosen model comparison metrics), when compared to all other models in the comparison set. We obtained reasonable parameter recovery and model recovery; details and figures for both analyses are in Supplementary sections 6.4 and 6.5).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.5">Model comparison</head><p>Because all of our models have parameters, we report model goodness-of-fit by simply comparing LL * , the maximum LL across all runs for a participant and model. In addition to LL * , we compared fits across participants with group Bayesian Model Selection (BMS; <ref type="bibr" target="#b63">Stephan, Penny, Daunizeau, Moran, &amp; Friston, 2009;</ref><ref type="bibr" target="#b54">Rigoux, Stephan, Friston, &amp; Daunizeau, 2014)</ref>. While summed LL * assumes all participants are generated by the same model, BMS explicitly assumes that participants can be best fit by different models. BMS assumes that the distribution of models is fixed but unknown across the population, and uses the log marginal likelihoods for each model and participant to infer the probability of each model across the group. This method is sensitive to both the distribution and magnitude of the differences in log-evidence. From this, we can compute the protected exceedance probability (pxp), which is how likely a given model is to be more frequent than the other models in the comparison set, above and beyond chance. A lower summed LL * and higher pxp indicate better model fit to data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Modeling Results</head><p>Both metrics gave similar results, favoring the RL learning rate model over the RL credit assignment, WM decay, WM decision confusion, and RL WM weight models. The RL decision confusion model performed similarly well to the RL learning rate model. We illustrate individual-participant, median ∆LL * s, summed ∆LL * s, and pxps in <ref type="figure" target="#fig_1">Figure 2B</ref>.</p><p>Second, we qualitatively compared the models' ability to generate data similar to that of the real data. For example, posterior predictive checks are an important step in assessing model fits, particularly for data with sequential trial dependencies <ref type="bibr" target="#b47">(Palminteri et al., 2017</ref>); a simple model of the weather that predicts today's weather is the same as yesterday's may result in high likelihoods without being able to actually predict weather patterns. For each participant, we simulated data using the MLE parameters for each participant, and find that the qualitative fits to the data ( <ref type="figure" target="#fig_1">Figure   2A</ref>) reflect the quantitative model comparison; the models that feature either condition-specific RL learning rates or condition-specific RL decision confusion provide a better fit to the true data than other models. These results suggests that different stimulus conditions affect exclusively the RL process, by how efficiently it learns from or uses reward information.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Interim conclusions</head><p>In Experiment 1, we asked how limiting discriminability in semantic or visual information across stimuli changes people's ability to learn stimulus-response associations in a load-dependent RL task. First, we replicated the set size effect, showing that for all task conditions a load of 6 stimuli produced worse performance than blocks with only 3 stimuli, indicating WM's role in task performance. Second, and to our main question, we found that limiting either discriminable visual or semantic information across stimuli detrimented performance. This condition effect interacted with load such that it had a larger effect in higher load conditions, suggesting that the condition may tax the RL system that is more responsible for behavior in the larger load conditions.</p><p>We used computational modeling to investigate if we could explain the process by which this performance detriment occurs, and found that a model that either assumes that people have lower RL learning rates or have higher confusion across stimuli when calculating the RL response policy was able to capture the data reasonably well qualitatively, and quantitatively better than other models. However, all models predict slightly higher performance in the Variants condition set size 6 relative to human performance ( <ref type="figure" target="#fig_1">Figure 2</ref>). In Experiment 2, we designed an experiment to more directly test the contribution of RL in learning, by adding a surprise memory test.</p><p>3 Experiment 2</p><p>Our second experiment was designed to replicate and extend the behavioral and modeling results of the first experiment. First, participants completed the same stimulus-response paradigm as in Experiment 1. Participants then completed a "Test phase," after a WM distractor task, designed to clear WM. During the Test phase, all stimuli from all Learning phase blocks were presented again in random order, and participants responded which of the three response keys they believed to be the correct response. No feedback on correctness was given. This phase probed how well stimulus-response pairs were learned by a RL process, presumably without the aid of WM. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Experimental Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">Experimental design</head><p>Participants completed the same stimulus-response learning paradigm, with the same numbers of trials and blocks, as in Experiment 1. In addition to this "Learning Phase," participants additionally completed a WM distractor task and a "Test Phase," which they were not told about ahead of time.</p><p>In the distractor task, participants completed 5 blocks of a N-back task. This task was designed to tax the WM system, clearing any working memory information about stimulus-response mappings from the Learning Phase, and is not analyzed in main manuscript. More details about this task can be found in the Supplementary Materials Section 6.2. It took approximately 10 minutes to complete.</p><p>Lastly, participants completed a surprise Test Phase, in which all stimuli from the Learning phase blocks were presented again in random order. Because the Test phase was beyond both WM capacity (54 associations tested) and maintenance period for most stimuli, this phase probed how well stimulus-response pairs were learned by a RL process alone. For each trial, a stimulus was presented, participants responded which of the three response keys they believed to be the correct response, and no feedback on correctness was given. Each of the 54 unique stimuli from the learning block was presented four times, for a total of 216 trials. Only stimuli from the middle 12 blocks (i.e., excluding stimuli from the first and last block) were included in this test phase to limit primacy or recency effects of memory <ref type="bibr" target="#b39">(Murdock Jr., 1962)</ref>. Because each Learning phase block corresponded to a unique category (i.e., a participant would see stimuli corresponding to "vegetables" in only one stimulus condition), there should not be any category-specific interference between blocks. All trials were completed in a single block.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Experimental Results</head><p>Here, we analyze the behavioral results from the Learning phase and Test phase. First, we analyze learning phase data as done in Experiment 1 <ref type="figure" target="#fig_2">(Fig. 3A, middle)</ref>. We conducted the repeated measures ANOVA, with proportion correct as the dependent variable and set size and stimulus condition as independent variables. There was a significant effect of set size (F (1, 29) = 185.1, p &lt; .001), condition (F (2, 58) = 24.66, p &lt; .001), and interaction between set size and condition (F (2, 58) = 11.90, p &lt; .001). For condition, performance in the Variants condition (M = .69, SEM = .03) was significantly lower than that of the Standard (M = .79, SEM = .02, p &lt; .001)</p><p>and Text (M = .76, SEM = .02, p = .02) conditions. Performance was not significantly different for Standard and Text conditions p = .53). The interaction was driven by a nonsignificant condition effect in set size 3 blocks (F (2, 58) = 2.44, p = .10) but a strong condition effect in set size 6 blocks (F (2, 58) = 27.07, p &lt; .001). We then conducted the logistic regression to test whether the likelihood of responding correctly on the current trial could be predicted from the previous number correct for that stimulus, the set size, and the delay since last correct. We found results consistent to Experiment 1 such that the probability of getting a correct response on the current trial was positively related to previous number of correct, and negatively related to set size and delay <ref type="figure" target="#fig_2">(Fig. 3A, right)</ref>. Reaction time analyses revealed the same pattern of results as in Experiment 1: participants responded slower in the set size 6 blocks than in the set size 3 blocks, but an ANOVA showed that while the difference between the set sizes was significant (p &lt; .001),</p><p>there was no effect of stimulus condition (p = .11) or an interaction between condition and set size (p = .80; <ref type="figure">Supplementary Figure 6</ref>).</p><p>Second, we analyzed the participants' performance on the Test phase. Collins and others (2018) demonstrated an interaction between RL and WM processes for long-term retention of the correct stimulus-action pair. Items in lower set size blocks had better performance during the Learning phase compared to higher set size blocks, but interestingly, a larger detriment in performance in the Test phase. This "tortoise and hare" effect demonstrated a trade off between RL and WM process; while WM assists performance during learning, it detriments long-term retention of the stimulus-action pairs. For all conditions and set sizes, performance was above chance (t(29) &gt; 6.35, p &lt; .001), suggesting long-term retention of stimulus-response associations even without explicit instruction to do so. Second, there was a significant positive correlation across participants between the proportion correct in the Learning and Test phases (r = .40, p = .03).</p><p>Finally, the difference between performance in Learning phase and Test phase was much larger in trials corresponding to stimuli learned in set size 3 blocks than ones learned in set size 6 blocks (t(29) = 6.41, p &lt; .001), replicating the tortoise and hare effect, showing interference of WM with RL learning. We conducted a one-way repeated measures ANOVA and found no statistical difference in the magnitude of this "tortoise and hare" effect across conditions (F (2, 58) = 2.207, p = .12). This nonsignificance of magnitude of deficit suggests that the difference in WM used between set size 3 and 6 in each condition is nonsignificantly different.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Modeling methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">Replication of Experiment 1</head><p>We first analyzed the Learning phase of Experiment 2 identically to that of Experiment 1. Details on the six models, fitting procedure, and model comparison can be found in Section 2.3.2-2.3.5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">Investigating Test phase</head><p>We additionally investigate model fit by jointly fitting Learning and Test phase data. In other words, all data are used to calculate the likelihood of parameter given model parameters and data.</p><p>The likelihood of learning phase data are computed identically to the previous procedure. For test phase data, we assume that participants only have access to RL values, not WM association weights; thus the likelihood of test phase trials relies only on the Q-values learned during the learning phase, which are frozen through the test phase in absence of feedback <ref type="bibr" target="#b9">(Collins, 2018)</ref>.</p><p>LLs are optimized in the same way as Experiment 1, and model are compared in the same way as Experiment 1. We fit the two best fitting models: the condition-specific RL learning rate and condition-specific RL decision confusion models.</p><p>We additionally test, for the RL learning rate and RL decision confusion models, the assumption that RL and WM processes are not independently updating value in during the learning phase, but actually interact during learning. As in Collins (2018), we implement this assumption such that WM contributes cooperatively during learning when calculating the RPE used by the RL process:</p><formula xml:id="formula_11">δ t = r t − (ω n W M t (s, a) + (1 − ω n )Q t (s, a)).<label>(2)</label></formula><p>We refer to this set of model as models "with interaction" (e.g., RL learning rate model with this modification is the "RL learning rate + interaction" model).</p><p>For all models, we additionally fit a softmax inverse temperature parameter, β, for the Test phase, under the assumption that response noise in using RL Q-values will likely differ for each participant between Training and Test phase due to failures in long-term retention of stimulusresponse associations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Modeling Results</head><p>We modeled the data in Experiment 2 in two ways. First, we fit only the Learning phase data, as in Experiment 1, to see if we could replicate those results. Second, we jointly fitted parameters on Learning and Test phase data, to see if modeling results differed from results when only fitting</p><p>Training phase data.</p><p>Replication of Experiment 1 Modeling results were remarkably consistent with Experiment 1; the condition-specific RL learning rate model fit the substantially better than most models across participants, and similarly as well as the RL decision confusion model. These two models</p><p>were best able to produce model predictions that looked qualitatively similar to that of the actual data ( <ref type="figure" target="#fig_4">Fig. 4A)</ref>. They were additionally able to capture the data quantitatively the best <ref type="figure" target="#fig_4">(Fig. 4B</ref>).  Investigating Test Phase Model validation plots are illustrated in <ref type="figure">Figure 5</ref>. Quantitatively, model performance was very similar (lower summed ∆LL * and higher pxp indicates better model fits to data). RL learning rate summed ∆LL * = 0, pxp = .25; RL decision confusion summed ∆LL * = 49, pxp = .23; RL learning rate + interaction summed ∆LL * = −44, pxp = .27; RL decision confusion + interaction summed ∆LL * = −8, pxp = .25).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RL decision confusion</head><p>Qualitatively, the models that assume an interaction between RL and WM during learning were able to capture Test phase data better for the Standard and Text condition (orange and green), but models that assume no interaction were able to capture Test phase data better in the Variants condition (blue). As a follow up, we considered models that had condition-specific interaction strengths, but they were not able to fit the data substantially better than those reported here (Supplementary 6.7.5).</p><p>1 2 3 4 5 6 7 8 9 10 11 stimulus iteration 1 2 3 4 5 6 7 8 9 10 11 stimulus iteration RL learning rate RL decision confusion 4 Further model investigations</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Interpreting model parameters</head><p>We investigated the parameter values for the two best-fitting models: the condition-specific RL learning rate and the condition-specific RL decision confusion models (individual and group parameter values for models fit on Learning phase displayed in Supplementary 6.6).</p><p>We first investigated whether it was reasonable to combine participants across the two experiments, for the models that were fitted to only Learning phase data. For each model, we conducted</p><p>Welch's t-tests for each parameter with a Bonferroni correction across parameters. We found for both winning models, no parameters were significantly different across experiments (p &gt; .41). For all following analyses, we combine participant parameters across experiments.</p><p>To investigate the differences between condition-specific parameters for each the model, we conducted Wilcoxon signed-rank test with a Bonferroni correction across the number of pairwise tests. First, we investigated whether the learning rates, αs, across conditions differ in the conditionspecific RL learning rate model. The learning rate for Variants condition (α v : M = .01, SEM = .003) was significantly lower than that of Text condition (α t : M = .03, SEM = .006, z = −7.40, p &lt; .001) and Standard condition (α s : M = .04, SEM = .008, z = −6.37, p &lt; .001).</p><p>The difference in learning rates for Standard and Text condition were not statistically significant (z = 2.25, p = .07). For the models fit to both Learning and Test phase data in Experiment 2, the results are largely consistent, finding that learning rate for the Variants (no interaction model: M = .01, SEM = .001, interaction model: M = .008, SEM = .0008) condition is lower than that of Standard (no interaction: M = .04, SEM = .03, z = −4.37, p &lt; .001; interaction: M = .04, SEM = .02, z = 4.41, p &lt; .001) and Text (no interaction: M = .01, SEM = .003, z = −2.99, p = .008; interaction: M = .02, SEM = .004,z = 3.38, p = .002) conditions. However, models that were fitted on both phases also found a statistically significant difference between Text and Standard conditions (no interaction: z = 2.77, p = .02; interaction: z = 2.79, p = .02).</p><p>For the RL decision confusion model, we found that the decision confusion for the Variants condition (ζ v : M = .44, SEM = .02) was significantly higher than that of the Text condition </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Alternative models</head><p>As in all modeling papers, we cannot possibly sample all possible models of this data. In our final analysis, we test two additional models that embody more complex hypotheses, as a control. We fit just the Learning phase data, and do not assume any interaction between RL and WM during learning.</p><p>Condition-specific RL learning rate and WM decay Our previous models assumed that only one process was affected by stimulus condition. In this model, we test the assumption that both processes are affected. To minimize additional complexity, we consider the model that lets the two most likely parameters from each process be condition dependent; specifically, this model assumes that RL learning rate and WM decay both depend on stimulus condition. Theoretically, this model allows us to test the assumption that both processes may differently but jointly contribute to differences in behavior. This model has the following 10 parameters</p><formula xml:id="formula_12">α s , α v , α t , λ s , λ v , λ t , ϕ, ω 3 , ω 6 , ϵ.</formula><p>Superfree The "Superfree" model fits each condition entirely separately. Thus, it is extremely unconstrained, overparameterized, and lacks theoretical justification on its own. However, it pro-vides a qualitative upper bound for the explainability of all models considered in this paper. We consider this model an important metric to use when considering the goodness-of-fit of models during model validation. This model has a total of parameters, consisting of 7 parameters for each condition: α, λ, ϕ, ζ, ω 3 , ω 6 , ϵ.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1">Model comparison and results</head><p>For model comparison with the new additions, we focus on the previous winning models, as well as the previous best candidate model where WM parameters were condition dependent. Specifically, we select 1) RL learning rate and 2) RL decision confusion, and 3) the WM decay model. Because the models considered in this section have different numbers of parameters, we use corrected Akaike Information Criterion (AICc; <ref type="bibr" target="#b30">Hurvich &amp; Tsai, 1987)</ref> to quantitatively compare model goodness-offit. Like AIC <ref type="bibr" target="#b0">(Akaike, 1972)</ref>, AICc penalizes models with more parameters, using parameters as a proxy for model flexibility (and additionally corrects for potentially low trial numbers):</p><formula xml:id="formula_13">AICc = −2LL * + 2k + 2k(k + 1) N trials − k − 1</formula><p>where k is the number of parameter and N trials is the number of trials. We chose to use AICc verses other model comparison metrics, because it provided us the best model recoverability, although it penalizes parameters less strictly than Bayesian Information Criterion (BIC). We report the median and mean of the difference between the AICc of one model and the RL learning rate model (∆AICc); larger values provide larger support in favor of the RL learning rate model. In addition to reporting the protected exceedance probability of each model pxp, we report the expected posterior probability of each model, denoted exp r . These two metrics provide us a more heterogeneous interpretation of model goodness-of-fit, such that different models may be superior for different subsets of participants. All quantitative results for Experiment 1 and 2 are reported in <ref type="table" target="#tab_4">Table 2 and Table 3</ref>, respectively.</p><p>Our results in this section are consistent with our other modeling results, for both experiments and for all model comparison metrics. First, as shown previously, both RL-only models individually fit better than the WM-only models in both experiments. Second, they individually fit better than the new model that assumed both RL and WM were affected by stimulus condition, suggesting that assuming condition-dependent WM changes does not provide any additional explanatory power to assuming only RL is affected (though, results of model recovery may weaken the interpretation of this result; <ref type="figure" target="#fig_8">Fig 18, 19)</ref> . Third, the model that assumed both RL and WM were both affected fit better than the WM-only model, suggesting that condition-specific RL modulation is key to fitting human behavioral data.</p><p>Interestingly, the RL-only models are not favored over the Superfree model in either experiment.</p><p>These quantitative results do not reflect a simple overfitting; the Superfree model is not the best fitting model for data simulated by other models (i.e., model recovery is successful for our chosen model comparison metrics. <ref type="figure" target="#fig_8">Figure 18)</ref>, and is qualitatively superior at capturing behavior in the set size 6, Variants condition <ref type="figure" target="#fig_1">(Figure 25)</ref>. While the Superfree model seems to be capturing some aspects of behavior that others model are not, the overparameterization of the model (indicated by poor parameter recovery, <ref type="figure">Figure 16</ref>) makes it difficult to understand, in a meaningful way, why. On the other hand, the RL learning rate model still provides a superior fit for a nontrivial proportion of participants (Experiment 1 / 2: exp r = .31 / .33), suggesting that it is a competitive model, whilst still being interpretable.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RL</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Discussion</head><p>In this study, we investigated how the type of information across a stimulus set affected learning.</p><p>Participants learned the correct response to stimuli that had different levels of discriminability relative to other stimuli in the same block. In behavior across two experiments, we show that,when there are more items to learn about concurrently, performance suffers minimally in the Text condition relative to the Standard condition, but substantially in the Variants condition.</p><p>Through computational modeling, we found that the differences in learning behavior across stimulus conditions were driven by deficits in specifically the RL process. The models that best predicted behavior was the one that either assumed that, across conditions, the RL learning rate changed or that there was confusion in the RL system at the decision stage. These models fit better than those that assumed stimulus condition affected credit assignment in RL, WM decay, decision confusion in WM, or the weight between RL and WM. Additionally, models that assumed the RL was alone affected fit better than a model that assumed both RL and WM were affected by stimulus condition.</p><p>What could be causing the differences in learning across the two lowered-discriminability stimulus conditions? Perhaps there is a preference for the modality of stimulus. Perhaps the deficit in the Variants condition was driven by a lack of semantic distinctness. Many RL studies actively select non-nameable stimuli with the (often implicit) goals of targeting putatively implicit processes <ref type="bibr" target="#b23">(Frank, Seeberger, &amp; O'Reilly, 2004;</ref><ref type="bibr" target="#b16">Daw et al., 2011)</ref> and limiting the contributions of other, more explicit cognitive processes. Consequently, they rely on the hypothesis that stimulus information in the semantic domain may impact learning, and in particular the balance of RL processes and higher level processes such as inference or memory. In contrast to that interpretation, our results suggest that the semantic distinguishability of the stimuli affects RL itself, not a different process and not its interaction with another process. Our results are consistent with that of <ref type="bibr">Radulescu and others (2022)</ref>, who more directly tested nameability of stimuli on learning. Like us, they found that more nameable stimuli were associated with higher RL learning rates, and that the effect of nameability on performance was more apparent in larger set size conditions. This interpretation is consistent with the results in the Text condition as well. Because stimuli were still semantically discriminable, performance on the Text stimulus condition was not significantly worse than that of the Standard stimulus condition.</p><p>In contrast to the RL process, our computational results suggest a lack of impact of stimulus condition on the WM process. Perhaps this is due to sufficient information being available to WM regardless of stimulus condition. Let's consider the Variants condition, in which a lack of semantically distinct information across stimuli does not hurt learning behavior. In other words, there was sufficient visual information between stimuli that WM processing was not affected. This explanation seems feasible given the research on WM for visual stimuli. The visual WM literature has demonstrated that, despite WM being information-constrained, people are able to learn and prioritize information in WM that is most relevant to performance (e.g., <ref type="bibr" target="#b76">Yoo, Klyszejko, Curtis, &amp; Ma, 2018;</ref><ref type="bibr" target="#b4">Bays, 2014;</ref><ref type="bibr" target="#b32">Klyszejko, Rahmati, &amp; Curtis, 2014;</ref><ref type="bibr" target="#b18">Emrich, Lockhart, &amp; Al-Aidroos, 2017;</ref><ref type="bibr" target="#b60">Sims, 2015)</ref>, even when stimuli are extremely simple and non-verbalizable (e.g., oriented lines, dots in space). Perhaps prioritization of relevant information would be easier with naturalistic stimuli;</p><p>WM performance for naturalistic stimuli demonstrated to be better than with simple stimuli <ref type="bibr" target="#b6">(Brady et al., 2016)</ref>, and even more so for objects familiar to participants <ref type="bibr" target="#b62">(Starr, Srinivasan, &amp; Bunge, 2020</ref>, even when doing a simultaneous verbal task, to ensure verbal WM is not assisting). Our results and this literature together suggest that, unlike RL, WM can learn actions associated with a stimulus set with low semantic discriminability, as long as there is high visual discriminability (and vice versa). In other words, WM is able to discriminate stimuli and maintain stimulus-response associations equally well with only visual or semantic information. It is important to note, though, that while we designed these stimulus sets with visual and semantic modalities in mind, we did not quantify the difference between discriminability across conditions. Thus, it is possible that our interpretation of how visual vs. semantic information affects processing may be overly simplified.</p><p>What other processes could be causing the differences in learning in the RL process across stimulus conditions, beyond a simple modality preference? It is known that learning a category structure becomes more difficult with increased similarity of exemplars between categories <ref type="bibr" target="#b34">(Love, Medin, &amp; Gureckis, 2004;</ref><ref type="bibr" target="#b43">Nosofsky, 1986)</ref> and increasing number of dimensions required to distinguish categories <ref type="bibr" target="#b44">(Nosofsky, Palmeri, &amp; McKinley, 1994;</ref><ref type="bibr" target="#b58">Shepard, Hovland, &amp; Jenkins, 1961)</ref>. This difficulty is apparent in the Variants condition, in which participants had to distinguish between stimuli based on relatively low-level visual differences that are not often of ecological importance.</p><p>This is in contrast to the Text condition, in which stimuli are so easily discriminable due to the association of the word with its meaning -a relatively automatic association, as seen in the well- to pay attention to itself became something that needed to be learned (e.g., <ref type="bibr" target="#b33">Leong, Radulescu, Daniel, DeWoskin, &amp; Niv, 2017)</ref>, and likely affected behavior. For example, "learning traps" can occur in behavior <ref type="bibr" target="#b52">(Rich &amp; Gureckis, 2018)</ref>, due to selective attention, simplification, or dimensionality reduction <ref type="bibr" target="#b44">(Nosofsky et al., 1994;</ref><ref type="bibr" target="#b25">Goodman, Tenenbaum, Feldman, &amp; Griffiths, 2008</ref>  <ref type="bibr" target="#b1">(Alexander, DeLong, &amp; Strick, 1986;</ref><ref type="bibr" target="#b26">Haber, 2011;</ref>, with striatum playing a crucial role in supporting iterative, reward-dependent learning (e.g., <ref type="bibr" target="#b36">McClure, Berns, &amp; Montague, 2003;</ref><ref type="bibr" target="#b45">O'Doherty, Dayan, Friston, Critchley, &amp; Dolan, 2003;</ref><ref type="bibr" target="#b23">Frank et al., 2004;</ref><ref type="bibr" target="#b22">Frank &amp; O'Reilly, 2006)</ref>. Prefrontal cortex activity also reflects reward prediction errors in feedback-based learning tasks (e.g., <ref type="bibr" target="#b3">Barto, 1995;</ref><ref type="bibr" target="#b57">Schultz, Dayan, &amp; Montague, 1997;</ref><ref type="bibr" target="#b59">Shohamy et al., 2004;</ref><ref type="bibr" target="#b16">Daw et al., 2011)</ref>, but is typically thought to be more related to flexible goal-directed behavior (e.g., <ref type="bibr" target="#b27">Hampton, Bossaerts, &amp; O'Doherty, 2006;</ref><ref type="bibr" target="#b68">Valentin, Dickinson, &amp; O'Doherty, 2007)</ref>.</p><p>Specifically, there has been evidence that PFC function supports WM in the context of learning, in parallel to subcortical RL <ref type="bibr" target="#b12">(Collins &amp; Frank, 2012;</ref><ref type="bibr" target="#b11">Collins, Ciullo, Frank, &amp; Badre, 2017)</ref>.</p><p>While there is a growing understanding of the multiple neural mechanisms that support learning, and in particular the RL circuits in the brain, the inputs to this network are not often carefully considered -RL computations assume known stimuli, actions, and rewards as inputs to learn a policy <ref type="bibr" target="#b56">(Rmus, McDougle, &amp; Collins, 2021)</ref>. Here, our work shows that the inputs, in particular the state space, matter: the nature of the stimuli impacted RL computations, slowing learning and potentially increasing choice confusion. It would be interesting in future research to do networklevel modeling to understand how this behavior may arise from more diffuse/overlapping input representations.</p><p>Neuroscientific research in RL contrasts with that of WM, which has spent a considerable amount of effort investigating how stimulus information affects WM representations in the brain.</p><p>Namely, neuroscientific research has demonstrated that WM in the brain is highly distributed, and that the brain areas involved vary depending on the type of information being maintained (for review, see <ref type="bibr" target="#b7">Christophel, Klink, Spitzer, Roelfsema, &amp; Haynes, 2017)</ref>. For example, in addition to the prefrontal cortex, retinotopic maps in occipital and parietal cortices are related to the WM maintenance of visual information (e.g., <ref type="bibr" target="#b28">Harrison &amp; Tong, 2009;</ref><ref type="bibr" target="#b53">Riggall &amp; Postle, 2012)</ref>.</p><p>However, despite neural WM representations being represented through sensory cortices, WM still behaves similarly in the context of learning and decision making, where the conjunction of stimuli and correct choices is the most important information to be maintained. Perhaps this associative, higher-level information is successfully represented in the PFC, regardless of specific stimulus information. Future research with brain imaging could shed more light on this.</p><p>There are, of course, limitations to our results. First, while our model fits are reasonable, there are still some qualitative deviations in our model validation and the data we collected. In particular, learning performance in the Variants condition in set size 6 was lower than the RL learning rate model predictions. Perhaps learning detriments in the Variants condition is a combination of other, unconsidered processes interacting with either RL or WM. There has been ample research that computationally, behaviorally, and neurologically demonstrate that other processes interact with RL and/or WM. For example, episodic memory interacts with memoranda maintained in WM (e.g., <ref type="bibr" target="#b29">Hoskin, Bornstein, Norman, &amp; Cohen, 2019)</ref>and choice in RL tasks (e.g., <ref type="bibr" target="#b5">Bornstein &amp; Norman, 2017)</ref>. Attention also affects both WM (e.g., <ref type="bibr" target="#b8">Chun, Golomb, &amp; Turk-Browne, 2011;</ref><ref type="bibr" target="#b61">Souza, Thalmann, &amp; Oberauer, 2018)</ref> and RL (e.g., <ref type="bibr" target="#b19">Farashahi et al., 2017;</ref><ref type="bibr" target="#b33">Leong et al., 2017;</ref><ref type="bibr" target="#b41">Niv et al., 2015)</ref>. While it would be lovely to be able to study all these processes in tandem, it is simply out of the scope of this project; the design of our experiment would likely not allow different processes to be distinguished behaviorally or computationally.</p><p>Second, and more critically, we were not able to conclusively distinguish whether it was lower learning rate or increased across-stimulus confusion during the RL response policy calculation.</p><p>Perhaps the experimental design is too simple to distinguish the choice noise that occur from both cases. However, these "RL learning rate" and "RL decision confusion" models are distinguishable according to model recovery (Supplementary 6.5), so it is not simply that they make similar predictions. Additionally, these results do not suggest just a simple increase in noise, since other models that also result in increased behavioral noise (i.e., RL credit assignment, WM decay, and WM decision confusion models) do not fit the data quantitatively or qualitatively as well. Thus, our results do strongly suggest an impact on specifically the RL process. Understanding the exact nature of that impact will require additional study, likely with different paradigms.</p><p>Our two experiments were conducted in fairly different demographics and experimental environments: Experiment 1 was conducted online on MTurk and Experiment 2 was conducted in person in an undergraduate population. Despite subtle differences in behavior across the two experiments (namely, the difference in statistical significance of condition differences in set size 3 blocks), we find remarkable consistency in behavior, model rankings, qualitative goodness of fits of winning models, and estimated parameters across experiments. Thus, we see the two experiments as a broad replication of results as a sign of robustness of the findings.</p><p>Overall, this study replicates results demonstrating the importance of both RL and WM in the study of learning. This study provides evidence that stimulus matters in learning, potentially pointing to the importance of semantic information in learning. We find an interesting result that condition differences only affected the RL process, while the WM process was largely spared. This paper strongly demonstrates the importance of considering how a learning state is defined. Future research should continue to investigate how different stimuli/states affect learning and, at the very least, consider how the experimental choice of stimuli affects learning behavior.</p><p>Data and code availability. Participant and simulated data are available at https://osf.io/f4hst/.</p><p>Plotting and analysis code are available at https://github.com/aspenyoo/RLWM_stim_discrim.</p><p>None of the experiments were preregistered.</p><p>. . . </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3">Qualitative difference between models: error types</head><p>We found that the models that assumed that either there was a condition-specific effect on RL learning rate or a condition-specific effect on RL decision confusion were able to fit the data best.</p><p>While the goal of our paper is not to find one model that explains all datasets we collected, it is still an interesting question to ask what the differences are between participants best fit by each of the models. In this section, we highlight one qualitative difference between the two winning models.</p><p>To investigate qualitative differences between models, we analyzed the key press errors. Unlike learning curves, the two models should generate different predictions on error types. For the RL learning rate model, errors are primarily driven by a lower rate of learning, so errors should be randomly distributed across incorrect keys. On the other hand, if people are confusing stimuli at the decision stage, errors should not be random. Specifically, the RL decision confusion model should predict that errors would be skewed toward the key presses that are rewarded in other stimuli.</p><p>For all set size 3 blocks, there was an imposed structure such that there was a key for which two images were correct, a key for which one image was correct, and a key for which no images were correct. (The correct keys were counterbalanced across blocks.) Because the correct answers were not evenly distributed across key presses, we were able to investigate if errors are random or reflect the distribution of correct keys across all trials (i.e., independent of current stimulus). We cannot do this analysis on set size 6 blocks, since each key had 2 images each associated with it.</p><p>For each participant, we split up errors by whether the correct answer was the key that was correct for two stimuli (which we will refer as the "2" key) or if the correct answer was correct for only one stimulus (the "1" key). We then calculated the proportion of the incorrect key presses that were correct for a different stimulus (incorrectly pushing the "1" or "2" key), versus a key that was never rewarded (the "0" key). If errors are random, as predicted by the RL learning rate model, this proportion would be around 0.5. If errors result from decision confusion, participants' error should be biased toward stimuli rewarded in other trials. However, there are other reasons that decisions would be biased toward stimuli rewarded in other trials (e.g., a general avoidance of never-rewarded key). If errors are truly a result of decision confusion, there should be higher confusion in trials in which 1 is correct but 2 is pushed, than trials in which 2 is correct but 1 is pushed.</p><p>For visualization, we grouped the participants by whether they were better fit by the RL learning rate or RL decision confusion model (i.e., which model had a higher LL*). In Experiment 1, 35 participants were best fit by the RL learning rate model, and 24 best fit by the RL decision confusion model. In Experiment 2, 19 participants were best fit by the RL learning rate model, and 11 best fit by the RL decision confusion model. Proportion of error types for both Learning and Test phase are illustrated in <ref type="figure">Figure 6</ref>.</p><p>For both phases, we conducted a two-way ANOVA for each group of participants, to investigate whether the error types were different according to condition (Standard, Text, Variants), correct key (2 or 1), and interaction between the condition and correct key. For the RL learning rate group, in both Learning and Test phase, we found no significant main effect of condition, correct key press, and no significant interaction. Preference for key rewarded in other trials in Learning (t(53) = 7.30, p &lt; .001.M = .60, SEM = .01) and Test (M = .64, SEM = .02, t(18) = 6.59, p &lt; .001) phase was significantly different than chance.</p><p>For participants best fit by the RL decision confusion model, there was a significant main effect of correct key press in both Learning (F (1, 34) = 25.01p &lt; .001) and Test phase (F (1, 34) = 15.05, p &lt; .001). There was no main effect of condition or interaction between condition and correct key press. In the Learning phase, there was a greater bias toward other rewarded keys in trials when the correct answer was 1 (M = .74, SEM = .03) than 2 (M = .60, SEM = .01), and both were significantly different than chance (t(34) &gt; 7.11, p &lt; .001). In the Test phase, both were significant prefer rewarded keys in other trials, but greater bias toward rewarded keys when correct answer was 1 (M = .78, SEM = .04, t(10) = 7.44, p &lt; .001) than 2 (M = .56, SEM = .02, t(10) = 3.03, p = .01).</p><p>Model predictions do not successfully capture qualitative data patterns. Neither of the models are able to capture the avoidance of the unrewarded key in both phases, suggesting there is another process at work we did not include in the model. The RL decision confusion model is able to capture the qualitative effect of greater bias in "1" trials over "2" trials in Learning phase, but not in Test phase. Perhaps the RL decision confusion is able to capture greater bias in early learning, but stimulus confusion is lessened by late learning Q-values (which the test phase is based on).  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.4">Parameter recovery</head><p>In order to establish the interpretability of model parameters, one should test that the same parameters that generate a data set are the ones recovered through the model parameter estimation method <ref type="bibr" target="#b71">(Wilson &amp; Collins, 2019)</ref>. Successful parameter recovery exists when the parameter values that maximize the likelihood of the data given the model parameters are close to the parameter values that generated the data. Successful parameter recovery is necessary to interpret estimated parameter values.</p><p>For each model, we generated parameters by sampling the fitted parameter vectors from participants across both experiments. We sampled 50 participants without replacement. Our goal here was to use parameter values that best reflect the regime of the parameter space that matches data we are interested in. We also completed parameter recovery by sampling parameters from a nonparametric distribution informed by the fitted parameter values, rather than using the exact values. Because there are arbitrary decisions required to define this distribution, we did not include the results here. However, the results are qualitatively the same.</p><p>For each model and simulated participant, we simulated data with the sampled parameters, then estimated parameters using the same model fitting methods described in the main text. Finally, we plot the true and estimated parameters against one another. For each plot, values clustered along the diagonal indicate successful parameter recovery.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.5">Model recovery</head><p>Model recovery is an important step before making conclusions from a quantitative model comparison <ref type="bibr" target="#b71">(Wilson &amp; Collins, 2019)</ref>. Successful model recovery occurs when the same model that generates a data set best fits it (according to your chosen model comparison metrics), when compared to all other models in the comparison set.</p><p>For each model, we generated 50 simulated participants' data from the parameter values fitted from 50 participants, randomly sampled without replacement from both experiments. (We use the same simulated participants' data for parameter recovery). We then fit every model to each of of these (nModels x 50) simulated participants, using the same fitting methods as described in the main text.</p><p>We compared model goodness-of-fit using corrected Akaike Information Criterion (AICc), Bayesian</p><p>Information Criterion (BIC), and exp r . AICc and BIC both penalize models with more parameters, and BIC penalizes more strictly:</p><formula xml:id="formula_14">AICc = −2LL * + 2k + 2k(k + 1) N trials − k − 1 BIC = −2LL * + k log N trials ,</formula><p>where k is the number of parameter and N trials is the number of trials.</p><p>The measure exp r is calculated using BMS spm, which explicitly assumes that the participants can be fit by different models. This value is expectation of the posterior probabilities of each model. Successful model recovery occurs when the model that best fits a simulated data set is the same model that generated that data set. For example, if all 50 participants generated by the condition-specific RL learning rate model are best fit by the condition-specific RL learning rate model, there is successful model recovery.</p><p>For the most part, we consider our results successful model recovery <ref type="figure">(Figure 17)</ref>. However, these results also indicate the RL learning rate, WM decay, and RL WM weight models are a bit more flexible than others, demonstrated by their ability to best capture data sets generated from other models. These results suggest that model comparisons favoring these three models may be do to model flexibility, rather than a genuine reflection of the underlying cognitive process. In our experimental data (see main manuscript), we do indeed find that the RL learning rate model fits the data best. However, because 1) we do not find that WM decay or RL WM weight models fit the data as well, and 2) the RL decision confusion model is able to fit the data comparably well to the RL learning rate model, we believe our interpretation of the results (i.e., that RL is specifically affected, but not committing to how) is still valid.  <ref type="figure">Figure 17</ref>: Model recovery when using LL * and expected probability using BMS SPM (exp r ), for six main models with same number of parameters. Successful model recovery is indicated by a majority of models falling on the diagonal. Both metrics provide good model recovery, although exp r is a bit better.</p><p>Our model comparison including the additional two models (RL learning rate + WM decay, superfree) are not as simple, due to the relatively high confuseability of the RL learning rate model and the RL learning rate + WM decay model ( <ref type="figure" target="#fig_8">Figure 18</ref>). We did an additional model recovery analysis between just these two models, with 500 simulated datasets, 50 parameter sets each simulated 10 times <ref type="figure" target="#fig_9">(Figure 19</ref>). Although the majority tends in the desired direction, the simpler RL learning rate model is able to account for much of the more complex RL learning rate + WM decay model. Thus, our model comparison results between these two models should be taken with a grain of salt.   <ref type="figure" target="#fig_8">Figure 18</ref>: Model recovery when using AICc, BIC, and expected probability using BMS SPM (exp r ). Successful model recovery is indicated by a majority of models falling on the diagonal.</p><p>These results generally convey reasonable model recovery, for all models except the RL learning rate + WM decay model. AICc and exp r provide better recovery than BIC.  <ref type="figure" target="#fig_9">Figure 19</ref>: A follow up model recovery with more simulated data (independent from earlier datasets), with just the "RL learning rate" and "RL learning rate + WM decay" models, which had the greatest confusability in earlier model recovery plots. No metric is able to capture a desired level of model recovery, although AICc and exp r are able to capture the correct directionality.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.6">Parameter values</head><p>In this section, we plot the individual and group parameter values for the two winning models: the condition-specific RL learning rate model ( <ref type="figure" target="#fig_1">Figure 20</ref>) and condition-specific RL decision confusion model <ref type="figure" target="#fig_1">(Figure 21</ref>).  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.7">Alternative Models</head><p>We tested six main models in the manuscript with the following condition-specific differences: RL learning rate, RL credit assignment, RL decision confusion, WM decay, WM decision confusion, and weight between RL and WM process contributions. There are of course an infinite amount of other models that we could have tested. This section summarizes related models that we fitted, that may be of interested to the reader. We divide this section into three parts. First, we display the results of models with only an RL component, only a WM component, and standard RLWM models without condition-dependencies. These models are common to report in similar studies, but were not reported in our main manuscript because they are obviously poorly fitting models.</p><p>Second, we use factorial model comparison to test whether the goodness of fit for the eight main models we fit in the main manuscript vary with/without perseveration, and with/without a fitted negative learning rate, α − , parameter. There are published studies suggesting the assumptions we included in the main manuscript were reasonable, but we still chose to test them directly. Third, we test if our assumption of 1-back perseveration (i.e., the time decay of perseveration) affects our modeling results, by softening this assumption. Fourth, we show model validation plots for the additional models considered in the main manuscript: the RL learning rate + WM decay model and the Superfree model. Finally, we show model validation plots for the additional models considered in Experiment 2: the RL learning rate and RL decision confusion models with condition-specific interference of WM on RL during learning.</p><p>In these sections, we compared model goodness-of-fit using AICc and BIC.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.7.1">RL, WM, RLWM model fits</head><p>Three models that are often shown in "RLWM" papers are RL alone, WM alone, and RL+WM models. We decided not to show their fits in the main manuscript, because they explicitly do not include any condition-specific differences, and would thus obviously not fit the data well.</p><p>However, for the sake of completeness and comparison, we include the model validation and model comparison plots of Experiment 1 participants, relative to the condition-specific RL learning rate model used in the main manuscript. Indeed, they are not able to capture the data <ref type="figure">(Figure ??</ref>). Vari. Stand. Text <ref type="figure" target="#fig_1">Figure 22</ref>: Model validation plots for the condition-specific RL learning rate, RL, WM, and RLWM models (left four plots) for Experiment 1 data. AICc (top) and BIC (bottom) differences between models and RL learning rate model. A smaller number indicates a better fit. The condition-specific RL learning rate clearly fit the data qualitatively and quantitatively better than these models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.7.2">Perseveration and negative learning rate</head><p>In our main six models, we fit a perseveration rate ϕ, and we fix negative learning rate α − to 0.</p><p>Here, we factorially compare model family (6: RL learning rate, RL credit assignment, RL decision confusion, WM decay, WM decision confusion, and RL-WM weight), perseveration (2: fixed to 0, fit as free parameter), and negative learning rate (2: fixed to 0, fit as free parameter). <ref type="figure" target="#fig_1">Figure 23</ref> illustrates the quantitiative comparison of all models for both AICc and BIC. We find that fitting a perseveration parameter does seem to increase the model's quantitative fit, while fitting a negative learning rate parameter does not seem to make a difference. (This is because the values are fit to 0). More importantly, we see that the ranking across model family doesn't vary no matter what perseveration / negative learning rate combination we use. In other words, our conclusion that RL learning rate and RL decision confusion models fit data best are not dependent on our specific assumptions about perseveration or negative learning rate. For simplicity, we decided in the main manuscript to include the model which keeps perseveration as a free parameter, and fixed negative learning rate α − = 0. We define perseveration in Section 2.3.1 of the main manuscript, in which we fix the perseveration choice trace decay rate, τ , to 1. Thus, only the previous trial affects the current perseveration behavior. We investigate in this section whether that was a reasonable assumption, by fitting the decay rate τ as a free parameter. Freeing this parameter neither significantly increases model performance of any of our main six models nor changes model ranking. 6.7.4 RL learning rate + WM decay model, Superfree model</p><p>In this section, we show the model validation and model comparison plots for the two additional models considered in the main manuscript (Section 4.2).</p><p>-60 Vari. Stand. Text 1 2 3 4 5 6 7 8 9 10 11 stimulus iteration ∆AICc 6.7.5 Condition-specific interaction for train+test models</p><p>In this section, we describe models that were fitted with different degrees of RL/WM interference between train and test in different conditions.</p><p>The δ used in updating Q values in interference model includes the WM values, rather than just Q values (Eq: 2). For condition-specific interference, we additionally add a multipllicative term to scale the amount of interference the WM value association gives when calculating delta.</p><p>We denote the condition-specific interference scalar as x c for condition c. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Experiment 1 Modeling Results. A. Learning curves for each condition (color) and set size (value/saturation) across participants for data (errorbars, M ±SEM ) and model predictions (fills, ±SEM ). Only the first 11 stimulus iterations are illustrated, but all iterations were used in modeling. B. Difference in LL scores for each model, relative to the RL learning rate model. Dots indicate individual participants, black line indicates median, and grey box indicates 95% bootstrapped confidence interval of the median. Difference of summed ∆LL * s across participants and protected exceedance probability displayed for each model. Lower LL * s and higher pxps indicate better model fit.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Experiment 2 task and results. A. Learning phase. Left: Task design. Middle:Proportion of correct choices increases as a function of stimulus iteration for all stimulus and set size conditions but slower for set size 6, especially in the Variants condition. Right: Logistic regression. For all three conditions, participants are more likely to select the correct response when it is a lower set size block, shorter delay, and when they have gotten more correct responses on that stimulus previously. B. Test phase. Left: task design. Participants viewed all stimuli previously learned and reported their believed correct response. No correctness feedback was given. Middle:Proportion correct in training (x-axis) and testing (y-axis) phase for condition (color), showing individual participants (dots) or M ± sem across participants (boxes). Right: Tortoise and hare effect: there is a larger deficit in long-term retention (difference in proportion correct (PC) from train to test) with stimuli learned in set size 3 blocks than set size 6 blocks. This deficit was not significantly different across conditions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 4 :</head><label>4</label><figDesc>Experiment 2 modeling results: replication of experiment 1 A. Learning curves for each condition (legend at top) across participants for data (errorbars, M ± SEM ) and model predictions (fills, M ±SEM ). Only the first 11 stimulus iterations are illustrated, but all iterations were used in modeling. B. Difference in LL * for each model relative to the RL learning rate model. Dots indicate individual participants, black line indicates median, and grey box indicates 95% bootstrapped confidence interval of the median. Difference of summed LL * s across participants and protected exceedance probability displayed for each model. Lower LL * s and higher pxps indicate better model fit.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>(</head><label></label><figDesc>ζ t : M = .22, SEM = .03, z = 6.02, p &lt; .001). This effect is also true for the models fitted on Learning and Test phase of Experiment 2; decision confusion is greater in the Variants condition than the Text condition in both the models that assume no interaction between RL and WM (Variants: M = .36, SEM = .04, Text: M = .18, SEM = .04, z = 2.95, p = .003) and those that do (Variants: M = .40, SEM = .04, Text: M = .20, SEM = .04, z = 3.38, p = .001).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>replicated</head><label></label><figDesc>Stroop task (1935) -despite having relatively similar low-level visual characteristics across stimuli. In the Variants condition, unlike the Text condition, what features were important</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>N-back task. Left: task design. Participants viewed a series of colors and made a key press every time the color N trials ago was the same as the color of the current block. This illustration demonstrates all correct responses on a N = 2 back task. Right: d ′ decreases a function of N , indicating worse performance with increasing set size.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 8 :</head><label>8</label><figDesc>Error types by winning model. The proportion of incorrect key presses that were rewarded for other stimuli, based on how many stimuli shared the same key press (x-axis). Randomly responding between the two incorrect keys is shown with the dashed black line; above chance means a preference toward the key rewarded for a different stimulus. M ± SEM data (error bars) and model predictions (fills) for Learning (left; both experiments) and Test (right; Exp 2) phase.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 9 :</head><label>9</label><figDesc>Parameter recovery plots for condition-specific RL learning rate model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 10 :Figure 11 :Figure 12 :Figure 13 :</head><label>10111213</label><figDesc>Parameter recovery plots for condition-specific RL credit assignment model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants. Parameter recovery plots for condition-specific RL decision confusion model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants. Parameter recovery plots for condition-specific WM decay model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (yaxis), estimated using MLE. Dots are individual simulated participants. Parameter recovery plots for condition-specific WM decision confusion model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 14 :Figure 15 :Figure 16 :</head><label>141516</label><figDesc>Parameter recovery plots for condition-specific RL WM weight model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants. Parameter recovery plots for condition-specific RL learning rate + WM decay model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants. Parameter recovery plots for superfree model. Each subplot plots the true parameters (x-axis), which generated data, against the recovered parameter values (y-axis), estimated using MLE. Dots are individual simulated participants.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure 20 :</head><label>20</label><figDesc>Parameter values (dots: individual participants. error bars: M ± sem across participants) for the condition-specific RL learning rate model for Experiment 1 and Experiment 2. Outliers for log(α v ) not illustrated in plot (Exp 1: -21.66; Exp 2: 22.63). The p-values of a Wilcoxon rank sum test comparing the two participant groups, before any multiple comparisons corrections, displayed on the top left of each subplot.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>Figure 21 :</head><label>21</label><figDesc>Parameter values (dots: individual participants. error bars: M ± sem across participants) for condition-specific RL decision confusion model for Experiment 1 and Experiment 2. The p-values of a Wilcoxon rank sum test comparing the two participant groups, before any multiple comparisons corrections, displayed on top left of each subplot.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18"><head>Figure 23 :</head><label>23</label><figDesc>Quantitative results of factorial model comparison. AICc (left) and BIC (right) differences, relative to the RL learning rate model in the main manuscript. A lower number indicates a better fit. For each plot, each section of six models correspond to the respective characteristics: ϕ = 0, fitted α − ; ϕ = 0, α − = 0; fitted ϕ and α − ; fitted ϕ, α − = 0 6.7.3 Perseveration with free decay rate parameter</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_19"><head>Figure 24 :</head><label>24</label><figDesc>a r n in g r a te R L d e c is io n c o n fu s io n R L c r e d it a s s ig n m e n t W M d e c is io n c o n fu s io n R Factorial model comparison with perseveration parameter τ fixed to 1 (left six models on each plot) and as a free parameter (right six models on each plot). AICc (left plot) and BIC (right plot) are relative to the RL learning rate model with τ = 1. A lower value indicates a better fit to data. Model differences do not change model rankings, and model fits are not noticeably improved by including a free τ parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_20"><head>Figure 25 :</head><label>25</label><figDesc>Model validations of RL learning rate + WM decay model and Superfree model for Experiment 1 (top row) and Experiment 2 (bottom row). We plot them next to the model validation of the RL learning rate model, which is our best fitting model. We show quantitiavie model comparison for each participant (yellow dots), with bootstrapped median 90 CI of the median (grey box). All other quantiative model comparison metrics are displayed in tables 2 and 3 in the main text.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_21"><head>δFigure 26 :</head><label>26</label><figDesc>= r − (ω n x c * W M (s, a) + (1 − ω n x c ) * Q(s, a)). Model validation and comparison for condition-specific interference models. A. Model validation for RL learning rate (left plots) and RL decision confustion (right plots) model with condition-specific interference. Top row corresponds to learning phase, bottom row corresponds to test phase behavior (error bars) and model predictions (color fill). B. AICc differences of all models fit on learning and test phase data, relative to RL learning rate model with no interference. Negative values indicate better fit. Including condition-specific interference (last two) marginally improves fit, but still does not capture data perfectly.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc></figDesc><table /><note>Model parameters. Free parameters for each model. Base parameters are loosely com- parable across all models; model-specific parameters are additional ones fit to capture condition- specific effects.</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head></head><label></label><figDesc>Thirty-seven participants (22 female, mean age 21) were recruited through a UC Berkeley online site and received course credit for experimental participation. Participants in this experiment did not receive any bonus compensation based on performance. We obtained informed, written consent from all participants. The study was in accordance with the Declaration of Helsinki and was approved by the Institutional Review Board of University of California, Berkeley (IRB 2016-01-0820). Seven participants were excluded for psychiatric diagnosis disqualifications, withdrawing early, not being fluent in English, or monitor malfunctions in the testing rooms, leaving 30 (19 female, mean age 21) participants in the final online sample.</figDesc><table><row><cell>3.1.1 Participants</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4"><head>Table 2 :</head><label>2</label><figDesc></figDesc><table><row><cell></cell><cell cols="2">RL learning RL decision</cell><cell></cell><cell>RL learning rate</cell><cell></cell></row><row><cell></cell><cell></cell><cell></cell><cell>WM decay</cell><cell></cell><cell>Superfree</cell></row><row><cell></cell><cell>rate</cell><cell>confusion</cell><cell></cell><cell>+ WM decay</cell><cell></cell></row><row><cell>pxp</cell><cell>0.30</cell><cell>0.04</cell><cell>0.04</cell><cell>0.05</cell><cell>0.56</cell></row><row><cell>exp r</cell><cell>0.33</cell><cell>0.09</cell><cell>0.04</cell><cell>0.14</cell><cell>0.39</cell></row><row><cell>mean(∆AICc)</cell><cell>0</cell><cell>1</cell><cell>7</cell><cell>1</cell><cell>-1</cell></row><row><cell>med(∆AICc)</cell><cell>0</cell><cell>3</cell><cell>3</cell><cell>2</cell><cell>0</cell></row></table><note>Experiment 1 quantitative model comparison. Protected exceedance probability (pxp), expected posterior probabilities (exp r ), mean AICc differences relative to RL learning rate (mean(∆AICc)), and median AICc difference (med(∆AICc)). Positive AICc values indicate that RL learning rate provides a better fit to the data.</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5"><head>Table 3 :</head><label>3</label><figDesc>Experiment 2 quantitative model comparison. Protected exceedance probability</figDesc><table /><note>(pxp), expected posterior probabilities (exp r ), mean AICc differences relative to RL learning rate (mean(∆AICc)), and median AICc difference (med(∆AICc)). Positive AICc values indicate that RL learning rate provides a better fit to the data.</note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6"><head></head><label></label><figDesc>). The poor performance in the Variants condition could have been because the relevant discriminating features in the Variants condition (e.g., luminosity, absolute size, orientation of object) are, in the other two experimental conditions and often in real life, trivial compared to object identity -your value assessment for an apple doesn't depend on how bright the room is. The combination of interference (due to interleaved condition blocks) and a learning trap (previous experience within and beyond the experiment indicating these low-level features are unimportant) could have resulted in difficulty successfully using these features to discriminate between stimuli for RL. Other studies corroborate this conclusion, finding stimulus type (e.g., naturalistic stimuli learned better than abstract stimuli; Farashahi et al., 2020) and response "state" (e.g., motor responses learned better than stimulus responses; Rmus &amp; Collins, 2020) affect learning. Regardless of exact cognitive mechanism at play, these results demonstrate the importance of considering how a learning state is defined.Our results have strong implications for understanding the neural circuits that support flexible learning. Previous research has focused on clarifying how the brain integrates past choice and reward history to make a choice given a stimulus, with little consideration to the inputs of this</figDesc><table /><note>computation -such as the stimuli. Past findings have shown that multiple distinct neural systems contribute to learning. Reinforcement learning computations appear to be implemented in cortico- basal ganglia loops</note></figure>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix</head><p>In the Supplementary Materials, we include additional analyses that broadly support the main text. We include details on participant reaction times on the Learning phase, N-back distractor task, qualitative differences in error types between the two winning models, parameter recovery, model recovery, and alternative models that were tested. In the alternative models, we included analyses of RL, WM, and RLWM models; whether model goodness-of-fit changes with a fixed or fitted perseveration rate and negative learning rate; and whether perseveration choice trace is greater than one trial back.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">Reaction times</head><p>Plotted below are the individual subject (dots) and group mean (bars) reaction times in seconds, split by stimulus condition and set size.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">N-back distractor task</head><p>The first block was a practice block with N =2, then the following four blocks incrementally increased from N =2 to N =5. Each block had on average 40 trials, and the stimulus shown on each trial was a colored rectangle; potential rectangle colors were common and distinct from one another (e.g., blue, yellow, pink, black, green). Code for the N-back task can be found at https://github.com/AlexanderFengler/ExperimentDesign_NBackTask.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A new look at the statistical model identification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Akaike</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Automatic Control</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page" from="716" to="723" />
+			<date type="published" when="1972" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Parallel organization of functionally segregated circuits linking basal ganglia and cortex</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Alexander</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Delong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Strick</surname></persName>
+		</author>
+		<idno type="DOI">10.1146/annurev.ne.09.030186.002041</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="357" to="381" />
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Working Memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">D</forename><surname>Baddeley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hitch</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/S0079-7421(08</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychology of Learning and Motivation</title>
+		<editor>G. H. Bower</editor>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="60452" to="60453" />
+			<date type="published" when="1974" />
+			<publisher>Academic Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Adaptive Critics and the Basal Ganglia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Models of Information Processing in the Basal Ganglia</title>
+		<editor>J.C. Houk &amp; D. Beiser</editor>
+		<meeting><address><addrLine>Cambridge, MA</addrLine></address></meeting>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="1995" />
+			<biblScope unit="page" from="215" to="232" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Noise in neural populations accounts for errors in working memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Bays</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.3204-13.2014</idno>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience: The Official Journal of the Society for Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="3632" to="3645" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Reinstated episodic context guides sampling-based decisions for reward</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Bornstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Norman</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nn.4573</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="997" to="1003" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Working memory is not fixed-capacity: More active storage capacity for real-world objects than for simple stimuli</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">F</forename><surname>Brady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Störmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Alvarez</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.1520027113</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">27</biblScope>
+			<biblScope unit="page" from="7459" to="7464" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">The Distributed Nature of Working Memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">B</forename><surname>Christophel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Klink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Spitzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Roelfsema</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-D</forename><surname>Haynes</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2016.12.007</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="111" to="124" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">A taxonomy of external and internal attention</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Chun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Golomb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Turk-Browne</surname></persName>
+		</author>
+		<idno type="DOI">10.1146/an-nurev.psych.093008.100427</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Psychology</title>
+		<imprint>
+			<biblScope unit="volume">62</biblScope>
+			<biblScope unit="page" from="73" to="101" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">The Tortoise and the Hare: Interactions between Reinforcement Learning and Working Memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/jocna01238</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cognitive Neuroscience</title>
+		<imprint>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page">30</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Working memory contributions to reinforcement learning impairments in schizophrenia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Gold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Waltz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.0989-14.2014</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">41</biblScope>
+			<biblScope unit="page" from="13747" to="13756" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Working Memory Load Strengthens Reward Prediction Errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ciullo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Badre</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.2700-16.2017</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">16</biblScope>
+			<biblScope unit="page" from="4332" to="4342" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">How much of reinforcement learning is working memory, not reinforcement learning? A behavioral, computational, and neurogenetic analysis: Working memory in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/j.1460-9568.2011.07980.x</idno>
+	</analytic>
+	<monogr>
+		<title level="j">European Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1024" to="1035" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Opponent actor learning (OpAL): modeling interactive effects of striatal dopamine on reinforcement learning and choice incentive</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0037015</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="337" to="366" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Acoustic Confusions in Immediate Memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Conrad</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/j.2044-8295.1964.tb00899.x</idno>
+	</analytic>
+	<monogr>
+		<title level="j">British Journal of Psychology</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="75" to="84" />
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The many faces of working memory and short-term storage</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Cowan</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-016-1191-6</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1158" to="1170" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2011.02.027</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">The interpretation of computational model parameters depends on the context. eLife, 11 , e75474</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Master</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Dahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wilbrecht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.75474</idno>
+		<idno>doi: 10.7554/eLife.75474</idno>
+		<ptr target="https://doi.org/10.7554/eLife.75474" />
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Attention mediates the flexible allocation of visual working memory resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Emrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Lockhart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Al-Aidroos</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xhp0000398</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology. Human Perception and Performance</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1454" to="1465" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Feature-based learning improves adaptability without compromising precision</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Farashahi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Aslami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Soltani</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-017-01874-w</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">1768</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Learning arbitrary stimulus-reward associations for naturalistic stimuli involves transition from learning about features to learning about objects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Farashahi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S.-W</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Soltani</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cognition.2020.104425</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">205</biblScope>
+			<biblScope unit="page">104425</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Genetic triple dissociation reveals multiple roles for dopamine in reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Moustafa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Haughey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Curran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Hutchison</surname></persName>
+		</author>
+		<idno type="DOI">10.1073/pnas.0706111104</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="issue">41</biblScope>
+			<biblScope unit="page" from="16311" to="16316" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">A mechanistic account of striatal dopamine function in human cognition: psychopharmacological studies with cabergoline and haloperidol</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Reilly</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0735-7044.120.3.497</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="497" to="517" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">By carrot or by stick: cognitive reinforcement learning in parkinsonism</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">C</forename><surname>Seeberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Reilly</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/sci-ence.1102941</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">306</biblScope>
+			<biblScope unit="issue">5703</biblScope>
+			<biblScope unit="page" from="1940" to="1943" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Do learning rates adapt to the distribution of rewards?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-014-0790-3</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1320" to="1327" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">A Rational Analysis of Rule-Based Concept Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Feldman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<idno type="DOI">10.1080/03640210701802071</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="108" to="154" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Neural Circuits of Reward and Decision Making: Integrative Networks across Corticobasal Ganglia Loops</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Haber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Neural Basis of Motivational and Cognitive Control</title>
+		<editor>R. B. Mars, J. Sallet, M. F. S. Rushworth, &amp; N. Yeung</editor>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">The role of the ventromedial prefrontal cortex in abstract state-based inference during decision making in humans</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Hampton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bossaerts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Doherty</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.1010-06.2006</idno>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience: The Official Journal of the Society for Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">32</biblScope>
+			<biblScope unit="page" from="8360" to="8367" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Decoding reveals the contents of visual working memory in early visual areas</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Harrison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Tong</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nature07832</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">458</biblScope>
+			<biblScope unit="issue">7238</biblScope>
+			<biblScope unit="page" from="632" to="635" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Refresh my memory: Episodic memory reinstatements intrude on working memory maintenance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Hoskin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Bornstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Norman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cohen</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13415-018-00674-z</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive, Affective, &amp; Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="338" to="354" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Regression and time series model selection in small samples</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Hurvich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">C</forename><surname>Tsai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page" from="297" to="307" />
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">Event segmentation reveals working memory forgetting rate. iScience</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jafarpour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Buffalo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Knight</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.isci.2022.103902</idno>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page">103902</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Attentional priority determines working memory precision</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Klyszejko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rahmati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Curtis</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.visres.2014.09.002</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Vision Research</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="page" from="70" to="76" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Dynamic Interaction between Reinforcement Learning and Attention in Multidimensional Environments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">C</forename><surname>Leong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radulescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Daniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dewoskin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2016.12.040</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="451" to="463" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">SUSTAIN: A Network Model of Category Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Love</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Medin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Gureckis</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295X.111.2.309</idno>
+		<ptr target="http://dx.doi.org.libproxy.berkeley.edu/10.1037/0033-295X.111.2.309" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="309" to="332" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">The capacity of visual working memory for features and conjunctions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Luck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Vogel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">390</biblScope>
+			<biblScope unit="page" from="279" to="281" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Temporal prediction errors in a passive learning task activate human striatum</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Mcclure</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">S</forename><surname>Berns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/s0896-6273</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="154" to="159" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">Modeling the influence of working memory, reinforcement, and action uncertainty on reaction time and choice during instrumental learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Mcdougle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.3758/s13423-020-01774-z</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="20" to="39" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">The serial position effect of free recall</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Murdock</forename><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">B</forename></persName>
+		</author>
+		<idno type="DOI">10.1037/h0045106</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology</title>
+		<imprint>
+			<biblScope unit="volume">64</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="482" to="488" />
+			<date type="published" when="1962" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title level="m" type="main">Hierarchical Bayesian parameter estimation for cumulative prospect theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nilsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rieskamp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nilsson</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2010.08.006</idno>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">55</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Reinforcement Learning in Multidimensional Environments Relies on Attention Mechanisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Daniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Geana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">C</forename><surname>Leong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radulescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.2978-14.2015</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">21</biblScope>
+			<biblScope unit="page" from="8145" to="8157" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Neural Prediction Errors Reveal a Risk-Sensitive Reinforcement-Learning Process in the Human Brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Edlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Doherty</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.5498-10.2012</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="551" to="562" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Attention, similarity, and the identification-categorization relationship</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Nosofsky</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0096</idno>
+		<ptr target="http://dx.doi.org/10.1037/0096" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="39" to="57" />
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Rule-plus-exception model of classification learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Nosofsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Palmeri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Mckinley</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295x.101.1.53</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">101</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="53" to="79" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Temporal difference models and reward-related learning in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>O'doherty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Critchley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/s0896-6273(03)00169-7</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="329" to="337" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Feature-specific prediction errors and surprise across macaque fronto-striatal circuits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Oemisch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Westendorff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Azimi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Hassani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ardid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tiesinga</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Womelsdorf</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-018-08184-9</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">176</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">The Importance of Falsification in Computational Cognitive Modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2017.03.011</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="425" to="433" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Deficits on conditional associative-learning tasks after frontal-and temporallobe lesions in man</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Petrides</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/0028-3932(85)90062-4</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neuropsychologia</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="601" to="614" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radulescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Ballard</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Holistic Reinforcement Learning: The Role of Structure and Attention</title>
+		<idno type="DOI">10.1016/j.tics.2019.01.010</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="278" to="292" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Name that state: How language affects human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radulescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">K</forename><surname>Vong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Gureckis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="volume">4</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">The limits of learning: Exploration, generalization, and the development of learning traps</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Rich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Gureckis</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xge0000466</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology. General</title>
+		<imprint>
+			<biblScope unit="volume">147</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">The Relationship between Working Memory Storage and Elevated Activity as Measured with Functional Magnetic Resonance Imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Riggall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">R</forename><surname>Postle</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.1892-12.2012</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">38</biblScope>
+			<biblScope unit="page" from="12990" to="12998" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Bayesian model selection for group studies -revisited</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rigoux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuroimage.2013.08.065</idno>
+	</analytic>
+	<monogr>
+		<title level="j">NeuroImage</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="971" to="985" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title level="a" type="main">What is a Choice in Reinforcement Learning?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rmus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the The Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the The Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<monogr>
+		<title level="m" type="main">The role of executive function in shaping reinforcement learning. Current Opinion in Behavioral Sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rmus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Mcdougle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cobeha.2020.10.003</idno>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page" from="66" to="73" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">A Neural Substrate of Prediction and Reward</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.275.5306.1593</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">275</biblScope>
+			<biblScope unit="page" from="1593" to="1599" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title level="a" type="main">Learning and memorization of classifications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Shepard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">I</forename><surname>Hovland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/h0093825</idno>
+		<ptr target="http://dx.doi.org.libproxy.berkeley.edu/10.1037/h0093825" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Monographs: General and Applied</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="issue">13</biblScope>
+			<biblScope unit="page" from="1" to="42" />
+			<date type="published" when="1961" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Cortico[U+2010]striatal contributions to feedback[U+2010]based learning: converging data from neuroimaging and neuropsychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Shohamy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Myers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Grossman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Gluck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Poldrack</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/brain/awh100</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Brain</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="851" to="859" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">The cost of misremembering: Inferring the loss function in visual working memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Sims</surname></persName>
+		</author>
+		<idno type="DOI">10.1167/15.3.2</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Vision</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">The precision of spatial selection into the focus of attention in working memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Souza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Thalmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Oberauer</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13423-018-1471-4</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="2281" to="2288" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Semantic knowledge influences visual working memory in adults and children</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Starr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Srinivasan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Bunge</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/jour-nal.pone.0241110</idno>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS ONE</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page">241110</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Stephan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Penny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Daunizeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Friston</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.neuroimage.2009.03.025</idno>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="1004" to="1017" />
+		</imprint>
+		<respStmt>
+			<orgName>Bayesian Model Selection for Group Studies. NeuroImage</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Studies of interference in serial verbal reactions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Stroop</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/h0054651</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="643" to="662" />
+			<date type="published" when="1935" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">Dissociation between asymmetric value updating and perseverance in human reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sugawara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41598-020-80593-7</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">3574</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: an introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>MIT Press</publisher>
+			<pubPlace>Cambridge, Mass</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title level="a" type="main">Determining the neural substrates of goal-directed learning in the human brain</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">V</forename><surname>Valentin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dickinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Doherty</surname></persName>
+		</author>
+		<idno type="DOI">10.1523/JNEUROSCI.0564-07.2007</idno>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience: The Official Journal of the Society for Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">15</biblScope>
+			<biblScope unit="page" from="4019" to="4026" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title level="a" type="main">Modeling choice and reaction time during arbitrary visuomotor learning through the coordination of adaptive working memory and reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Viejo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Khamassi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Brovelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Girard</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fn-beh.2015.00225</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title level="a" type="main">A detection theory account of change detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Wilken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<idno type="DOI">10.1167/4.12.11</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Vision</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="1120" to="1135" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<monogr>
+		<title level="m" type="main">Ten simple rules for the computational modeling of behavioral data. eLife, 8 , e49547</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.7554/eLife.49547</idno>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<analytic>
+		<title level="a" type="main">Inferring Relevance in a Changing World</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Niv</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fnhum.2011.00189</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Human Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<analytic>
+		<title level="a" type="main">The human prefrontal cortex mediates integration of potential causes behind observed outcomes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wunderlich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">R</forename><surname>Beierholm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bossaerts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Doherty</surname></persName>
+		</author>
+		<idno type="DOI">10.1152/jn.01051.2010</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Neurophysiology</title>
+		<imprint>
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1558" to="1569" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<analytic>
+		<title level="a" type="main">Modeling changes in probabilistic reinforcement learning during adolescence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Master</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Baribault</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Dahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wilbrecht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1008524</idno>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Computational Biology</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<analytic>
+		<title level="a" type="main">How Working Memory and Reinforcement Learning Are Intertwined: A Cognitive, Neural, and Computational Perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Yoo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G E</forename><surname>Collins</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/jocna01808</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cognitive Neuroscience</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="18" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title level="a" type="main">Strategic allocation of working memory resource</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Yoo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Klyszejko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Curtis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41598-018-34282-1</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">16162</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

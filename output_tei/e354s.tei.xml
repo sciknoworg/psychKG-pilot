@@ -1,0 +1,2081 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">dynConfiR: The R package for sequential sampling models of decision confidence</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2024-07-19">19 July 2024</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sebastian</forename><surname>Hellmann</surname></persName>
+							<email>sebastian.hellmann@tum.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Chair of Behavioral Research Methods</orgName>
+								<orgName type="institution">TUM School of Management</orgName>
+								<address>
+									<settlement>Munich</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Professorship for General Psychology II</orgName>
+								<orgName type="institution">Catholic University of Eichstätt-Ingolstadt</orgName>
+								<address>
+									<settlement>Eichstätt</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Zehetleitner</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Professorship for General Psychology II</orgName>
+								<orgName type="institution">Catholic University of Eichstätt-Ingolstadt</orgName>
+								<address>
+									<settlement>Eichstätt</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Manuel</forename><surname>Rausch</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Professorship for General Psychology II</orgName>
+								<orgName type="institution">Catholic University of Eichstätt-Ingolstadt</orgName>
+								<address>
+									<settlement>Eichstätt</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="department">Faculty of Society and Economics</orgName>
+								<orgName type="institution">Rhine-Waal University of Applied Sciences</orgName>
+								<address>
+									<settlement>Cleves</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff3">
+								<orgName type="department">TUM School of Management</orgName>
+								<address>
+									<addrLine>Arcisstraße 21</addrLine>
+									<postCode>80333</postCode>
+									<settlement>München</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">dynConfiR: The R package for sequential sampling models of decision confidence</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2024-07-19">19 July 2024</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T12:55+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Funding acquisition: MR</term>
+					<term>MZ. Conceptualization &amp; methodology: SH. Formal analysis</term>
+					<term>software</term>
+					<term>&amp; visualization: SH. Writing -Original Draft: SH. Resources &amp; project administration: MR</term>
+					<term>MZ. Writing R package</term>
+					<term>cognitive modeling</term>
+					<term>confidence</term>
+					<term>decision making</term>
+					<term>drift diffusion models</term>
+					<term>sequential sampling models DYNCONFIR PACKAGE</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>The modeling of response times using sequential sampling models has a long history. Because choices, confidence judgments, and reaction times are closely linked in perceptual decisions, it seems only natural to simultaneously model these three outcome variables of a decision. In the package dynConfiR, we implemented various sequential sampling models of choice, response time, and decision confidence in R. This paper gives an overview of the package, which provides probability density functions as well as high-level functions for fitting parameters to empirical data, prediction of reaction time and response distributions and simulation of artificial data sets. We describe the mathematical specification of the implemented models and give a detailed description of the implemented likelihood functions. In addition, we outline the workflow for applying the model to empirical data step-by-step: data preprocessing, model fitting, model prediction, quantitative model comparison, and visual assessment of model predictions. Finally, we present results from a parameter recovery analysis and assess the precision in calculating probability densities, illustrating the reliability of the implemented computations. Offering intuitive usability and high flexibility, the package is targeted at researchers in the fields of decision-making and confidence and does not require expert-level programming skills.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Sequential sampling confidence models Introduction</head><p>Recently, confidence has gained increasing research interest in the field of cognitive computational modeling (e.g., <ref type="bibr" target="#b0">Adler &amp; Ma, 2018;</ref><ref type="bibr" target="#b2">Aitchison et al., 2015;</ref><ref type="bibr" target="#b7">Desender et al., 2021;</ref><ref type="bibr" target="#b14">Hellmann et al., 2023a</ref><ref type="bibr" target="#b15">Hellmann et al., , 2023b</ref>; <ref type="bibr" target="#b16">Kiani et al., 2014;</ref><ref type="bibr" target="#b30">Moran et al., 2015;</ref><ref type="bibr" target="#b40">Pleskac &amp; Busemeyer, 2010;</ref><ref type="bibr" target="#b48">Ratcliff &amp; Starns, 2009</ref><ref type="bibr" target="#b17">, 2013</ref><ref type="bibr" target="#b54">Rausch et al., 2018;</ref><ref type="bibr" target="#b84">Zawadzka et al., 2017)</ref>. Many experimental tasks and everyday decisions include uncertainty, so the decision-maker can not be entirely sure whether their decision was correct. The resulting degree of belief in the correctness of one's decision is referred to as confidence <ref type="bibr" target="#b41">(Pouget et al., 2016)</ref>. Because confidence is also relevant in everyday behavior and communication, for example when driving in a foggy environment or making difficult medical diagnoses, it is essential to understand how confidence arises from the decision process.</p><p>Many models of confidence are based on signal detection theory (SDT, <ref type="bibr" target="#b12">Green &amp; Swets, 1966)</ref>. We refer to these models as static models as they do not explain the single trial dynamics of a decision but assume that the decision is made by comparing a single random variable against a criterion. Traditional SDT models have been extended to account for confidence judgments, for example by introducing more criteria, additional information gain, or noise in the confidence judgment <ref type="bibr" target="#b0">(Adler &amp; Ma, 2018;</ref><ref type="bibr" target="#b24">Mamassian &amp; de Gardelle, 2021;</ref><ref type="bibr" target="#b54">Rausch et al., 2018</ref><ref type="bibr" target="#b55">Rausch et al., , 2023</ref><ref type="bibr" target="#b63">Shekhar &amp; Rahnev, 2021</ref>. Static confidence models have proven successful in accounting for the relationship between task difficulty and confidence and have been useful for explaining discrepancies between confidence judgments and actual accuracy. However, as static models ignore the dynamics of the decision process, they do not apply to response time data. This is problematic because confidence is closely related to decision time in many decision tasks <ref type="bibr" target="#b14">(Hellmann et al., 2023a;</ref><ref type="bibr" target="#b16">Kiani et al., 2014;</ref><ref type="bibr" target="#b42">Rahnev et al., 2020;</ref><ref type="bibr" target="#b74">Vickers et al., 1985)</ref>. In contrast to static models, dynamical models can explain response time distributions and may thus provide insight into the causal relationship between task difficulty, decision time, and confidence. Dynamical models of decision-making assume a sequential sampling process, that is, evidence is sampled from a noisy distribution repeatedly over time, and an internal decision variable is updated until a particular stopping rule is met and the decision is triggered <ref type="bibr" target="#b47">(Ratcliff &amp; Smith, 2004)</ref>.</p><p>A prominent example of a computational model in the field of decision-making research is the drift diffusion model (DDM) which was originally used to explain response time distributions in memory retrieval tasks <ref type="bibr" target="#b44">(Ratcliff, 1978)</ref>. Since it was initially formulated, it was extended by including additional parameters and applied in various experimental tasks <ref type="bibr" target="#b47">(Ratcliff &amp; Smith, 2004)</ref>. However, the DDM, in its original conception, does not account for confidence judgments. In two previous studies, we compared different confidence models based on two important prototypes of dynamical models of decision-making, the DDM and the race of accumulators <ref type="bibr" target="#b14">(Hellmann et al., 2023a</ref><ref type="bibr" target="#b15">(Hellmann et al., , 2023b</ref>. We demonstrated that fitting the DYNCONFIR PACKAGE 6 joint distribution of choice, response time, and confidence is useful for testing computational models of decision making and is more desirable than fitting summary statistics of the data.</p><p>The presented package includes functions to fit response times and confidence judgments in binary choice tasks based on the following models: the drift diffusion confidence model <ref type="bibr">(DDConf, Hellmann et al., 2023b)</ref>, the two-stage dynamical signal detection model (2DSD, <ref type="bibr" target="#b40">Pleskac &amp; Busemeyer, 2010)</ref>, the dynamical weighted evidence and visibility model <ref type="bibr">(dynWEV, Hellmann et al., 2023b)</ref>, the dynamical visibility, time, and evidence model <ref type="bibr">(dynaViTE, Hellmann et al., 2023a)</ref>, and various versions of race models. The models are explained in more detail in the next section.</p><p>Due to their mathematical complexity, dynamical models of decision-making and confidence are challenging to implement. By providing the dynConfiR package, we aim to remove the hurdle of implementing likelihood functions and fitting procedures to facilitate the application of confidence models for research questions in psychology and cognitive neuroscience.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Alternative software</head><p>Software already exists to analyze response time data for decision models, mainly in the context of the DDM. Some examples are the R packages RWiener <ref type="bibr" target="#b81">(Wabersich &amp; Vandekerckhove, 2014b)</ref>, which provides an implementation of the four-parameter DDM with functions for parameter fitting, and rtdists <ref type="bibr" target="#b65">(Singmann et al., 2020)</ref>, which offers probability distribution and simulation functions for the seven-parameter DDM and the linear ballistic accumulator model <ref type="bibr" target="#b6">(Brown &amp; Heathcote, 2008)</ref>. Fast-dm (A. <ref type="bibr" target="#b78">Voss &amp; Voss, 2008</ref>) is a stand-alone command line tool for fitting the seven-parameter DDM to empirical data. The python toolbox HDDM allows for hierarchical parameter estimation of DDM parameters <ref type="bibr" target="#b83">(Wiecki et al., 2013)</ref>. In addition, the wiener module for JAGS <ref type="bibr" target="#b79">(Wabersich &amp; Vandekerckhove, 2014a)</ref> and Stan allow researchers to easily incorporate the DDM in more complex scenarios, for instance, in reinforcement learning situations <ref type="bibr" target="#b10">(Fontanesi et al., 2019)</ref>. For fitting confidence data, the statConfR package <ref type="bibr" target="#b53">(Rausch &amp; Hellmann, 2024)</ref> allows for parameter fitting in the context of static confidence models and the computation of popular measures of metacognitive performance like meta-d ′ <ref type="bibr" target="#b25">(Maniscalco &amp; Lau, 2012)</ref>. However, to our knowledge, no such software for sequential sampling models of confidence is available. dynConfiR provides implementations of the joint distribution of choice, response time, and confidence judgment for several sequential sampling models of decision confidence together with wrapper functions to compute the likelihood for a whole data set and a given set of parameters. In addition, functions for fitting parameters with a maximum likelihood procedure and predicting or simulating the distributions for specific parameters are included. Functions are written to provide an intuitive and straightforward way to implement the whole workflow of model fitting and comparison with only a few lines of code while still providing possibilities for customization, for example, fixing parameters that should not be fitted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Structure of the present paper</head><p>In the present paper, we will first present the confidence models that are included in the package, explaining all parameters and giving mathematical definitions. The second section provides details about the functionalities of the package. Based on the implemented functionalities, we propose workflows for different use cases and show possibilities for individual settings in the analyses. In addition, we showcase the suggested workflow for model comparison using an empirical data set. The sections Recovery analysis and Precision analysis contain results from simulation studies examining the performance of the package.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Sequential sampling confidence models</head><p>In this section, we describe the sequential sampling models included in dynConfiR in detail. All dynamic models of decision-making share the idea that a decision is not based on a single sample, as in SDT. In contrast, sequential sampling models describe decisions as processes in which evidence is repeatedly sampled and accumulated over time <ref type="bibr" target="#b47">(Ratcliff &amp; Smith, 2004)</ref>. Starting from a discrete-time perspective and normally distributed samples, reducing the time step size leads to a continuous Wiener process describing the accumulation of evidence. The use of Wiener processes is also in accordance with the idea that the internal evidence signal is represented by a sufficiently large set of neurons. The Wiener process may be interpreted as the stochastic process equivalent to the Gaussian distribution. This is because the functional invariance principle states that accordingly scaled partial sum processes, which formalize the idea of sequentially sampling and integrating evidence mathematically, converge to a Wiener process in the limit of small time steps <ref type="bibr" target="#b17">(Klenke, 2013)</ref>. However, there are dynamical models of decision-making that explicitly use other processes, like the Poisson counter model <ref type="bibr" target="#b18">(LaBerge, 1994)</ref> or the leaky competing accumulator model <ref type="bibr" target="#b70">(Usher &amp; McClelland, 2001</ref>). The accumulation of evidence continues until enough information in favor of one alternative is available, formalized by a stopping criterion. When the stopping criterion is met, a choice is triggered for the alternative favored by the accumulated evidence.</p><p>Sequential sampling models of decision-making provide explanations for the correlation between discriminability and reaction time and the speed-accuracy trade-off <ref type="bibr" target="#b21">(Lerche &amp; Voss, 2019;</ref><ref type="bibr" target="#b46">Ratcliff &amp; Rouder, 1998)</ref>. The dynConfiR package features two classes of dynamical confidence models. The first class of models is based on the DDM, which assumes a single accumulation process representing evidence in favor of one choice alternative over the other. The second class of models is race models, which assumes multiple accumulation processes, each representing one choice alternative. In the sections that follow, we first describe the most general model of the first class, the dynamical visibility, time, and evidence model (dynaViTE), and how the other models of this class, DDConf, 2DSD, and dynWEV, are special cases of DYNCONFIR PACKAGE 8 dynaViTE. We will then describe the second class of models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Drift diffusion-based confidence models</head><p>We first present the decision mechanism that is the basis for the first class of models. In the DDM, the decision process is described as a Wiener process, which is bounded by two time-constant thresholds 0 and a. The process X starts at the starting point X(0). The relative starting position between the two thresholds, i.e. X(0)/a, follows a uniform distribution around the parameter z with range s z , formally</p><formula xml:id="formula_0">X(0)/a ∼ Unif[z − s z /2, z + s z /2].</formula><p>The process then evolves with a drift of µ, which is normally distributed around ν with standard deviation s ν . The diffusion constant is denoted as s. When the process first hits either the lower or the upper threshold, a decision is triggered. Decision time is thus defined as</p><formula xml:id="formula_1">T Dec = min{t|X(t) ∈ {0, a}}.</formula><p>The choice response R is -1 if the lower threshold was hit, i.e., if X(T Dec ) = 0, and it is +1, otherwise.</p><p>Correspondingly, in discrimination tasks, the sign of the mean drift rate reflects the true stimulus identity, S = sig(ν), while its magnitude is determined by experimental manipulations in task difficulty (see section</p><p>Fitting confidence models to experimental data).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Dynamical visibility, time, end evidence model (dynaViTE)</head><p>The dynaViTE model assumes that the decision process X continues after it reaches one of the two thresholds. This accumulation continues for a fixed period of time, which is represented by the parameter τ . In addition, dynaViTE postulates a second process evolving in parallel to the decision process. The second process is denoted as visibility process V and is again a Wiener process, which always starts as 0. Its drift rate is subject to noise similar to the drift rate in the decision process. More precisely, the visibility drift is normally distributed with mean visibility drift µ V and standard deviation σ V . The diffusion constant of the visibility process is represented by the parameter s V . Importantly, only one parameter in dynaViTE can be fixed to scale the other parameters without affecting model predictions.</p><p>That is, if the diffusion constant of the decision process s is fixed, then s V cannot be fixed as well without restricting the model. The psychological interpretation of the two processes is as follows: While the decision process accumulates evidence about the identity of the stimulus, i.e., whether it belongs to the class representing the upper or lower threshold, respectively, the visibility process accrues evidence about stimulus features that are indicative of task difficulty but not informative for the stimulus identity. In visual discrimination tasks -for which dynaViTE was originally proposed -visibility may be task-irrelevant stimulus features like brightness, shape, presentation time, or contour.</p><p>Confidence is then a function of the accumulated decision evidence (X(T Dec + τ ) − az), visibility evidence (V (T Dec + τ )), and accumulation time (T Dec + τ ). After the post-decisional accumulation period, DYNCONFIR PACKAGE 9 accumulated evidence in the two processes is combined in a weighted sum and divided by a power of accumulation time to form an internal confidence variable</p><formula xml:id="formula_2">c dynaV iT E = wR(X(T Dec + τ ) − az) + (1 − w)V (T Dec + τ ) (T Dec + τ ) λ ,<label>(1)</label></formula><p>in which the parameter w controls the weight on decision evidence compared to visibility evidence, and λ controls the penalty of accumulation time on confidence. The factor R in the numerator of eqn (1) leads to a positive scaling of choice congruent evidence in the case when the choice is R = −1 (i.e., the lower threshold was hit first) because more negative values of X(T Dec − τ ) − az support a 'lower' decision and thus should lead to higher confidence. For perceptual decision tasks without independent manipulation of discriminability and visibility, the mean drift rate of the visibility process was previously set to the absolute mean drift of the decision process, µ V = |ν| <ref type="bibr" target="#b14">(Hellmann et al., 2023a</ref><ref type="bibr" target="#b15">(Hellmann et al., , 2023b</ref>. Setting the visibility drift rate to the absolute value of the decision drift rate follows the assumption that stimuli, which are easier to discriminate, are also perceived as more reliable, independent of their category. For example, when manipulating the stimulus-onset-asynchrony in a masked discrimination task, the time the stimulus was present on the screen may be perceived independently of the evidence about the stimulus category.</p><p>Because stimuli that are presented longer are easier to discriminate, a longer stimulus duration increases confidence irrespective of the choice. DynaViTE includes simpler confidence models that were previously studied in the literature. The following special cases are implemented with their own name in dynConfiR.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Dynamical weighted evidence and visibility model (dynWEV)</head><p>The dynWEV model is a dynamical version of a previously proposed static model of confidence, the weighted evidence and visibility model <ref type="bibr" target="#b54">(Rausch et al., 2018)</ref>. DynWEV is equivalent to the dynaViTE model without considering the accumulation time penalization in the confidence measure, i.e., λ = 0, such that</p><formula xml:id="formula_3">c dynW EV = wR(X(T Dec + τ ) − az) + (1 − w)V (T Dec + τ ).</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Two-stage dynamic signal detection theory (2DSD)</head><p>The 2DSD model does not assume parallel accumulation of visibility evidence and also has no penalization for accumulation time. In 2DSD, confidence only depends on whether the evidence accumulated in the post-decisional accumulation period supports or contradicts the choice <ref type="bibr" target="#b40">(Pleskac &amp; Busemeyer, 2010)</ref>. 2DSD is a special case of dynaViTE for λ = 0 and w = 1. Setting w = 1 leads to a zero weight on the visibility process, which is thus completely ignored in the likelihood. In addition, λ = 0 implies that the denominator in eqn (1) is always 1, and accumulation time has no direct influence on confidence. The confidence variable has the form</p><formula xml:id="formula_4">c 2DSD = R(X(T Dec + τ ) − az).</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Drift diffusion confidence model (DDConf)</head><p>The drift diffusion confidence model is based on the the formula for optimal confidence in the DDM when drift rates are uniformly distributed (Moreno-Bote, 2010), which indicates that confidence is a monotonically decreasing function of decision time. More precisely, the confidence variable is defined as</p><formula xml:id="formula_5">c DDM = 1 √ T Dec .</formula><p>DDConf is mathematically equivalent to the dynaViTE model with w = 1, τ = 0, and λ = 0.5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Race Models</head><p>The drift diffusion model that serves as the basis for the previously described models assumes only one accumulation process representing relative evidence for competing decision alternatives. In contrast, race models include one accumulation process for each decision alternative. Each of the processes accrues information in favor of the corresponding decision alternative. These models are theoretically applicable to decision tasks with an arbitrary number of alternatives. In the binary setting, the two accumulators may be described as a two-dimensional Gaussian process (X 1 , X 2 ) starting at (0, 0), with constant drift (µ 1 , µ 2 ) and covariance matrix Σ =</p><formula xml:id="formula_6">σ 2 1 σ1σ2ρ σ1σ2ρ σ 2 2</formula><p>. Similar to the diffusion constant, σ 1 and σ 2 may be set to 1 as scaling factors. Each component of the process is bound from above by a time constant threshold A and B, respectively. A decision is triggered as soon as one of the accumulators hits its threshold. Decision time is thus defined by T Dec = min {t | X 1 (t) &gt; A ∨ X 2 (t) &gt; B} and the response R is 1, if X 1 (T Dec ) &gt; A and 2, if</p><formula xml:id="formula_7">X 2 (T Dec ) &gt; B.</formula><p>In dynConfiR, the correlation parameter ρ is restricted to either ρ = 0, which results in the model denoted as the independent race model (IRM), or ρ = −.5, for which the respective model is denoted as the partially correlated race model (PCRM). The reason for restricting ρ to either 0 or -.5 is that for these values, there are closed-form solutions for the first passage time densities (Moreno-Bote, 2010).</p><p>Closed-form solutions allow fast and precise computations of the first-passage time distribution compared to the usage of approximation methods, which are necessary if the first-passage time density can only be represented by an infinite sum. However, these two choices of ρ capture essential theoretical concepts <ref type="bibr" target="#b69">(Teodorescu &amp; Usher, 2013;</ref><ref type="bibr" target="#b85">Zylberberg et al., 2012)</ref>. A value of ρ = 0 leads to an independent race of accumulators, which represents the assumption of evidence accumulation in the absence of interaction <ref type="bibr" target="#b69">(Teodorescu &amp; Usher, 2013;</ref><ref type="bibr" target="#b85">Zylberberg et al., 2012)</ref>. A negative correlation of the noise in the accumulation processes represents the assumption of feed-forward inhibition, which means that higher input values in one accumulator partially reduce the input in the other accumulator <ref type="bibr" target="#b69">(Teodorescu &amp; Usher, 2013;</ref><ref type="bibr" target="#b85">Zylberberg et al., 2012)</ref>. Note that for ρ = −1, the race model is equivalent to a drift diffusion model. One possibility to compute confidence in the context of race models is the Balance of Evidence <ref type="bibr">(BoE, Vickers et al., 1985)</ref>, i.e., the difference in the amount of evidence in favor of the two alternatives at the time of decision. Because the winning accumulator is always at its threshold at decision time, BoE is entirely determined by the distance of the losing accumulator to its upper threshold. For instance, if R = 1, the confidence variable may thus be defined as</p><formula xml:id="formula_8">c BoE = B − X 2 (T Dec ).</formula><p>The logic behind the BoE is intuitive: the less evidence there was for the non-chosen alternative, the clearer and less ambiguous the decision resulting in a higher degree of confidence associated with the decision. However, empirical studies have shown that confidence is also affected by decision time <ref type="bibr" target="#b15">(Hellmann et al., 2023b;</ref><ref type="bibr" target="#b16">Kiani et al., 2014)</ref>. In addition, it has been shown that if confidence in a race model was computed optimally, it would be a function of both BoE and decision time (Moreno-Bote, 2010). For this reason, dynConfiR includes race models with a more general confidence variable in the form of a linear combination of Balance of Evidence and the inverse of decision time. Assuming again that R = 1, confidence is computed as</p><formula xml:id="formula_9">c RM t = w X (B − X 2 (T Dec )) + w RT 1 √ T Dec + w Int B − X 2 (T Dec ) √ T Dec ,</formula><p>where the weights w X , w RT , w Int are greater than 0 and sum to 1 to form a trade-off between the possible predictor variables. Note that the fixed sum of weight parameters is not a restriction of the model because the confidence and confidence thresholds may be rescaled by the sum of weights to produce the same distribution of response time and confidence. dynConfiR implements race models with all combinations of assumptions about independent or correlated accumulators and a confidence variable that does or does not depend on decision time. The acronyms for the models used in the package are summarized in <ref type="table" target="#tab_1">Table 1</ref>.</p><p>Note that the first confidence measure c BoE is a special case of the more general c RM t , if the weight parameters are set accordingly (w X = 1, w RT = w Int = 0). </p><formula xml:id="formula_10">C = K−1 i=1 1 (c&gt;θ R,i ) + 1,</formula><p>where 1 denotes the indicator function, which is one if the condition is true and zero, otherwise. This means that observers are assumed to report a confidence level of 2 on a three-point scale if the confidence variable c falls between θ R,1 and θ R,2 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Non-decision time component</head><p>Similarly, all models share the assumption of a non-decision time component, which includes time for stimulus encoding and the formation of a motor response. The non-decision time component is not related to the decision mechanics itself but contributes to the observed response times. It is modeled as a <ref type="bibr" target="#b50">(Ratcliff &amp; Tuerlinckx, 2002)</ref>. The formula for the response time depends on the timing of the confidence report in the experiment at hand. For experiments in which the choice and confidence judgment were reported sequentially, the models currently implemented in the package can only account for the choice response time and do not include the confidence response time. The choice response time is assumed to be</p><formula xml:id="formula_11">uniformly distributed component T N D ∼ Unif[t 0 , t 0 + s t0 ]</formula><formula xml:id="formula_12">RT = T Dec + T N D .<label>(2)</label></formula><p>If choice and confidence are reported simultaneously, then the response time is still defined as in eqn (2) for models that do not assume post-decisional accumulation of evidence. For models that assume a post-decisional accumulation period, all processes are assumed to have finished at the time of the response.</p><p>Thus, the observed response time is the sum of decision time, post-decisional accumulation time, and non-decision time,</p><formula xml:id="formula_13">RT = T Dec + τ + T N D .<label>(3)</label></formula><p>However, the models with post-decisional accumulation time could also be fitted in experiments with simultaneous responses using the first definition of response time as in eqn (2) using the same fitting functions with specific arguments (see section Fitting confidence models to experimental data).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>DYNCONFIR PACKAGE 13</head><p>All parameters of the different models are summarized in table 2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Other sequential sampling models of confidence</head><p>The confidence models presented here are only a subset of previously proposed dynamical confidence models. Other models include the RTCON model <ref type="bibr" target="#b48">(Ratcliff &amp; Starns, 2009;</ref><ref type="bibr" target="#b66">Starns et al., 2012)</ref> or the bounded accumulation model proposed by <ref type="bibr" target="#b16">Kiani et al. (2014)</ref>. The dynConfiR package is restricted to models for which closed-form solutions are available for the joint distribution of response times and confidence, or the approximations of response time distributions are well-studied concerning their precision. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Race Models</head><p>A, B thresholds for the two accumulation processes µ 1 , µ 2 drift rates for the two accumulators s 1 , s 2 diffusion constants for the two accumulators ρ correlation of process noise between the two accumulators (either 0 for IRM and IRMt or -.5 for PCRM and PCRMt) w X , w RT , weights on loosing accumulator, decision time and and w Int interaction for the confidence variable </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Functionalities of the package</head><p>In the following, we will first describe a prototypical workflow illustrating how the package may be used for model comparison studies. Afterward, the most essential functions implemented in dynConfiR are explained in detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Installation</head><p>The package is available on CRAN and may be installed with the command:</p><p>install.packages("dynConfiR")</p><p>A development version of the package is available on GitHub and may be downloaded and installed using the devtools package and the command:</p><formula xml:id="formula_14">devtools::install_github("SeHellmann/dynConfiR")</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Workflow</head><p>The dynConfiR package provides functions for model fitting, i.e., estimation of model parameters.</p><p>The functions of dynConfiR are optimized for within-subjects manipulations of discriminability. Models can be fitted independently for each participant, facilitating quantitative model comparison using information criteria like AIC and BIC <ref type="bibr" target="#b3">(Akaike, 1974;</ref><ref type="bibr" target="#b60">Schwarz, 1978)</ref>. The function fitRTConfModels implements the full model fitting procedure and allows for parallelization over participants. Cognitive modeling studies should check whether the fitted models could reproduce the main qualitative patterns of empirical data <ref type="bibr" target="#b37">(Palminteri et al., 2017)</ref>. For this purpose, the functions predictConfModels and predictRTModels compute the predicted data distributions for given parameter sets. While predictConfModels computes the discrete decision and confidence outcomes, predictRTModels provides the density for the joint distribution of decision, response time, and confidence rating. When used with previously fitted parameters, these functions can be used to visually compare the model predictions to empirical data or to check for the reproduction of qualitative data patterns. One example of a qualitative pattern that confidence models need to explain is the relationship of mean confidence in discrimination tasks with increasing stimulus discriminability for correct and incorrect decisions, which have been referred to as a so-called folded-X or a double increase pattern <ref type="bibr" target="#b56">(Rausch &amp; Zehetleitner, 2019)</ref>. The workflow for parameter fitting, model comparison, and prediction is summarized in <ref type="figure">Figure 1</ref>. In addition to classical model comparison studies, the fitted parameters for the individual subjects can be used for group comparisons and correlational analyses, for example, to study the relationship of specific parameters with measures of metacognitive sensitivity or neurological data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure 1</head><p>Basic workflow and functions for model comparison studies. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter fitting</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fitting confidence models to experimental data</head><p>In this section, we describe the fitting function in more detail, starting with which experimental data can be used, how parameters are mapped to the manipulations, and finally, the fitting procedure.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experimental paradigm</head><p>The fitting functions in the package are tailored to perceptual, binary discrimination tasks with a single difficulty manipulation. This is a standard paradigm in the study of computational models of confidence <ref type="bibr" target="#b16">(Kiani et al., 2014;</ref><ref type="bibr" target="#b42">Rahnev et al., 2020;</ref><ref type="bibr" target="#b54">Rausch et al., 2018)</ref>. For other manipulations that are assumed to vary specific parameters only, the user can write their own likelihood and fitting functions using the density functions described later. For instance, manipulations of the speed-accuracy trade-off <ref type="bibr" target="#b7">(Desender et al., 2021)</ref> and post-decisional accumulation period <ref type="bibr" target="#b9">(Desender et al., 2022;</ref><ref type="bibr" target="#b30">Moran et al., 2015)</ref> may also be interesting when studying the formation of confidence. Still, when all model parameters are allowed to vary across conditions, the fitRTConfModels function remains applicable. In such instances, the user can specify a data column as the subject identifier, which differentiates between combinations of subjects and manipulation levels such that the fitting function fits separate sets of parameters per subject and condition. Fitting independent parameter sets for each condition can be useful for critically testing the assumption that an experimental manipulation selectively influences specific parameters <ref type="bibr" target="#b21">(Lerche &amp; Voss, 2019;</ref><ref type="bibr" target="#b77">A. Voss et al., 2004)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data format</head><p>The fitting function expects the data to come in a tidy data frame, with each row representing one trial. The data frame should include the following columns (expected column names in parentheses): true stimulus identity (stimulus), binary decision response (response), categorical confidence judgment (rating), and response time (rt). As an alternative to the stimulus or response column, a column for accuracy (correct) may be provided. In addition, a column for the experimental manipulation of discriminability of the stimulus (condition) may be included but is not necessary. Instead of renaming columns in the data frame, alternative column names may be added as arguments of the form rating = "confidence", if, for example, the column indicating the confidence rating is called confidence. A column named sbj or participant may be included to fit the models independently to individual participants.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fitted parameters</head><p>The stimulus and response categories are denoted by S, R ∈ {−1, 1}, and task difficulty is assumed to be manipulated in L steps.</p><formula xml:id="formula_15">A discrimination parameter, d l , l = 1, . . . , L,</formula><p>is fitted independently for each difficulty level. Thus, the condition column will be transformed into a factor, even when numeric values are supplied. In the confidence models, the drift rates of the different processes depend on the stimulus identity and the discriminability parameter of the difficulty level of the trial: For dynaViTE, the mean drift rate of the decision process is set to ν = Sd l , and the mean drift rate of the visibility process is set to</p><formula xml:id="formula_16">µ V = d l .</formula><p>For the race models, the drift rates are set to (µ 1 , µ 2 ) = (Sd l , −Sd l ). This means that the first accumulator accumulates evidence for the first category, while the second one accumulates evidence for the category S = −1.</p><p>All other parameters are assumed to be independent of the task difficulty manipulation and fitted for each participant. However, the diffusion constant of the decision process in dynaViTE s and the diffusion constants of the two processes in the race models, σ 1 and σ 2 , are fixed to 1 because other parameters may be scaled accordingly to produce the same likelihoods. This is a common approach in response time modeling <ref type="bibr" target="#b19">(Lerche &amp; Voss, 2016;</ref><ref type="bibr" target="#b46">Ratcliff &amp; Rouder, 1998)</ref>.</p><p>Whether choice and confidence were reported simultaneously or sequentially is determined by the simult_conf argument, which should be set to TRUE if the reports were given simultaneously and FALSE otherwise.</p><p>The number of confidence thresholds θ R,k , k = 1, . . . , K − 1 separating the internal confidence variable into discrete steps depends on the number of possible levels for the discrete confidence rating K.</p><p>The confidence thresholds can vary between choice responses by default, leading to 2(K − 1) fitted confidence threshold parameters. We recommend specifying the nRatings argument to provide the number of confidence levels because not every participant might have used the full range of the scale. Alternatively, the ratings column can be provided as a factor with factor levels representing the possible rating outcomes.</p><p>If not all confidence levels were used, the number of fitted parameters is reduced internally because the maximum likelihood is attained by some thresholds being identical in this case. If the lowest (or highest) confidence level was not used, then the likelihood is maximized by setting the lowest confidence threshold to minus infinity (or the highest threshold to infinity). If an intermediate confidence category was not used, then the likelihood is maximized by two confidence thresholds being identical. Therefore, the concerned confidence thresholds do not need to be optimized numerically by the optimization procedure but may be set afterward to speed up the optimization. The nRatings argument is required to correctly format the output parameters and report the right number of fitted parameters.</p><p>To sum up, the total number of parameters depends on the number of steps in the manipulation L and the number of levels for the discrete confidence rating, K. This means that for dynaViTE, there are 11 + L + 2(K − 1) parameters. In the race models with a time-dependent confidence variable, there are 6 + L + 2(K − 1) parameters. Two of three weight parameters have to be fitted, while the third weight is determined by the sum of the weights being 1. In addition, the correlation parameter ρ is not estimated but fixed at -0.5 for PCRMt and 0 for IRMt. For special cases like 2DSD or race models with a time-independent confidence variable, the number of parameters is reduced by the number of fixed parameters.</p><p>Which models should be fitted is specified by the models argument. The function fitRTConfModels allows for all models presented in the section Sequential sampling confidence models: dynaViTE, dynWEV, 2DSD, DDConf, IRMt, PCRMt, IRM, and PCRM. In addition, the user may fix individual parameters by providing the argument fixed in the form of a list. For instance, researcher may want to assume an unbiased observer by setting z = 0.5 for the drift diffusion-based models and A = B for the race models. Moreover, specifying sym_thetas=TRUE in the list leads to symmetric confidence thresholds for the two choice possibilities, i.e., θ 1,k = θ −1,k ∀k = 1, . . . , K − 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fitting procedure</head><p>The function fitRTConfModels fits the models specified in the models argument to each individual participant in the data set using maximum likelihood estimation, i.e., by minimizing the negative log-likelihood of model parameters. The likelihood is computed under the assumption of independent observations, which means that for trials i = 1, ..., N ; the vectors for presented stimulus identity S and task difficulty D; and the vectors for observed outcomes response time RT , confidence rating C, and response R, the negative log-likelihood of a set of parameters ϑ is computed as</p><formula xml:id="formula_17">L(RT, C, R|ϑ, S, D) = − N i=1 log P(RT i , C i , R i |ϑ, S i , D i ).</formula><p>The optimization procedure starts with a grid search, in which the likelihood is computed for a broad On the one hand, the maximum-likelihood fitting procedure implemented in fitRTConfModels is an efficient way for estimating parameters using all the available information in the data without aggregating to quantiles <ref type="bibr" target="#b76">A. Voss et al., 2013)</ref>. On the other hand, the maximum likelihood method is known to be influenced by contaminant response times, which are not generated by a DDM <ref type="bibr" target="#b50">Ratcliff &amp; Tuerlinckx, 2002)</ref>. Therefore, it is recommended to apply a filter on trials at the level of the individual participant, e.g., by removing trials with response times that are either below a certain threshold (e.g., 300 ms) or which deviate significantly from the mean or median of the response time distribution (e.g., response times, which exceed the mean plus two standard deviations;</p><p>Hellmann et al., 2023b; Pleskac &amp; Busemeyer, 2010). There are different strategies for removing contaminants in the data. Some studies use hard cut-offs  den Berg et al., 2016), others use exclusion criteria based on the interquartile range <ref type="bibr" target="#b21">(Lerche &amp; Voss, 2019;</ref><ref type="bibr"></ref> A. <ref type="bibr" target="#b76">Voss et al., 2013)</ref> or alternatively, a mixture of hard cut-off for the fast responses and a distribution-dependent cut-off for slow responses <ref type="bibr" target="#b14">(Hellmann et al., 2023a</ref><ref type="bibr" target="#b15">(Hellmann et al., , 2023b</ref><ref type="bibr" target="#b30">Moran et al., 2015;</ref><ref type="bibr" target="#b40">Pleskac &amp; Busemeyer, 2010)</ref>. However, it is hard to suggest general guidelines for exclusion criteria that suit all experiments. For new experiments, we recommend using pilot data to infer suitable exclusion criteria because different experimental paradigms produce different response time distributions.</p><p>In light of ongoing replication issues in psychology <ref type="bibr" target="#b59">(Röseler et al., 2024)</ref>, we recommend to pre-register exclusion criteria and check whether results are robust concerning the specific choice of exclusion criteria <ref type="bibr" target="#b82">(Wagenmakers et al., 2012)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Predicting confidence and response time distributions</head><p>The empirical data is often compared visually to model predictions to check for qualitative mismatches. For this purpose, dynConfiR includes the functions predictConfModels (for the discrete decision and confidence distribution) and predictRTModels (for the joint distribution of response time, decision and confidence). These take data frames with parameters as input. Notably, the output of the fitting procedure may be inserted directly into the prediction functions. predictConfModels returns a data frame with columns for stimulus identity, response, and confidence judgments and a column indicating the probability of an outcome. predictRTModels has an additional column for the response time, spanned equidistantly for a user-provided interval. If the input has more than one row, columns for subject ID and model are required, and the output will be accordingly structured by binding the data frame outputs for each participant and model combination one below the other.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Other functions</head><p>Probability density functions</p><formula xml:id="formula_18">ddynaViTE(response, rt, th1, th2, a, v, t0, ...) dPCRM(response, rt, th1, th2, mu1, mu2, a, b,...)</formula><p>The implemented confidence and response time distributions form the basis for model fitting and predictions. The distributions are implemented as probability densities in C++ and accessed in R using</p><p>Rcpp. The usage of the different density functions is very similar. The first arguments represent the outcome variables: response time (RT ), the binary choice (R), and the interval for the confidence variable (θ 1 and θ 2 ). The density functions return the probability</p><formula xml:id="formula_19">P model (RT, R, c model ∈ [θ 1 , θ 2 ]|ϑ).</formula><p>The model parameters are passed as additional, individual parameters. Note that θ 1 and θ 2 are also parameters usually estimated during model fitting. The densities for drift diffusion-based models are approximated using the truncated series for the density of the drift diffusion model (see <ref type="bibr" target="#b33">Navarro &amp; Fuss, 2009;</ref><ref type="bibr" target="#b77">A. Voss et al., 2004)</ref>. The densities for the race models are implemented according to the formulas in Moreno-Bote (2010), which are derived using the methods of images for the stochastic differential equation. The integration over the distribution of starting points and non-decision time components is conducted numerically using a rectangular approximation with equidistant steps (see Precision analysis section). The density functions may be used for theoretical calculations and to implement other model fitting algorithms instead of the maximum likelihood estimation procedure included in dynConfiR.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Log-likelihood functions</head><p>LogLikWEV(data, paramDf, model = "dynaViTE", simult_conf = FALSE,...) LogLikRM(data, paramDf, model = "IRM", time_scaled = FALSE,...)</p><p>There are also functions for calculating the log-likelihood of a data set given some parameters for each model. The two main arguments are data, a data frame of the empirical data with the stimulus, response, response time and confidence, and paramDf, a data frame with one row and columns for the required parameters of the chosen model. The log-likelihood function is included in dynConfiR mainly to allow for the investigation of the impact of experimental manipulations on specific parameters or other relationships between stimulus discriminability and mean drift rate. For example, previous studies assumed a power function for the relationship between physical stimulus intensity and internal signal strength <ref type="bibr" target="#b51">(Ratcliff et al., 2018;</ref><ref type="bibr" target="#b67">Teodorescu et al., 2016)</ref>  A high-level function for simulating data with fitted parameters is also available. The function simulateRTConf takes a data frame with one row and columns for the required parameters. The high-level function simulates n trials per stimulus identity (which stimulus identity is used for the simulation may be changed with the stimulus argument) and difficulty condition. The number of difficulty levels is determined by the number of drift rates in the paramDf argument. To simplify the application to several parameter sets and models, the model argument can be given as a column in the paramDf argument. In addition, simulateRTConf offers the possibility to aggregate the output over response times, i.e., reporting only the discrete outcomes of choice and confidence. Finally, when gamma=TRUE, the function computes Kruskal's Gamma <ref type="bibr" target="#b35">(Nelson, 1984)</ref> between confidence and several other relevant variables, e.g., between confidence and accuracy for different levels of stimulus discriminability. If gamma=TRUE is used, the output is a list with two components: simus for the data frame with the actual simulated data and gamma with several data frames for different Gamma correlations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Example of Application in Model Comparison</head><p>Now, we present a complete example of an analysis including a model comparison. The data set for this demonstration was generously published by Law &amp; Lee <ref type="bibr" target="#b36">(Ng et al., 2021)</ref> and was downloaded from the confidence database <ref type="bibr" target="#b42">(Rahnev et al., 2020)</ref>. The data set is available at https://osf.io/vgr27.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experimental method</head><p>The study was initially conducted to investigate serial dependence in confidence judgments using random-dot kinematograms. 16 participants reported their perceived motion direction, which was either leftwards or rightwards, simultaneously with their confidence using the keyboard. Confidence was reported on a 4-point scale.</p><p>Task difficulty was manipulated by varying motion coherence. In a 240-trial calibration phase, coherence values for target accuracy levels of .52, .65, and .78 were determined using a staircase technique.</p><p>The resulting coherence values were then used in the experimental phase for coherence levels 1, 3, and 5, respectively, while the coherence values for the second and fourth levels of the manipulation were determined by averaging the values for the first and third level and the third and fifth level, respectively.</p><p>The experimental trials consisted of 20 blocks with 60 trials each. Because of the primary aim of the study, trials with medium difficulty, i.e., a coherence level of 3, were always preceded by either one or two trials with either high (level 1) or low (level 5) difficulty. This trial-by-trial dependency will be ignored in the following analysis.</p><p>Participants did not receive trial-by-trial feedback but instead received feedback at the end of each block about both their overall accuracy and their accuracy in the previous block.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data</head><p>After downloading the data from the confidence database, we selected the relevant columns, converted their names to lowercase, and removed the calibration trials from the data set. We then renamed the columns for the subject ID to participant and response times to rt. As confidence was measured on a 4-point scale, we did not have to bin the rating response. The resulting data set has the following form. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data preprocessing</head><p>A typical step before fitting sequential sampling models is to remove possible outliers from the empirical response time distribution. Filtering individual data by response times is recommended because the maximum likelihood method, which is used by dynConfiR, is known to be specifically influenced by outliers, and there is no implementation of lapses in the current version of the package.</p><p>We removed responses that were faster than the median minus one standard deviation and slower than the mean plus 4 standard deviations for each participant, resulting in the removal of 1.7% of all trials.</p><p>In the second step, we removed one participant because they did not perform above chance (0.53 compared against 0.5), which delivered no evidence of being above chance in a Bayesian proportion test against chance level accuracy with a prior scale conducted via the proportionsBF function from the BayesFactor package <ref type="bibr" target="#b32">(Morey et al., 2024</ref>) with a prior scale parameter of 0.5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Analyses</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model fitting</head><p>We wanted to conduct a model comparison on the data, comparing a broad range of possible models. We considered models previously compared on similar datasets from visual discrimination experiments: dynaViTE, dynWEV, 2DSD, PCRMt, and IRMt <ref type="bibr" target="#b14">(Hellmann et al., 2023a</ref><ref type="bibr" target="#b15">(Hellmann et al., , 2023b</ref>. Note that although we did not explicitly fit all models, simpler models are special cases of the models fitted in this section. For instance, race models with time-independent confidence variables, IRM and PCRM, are special cases of IRMt and PCRMt, respectively. The first step was to fit the model parameters for each participant, which was achieved with the following command:</p><p>parfits &lt;-fitRTConfModels(Data, models=c("dynaViTE", "dynWEV", "2DSD", "PCRMt", "IRMt"), nRatings=4, restr_tau = "simult_conf", opts=list(nAttempts=4, nRestarts=4), parallel="both", n.cores = c(5, 4), condition = "coh_level", rating="confidence")</p><p>The function fitRTConfModels splits the data for the subject column and fits each of the models given in the respective models argument. Providing nRatings=4 ensured that three confidence thresholds are fitted for participants that did not used the full range of the confidence scale. The argument restr_tau="simult_conf" indicates that choice and confidence responses were reported simultaneously.</p><p>The argument opts is optional and allows for adaptations of the fitting procedure. We used only the four best parameter sets (default: 5) from the initial grid search as starting values for the optimization routine and started the optimization algorithm with a broad trust region four times (default: 5).</p><p>With the combination of parallel=TRUE and n.cores=c(5,4), we distributed the fitting procedure across different CPUs, fitting five participants in parallel with four cores per participant.</p><p>Therefore, for each participant, the four optimization routines with the different initial parameter settings were run in parallel.</p><p>Finally, it was necessary to include column names that deviate from the default ones, which was achieved with the last two arguments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Quantitative model comparison</head><p>With few lines of code, the first central part of the analysis was achieved. With the outputs, a quantitative model comparison may be conducted using the information criteria available in parfits. In the present example, we see that the race models achieved the lowest average BIC <ref type="figure" target="#fig_3">(Figure 2</ref>, upper panel).</p><p>However, there is no visible difference between the independent and the anti-correlated race model. Among the DDM-based models, dynaViTE performed best. The dynConfiR package also includes AIC and AICc in the output, which are not visualized here because the results are indistinguishable. When computing BIC weights for each participant, the dynaViTE model provided the best account for 9 out of 16 participants, while the race models provided the best account for only 3 participants (Figure2, lower panel). Appendix <ref type="figure">Figure A1</ref> demonstrates that the average differences are dominated by these three participants who showed an extreme difference in BICs between race models and DDM-based models. The smaller differences for the other participants, however, still lead to posterior model weights of nearly 1. </p><formula xml:id="formula_20">-3.2 -3.5 -3.8 -4.1 -4.4 P C R M t I R M t d y n a V i T E d y n W E V 2 D S D Model</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Prediction and visual model fit</head><p>The output of the fitting function may be passed directly to the prediction functions, which also use parallelization over participants. The prediction functions automatically split the first data frame argument by the participant and model columns and select the respective prediction function for the model of each row. Furthermore, visualizations may be generated with the predictions to compare model fits with empirical distributions. The output of the function predictConfModels has the following form (note that only the first digits are printed for readability): In the above data frame, p represents the probability of a confidence rating and response given the stimulus identity and discriminability condition in the respective row. The columns info and err reproduce the output of the call to integrate used to compute the probabilities. We can compare the predicted distribution to the observed data distribution (see <ref type="figure">Figure 3)</ref>, which can be used to assess the overall precision of the model fit. It seems that all models fitted the overall data pattern well. The strongest deviations are the overestimation of low confidence for correct leftward responses in easy conditions, particularly in the race models (IRMt and PCRMt). In addition, for difficult stimuli, the probability of very low confidence was underestimated, while it was overestimated for high confidence.</p><formula xml:id="formula_21">&gt; print(head(prediction_ConfDist),</formula><p>Interestingly, for all other conditions, there was a tendency to underestimate confidence in the leftward motion choices (second and third column) but an overestimation of confidence for rightward motion choices (first and fourth column). Participants seem to have shown a motion-dependent confidence bias leading to higher confidence ratings for correct leftwards motion responses compared to rightwards motion responses, which all the models, but particularly the race models, were not able to capture very accurately (Appendix <ref type="figure" target="#fig_3">Figure A2</ref>).</p><p>Using the full response distribution, it is possible to aggregate on different levels to examine specific data patterns. One possibility is to visualize the increase in accuracy with easier decisions ( <ref type="figure">Figure   4</ref>, top row). Researchers might also be interested in the relationship between confidence and stimulus discriminability for correct and incorrect decisions <ref type="figure">(Figure 4, bottom row)</ref>. In the present example, we see increasing mean confidence with higher stimulus discriminability for both correct and incorrect decisions, which is referred to as a double-increase pattern <ref type="bibr" target="#b56">(Rausch &amp; Zehetleitner, 2019)</ref>. Many computational models of confidence are not able to produce such a pattern but can only account for a negative relationship between confidence and discriminability in incorrect decisions, resulting in the folded-X pattern <ref type="bibr" target="#b15">(Hellmann et al., 2023b;</ref><ref type="bibr" target="#b54">Rausch et al., 2018</ref><ref type="bibr" target="#b58">Rausch et al., , 2020</ref>. One example of a model that only accounts for a folded-X pattern is the 2DSD model, which also showed this pattern in the present example. Although the race models fitted here are able to account for a double-increase pattern, they showed a flat curve for incorrect responses, indicating constant confidence across difficulty levels for incorrect choices. The dynWEV model underestimated the steepness of the increase in confidence for incorrect decisions. The dynaViTE model showed the most pronounced double-increase pattern but overall overestimated confidence in incorrect decisions.</p><p>To compute the predicted response time distributions for the fitted parameters, dynConfiR offers the predictRTModels function, which, similarly to the predictConfModels, computes the joint distribution of choice, confidence rating, and response time for each level of stimulus identity and discriminability. The dens column represents the defective distribution of response times, i.e., the integral of the density for each confidence rating and response is not 1 but equals the probability of the respective choice and confidence report. With the argument scaled=TRUE, the correctly scaled densities (densscaled) are computed by dividing the defective density values by the probability of the respective discrete response. For this purpose, an additional argument (DistConf) may be provided by passing the output of predictConfModels to prevent the repeated computations of the discrete distributions. Note that the DistConf argument must have the same participants, models, and response and stimulus coding used for the models as the first argument. The resulting data frame has the following form:</p><p>&gt; print(head(prediction_RTConfDist), row.names=FALSE) condition stimulus response correct rating rt dens densscaled model participant 1 1</p><p>In the decision-making literature, response time distributions are commonly visualized using quantiles (Figures 6 and 5 <ref type="bibr" target="#b47">Ratcliff &amp; Smith, 2004)</ref>. For convenience, the package includes the function PDFtoQuantiles, which computes quantiles from a vector of probability density values. It also allows for data frame inputs with several columns that may be used as groups (like computing quantiles for different experimental conditions or participants). The relationship between task difficulty and response times was rather weak in the present example, illustrated by the flat quantile curves in <ref type="figure" target="#fig_7">Figure 5</ref>. Response times slightly decreased for easier stimuli, which was captured by all models. Concerning the relationship of confidence with response times, there was a weak negative relationship, which was more pronounced in incorrect choices ( <ref type="figure">Figure 6</ref>). This pattern was again well captured by all models. The most pronounced deviations are visible in incorrect choices, for which the race models slightly overestimated the decrease in response times in the upper quantiles, and the 2DSD model did not reproduce the speed up for the lowest quantile in high confidence.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Exploratory analysis: Fixing model parameters</head><p>The drift diffusion-based models, i.e., DDConf, 2DSD, dynWEV, and dynaViTE, include all between-trial variability parameters. It is easy to fit these models additionally without allowing for between-trial variability in the starting point and non-decisional time by setting the respective parameters to 0 in the fitting routine. The following code demonstrates the fixed argument. We additionally fixed the diffusion constant in the visibility process for dynWEV and dynaViTE to 1, equal to the diffusion constant in the decision process. Note fixing any parameter only affects the models, which include those parameters.</p><p>After the model fitting procedure, we renamed the models for the more restricted versions and combined all parameter fits in one data frame.</p><p>parfits_fixed &lt;-fitRTConfModels(Data, models=c("dynaViTE", "dynWEV", "2DSD"), nRatings=4, restr_tau = "simult_conf", fixed = list(sz=0, st0=0, svis=1), opts=list(nAttempts=4, nRestarts=4), parallel="both", n.cores = c(5, 4), condition = "coh_level", rating="confidence")</p><p>parfits_fixed <ref type="bibr">[, setdiff(names(parfits)</ref>, names(parfits_fixed))] &lt;-NA allfits &lt;-rbind(parfits, mutate(parfits_fixed, model = paste0(model, " (fixed)")))</p><p>The quantitative comparisons show that the restricted dynaViTE model performed best on an average level as well as for five individual participants, while the full dynaViTE model still fitted best for seven participants. Although the race models still had the second (PCRMt) and third (IRMt) best average BIC, only one participant was best fit by the IRMt and none by the PCRMt. This illustrates again that quantitative model comparisons can lead to different results when performed on a group level compared to the individual participant level <ref type="figure">(Figure 7)</ref>. Concerning the visual model fit, the restricted models did not deviate strongly from the more complex models besides the underestimation of the lowest response time quantiles for medium confidence in incorrect responses, which was present in all models with reduced between-trial variability parameters (Appendix <ref type="figure" target="#fig_7">Figures A3-A5)</ref>.    Response time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and confidence ratings (x-axis). Probabilities for quantiles: .1, .5, .9.</p><p>-3  </p><formula xml:id="formula_22">-4 -5 -6 -7 -8 d y n a V i T E ( f i x e d ) P C R M t I R M t d y n W E V ( f i x e d ) d y n a V i T E d y n W E V 2 D S D 2 D S D ( f i x e d )</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Recovery analysis</head><p>In order to compare fitted model parameters between groups or within subjects across different experimental conditions, it is necessary that the estimation of model parameters is robust. To assess the robustness of the model fitting procedure, we conducted a parameter recovery analysis using artificial data sets for the three most general models: dynaViTE, IRMt, and PCRMt, which include the other models implemented in dynConfiR as special cases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Method</head><p>For measuring parameter recovery, we generated artificial data sets from a known set of model parameters, fitted the model to the synthetic data, and compared the recovered parameters to the generating parameters.</p><p>We assumed that there were five levels of confidence (i.e., K = 5), and there were five levels of stimulus discriminability (i.e., L = 5). This means that for dynaViTE, there were 11 + 5 + 2 • 5 = 26 fitted parameters, and for IRMt and PCRMt, there were 6 + 5 + 10 = 21 parameters.</p><p>The generating parameter sets (except for the confidence thresholds) were sampled from parameters derived from previously conducted model fits to empirical data. We gathered parameter sets from <ref type="bibr" target="#b13">Hellmann and Rausch (2023)</ref> and <ref type="bibr" target="#b15">Hellmann et al. (2023b)</ref>, and the example in this paper. All three models were fitted to the data from <ref type="bibr" target="#b15">Hellmann et al. (2023b)</ref> and Law and Lee <ref type="bibr" target="#b36">(Ng et al., 2021)</ref>, and dynaViTE and PCRMt were additionally fitted to the data from <ref type="bibr" target="#b63">Shekhar and Rahnev (2021)</ref>. In total, this resulted in 93 parameter sets for dynaViTE and PCRMt and 73 parameter sets for IRMt. For the 20 parameter sets fitted to the data of <ref type="bibr" target="#b63">Shekhar and Rahnev (2021)</ref>, which had only three experimental conditions, the means of the estimated drift rates from two consecutive conditions were used as additional experimental conditions (i.e. the fitted drift rates (ν 1 , ν 2 , ν 3 ) were mapped to</p><formula xml:id="formula_23">(ν 1 , (ν 1 + ν 2 )/2, ν 2 , (ν 2 + ν 3 )/2ν 3 )).</formula><p>Concerning the confidence thresholds, we opted not to utilize the thresholds from the previous model fits. The reason for not using the fitted confidence thresholds was that some participants did not use all confidence categories, resulting in some thresholds being either fitted to plus or minus infinity or coinciding with one another. In contrast, we used the fact that when simulating artificial data, we can simulate the continuous confidence variable in the model and compute the confidence thresholds as quantiles of the confidence variable, given the proportions of confidence ratings. We fitted a Dirichlet distribution to the observed proportions of confidence ratings from the empirical data of all participants.</p><p>We then drew random probability vectors from the Dirichlet distribution as proportions of confidence reports, resampling if any proportion was less than 2%. The confidence thresholds were then computed as quantiles of the confidence variable in the simulated data set. This procedure ensured that each confidence level contained a non-zero proportion of responses.</p><p>To assess the number of trials necessary to recover the parameters, we sampled either 50, 100, 200, or 500 trials per condition and stimulus identity. For two stimulus identities and five levels of discriminability, this leads to 500, 1,000, 2,000, and 5,000 trials per simulated data set for five discriminability conditions.</p><p>For each number of artificial trials, we sampled 100 parameter sets and generated one data set per parameter set.</p><p>To measure parameter recovery performance, we computed the concordance correlation coefficient (CCC; <ref type="bibr" target="#b23">Lin, 1989)</ref>, which, in contrast to Pearson correlation, is reduced by non-zero intercepts and non-unit slopes. Therefore, in contrast to Pearson's correlation coefficient, it is sensitive to deviations from the identity line. <ref type="figure" target="#fig_12">Figure 8</ref> illustrates the parameter recovery performance as measured by the concordance correlation coefficients across model parameters (also see Appendix <ref type="figure" target="#fig_7">Figures 4-15)</ref>. The results indicate that the decision-related parameters are generally more robust to recovery. The only choice-specific parameter that is hard to recover is the between trial variability in starting point (sz) for the dynaViTE model. Concerning the confidence-related parameters in dynaViTE, only the diffusion constant in the visibility accumulation (s V is ) has a relatively low CCC, which requires at least 500 trials per condition and stimulus identity (5,000 trials in total) to achieve a CCC of .48. The drift rate variability in the visibility process (σ V is ) also shows a relatively low recovery for lower trials. Because σ V is and s V is are closely linked in the distribution of the confidence variable, the low recovery rate could indicate that the two parameters are hard to differentiate. A possible solution to improve the robustness of parameter fitting might be to fix s V is to 1, similar to the diffusion constant in the decision process. For race models, the confidence thresholds show a slightly lower recovery rate, although the general recovery is relatively good, even with fewer trials.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>The recovery of the confidence thresholds may also be increased by assuming a parametric relationship between them instead of fitting each threshold independently and only restricting them to be monotonic.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Precision analysis</head><p>Two numerical approximations are involved in the computation of the probability densities. First, in the drift diffusion-based models (dynaViTE, dynWEV, 2DSD, and DDConf), the infinite series in the formula for the first-passage time density is approximated using a truncated summation for which an upper bound for the error is available <ref type="bibr" target="#b33">(Navarro &amp; Fuss, 2009)</ref>. However, the integration over the variation in   Concordance correlation coefficients <ref type="bibr" target="#b23">(Lin, 1989)</ref> between the true and recovered parameters from the parameter recovery across the number of trials per condition and stimulus identity (columns) and generative model (rows).</p><formula xml:id="formula_24">q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q q 1 3 q 1 4 w int w rt w x a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n n 4 n 5 s t0 t 0 q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q q 1 3 q 1 4 w int w rt w x a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n n 4 n 5 s t0 t 0 l s Vis s Vis t q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w l s Vis s Vis t q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w l s Vis s Vis t q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w l s Vis s Vis t q -1 1 q -1 2 q -1 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w a n 1 n 2 n 3 n 4 n 5 s n s</formula><p>starting point and the variation in the non-decision time component are not analytically solvable and thus is computed numerically. This second approximation also leads to uncertainty in the precision of the density computations. The numerical computation of the integral uses a rectangular approximation of the density with an equidistant grid of support points. The step size for this approximation is controlled by the precision argument. The value of the precision argument is transformed into step sizes using similar computations as in the rtdists package <ref type="bibr" target="#b65">(Singmann et al., 2020)</ref>. Because there are no mathematical guarantees in the form of upper error bounds, we conducted a simulation study to assess the expected error for different values of the precision arguments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Method</head><p>We estimated the expected error by computing the densities to simulated observations from different parameter sets several times with different values for the precision argument. Afterward, we computed the mean difference between the calculated density values as a measure of the error in the computation. Parameter sets were simulated in the following way.</p><p>Confidence judgments were assumed to be measured live on a three-point scale (i.e., K = 3), and there were three levels of stimulus discriminability (i.e., L = 3). This means that for dynaViTE, there were 11 + 3 + 2 • 2 = 18 parameters, and for IRMt and PCRMt, there were 6 + 3 + 4 = 13 parameters.</p><p>Parameters were sampled independently and uniformly, with some exceptions. First, the discriminability parameters were uniformly distributed for the first level, and the differences between discriminability levels were uniformly distributed. This ensured increasing levels of discriminability.</p><p>Second, starting point variability in dynaViTE was uniformly distributed across the admissible range dependent on the mean starting point parameter z. Similarly, the three weight parameters w X , w RT , and w Int are sampled sequentially. In addition, for the upper decision boundaries of the two processes in race models, their sum and relative height were independently uniformly distributed to more closely resemble how boundary separation and relative starting point in dynaViTE were sampled. Finally, the confidence thresholds were computed based on a simulated proportion of ratings, which ensured a minimum number of observations in each category.</p><p>We derived parameter ranges from previously conducted model fits to empirical data from <ref type="bibr" target="#b13">Hellmann and Rausch (2023)</ref> and <ref type="bibr" target="#b15">Hellmann et al. (2023b)</ref>, and the example in this paper.</p><p>We sampled 50 random parameter sets per model for dynaViTE, IRMt, and PCRMt. A data set with 50 trials for each combination of discriminability condition and stimulus category was generated for each parameter set (600 trials per data set in total). Finally, we computed the trial-wise likelihood for the simulated data with different precision arguments. For dynaViTE, we used the following values: 4, 4.5, 5, 5.5, 6 (default), 6.5, 7, 7.5, and 8.5. For the race models, we used 4, 4.5, 5, 5.5, 6 (default), 6.5, 7, 7.5, 8, and 9. The probabilities attained with the highest precision, i.e., 8.5 for dynaViTE and 9 for the race models, were used as references for the other precision values. To estimate the absolute error, we computed the mean absolute distance between the probabilities for each precision to the reference. In addition, we computed the mean absolute difference between two consecutive precision values to estimate the expected improvement of the density calculation. For full details, we refer the reader to the analysis code.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>The mean absolute differences for the computed probability densities between different values of precision arguments are depicted for dynaViTE in <ref type="figure">Figure 9</ref> and for race models in <ref type="figure">Figure 10</ref>.</p><p>For dynaViTE, the estimated error and the difference between subsequent values of the precision argument both decrease exponentially as functions of the precision argument. Assuming that the exponential decrease of subsequent differences continues, we can infer that the magnitude of the error in the computed densities is proportional to the estimated error in our simulation. This means that with the default value of 6 for the precision argument in dynaViTE, the expected absolute error is about 10 −6 of magnitude, while for a value of 7.5, it is 10 −7.5 . Similarly, the expected error decreases exponentially with the precision argument for race models, leading to an estimated mean error of 10 −6 for the default value of 6. In general, the transformation between the precision argument and the step size used for the numerical integration is chosen such that the provided precision represents the number of digits correctly calculated on average. Notably, the computation time for the probability densities also increases exponentially with the precision argument ( <ref type="figure">Figures 9 and 10, lower rows)</ref>, which clarifies the trade-off between precision and computation time. Because only one numerical integration is necessary for race models -IRMt and PCRMt do not include between-trial variability in starting points -the computation time intercept and slope are much lower than for dynaViTE.</p><p>Fitting the parameters to experimental data using the default arguments may require up to 300,000 evaluations of the negative log-likelihood of the data (155,520 parameter sets in the initial grid search for dynaViTE; 26,244 parameter sets for race models) plus 125,000 evaluations from the optimization (5 starting parameter sets each with five calls of the optimization routine each with a maximum of 5,000 function evaluations per optimization call). Therefore, keeping the computation time low is essential for the applicability of these models. For the default values of precision=6, evaluating the likelihood for 600 trials takes about ten seconds, which may be necessary for providing reasonable precision. Using the default values, the precision of parameter estimates and likelihoods is often limited by other factors like the timing of stimulus presentation and the measurement precision of reaction times. For experimental response time data, the precision of reaction time measurements is often limited to milliseconds, and the precision depends on the hardware and the software used to conduct the experiment <ref type="bibr" target="#b5">(Bridges et al., 2020;</ref><ref type="bibr" target="#b38">Plant &amp; Turner, 2009)</ref>. For the increasing number of online studies, the precision is often lower <ref type="bibr" target="#b4">(Anwyl-Irvine et al., 2021;</ref><ref type="bibr" target="#b61">Semmelmann &amp; Weigelt, 2017)</ref>.</p><p>10 -4</p><p>10 -5</p><p>10 -6</p><p>10 -7</p><p>10 -8 Mean absolute difference between precision and (precision+0.5)</p><p>10 -4</p><p>10 -5</p><p>10 -6</p><p>10 -7</p><p>10 -8 Mean absolute difference between precision and (precision=8.5)</p><p>10  10 -6</p><p>10 -4</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="10">-2</head><p>Mean absolute difference between precision and (precision+0.5)</p><p>10 -8</p><p>10 -6</p><p>10 -4</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="10">-2</head><p>Mean absolute difference between precision and (precision=9) 4 4.5 5 5.5 6 6.5 7 7.5 8 9 4 4.5 5 5.5 6 6.5 7 7.5 8 9</p><p>10  Third Row: Distribution of computation time of the densities for a vector of 600 observations (log scaled).</p><p>Each observation is based on 600 simulated trials for a random parameter set (50 trials for each combination of discriminability condition and stimulus category).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Summary</head><p>The dynConfiR package implements state-of-the-art computational models of choice, response time, and decision confidence based on the drift diffusion model and race models of choice. The R package may prove to be an attractive tool for psychology and cognitive neuroscience researchers because it offers a user-friendly implementation of the probability distributions of observed data and functions for parameter fitting, prediction, and simulation. The package is freely available via the CRAN repository, which provides sustainable access and facilitates its installation for the user. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Declarations</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Mean Accuracy</head><p>Observed Predicted 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure A5</head><p>Response time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and confidence ratings (x-axis). Probabilities for quantiles: .1, .5, .9.</p><p>0.09</p><formula xml:id="formula_25">q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n 2</formula><p>1 2 3 4 1 2 3 4 5 0.00 0.25 0.50 0.75 1.00 0.4 0.5 0.6 0.7 0.8 1 2 3 1 2 3 4 5 -2 -1 0 1 2 1 2 0.0 0.5 1.0 1.5 0.0 0.5 1.0 1.5 -1 0 1 2 1 2 0.00 0.25 0.50 0.75 1.00 1.25 0 1 2 3 4 5 0.00 0.05 0.10 0.15 0.20 0.25 0 2 4 6 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 1 2 3 4 5 0.0 0.5 1.0 0.0 0.5 1.0 1.5 2.0 2.5 0.0 0.5 1.0 1.5  0.24  </p><formula xml:id="formula_26">q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n</formula><formula xml:id="formula_27">q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n 2</formula><p>1 2 3 4 1 2 3 4 5 0.00 0.25 0.50 0.75 1.00 0.4 0.5 0.6 0.7 0.8 1 2 3 4 1 2 3 4 5 -1 0 1 2 0 1 2 3 0.0 0.5 1.0 1.5 0.0 0.5 1.0 1.5 0 1 2 0 1 2 3 0.00 0.25 0.50 0.75 1.00 1.25 0 1 2 0.00 0.05 0.10 0.15 0.20 0.25 0 1 2 3 4 5 0.5 1.0 1.5 2.0 1 2 3 4 2 4 6 0 1 2 1 2 3 4 5 0.0 0.5 1.0 1.5 0.0 0.3 0.6 0.9 0.0 0.5 1.0 1.5  </p><formula xml:id="formula_28">q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n 2</formula><p>0 1 2 3 4 5 0 2 4 6 0.00 0.25 0.50 0.75 1.00 0.4 0.5 0.6 0.7 0.8 0 1 2 3 4 5 0 2 4 6 -0.5 0.0 0.5 1.0 1.5 2.0 0 1 2 3 4 0.0 0.5 1.0 1.5 0.0 0.5 1.0 1.5 0 1 2 0 1 2 3 4 0.0 0.3 0.6 0.9 0 1 2 0.00 0.05 0.10 0.15 0.20 0.25 0 1 2 3 4 5 0.5 1.0 1.5 2.0 1 2 3 4 1 2 3 4 5 6 0 1 2 1 2 3 4 5 0.0 0.5 1.0 0.0 0.5 1.0 1.5 2.0 2.5 0.0 0.5 1.0 1.5      <ref type="table" target="#tab_1">2  3  4  5  1  2  3  1  2  3  4  1  2  3  4  5</ref> 0.0 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 0.00 0.25 0.50 0.75 1.00 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.0 0.2 0.4 0.6 0.8 2 3 4 5 6 0.5 1.0 1.5 2.0 2.5 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 2.5 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 0.00 0.25 0.50 0.75 1.00 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.0 0.2 0.4 0.6 0.8 2 3 4 5 6 1 2 3 1 2 3 4 1 2 3 4 0.0 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 0.0 0.5 1.0 1.5 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.0 0.5 1.0 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.0 0.2 0.4 0.6 0.8 0.00 0.25 0.50 0.75 1.00 1 2 3 4 5 6 1 2 3 4 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 1 2 3 4 1 2 3 4 5 2 3 4 5 0.4 0.8 1.2 1.6 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 0.0 0.3 0.6 0.9 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 1.00 2 3 4 5 6 7 1 2 3 1 2 3 4 1 2 3 4 5 6 0.0 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 5 2 4 6 0.5 1.0 1.5 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 0.0 0.5 1.0 1.5 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 1 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 1.00 2 3 4 5 6 1 2 3 1 2 3 4 5 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 5 2 3 4 5 6 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 0.0 0.5 1.0 1.5 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 1.00 2 3 4 5 6 1 2 3 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 1 2 3 4 1 2 3 4 1 2 3 4 5 6 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1. </p><formula xml:id="formula_29">q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s</formula><formula xml:id="formula_30">q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s</formula></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>distribution for non-decision time component θ R,k set of confidence criteria, R = −1, 1, k = 1, ..., K − 1 for discretization into K steps</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>range of possible parameter combinations. The best-performing parameter sets identified in the initial grid search are used as starting values for the optimization algorithm. The optimization algorithm is restarted several times with the previous run's output as the next run's starting point to allow the optimization to avoid local minima. The number of initial values and restarts for the optimization procedure can be set by the user using the opts argument. The functions offer the possibility of parallelization over both participant-model combinations and within one fitting procedure over the starting values for the optimization. The output is a data frame with one row for each combination of participant and fitted model. The columns of the output data frame are the fitted model parameters together with additional information, like the number of trials (N), fixed parameters (fixed) and the following performance measures: the final negative log-likelihood and model selection criteria AIC, AICc, and BIC.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>instead of fitting discriminability parameters for each level of the experimental manipulation. The likelihood functions are wrappers of the density functions that can be used easily in custom built cost-functions for optimization.Simulation functionsrdynaViTE(n, a, v, t0 = 0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, tau = 1, w = 0.5, ...) simulateRTConf(paramDf, n = 10000, model = NULL, gamma = FALSE, agg_simus = FALSE ,...)The package includes low-level and high-level simulation functions. Because simulation is based on a discretization of the stochastic differential equation, there is an argument delta determining the step-size of the discretization and an argument maxrt, which determines the maximal simulated decision time. The simulation of a single trial is stopped when the stopping criterion has not been met and the maximum decision time has been exceeded. When the simulation is stopped without a choice, a response of 0 is returned. First, the low-level simulation functions are similar to the simulation functions of other probability distributions in R , e.g., rdynaViTE and rPCRMt, with arguments for each parameter, most of them having default values.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 2</head><label>2</label><figDesc>Upper panel: Negative mean BIC values for the fitted models. Error bars represent within-subject standard errors. Lower panel: BIC weights across participants (reordered).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>selected_models &lt;-c("dynaViTE (fixed)", "IRMt", "PCRMt", "dynWEV (fixed)") selected_fits &lt;-subset(allfits, model %in% selected_models) prediction_ConfDist &lt;-predictConfModels(selected_fits, simult_conf=TRUE,</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>Observed(bars)  and predicted (points) response distribution for the different models (shape and color of points) across stimulus identity(columns, high level)  and levels of stimulus discriminability (rows).Probabilities within each row and stimulus identity column add to 1 for each group of data shown, i.e., height represents the conditional probability of a given accuracy and confidence rating given the stimulus discriminability and identity. row) and mean confidence rating (bottom row) for empirical data (points and triangles) and model predictions (lines). Error bars represent within-subject standard errors.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 5</head><label>5</label><figDesc>Response time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and levels of stimulus discriminability(x-axis)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>Figure 7</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Upper panel :</head><label>panel</label><figDesc>Negative mean BIC values for all fitted models. Error bars represent within-subject standard errors. Lower panel: BIC weights across participants computed on all fitted models (reordered).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 8</head><label>8</label><figDesc>Figure 8</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head></head><label></label><figDesc>Figure 9</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>First</head><label></label><figDesc>Row: Distribution of mean absolute differences in computed densities between different choices of the precision argument and the argument +0.5. Second Row: Distribution of mean absolute differences in computed densities between different choices of the precision argument and the computed densities for precision = 8.5. Third Row: Distribution of computation time of the densities for a vector of 600 observations (log scaled). Each observation is based on 600 simulated trials for a random parameter set (50 trials for each combination of discriminability condition and stimulus category).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head></head><label></label><figDesc>Figure 10</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>First</head><label></label><figDesc>Row: Distribution of mean absolute differences in computed densities between consecutive increases in the exponent of the precision argument. Second Row: Distribution of mean absolute differences in computed densities between different choices of the precision argument and the computed densities for precision = 9.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17"><head></head><label></label><figDesc>row) and mean confidence rating (bottom row) for empirical data (points and triangles) and model predictions from the full and restricted DDM-based models (lines). Error bars represent within-subject standard errors.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18"><head>Figure A4 Response</head><label>A4</label><figDesc>time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and levels of stimulus discriminability(x-axis)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_19"><head></head><label></label><figDesc>Figure B1</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_20"><head></head><label></label><figDesc>Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_21"><head></head><label></label><figDesc>Figure B2</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_22"><head></head><label></label><figDesc>Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_23"><head></head><label></label><figDesc>Figure B3</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_24"><head></head><label></label><figDesc>Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_25"><head></head><label></label><figDesc>Figure B4</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_26"><head></head><label></label><figDesc>Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_27"><head></head><label></label><figDesc>Figure B5</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_28"><head></head><label></label><figDesc>Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_30"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_31"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_32"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_33"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_34"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_35"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_36"><head></head><label></label><figDesc>true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Introduction 5</head><label></label><figDesc>Alternative software . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 Structure of the present paper . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7</figDesc><table /><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Table 1 Common mechanism in forming confidence judgments Although</head><label>1</label><figDesc>Acronyms for the different variations of race models used in dynConfiR. models may differ in their decision architecture and the specific computation for the confidence variable, the mechanism for the formation of a confidence report, as implemented in the package, is the same for all models. All models are built to produce discrete confidence outcomes C with</figDesc><table><row><cell></cell><cell cols="2">Confidence variable</cell></row><row><cell></cell><cell>c BoE</cell><cell>c RM t</cell></row><row><cell>Correlation 0</cell><cell>IRM</cell><cell>IRMt</cell></row><row><cell cols="3">of noise (ρ) -.5 PCRM PCRMt</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Table 2</head><label>2</label><figDesc>List and short description of all parameters for the different models.</figDesc><table><row><cell cols="2">Parameter Description</cell></row><row><cell>dynaViTE</cell><cell></cell></row><row><cell>a</cell><cell>distance between upper and lower decision boundary for decision process</cell></row><row><cell>z</cell><cell>relative mean starting point of decision process</cell></row><row><cell>s z</cell><cell>range of uniform distribution for the relative starting point in the decision process</cell></row><row><cell>ν</cell><cell>mean drift rate for decision process</cell></row><row><cell>s</cell><cell>diffusion constant of the decision process</cell></row><row><cell>s ν</cell><cell>variation in drift rate of the decision process</cell></row><row><cell>τ</cell><cell>length of inter-rating period</cell></row><row><cell>µ V</cell><cell>mean drift rate for the visibility process</cell></row><row><cell>s V</cell><cell>diffusion constant of the visibility process</cell></row><row><cell>σ V</cell><cell>variation in drift rate of visibility process</cell></row><row><cell>w</cell><cell>weight on decision evidence for confidence variable</cell></row><row><cell>λ</cell><cell>exponent of accumulation time in the denominator of the confidence variable</cell></row></table><note></note></figure>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Funding</head><p>This work was partly funded by the Deutsche Forschungsgemeinschaft (grants ZE887/8-1, ZE887/9-1 to MZ and RA2988/3-1, RA2988/4-1 to MR).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Competing interests</head><p>The authors have no relevant financial or non-financial interests to disclose.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Ethics approval</head><p>Not applicable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Consent to participate</head><p>Not applicable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Consent for publication</head><p>Not applicable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Availability of data and materials</head><p>Data sets are available for download at https://github.com/SeHellmann/dynConfiR_Paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Code availability</head><p>Code for theoretical analysis, data analysis, and production of figures is available for download at https://github.com/SeHellmann/dynConfiR_Paper. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Authors' contributions</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix B Parameter Recovery</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Comparing bayesian and non-bayesian accounts of human confidence reports</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Adler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>Article e1006572</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1371/journal.pcbi.1006572</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1006572" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Doubly bayesian analysis of confidence in perceptual decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Aitchison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bahrami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Latham</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1004519</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1004519" />
+	</analytic>
+	<monogr>
+		<title level="m">Article e1004519</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">11</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">A new look at the statistical model identification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Akaike</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/TAC.1974.1100705</idno>
+		<ptr target="https://doi.org/10.1109/TAC.1974.1100705" />
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Automatic Control</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="716" to="723" />
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Realistic precision and accuracy of online experiment platforms, web browsers, and devices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Anwyl-Irvine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">S</forename><surname>Dalmaijer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hodges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Evershed</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13428-020-01501-5</idno>
+		<ptr target="https://doi.org/10.3758/s13428-020-01501-5" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1407" to="1425" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">The timing mega-study: Comparing a range of experiment generators, both lab-based and online</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bridges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pitiot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Macaskill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Peirce</surname></persName>
+		</author>
+		<idno type="DOI">10.7717/peerj.9414</idno>
+		<ptr target="https://doi.org/10.7717/peerj.9414" />
+	</analytic>
+	<monogr>
+		<title level="j">PeerJ</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">The simplest complete model of choice response time: Linear ballistic accumulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cogpsych.2007.12.002</idno>
+		<ptr target="https://doi.org/10.1016/j.cogpsych.2007.12.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Dynamic expressions of confidence within an evidence accumulation framework</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">H</forename><surname>Donner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="page">207</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.cognition.2020.104522</idno>
+		<ptr target="https://doi.org/10.1016/j.cognition.2020.104522" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Dynamic influences on static measures of metacognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Vermeylen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Verguts</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-022-31727-0</idno>
+		<ptr target="https://doi.org/10.1038/s41467-022-31727-0" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4208</biblScope>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">A reinforcement learning diffusion decision model for value-based decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fontanesi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Spektor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rieskamp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1099" to="1121" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13423-018-1554-2</idno>
+		<ptr target="https://doi.org/10.3758/s13423-018-1554-2" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Signal detection theory and psychophysics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Swets</surname></persName>
+		</author>
+		<ptr target="https://books.google.de/books?id=E-04zQEACAAJ" />
+		<imprint>
+			<date type="published" when="1966" />
+			<publisher>Wiley</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">Dynconfir: Dynamic models for confidence and response time distributions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hellmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<ptr target="https://cran.r-project.org/web/packages/dynConfiR/" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Confidence is influenced by evidence accumulation time in dynamical decision models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hellmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zehetleitner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/5ze8t</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/5ze8t" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Simultaneous modeling of choice, confidence, and response time in visual perception</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hellmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zehetleitner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/rev0000411</idno>
+		<ptr target="https://doi.org/10.1037/rev0000411" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Choice certainty is informed by both evidence and decision time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Corthell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuron.2014.12.015</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2014.12.015" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1329" to="1342" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Wahrscheinlichkeitstheorie</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Klenke</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-642-36018-3</idno>
+		<ptr target="https://doi.org/10.1007/978-3-642-36018-3" />
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>Springer</publisher>
+			<pubPlace>Berlin Heidelberg</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Quantitative models of attention and response processes in shape identification tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Laberge</surname></persName>
+		</author>
+		<idno type="DOI">10.1006/jmps.1994.1015</idno>
+		<ptr target="https://doi.org/10.1006/jmps.1994.1015" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="198" to="243" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Model complexity in diffusion modeling: Benefits of making the model more parsimonious</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2016.01324</idno>
+		<ptr target="https://doi.org/10.3389/fpsyg.2016.01324" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Retest reliability of the parameters of the ratcliff diffusion model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s00426-016-0770-5</idno>
+		<ptr target="https://doi.org/10.1007/s00426-016-0770-5" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Research</title>
+		<imprint>
+			<biblScope unit="volume">81</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="629" to="652" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Experimental validation of the diffusion model based on a slow response time paradigm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s00426-017-0945-8</idno>
+		<ptr target="https://doi.org/10.1007/s00426-017-0945-8" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Research</title>
+		<imprint>
+			<biblScope unit="volume">83</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1194" to="1209" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">How many trials are required for parameter estimation in diffusion modeling? a comparison of different optimization criteria</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Nagler</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13428-016-0740-2</idno>
+		<ptr target="https://doi.org/10.3758/s13428-016-0740-2" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="513" to="537" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">A concordance correlation coefficient to evaluate reproducibility</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">I</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrics</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="255" to="268" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Modeling perceptual confidence and the confidence forced-choice paradigm. Psychological review, Advance online publication</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mamassian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>De Gardelle</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/rev0000312</idno>
+		<ptr target="https://doi.org/10.1037/rev0000312" />
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">A signal detection theoretic approach for estimating metacognitive sensitivity from confidence ratings</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Maniscalco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Consciousness and cognition</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="422" to="430" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.concog.2011.09.021</idno>
+		<ptr target="https://doi.org/10.1016/j.concog.2011.09.021" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">The signal processing architecture underlying subjective reports of sensory awareness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Maniscalco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lau</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/nc/niw002</idno>
+		<ptr target="https://doi.org/10.1093/nc/niw002" />
+	</analytic>
+	<monogr>
+		<title level="j">Neuroscience of consciousness</title>
+		<imprint>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">2016</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Heuristic use of perceptual evidence leads to dissociation between performance and metacognitive sensitivity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Maniscalco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A K</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Perception</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>Attention</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<idno type="DOI">10.3758/s13414-016-1059-x</idno>
+		<ptr target="https://doi.org/10.3758/s13414-016-1059-x" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychophysics</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="923" to="937" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Post choice information integration as a causal determinant of confidence: Novel data and a computational account</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Teodorescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cogpsych.2015.01.002</idno>
+		<ptr target="https://doi.org/10.1016/j.cogpsych.2015.01.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="page" from="99" to="147" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Decision confidence and uncertainty in diffusion models with partially correlated neuronal integrators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moreno-Bote</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/neco.2010.12-08-930</idno>
+		<ptr target="https://doi.org/10.1162/neco.2010.12-08-930" />
+	</analytic>
+	<monogr>
+		<title level="j">Neural computation</title>
+		<imprint>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page">22</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Bayesfactor: Computation of bayes factors for common designs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Morey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Rouder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Jamil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Urbanek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Forner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ly</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+	<note>version 0.9.12-4.7</note>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Fast and accurate calculations for first-passage times in wiener diffusion models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Navarro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">G</forename><surname>Fuss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="222" to="230" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2009.02.003</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2009.02.003" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">A comparison of current measures of the accuracy of feeling-of-knowing predictions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">O</forename><surname>Nelson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological bulletin</title>
+		<imprint>
+			<biblScope unit="volume">95</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="109" to="133" />
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Metacognitive adaptation revealed in serial dependence of visual confidence judgments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">C H</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">H F</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M W</forename><surname>Lam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C. C.-F</forename><surname>Or</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L F</forename><surname>Lee</surname></persName>
+		</author>
+		<idno type="DOI">10.1167/jov.21.9.2487</idno>
+		<ptr target="https://doi.org/10.1167/jov.21.9.2487" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Vision</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">The importance of falsification in computational cognitive modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Palminteri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Wyart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Koechlin</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.tics.2017.03.011</idno>
+		<ptr target="https://doi.org/10.1016/j.tics.2017.03.011" />
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="425" to="433" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R</forename><surname>Plant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Turner</surname></persName>
+		</author>
+		<title level="m">Millisecond precision psychological research in a world of commodity computers: New hardware, new problems? Behavior Research Methods</title>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="598" to="614" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/BRM.41.3.598</idno>
+		<ptr target="https://doi.org/10.3758/BRM.41.3.598" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Two-stage dynamic signal detection: A theory of choice, decision time, and confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Pleskac</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0019737</idno>
+		<ptr target="https://doi.org/10.1037/a0019737" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">117</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Confidence and certainty: Distinct probabilistic quantities for different goals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pouget</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Drugowitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kepecs</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/nn.4240</idno>
+		<ptr target="https://doi.org/10.1038/nn.4240" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="366" to="374" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">The confidence database</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Desender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L F</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Adler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Aguilar-Lleyda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Akdoğan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Arbuzova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">Y</forename><surname>Atlas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Balcı</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Bang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Bègue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Birney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">F</forename><surname>Brady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Calder-Travis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Chetverikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">K</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Davranche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Denison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">C</forename><surname>Dildine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Zylberberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="317" to="325" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1038/s41562-019-0813-1</idno>
+		<ptr target="https://doi.org/10.1038/s41562-019-0813-1" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">A theory of memory retrieval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295X.85.2.59</idno>
+		<ptr target="https://doi.org/10.1037/0033-295X.85.2.59" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="59" to="108" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">A diffusion model account of the lexical decision task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295X.111.1.159</idno>
+		<ptr target="https://doi.org/10.1037/0033-295X.111.1.159" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="159" to="182" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Modeling response times for two-choice decisions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Rouder</surname></persName>
+		</author>
+		<idno type="DOI">10.1111/1467-9280.00067</idno>
+		<ptr target="https://doi.org/10.1111/1467-9280.00067" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="347" to="356" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">A comparison of sequential sampling models for two-choice reaction time</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Smith</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/0033-295X.111.2.333</idno>
+		<ptr target="https://doi.org/10.1037/0033-295X.111.2.333" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="333" to="367" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Modeling confidence and response time in recognition memory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Starns</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0014086</idno>
+		<ptr target="https://doi.org/10.1037/a0014086" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="59" to="83" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Modeling confidence judgments, response times, and multiple choices in decision making: Recognition memory and motion discrimination</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Starns</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0033152</idno>
+		<ptr target="https://doi.org/10.1037/a0033152" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="697" to="719" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Estimating parameters of the diffusion model: Approaches to dealing with contaminant reaction times and parameter variability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Tuerlinckx</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/bf03196302</idno>
+		<ptr target="https://doi.org/10.3758/bf03196302" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic bulletin &amp; review</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="438" to="481" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Modeling 2-alternative forced-choice tasks: Accounting for both magnitude and difference effects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Voskuilen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Teodorescu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="page" from="1" to="22" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.cogpsych.2018.02.002</idno>
+		<ptr target="https://doi.org/10.1016/j.cogpsych.2018.02.002" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<monogr>
+		<title level="m" type="main">Statconfr: An r package for static models of decision confidence and metacognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hellmann</surname></persName>
+		</author>
+		<idno type="DOI">10.31234/osf.io/dk6mr</idno>
+		<ptr target="https://doi.org/10.31234/osf.io/dk6mr" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<monogr>
+		<title level="m" type="main">Confidence in masked orientation judgments is informed by both evidence and visibility. Attention, Perception, &amp; Psychophysics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hellmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zehetleitner</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13414-017-1431-5</idno>
+		<ptr target="https://doi.org/10.3758/s13414-017-1431-5" />
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="page" from="134" to="154" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Measures of metacognitive efficiency across cognitive models of decision confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hellmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zehetleitner</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/met0000634</idno>
+		<ptr target="https://doi.org/10.1037/met0000634" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">The folded x-pattern is not necessarily a statistical signature of decision confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zehetleitner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note>Article e1007456</note>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1371/journal.pcbi.1007456</idno>
+		<ptr target="https://doi.org/10.1371/journal.pcbi.1007456" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">Cognitive modelling reveals distinct electrophysiological markers of decision confidence and error monitoring. NeuroImage, 218, Article 116963</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rausch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zehetleitner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steinhauser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Maier</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.neuroimage.2020.116963</idno>
+		<ptr target="https://doi.org/10.1016/j.neuroimage.2020.116963" />
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+		<title level="m" type="main">The replication database: Documenting the replicability of psychological science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Röseler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Doetsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Klett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Seida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Schütz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Aczel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Adelina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Agostini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Alarie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Albayarak-Aydemir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Aldoh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Al-Hoorie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Azevedo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Barth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Beitner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Brick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Brohmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename></persName>
+		</author>
+		<idno type="DOI">10.31222/osf.io/me2ub</idno>
+		<ptr target="https://doi.org/10.31222/osf.io/me2ub" />
+		<imprint>
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title level="a" type="main">Estimating the dimension of a model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schwarz</surname></persName>
+		</author>
+		<idno type="DOI">10.1214/aos/1176344136</idno>
+		<ptr target="https://doi.org/10.1214/aos/1176344136" />
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="461" to="464" />
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Online psychophysics: Reaction time effects in cognitive experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Semmelmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Weigelt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1241" to="1260" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-016-0783-4</idno>
+		<ptr target="https://doi.org/10.3758/s13428-016-0783-4" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">The nature of metacognitive inefficiency in perceptual decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shekhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/rev0000249</idno>
+		<ptr target="https://doi.org/10.1037/rev0000249" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="45" to="70" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">How do humans give confidence? a comprehensive comparison of process models of perceptual metacognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shekhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rahnev</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xge0001524</idno>
+		<ptr target="https://doi.org/10.1037/xge0001524" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of experimental psychology. General</title>
+		<imprint>
+			<biblScope unit="volume">153</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="656" to="688" />
+			<date type="published" when="2024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<monogr>
+		<title level="m" type="main">Rtdists: Response time distributions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Singmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gretton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Heathcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Terry</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title level="a" type="main">Evaluating the unequal-variance and dual-process explanations of zroc slopes with response time data and the diffusion model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Starns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ratcliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mckoon</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cogpsych.2011.10.002</idno>
+		<ptr target="https://doi.org/10.1016/j.cogpsych.2011.10.002" />
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive psychology</title>
+		<imprint>
+			<biblScope unit="volume">64</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="1" to="34" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title level="a" type="main">Absolutely relative or relatively absolute: Violations of value invariance in human decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Teodorescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychonomic Bulletin &amp; Review</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="22" to="38" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13423-015-0858-8</idno>
+		<ptr target="https://doi.org/10.3758/s13423-015-0858-8" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title level="a" type="main">Disentangling decision models: From independence to competition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Teodorescu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0030776</idno>
+		<ptr target="https://doi.org/10.1037/a0030776" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="38" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title level="a" type="main">The time course of perceptual choice: The leaky, competing accumulator model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Mcclelland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="550" to="592" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1037/0033-295x.108.3.550</idno>
+		<ptr target="https://doi.org/10.1037/0033-295x.108.3.550" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Van Den Berg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Anandalingam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zylberberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kiani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Shadlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Wolpert</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<monogr>
+		<title level="m" type="main">A common mechanism underlies changes of mind about decisions and confidence. eLife, 5, Article e12192</title>
+		<idno type="DOI">10.7554/eLife.12192</idno>
+		<ptr target="https://doi.org/10.7554/eLife.12192" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<analytic>
+		<title level="a" type="main">Experimental paradigms emphasising state or process limitations: Ii effects on confidence</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Vickers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Burt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Psychologica</title>
+		<imprint>
+			<biblScope unit="volume">59</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="163" to="193" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/0001-6918(85)90018-6</idno>
+		<ptr target="https://doi.org/10.1016/0001-6918" />
+		<imprint>
+			<biblScope unit="page" from="90018" to="90024" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title level="a" type="main">Diffusion models in experimental psychology: A practical introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Nagler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lerche</surname></persName>
+		</author>
+		<idno type="DOI">10.1027/1618-3169/a000218</idno>
+		<ptr target="https://doi.org/10.1027/1618-3169/a000218" />
+	</analytic>
+	<monogr>
+		<title level="j">Experimental psychology</title>
+		<imprint>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">60</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<analytic>
+		<title level="a" type="main">Interpreting the parameters of the diffusion model: An empirical validation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rothermund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/BF03196893</idno>
+		<ptr target="https://doi.org/10.3758/BF03196893" />
+	</analytic>
+	<monogr>
+		<title level="j">Memory &amp; Cognition</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1206" to="1220" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b78">
+	<analytic>
+		<title level="a" type="main">A fast numerical algorithm for the estimation of diffusion model parameters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Voss</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2007.09.005</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2007.09.005" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="9" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b79">
+	<analytic>
+		<title level="a" type="main">Extending jags: A tutorial on adding custom distributions to jags (with a diffusion model example)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="15" to="28" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b80">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-013-0369-3</idno>
+		<ptr target="https://doi.org/10.3758/s13428-013-0369-3" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b81">
+	<analytic>
+		<title level="a" type="main">The rwiener package: An r package providing distribution functions for the wiener diffusion model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wabersich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vandekerckhove</surname></persName>
+		</author>
+		<idno type="DOI">10.32614/RJ-2014-005</idno>
+		<ptr target="https://doi.org/10.32614/RJ-2014-005" />
+	</analytic>
+	<monogr>
+		<title level="j">The R Journal</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">49</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b82">
+	<analytic>
+		<title level="a" type="main">An agenda for purely confirmatory research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E.-J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Wetzels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Borsboom</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">L J</forename><surname>Van Der Maas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Kievit</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/1745691612463078</idno>
+		<ptr target="https://doi.org/10.1177/1745691612463078" />
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on psychological science : a journal of the Association for Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="632" to="638" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b83">
+	<analytic>
+		<title level="a" type="main">Hddm: Hierarchical bayesian estimation of the drift-diffusion model in python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fninf.2013.00014</idno>
+		<ptr target="https://doi.org/10.3389/fninf.2013.00014" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in neuroinformatics</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b84">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Zawadzka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Higham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hanczakowski</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/xlm0000321</idno>
+		<ptr target="https://doi.org/10.1037/xlm0000321" />
+		<title level="m">Confidence in forced-choice recognition: What underlies the ratings? Journal of experimental psychology. Learning, memory, and cognition</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page" from="552" to="564" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b85">
+	<monogr>
+		<title level="m" type="main">The construction of confidence in a perceptual decision. Frontiers in integrative neuroscience, 6, Article 79</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zylberberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barttfeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sigman</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fnint.2012.00079</idno>
+		<ptr target="https://doi.org/10.3389/fnint.2012.00079" />
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

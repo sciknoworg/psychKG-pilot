@@ -1,0 +1,1221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">STIMULUS SELECTION USING FISHER INFORMATION 1 Stimulus Selection in a Q-learning Model using Fisher Information and Monte Carlo Simulation</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kazuya</forename><surname>Fujita</surname></persName>
+							<email>fujita.kazuya@k.mbox.nagoya-u.ac.jp</email>
+							<affiliation key="aff0">
+								<orgName type="department">Graduate School of Informatics</orgName>
+								<orgName type="institution">Nagoya University</orgName>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Japan Society for the Promotion of Science</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kensuke</forename><surname>Okada</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="department">Graduate School of Education</orgName>
+								<orgName type="institution">The University of Tokyo</orgName>
+								<address>
+									<addrLine>Author Note Kazuya Fujita https://orcid.org</addrLine>
+									<postCode>0000-0002-1062-3215, 0000-0003-1663-5812</postCode>
+									<settlement>Kensuke Okada https://orcid.org/, Kentaro Katahira</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kentaro</forename><surname>Katahira</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Graduate School of Informatics</orgName>
+								<orgName type="institution">Nagoya University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">STIMULUS SELECTION USING FISHER INFORMATION 1 Stimulus Selection in a Q-learning Model using Fisher Information and Monte Carlo Simulation</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:38+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>reinforcement learning</term>
+					<term>Fisher information matrix</term>
+					<term>computerized adaptive testing</term>
+					<term>adaptive stimulus selection</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Reinforcement learning models have been extensively studied for decision-making tasks with reward feedback. However, in designing an experiment to collect data for Q-learning models, the quantitative effect of a presented stimulus on the estimation precision of participant parameters has generally not been considered. That is, the lack of a mathematical framework has prevented researchers from designing an optimal experiment. To tackle this problem, this study analytically derives Fisher information. Furthermore, this study formulates a stochastic representation of the Q-learning model, which is one of the most commonly applied reinforcement learning models. With this derivation, a two-step procedure is proposed to select the optimal stimuli in terms of estimation precision, in which low-cost Fisher information evaluation and more detailed finitesample Monte Carlo simulation are combined. The simulation studies show that reward probability reversal leads to a high estimation precision for the learning rate parameter. By contrast, for the inverse temperature parameter, a larger difference in reward probability between options leads to higher estimation precision. These results reveal that the optimal experimental design is dependent on which trait parameters of the Q-learning model are of interest to researchers. Further, it is found that the use of undesirable stimuli in terms of trait parameter precision leads to a large bias in the correlation coefficient estimate. On the basis of the results, the approaches to designing experiments in the Q-learning model are discussed.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Reinforcement learning (e.g., <ref type="bibr" target="#b16">Daw, 2011;</ref><ref type="bibr">Sutton &amp; Bart, 2018;</ref><ref type="bibr" target="#b57">Watkins &amp; Dayan, 1992;</ref><ref type="bibr">Wilson &amp; Collins, 2019)</ref> models have been widely studied to model human behavior in decision-making tasks with reward feedback. Among them, the Q-learning model plays an essential role in psychological experiments and neuroscience. The Q-learning model assumes that participants update their utility of alternatives in proportion to the difference between predicted and obtained rewards, which is known as the reward prediction error (RPE) or temporal difference (TD) error. An indication of its importance can be seen in the field of psychiatry, wherein several studies have found a correlation between the parameters of the Qlearning model and externally measured psychological traits, such as the severity of depression <ref type="bibr" target="#b42">(Robinson &amp; Chase, 2017)</ref>.</p><p>The multi-armed bandit task is a typical task modeled by the Q-learning model. In this task, participants attempt to find one of the bidding slots that maximizes reward feedback. They earn a reward if they win the gamble, but they receive no reward if they lose. Here, researchers can manipulate two fundamental experimental settings for each slot: the magnitude of the reward when participants win (reward) and the probability that participants win (reward probability).</p><p>The reward and reward probability are collectively called the stimuli in the present study.</p><p>Participants are unaware of the reward probability a priori and attempt to estimate the same from the obtained reward feedback. For simplicity, this study focuses on a two-armed bandit task, which has two slots.</p><p>The central problem addressed in this study is that researchers typically design these fundamental experimental settings without a firm statistical basis. The stimuli to be presented at each trial are often determined based on common practice and intuition; the objective criteria for determining the stimuli are unclear. Moreover, it is unknown whether researchers should change the reward probability during repeated trials. In fact, while some previous studies (e.g., <ref type="bibr" target="#b19">Dezfouli et al., 2019;</ref><ref type="bibr" target="#b32">Katahira et al., 2011)</ref> changed the reward probability during repeated trials, others did not consider a change (e.g., <ref type="bibr" target="#b3">Beevers et al., 2013)</ref>. Although there are some non-statistical reasons for changing the reward probability, such as preventing habituation to a particular condition, the present study focuses on the statistical property because it allows the examination of the model-based optimal design with a transparent and objective procedure. Regarding the magnitude of reward, several studies (e.g., <ref type="bibr" target="#b25">Gershman, 2016)</ref> set the reward for each slot as 1.</p><p>Although researchers can customize various settings concerning reward and reward probability, previous studies have not focused on the relationship between the experimental stimulus and the estimation precision of participant parameters. The optimal settings for estimating the participant parameters are generally unknown.</p><p>To select the optimal stimulus in terms of estimation precision, previous studies in psychometrics have developed and applied computerized adaptive testing (CAT; e.g., van der Linden, 2018). In CAT, stimuli are selected to maximize the Fisher information <ref type="bibr" target="#b37">(Ly et al., 2017)</ref> because the root of the inverse of the Fisher information asymptotically converges to the variance of the parameter of interest. This stimulus selection criterion is called the maximum Fisher information (MFI) criterion. Even though it is widely applied in educational and psychological testing, the application of CAT to cognitive modeling has been rare. For the Qlearning model, <ref type="bibr">Wilson and Collins (2019)</ref> discussed the ways to design a good experiment, and <ref type="bibr" target="#b16">Daw (2011)</ref> pointed out that the second derivative of the likelihood function (i.e., Hessian) could be used for the evaluation of estimation precision. However, these studies did not indicate how to use the Hessian or Fisher information to design an optimal experiment.</p><p>The Fisher information can predict posterior standard deviation (PSD), which represents the empirical degree of uncertainty associated with the respondent parameters conditional on the observed data, at a given parameter value and stimulus with a low computational cost. In contrast to empirical PSD, Fisher information often has a low computational cost because of its closed-form expression. Previous studies have focused on stimulus selection in the context of the Ψ method (e.g., <ref type="bibr" target="#b33">Kontsevich &amp; Tyler, 1999)</ref> and adaptive stimulus selection (e.g., <ref type="bibr" target="#b1">Bak &amp; Pillow, 2018;</ref><ref type="bibr" target="#b14">Chen et al., 2019;</ref><ref type="bibr" target="#b20">Doll et al., 2014)</ref>. In particular, adaptive design optimization (ADO; e.g., <ref type="bibr" target="#b40">Myung et al, 2013;</ref><ref type="bibr" target="#b41">Myung &amp; Pitt, 2009;</ref><ref type="bibr" target="#b8">Cavagnaro et al., 2010;</ref><ref type="bibr" target="#b6">Cavagnaro et al., 2013)</ref> has been proposed as a general framework for adaptive stimulus selection. ADO can be used to optimize either the parameter estimation precision or model selection performance. In terms of model selection, many studies have applied the framework of ADO <ref type="bibr" target="#b6">(Cavagnaro et al., 2013)</ref>, including one that focused on the bandit task <ref type="bibr">(Zhang &amp; Lee, 2010)</ref>. With regard to ADO for parameter estimation, stimuli are selected to maximize the reduction of uncertainty of the posterior distribution for parameters, which is measured by the Shannon entropy <ref type="bibr" target="#b40">(Myung et al., 2013)</ref>. This means that the utility of each stimulus is calculated by the log ratio of the posterior to prior distribution <ref type="bibr" target="#b40">(Myung et al., 2013)</ref>.</p><p>Therefore, researchers need to estimate the parameters for each stimuli pattern in entropy-based methods, which include ADO, Ψ method, and adaptive stimulus selection. Further, in the ADO framework, the above utility is conditional on hypothetical outcome y and parameter , both of which are unknown. Hence, the expectation over them typically needs to be calculated numerically.</p><p>CAT can be regarded as a special case of ADO in which the utility function is the Fisher information. In the framework of CAT, the outcome and parameters need not be numerically integrated. This is because the Fisher information, which CAT uses as its objective function, is provided in a form in which the expectation over outcome y is already taken (Section 2.2). In addition, the estimation for each stimulus pattern is not needed in CAT because utility can be calculated without additional estimation as it does not need observation y and a posterior distribution. By contrast, ADO needs additional estimation at each stimulus point. Hence, although entropy-based methods (ADO, Ψ method, and adaptive stimulus selection) are similar to CAT in terms of their optimization criteria (i.e., parameter estimation precision), CAT is much easier to implement because of its closed-form expression of the objective function. Therefore, the Fisher information should be useful for evaluating a number of stimulus conditions with rapidity. Although entropy-based methods have been applied to elaborated cognitive models (e.g., <ref type="bibr" target="#b5">Broomell &amp; Bhatia, 2014;</ref><ref type="bibr" target="#b51">Toubia et al., 2013;</ref><ref type="bibr" target="#b0">Ahn et al., 2020)</ref>, the application of the Fisher information-based methods (i.e., CAT) to cognitive models has been rare.</p><p>Nevertheless, the performance of the Fisher information in predicting PSD may deteriorate depending on the number of trials, stimulus conditions, and true parameter values.</p><p>For an accurate evaluation of PSD, Monte Carlo simulation is more appropriate than Fisher information because whereas the Fisher information is only asymptotically valid, Monte Carlo simulation based on Markov chain Monte Carlo (MCMC) estimation can directly compute PSD conditional on the observed data. However, Monte Carlo simulation using MCMC has high computational cost, implying its inefficiency for evaluating a number of stimulus conditions. Therefore, this paper proposes that researchers who design a Q-learning experiment employ the following two-step procedure, which is applied in the present study before conducting the experiments: First, the candidates for experimental stimuli are evaluated with Fisher information at many possible true parameter values. To achieve this, the Fisher information of the Q-learning model is analytically derived. This enables the evaluation of many stimuli conditions with low computational cost and the prompt detection of the stimulus that leads to higher estimation precision. Second, a Monte Carlo simulation is conducted using the settings of the stimuli that are found to be superior in the first step. This second step is required to evaluate the empirical precision of the actual finite sample. In this way, the proposed two-step procedure consists of the first low-cost but approximate step that narrows down the candidate stimuli with the Fisher information and the second more accurate yet high-cost step to design an optimal experiment. Note that CAT refers to the method for adaptively selecting the next stimulus while collecting participants' responses. However, this study mainly focuses on the method for fixed stimuli design in which the stimuli are selected before conducting the experiment (i.e., without any participants' responses). This is called the fixed stimuli design based on MFI (F-MFI) or MFI, although MFI is actually a stimulus selection criterion. In short, this study involves fixed and adaptive stimulus selection using F-MFI and CAT, respectively, and the stimulus selection criterion is the Fisher information for both cases. Note also that the term CAT is used in this paper for both psychometric and cognitive models because they share the same basic statistical framework of adaptively choosing the item or stimulus that maximizes the Fisher information for the purpose of efficient and precise psychological measurement.</p><p>The main contributions of this study are the derivation of the closed-form expression of the Fisher information matrix of the Q-learning model and the proposal of a two-step procedure to select the optimal experimental stimuli to be presented to participants. In the series of simulation studies (SS), by applying the proposed two-step approach, this research investigates the effect of reward probability (SS1) and reward (SS2) on estimation precision depending on the Q-learning model parameters.</p><p>Moreover, the following two aspects are explored by considering the application context of the model: First, in SS3, the effect of stimuli on the estimation of the correlation coefficient between the participant parameters of the Q-learning model and an externally measured trait is investigated. This correlation is often of practical interest; for example, <ref type="bibr" target="#b12">Chase et al. (2010)</ref> investigated the correlation between the learning rate parameter of the Q-learning model and anhedonia, which is a trait related to depression. The low estimation precision of the Q-learning model parameters may lead to the underestimation of the correlation coefficient from the perspective of attenuation (e.g., <ref type="bibr" target="#b23">Fleiss &amp; Shrout, 1977;</ref><ref type="bibr" target="#b35">Liu, 1988)</ref>. Therefore, it is expected that a suboptimal choice of stimuli will also lead to a large bias in the correlation estimate.</p><p>Second, this study investigates the CAT of the Q-learning model in SS4. Although the primary consideration is the case of predetermining the set of stimuli (SS1 to SS3), CAT is also considered because selecting the stimulus for each participant, that is, different participants taking different stimuli, can lead to higher estimation precision than using predetermined stimuli.</p><p>The remainder of this paper is organized as follows: In Section 2, the Q-learning model and the respective notations are introduced. In addition, the Fisher information of the Q-learning model is derived. The results of four simulation studies (and one simulation in supplement A) are reported in Section 3, and the approach to selecting a stimulus for the Q-learning model is discussed in Section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Model and Method</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">The Q-learning model</head><p>In the two-armed bandit task <ref type="bibr" target="#b47">(Steyvers et al., 2009;</ref><ref type="bibr">Wilson &amp; Collins, 2019)</ref>, participants choose between slots A and B, and they obtain a reward if they win the gamble. Let be the index of alternatives: = 1 indicates slot A, and = 2 indicates slot B. Let , and , be the reward probability and reward of alternative , respectively, at trial , = 1, … , . This means that when a participant wins a gamble after choosing slot A (or B) at trial , they obtain reward ,1 (or ,2 ). Researchers can manipulate the stimuli , ,</p><p>, and trial length .</p><p>Previous studies often assumed , = 1 and ,2 = 1 − ,1 (e.g., <ref type="bibr" target="#b25">Gershman, 2016)</ref>. This means that the actual reward obtained by choosing alternative at trial , denoted by , , is either 1 or 0. If the participant loses the gamble, then , is 0. Note that this study discriminates between , and , .</p><p>, is a hypothetical reward value if participants win a gamble, and</p><p>, , which takes the value of either 0 or , , is actually the obtained reward value. In fact, the index of , is not necessary because participants can choose only one of the slots. However, this notation is useful when considering the data generation process of the reward (see Equation <ref type="formula" target="#formula_5">6</ref>). , is either 0 or , when slot is chosen at trial and is always 0 when slot is not chosen. The main question is how to optimally select , and , (and ) in terms of estimation precision.</p><p>In the Q-learning model, the difference between the Q values, which are the evaluated values of the alternatives at each trial, and , − , ( ) plays a key role in the updating process.</p><p>Let , ( ) be the Q value of alternative at trial , where = ( , ) represents the participant parameter vector that consists of the learning rate parameter (0 ≤ ≤ 1 ) and inverse temperature parameter ( &gt; 0; <ref type="bibr" target="#b16">Daw, 2011)</ref>. In the standard Q-learning model, the Q value of the chosen slot at the previous trial is updated as , ( ) = −1, ( ) + ( −1, − −1, ( )) while the Q value of the unchosen slot is not updated. Hence, they are represented as follows:</p><formula xml:id="formula_0">,1 ( ) = { −1,1 ( ) + ( −1,1 − −1,1 ( )) , −1 = 1 −1,1 ( ), −1 = 0 ,<label>(1)</label></formula><formula xml:id="formula_1">,2 ( ) = { −1,2 ( ) + ( −1,2 − −1,2 ( )) , −1 = 0 −1,2 ( ), −1 = 1 ,<label>(2)</label></formula><p>where represents the binary decision-making data at trial . = 1 indicates that the participant chose slot A, and = 0 denotes that they chose slot B. The Q value of the chosen slot is updated in proportion to the RPE, , − , ( ) , with learning rate as a control parameter. For ease of notation, Equations (1) and (2) are written together as</p><formula xml:id="formula_2">, ( ) = −1, ( ) + I A ( − 1 + −1 ) ( −1, − −1, ( )) ,<label>(3)</label></formula><p>where I A ( ) = 1, = 1 and I A ( ) = 0, ≠ 1. I A ( − 1 + −1 ) is the indicator function that returns 1 when slot is chosen in the last trial and 0 when slot is not chosen in the last trial.</p><p>The probability of choosing slot A at trial , ( = 1| ), is given by</p><formula xml:id="formula_3">( = 1| ) = 1 1 + exp (− ( ,1 ( ) − ,2 ( ))) .<label>(4)</label></formula><p>This means that the observed response is assumed to be generated as ∼ ( ( = 1| )).</p><p>Many extended models exist, and the include the forgetting model, which assumes the updating of an unchosen slot (e.g., <ref type="bibr" target="#b26">Ito &amp; Doya, 2009;</ref><ref type="bibr" target="#b54">Toyama et al., 2019)</ref>, and the asymmetric learning rate model, which assumes that learning rates are dependent on the signature of the RPE, , − , ( ) (e.g., <ref type="bibr" target="#b12">Chase et al., 2010;</ref><ref type="bibr" target="#b34">Kunisato et al., 2012)</ref>. Although the current study focuses on the standard Q-learning model described above, the computation of the Fisher information can be similarly conducted for these model variants (Section 2.3).</p><p>For the purpose of the present study (SS4), there is a need to modify the representation of the standard Q-learning model because as shown above, the standard representation does not explicitly represent the generating process of the obtained reward , . To conduct CAT, , must be treated as a random variable because the Fisher information is derived as the expectation of the random dependent variables given that , has not yet been observed. Hence, this study models</p><p>, as the stochastic dependent variable, similar to , and calculates the expectations for and</p><p>, . Given the experimental situation, the data-generating process of , is represented by</p><formula xml:id="formula_5">, = ,1 1, + ,2 (1 − ) 2, ,<label>(6)</label></formula><formula xml:id="formula_6">1, ∼ ((2 − ) ,1 ) , 2, ∼ (( − 1) ,2 ) .<label>(7)</label></formula><p>For example, suppose a participant chooses slot A ( = 1) . Then, ,1 equals ,1 with probability ,1 and equals 0 with probability 1 − ,1 . In addition, ,2 equals 0 because the participant does not gamble at slot B. This is represented by 1,2 , which follows (0).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">CAT and Fisher information</head><p>Let * and ̂ denote true parameter values and their estimates. Under regularity conditions, the estimated ̂ converges as follows:</p><formula xml:id="formula_7">̂→ ( * , ( * ) −1 ),<label>(8)</label></formula><p>where ( ) is the Fisher information matrix <ref type="bibr" target="#b11">(Chang, 2015)</ref>. The Fisher information matrix is given by</p><formula xml:id="formula_8">( ) = [( log ( ; )) ( log ( ; )) ′ ] ,<label>(9)</label></formula><p>where log ( ; ) is the log likelihood, A′ denotes the transposed matrix of A, and the expectation is calculated over the random variable y. In the case of the Q-learning model, y corresponds to = ( 1 , … , ) and = ( 1, , … , , ). Note that Equation (9) depends on the parameter values, stimuli, and number of trials.</p><p>Based on Equation (8), in CAT and F-MFI, the stimuli are selected to maximize the Fisher information, ( ) , when the parameter is unidimensional. Furthermore, when parameters are multidimensional, one of the most common approaches is to select a stimulus to maximize the determinant of the Fisher information matrix <ref type="bibr" target="#b39">(Mulder &amp; van der Linden, 2009;</ref><ref type="bibr" target="#b43">Segall, 1996)</ref>. The diagonal elements of (̂) − 1 2 are called asymptotic SD based on Equation <ref type="formula" target="#formula_7">8</ref>. This study does not include the term related to prior distribution <ref type="bibr" target="#b22">(Ferrando &amp; Lorenzo-Seva, 2007</ref>, Equation <ref type="formula" target="#formula_44">10)</ref>in computing the asymptotic SD because this term's influence decreases as the number of trials increases. In fact, in this study's setting, when the Fisher information of is 4 (i.e., asymptotic SD is 0.5), the difference between asymptotic SD including the prior term and that excluding the prior term is only 0.01.</p><p>Let ( ) ( ) denote the Fisher information matrix calculated from the data of the 1st to th trials. In addition, let + ( ) denote the Fisher information matrix when stimuli are presented at the ( + 1)th trial. Note that although ( ) denotes the Fisher information matrix of the th trial (i.e., single trial), ( ) ( ) also denotes that of the 1st to th trials (i.e., multiple trials). When the response at the th trial is obtained, the parameters are estimated from the data of the 1st to th trial. Hence, in the proposed CAT, the stimuli at the ( + 1)th trial are selected to maximize</p><formula xml:id="formula_9">( ( ) ( ) + + ( ))<label>(1 )</label></formula><p>using the above parameter estimates for adaptive stimulus selection.</p><p>In the Q-learning model, stimulus selection involves selecting the magnitude of reward +1, and reward probability +1, of the next trial. That is, Equation <ref type="formula" target="#formula_44">10</ref>is dependent on +1, and +1, . Hence, CAT selects these stimuli for the next trial to maximize Equation (10). Note that det( + ( )) is not used as a stimulus selection criterion. This is because the determinant of the Fisher information matrix of a single trial equals 0 in the Q-learning model, as well as in other models with a logistic link function <ref type="bibr" target="#b39">(Mulder &amp; van der Linden, 2009)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Deriving the Fisher information matrix using obtained observations</head><p>The Q-learning model exhibits sequential dependence. However, is locally independent conditional on the variables of the previous trial ( −1, , −1 , −1, ), which is similar to other sequential models (e.g., Kalman Filter; <ref type="bibr" target="#b9">Cavanaugh &amp; Shumway, 1996)</ref>. Therefore, considering Equation <ref type="formula" target="#formula_4">5</ref>, the log likelihood is given by</p><formula xml:id="formula_10">log ( ( ) ; , ( ) ) = ∑{ log ( = 1| , − ) + (1 − ) log(1 − ( = 1| , − ))} =1 ,<label>(11)</label></formula><p>where = ( , , , , ), ( ) = ( , … , ), ( ) = ( 1 , … , ) . The Fisher information matrix can be derived by calculating ( = 1| , − ) , log ( ( ) ; , ( ) ) and</p><p>considering the local independence of as follows:</p><formula xml:id="formula_11">( ) ( ) = E ( ) [( log ( ( ) ; , ( ) )) ( log ( ( ) ; , ( ) )) ′ ] = ∑ ( = 1| , − ) =1 (1 − ( = 1| , − )) ( 11 12 12 22 ) ,<label>(12)</label></formula><p>where</p><formula xml:id="formula_12">11 = 2 [ ( ,1 ( ) − ,2 ( ))] 2 ,<label>(13)</label></formula><formula xml:id="formula_13">12 = [ ( ,1 ( ) − ,2 ( ))] [ ,1 ( ) − ,2 ( )],<label>(14)</label></formula><formula xml:id="formula_14">22 = [ ,1 ( ) − ,2 ( )] 2 .<label>(15)</label></formula><p>Here, , ( ) is calculated by</p><formula xml:id="formula_15">, ( ) = (1 − I A ( − 1 + −1 ) ) [ −1, ( )] + I A ( − 1 + −1 ) ( −1, − −1, ( )) (16)</formula><p>recursively, as indicated by <ref type="bibr" target="#b16">Daw (2011)</ref>. As shown above, the derivative in the Q-learning model has recursive calculations similar to other sequential dependence models (e.g., <ref type="bibr" target="#b9">Cavanaugh &amp; Shumway, 1996;</ref><ref type="bibr" target="#b44">Shumway &amp; Stoffer, 1982)</ref>. Equations (13)-(15) indicate that the Fisher information of is dependent only on the difference in Q values, ,1 ( ) − ,2 ( ). Likewise, the Fisher information of is dependent on the RPE, −1, − −1, ( ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">The two-step procedure</head><p>In the proposed two-step procedure, this study calculates the low-cost Fisher information with the entire set of stimuli in the first step and evaluates the empirical PSD with a few candidate stimuli using the computationally intensive MCMC method in the second step. Note that Fisher information, as well as empirical PSD, are dependent on both parameter values and stimuli. Let ( ) ( , ) denote the Fisher information matrix in this section to emphasize its dependence on the stimulus ∈ { , … , }, which corresponds to a pair of , and , in this study. In the first step, for each element of the stimuli set , the Fisher information ( ) ( , ) is calculated. In this calculation, the true parameter values are replaced with some distributions, such as the uniform or beta distribution in this study, and the hypothetical data generation and calculation of the Fisher information at the given parameter values are iterated. The number of stimuli under consideration, M, can be set to be sufficiently large owing to the low computational cost of the Fisher information. After a few candidate stimuli that will lead to high estimation precision (i.e., high Fisher information) are found in the first step, the MCMC simulation is conducted with the candidate stimuli in the second step. That is, the hypothetical data generation and estimation of the empirical PSD are iterated using the MCMC method (see supplement B for more details).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">The Fisher information matrix calculating expectation on both u and r</head><p>To conduct CAT, the expectations over future rewards need to be calculated. In this section, the Fisher information matrix for CAT is provided (see Appendix A for the derivation). By treating the reward value as a random variable, the Fisher information matrix is given by the expectation of both and , with consideration of the definition (Equation (9)). In this situation, the Fisher information matrix is given by</p><formula xml:id="formula_16">( ) ( ) = E ( ( ) , ( ) ) [( log ( ( ) ; , ( ) )) ( log ( ( ) ; , ( ) )) ′ ] = ∑ ( = 1| , − ) =1 (1 − ( = 1| , − )) ( 11 12 12 22 ) ,<label>(17)</label></formula><formula xml:id="formula_17">11 = 2 E ( ( − ) , ( − ) ) [[ ( ,1 ( ) − ,2 ( ))] 2 ] ,<label>(18)</label></formula><formula xml:id="formula_18">12 = E ( ( − ) , ( − ) ) [[ ( ,1 ( ) − ,2 ( ))] [ ,1 ( ) − ,2 ( )]] ,<label>(19)</label></formula><formula xml:id="formula_19">22 = E ( ( − ) , ( − ) ) [[ ,1 ( ) − ,2 ( )] 2 ] ,<label>(20)</label></formula><p>where</p><formula xml:id="formula_20">E ( ( ) , ( ) ) [⋅]</formula><p>is the expectation over both ( ) = ( 1 , … , ) and ( ) = ( 1, , … , , ) .</p><p>The necessary quantities to calculate Equation <ref type="formula" target="#formula_16">17</ref>are</p><formula xml:id="formula_21">E ( ( ) , ( ) ) [ , ] , E ( ( ) , ( ) ) [ , 2 ], E ( ( ) , ( ) ) [ , ( )] , E ( ( ) , ( ) ) [ , ( )] , E ( ( ) , ( ) ) [ , ( ) , ′ ( )] , E ( ( ) , ( ) ) [( , ( )) , ′ ( )]</formula><p>, and Note that the Fisher information matrix of Equation (17) calculates the expectation over observations <ref type="bibr">( , )</ref>. In general, an entropy-based method (e.g., standard ADO) has to estimate the parameters for each combination of the observation and the candidate stimulus. In this method, the numerical calculation is repeated several times on the basis of the random generation of the outcome. For instance, when hypothetical observations for multiple trials are generated 100 times in Q-learning models to calculate expected values, the entropy-based method needs to calculate the local utility 100 × M times. By contrast, CAT only needs to calculate Equation (17) M times for stimulus selection, thereby reducing the computational cost.</p><formula xml:id="formula_22">E ( ( ) , ( ) ) [( ,<label>( ))</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Simulation Study</head><p>Four simulation studies and one additional simulation study in supplement A are conducted. In SS1, SS2, and supplement A, the relationship between the estimation precision of the participant parameters (i.e., and ) and the stimuli is studied. In supplement A, the present study confirms that the inverse of the root of Fisher information (i.e., asymptotic SD) can predict the empirical PSD and that the PSD becomse closer to asymptotic SD as the trial progresses. In SS1 and SS2, the effects of reward probability and reward on estimation precision are studied. Our main focus in these simulations is on whether our design algorithm (i.e., the Fisher information-based method) can select stimuli that lead to a lower empirical PSD (in the second step of the two-step procedure). In addition, we discuss the effect of stimuli on parameter estimation precision in the Q-learning model. In SS3, the effect of a stimulus on the correlation coefficient between participant parameters and other traits is studied. Such a correlation is often used to investigate some empirical hypotheses in experiments. In SS4, CAT, which is a method for selecting stimuli adaptively, is conducted. CAT is basically better than a fixed design for parameter estimation precision. However, the fixed design or same reward probability for several trials is natural in the Q-learning model. Therefore, we check whether CAT actually exerts a good influence on estimation precision in the Q-learning model. The R code for these simulation studies is available at the Open Science Framework (https://osf.io/msf5e/?view_only=c15cbe98e65748609c224d129f9e5bbd).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Simulation study 1 (SS1)</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Method</head><p>SS1 is aimed at checking whether the first step of the two-step procedure (Fisher information-based method) can select the appropriate stimuli, which lead to a lower empirical PSD in the second step. In SSI, we can study the relationship between reward probability and estimation precision because the two-step procedure provides us with this information. More specifically, the settings of optimal reward probabilities and whether the reward probabilities should be reversed during repeated trials are investigated. For this purpose, the proposed twostep procedure is adopted, in which the candidate stimuli are selected in SS1(a) and the empirical PSD is investigated in detail in SS1(c). That is, SS1(a) corresponds to the first step of the twostep procedure while SS1(c) corresponds to the second step. We also check whether the asymptotic SD in SS1(a) can predict the order of the empirical PSD in SS1(c). If the Fisher information-based method in SS1(a) provides the same or similar order as the empirical PSD in SS1(c), we can conclude that the Fisher information-based method can select appropriate stimuli in terms of estimation precision. Such a confirmation serves as the foundation for investigating the effect of stimuli on parameter estimation precision.</p><p>The basic simulation flow is as follows. First, the simulation conditions, such as the number of trials, stimuli, and true parameter values, are set. Second, simulated data 1 , … , are generated from the standard Q-learning model. Third, the parameters are estimated using the MCMC algorithm (in SS1(c)), and the Fisher information is calculated (in SS1(a) and SS1(b)).</p><p>Note that the Fisher information is calculated only once at the last step because we do not use it as an adaptive stimulus selection criterion in SS1. The details of each calculation step in the simulation are presented in supplement B, with a special focus on SS1(a).</p><p>In SS1(a), the effect of reward probability on the estimation precision is investigated to determine the reward probability that leads to high estimation precision. The Fisher information for each parameter ( , ) is calculated while changing the reward probability values. The candidate reward probability of slot A, ,1 , is eight evenly distributed numbers in points dividing (0.05, 0.95) and 0.5. For simplicity, ,2 = 1 − ,1 is assumed. Whether to reverse the reward probability during repeated trials is also manipulated. Therefore, there are 9 (reward probability values) × 2 (probability reversal or not) = 18 conditions. In the reward probability reversal condition, the reward probability is reversed every 10 trials so that the relationship +10, = 1 − , is satisfied. For example, in the (0.8, 0.2) condition, the reward probability is set at (0.2, 0.8) from the 10th to 19th trials, (0.8, 0.2) from the 20th to 29th trials, and so on. Note that although the above relationship, ,2 = 1 − ,1 , is used as a simple way to implement the change in reward probability during the course, the reward probability can generally be changed for any probability value at any point. The reward is fixed as (1, 1). True parameter values are generated as ∼ (12, 12), ∼ (1.5, 2.5). This means that the expectation of α is 0.5 and that the standard deviation of α is 0.1. The number of trials is = 80. The Fisher information is calculated using the true parameter values. Therefore, it is not required to estimate the parameters, and the computational cost is consequently reduced.</p><p>Based on the results of SS1(a) reported below, three reward probability conditions are selected as desirable stimuli to evaluate the empirical PSD: (0.5, 0.5), (0.8, 0.2), and reversing (0.8, 0.2) at every 10 trials; the subsequent SS1(b) and SS1(c) are then conducted. In a two-step procedure for real experiments, evaluating the reward probability (0.5, 0.5) condition may not be necessary because it will not lead to high estimation precision for both and in the reversal reward probability condition from the SS1(a) results. Nevertheless, this study includes the (0.5, 0.5) condition for evaluating the effect of reward probability. Before conducting the MCMC estimation, in SS1(b), the difference between the Fisher information of the ( + 1)th and th trials is examined to investigate the change in the Fisher information by reversing the reward probability. Although the target of SS1(b) has no direct correspondence in the two-step procedure, it will be needed if researchers have to explain why specific stimuli lead to higher estimation precision. Subsequently, in SS1(c), the empirical PSD is calculated, and its similarity to the asymptotic SD is evaluated. In SS1(b) and SS1(c), the true parameter values and the number of trials are the same as those in SS1(a). Three chains of MCMC samples are generated with 5,000 iterations each, and the first 2,000 iterations are discarded as warm-ups. The priors of α and β are U(0,1) and ' (4,0,3) ≥0 , respectively. Here, the parameters of the Student's t distribution indicate the degrees of freedom, location, and scale parameters in accordance with the notation of the function by Rstan (Stan Development Team, 2020). The convergence is monitored by ̂. The simulation is repeated 50 times.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">Results and discussion</head><p>For SS1(a), <ref type="figure">Figures</ref>  and 1D) reward probability conditions. Regarding the Fisher information of , reward probability (0.5, 0.5) achieves high estimation precision in the fixed reward probability condition ( <ref type="figure">Figure 1A</ref>). By contrast, the extreme value of ,1 (e.g., 0-0.2 or 0.8-1) provides higher estimation precision in the reward probability reversal condition ( <ref type="figure">Figure 1C</ref>). Moreover, the reward probability reversal condition results in a higher estimation precision than the fixed reward probability condition (comparison of <ref type="figure">Figures 1A and 1C)</ref>.</p><p>As for the Fisher information of , the extreme reward probability of slot A provides high estimation precision regardless of the reversal ( <ref type="figure">Figures 1B and 1D</ref>). In addition, the reward probability reversal condition results in a lower estimation precision than the fixed reward probability condition. From the results, the reward probability (0.8, 0.2) condition is selected as a desirable value for the subsequent SS1(b) and SS1(c) because a reward probability close to 1 or 0 may make the task too easy and result in an unreliable value of the Fisher information.</p><p>The use of Fisher information enables the prompt evaluation of these stimulus conditions. In our computer (Dell Latitude E6510; CPU: Intel Core TM i5-560M 2.66 GHz; R version: 4.0.3; OS: Ubuntu 20.04), calculating the PSD by using MCMC in SSA1(a), in the simulation in supplement A, takes 1.92 minutes for one stimulus condition, whereas calculating the asymptotic SD by using the Fisher information in SS1(a) takes 1.13 seconds for the same condition (in = 80, = 50). This means that if 90 stimulus conditions are calculated, as in SS2(a), the use of Fisher information saves 175 min relative to the MCMC estimation. If we consider PSD change by trial, PSD change by parameter values, or an appropriate number of trials resulting in a larger space to explore or consider more elaborate models, MCMC simulation will not be practical for exploring all the stimuli.</p><p>As for SS1(b), <ref type="figure">Figures 1E and 1F</ref> show an increase in the Fisher information, ( ) ( ) − ( − ) ( ), at each trial. A larger increase indicates a larger contribution of the observation in that trial to the estimation precision. <ref type="figure">Figure 1E</ref> indicates that the increase in the Fisher information of α becomes larger from the trials in which the reward probability is reversed. In other words, reversing the reward probability contributes more to the estimation precision of α. Considering that the Fisher information of α includes the RPE in Equation (13), this is natural. When reward probability is reversed, a large RPE will be obtained, resulting in large Fisher information, because a slot expecting a large Q value will give participants no reward, , = 0, with high probability. By contrast, <ref type="figure">Figure 1F</ref> indicates that the increase in Fisher information decreases from trials in which the reward probability is reversed. Rather, the estimation precision of β is affected by the difference in the reward probability. This is natural because the Fisher information of β, Equation (15), includes the difference in Q values. When the reward probability is reversed, the Q values of the slots will become closer to one another, that is, the difference in the Q value approaches 0 until after several trials when they are completely reversed.</p><p>As for SS1(c), to confirm the above asymptotic characteristics in the empirical analysis, <ref type="figure">Figures 1G</ref> and 1H present the empirical PSD for ( <ref type="figure">Figure 1G</ref>) and ( <ref type="figure">Figure 1H</ref>) based on the MCMC estimation in each trial. <ref type="figure">Figure 1G</ref> indicates that the PSD of α in the reward probability reversal condition becomes smaller than that in the fixed reward probability condition starting from the 10th trial, during which the first reversal of reward probability occurs. This means that the effect of reversing the reward probability on α, which is predicted from the Fisher information analysis, is confirmed by the empirical PSD. Note that this effect depends on true parameter values. For example, this effect is small when the true parameter values are fixed at = 0.5, = 2. <ref type="figure">Figure 1E</ref> also suggests that the maximum increase within every 10 trials is essentially constant, except for the first reversal. The relative increase in the Fisher information becomes smaller as the number of trials increases. As the effect of reward probability reversal is not apparent under the reward (1, 1) condition, the effect of the magnitude of the reward in SS2 is studied. As for the PSD of β, the negative influence of reward probability reversal ( <ref type="figure">Figure 1H)</ref> is confirmed. The fixed reward probability (0.8, 0.2) condition performs better than the reversal condition even though the differences in reward probability are the same: (0.8, 0.2) and (0.2, 0.8).</p><p>As described above, it is found that asymptotic SD ( <ref type="figure">Figures 1A to 1D</ref>) can predict the order of the empirical PSD ( <ref type="figure">Figures 1G and 1H</ref>) between stimulus conditions. Therefore, we see that the first step of the two-step procedure (i.e., stimulus selection based on the Fisher information) works well. However, the Fisher information may underestimate or overestimate the empirical PSD (e.g., see also <ref type="figure" target="#fig_4">Figure S2A</ref>). This indicates that the stimulus should be evaluated by the empirical PSD supplementally and precisely even if the Fisher information is essential to roughly evaluate the same. This result supports the use of the proposed two-step procedure. Therefore, we can conclude that the two-step procedure will work well in the Qlearning model.</p><p>In addition, in this simulation, we fixed the number of trials (80) and the number of trials of each reward probability in the reward probability reversal condition (10), and we conducted the two-step procedure once. However, in a real experimental design, researchers may have to design the number of trials and the number of trials of each reward probability in the reward probability reversal condition (e.g., reversing it every 10th or 15th trial), and they may have some criteria to be achieved (e.g., empirical PSD &lt; 0.1 for ). In this case, they need to retry the two-step procedure to select the number of trials and stimuli until the empirical PSD obtained at the second step meets their criteria (see supplement B for more details).</p><p>As shown by the Fisher information and empirical PSD, the effects of the difference in reward probability and reward probability reversal are dependent on the participant parameters (i.e., α or β). Therefore, the optimal experimental design depends on which parameter to focus.</p><p>Researchers should design experiments with an understanding of the purpose and method (e.g., which parameter, that is, either or , are used for calculating correlation) and the theoretical characteristics and with consideration of the Monte Carlo simulation results. Considering the above simulations, using reward probability (0.8, 0.2) or more extreme values would increase the estimation precision, except for in a fixed reward probability condition. Whether researchers should reverse reward probability is dependent on the purpose of their study. Moreover, these results show that a random stimulus selection or fixed design that is not based on statistical criteria, such as Fisher information, might not be optimal for a specific parameter. For example, when researchers focus on , the reward probability around (0.8, 0.2) and the nonreversed reward probability will incur losses in parameter estimation. The effect of this difference in estimation precision on the correlation coefficient is explored in SS3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Simulation study 2 (SS2)</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">Method</head><p>In SS2, our objective is to investigate the performance of the two-step procedure in the case in which the reward value can be changed. As with SS1, we check whether the Fisher information can predict the order of the empirical PSD of the second step. Further, we simultaneously study the relationship between the magnitude of reward and the estimation precision of participants' parameters and their interaction with reward probability. The research questions are whether it is desirable to set the reward to be (1, 10), for example, instead of the baseline (1, 1) and how reward and reward probability interact from the perspective of estimation precision. As we describe below, SS2(a) corresponds to the first step of the two-step procedure, SS2(b) corresponds to the second step with a fixed reward probability condition, and SS2(c) corresponds to the second step with a reward probability reversal condition.</p><p>Three sub-simulations are conducted, followed by an additional simulation. SS2(a)</p><p>investigates the Fisher information while changing the stimulus. Although the simulation flow is similar to that of SS1(a), this study manipulates not only the reward probability of slot A, ,1 , but also the reward of slot B, ,2 . The candidates of ,2 are four evenly distributed numbers in points dividing [0.5, 10] and 1. Hence, the total number of stimulus conditions is 9 (reward probability) × 5 (reward) × 2 (reversing probability or not) = 90. The reward of slot A,</p><p>,1 , is fixed to 1 so as to rescale rewards in practice. The total number of trials is = 200.</p><p>Other settings, such as ,1 and true parameter values, are the same as those in SS1. The simulation is repeated 50 times for each stimulus condition. SS2(b) investigates the empirical PSD and root mean square error (RMSE) of α and β.</p><p>The simulation settings are the same as those in SS1(c). The total number of trials is = 200.</p><p>The stimulus conditions are 2 (reward) × 2 (reward probability). Based on the results of SS2(a), the reward is set to be either (1, 1) or (1, 10), and the reward probability is set to be (0.5, 0.5) or (0.8, 0.2). The empirical PSD and RMSE for each trial are calculated. The simulation is repeated 50 times. The settings of SS2(c) are the same as those of SS1(c), except that the reward is (1, 10). Note that we include the reward probability reversal condition and the reward (1, 10) condition in this simulation.</p><p>It is important to note that the true value is fixed in the simulations above.</p><p>Considering Equations <ref type="formula" target="#formula_2">3</ref>and <ref type="formula" target="#formula_3">4</ref>  <ref type="bibr">(1)</ref> (3 in the below simulation) in Experiment 1, whose reward feedback is 1, and responds with <ref type="bibr">(2)</ref> in Experiment 2, whose reward is ,</p><p>. From the above discussion,</p><formula xml:id="formula_24">when (2) = 1 ,<label>(2)</label></formula><p>(1) , the estimation precision of is expected to be constant. To confirm this, another simulation is conducted in which ,</p><p>and true <ref type="bibr">(2)</ref> are changed in Experiment 2. The difference between the asymptotic SD in Experiment 1 and that in Experiment 2 is calculated.</p><p>Note that henceforth, the increase in reward while fixing true has a similar meaning to the increase of while fixing the reward, except in the case of the simulation in which ,</p><p>and</p><p>(2) are changed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2">Results and discussion</head><p>As for SS2(a), <ref type="figure" target="#fig_4">Figures 2A</ref> to 2D present the contour plot of the asymptotic SD of α <ref type="figure" target="#fig_4">(Figures 2A and 2C</ref>) and ( <ref type="figure" target="#fig_4">Figures 2B and 2D</ref>) in the fixed <ref type="figure" target="#fig_4">(Figures 2A and 2B</ref>) and reversed ( <ref type="figure" target="#fig_4">Figures 2C and 2D</ref>) reward probability conditions. As for , <ref type="figure" target="#fig_4">Figures 2A and 2C</ref> indicate that increasing the reward leads to a high estimation precision, especially when the reward probability is close to 0.5. Moreover, <ref type="figure" target="#fig_4">Figure 2A</ref> indicates the existence of an interaction between reward and reward probability. When the reward is (1, 10), the reward probability (0.8, 0.2) condition (red 〇 in the top right) achieves a higher estimation precision for α than the (0.2, 0.8) condition (blue △). This implies that making the expected rewards of the slots closer to one another will lead to a high estimation precision. Comparing <ref type="figure" target="#fig_4">Figure 2A</ref> (fixed reward probability condition) and <ref type="figure" target="#fig_4">Figure 2C</ref> (reward probability reversal condition) indicates that reversing the reward probability leads to a higher estimation precision even in the reward (1, 10) condition.</p><p>As for the asymptotic SD of , <ref type="figure" target="#fig_4">Figures 2B and 2D</ref> indicate that a large reward value does not always lead to high estimation precision. Under fixed reward probability, the reward probability (0.8, 0.2) condition results in a higher estimation precision than the reward probability (0.5, 0.5) condition, and the magnitude of reward has little effect, especially in the reward probability (0.8, 0.2) condition ( <ref type="figure" target="#fig_4">Figure 2B</ref>). In addition, with probability reversal, reward probability has a small effect on estimation precision ( <ref type="figure" target="#fig_4">Figure 2D</ref>), and the reversal leads to a lower estimation precision (comparing <ref type="figure" target="#fig_4">Figures 2B and 2D)</ref>.</p><p>In SS2(b), to confirm the effect of the large reward value predicted by the Fisher information, <ref type="figure" target="#fig_4">Figures 2E-2H</ref> present the results of the empirical PSD <ref type="figure" target="#fig_4">(Figures 2E and 2F</ref>) and RMSE ( <ref type="figure" target="#fig_4">Figures 2G and 2H</ref>) of α <ref type="figure" target="#fig_4">(Figures 2E and 2G</ref>) and ( <ref type="figure" target="#fig_4">Figures 2F and 2H</ref>). <ref type="figure" target="#fig_4">Figure 2E</ref> indicates that large rewards lead to a decrease in the empirical PSD of α. This is expected from SS2(a) shown in <ref type="figure" target="#fig_4">Figure 2A</ref>. Notably, the PSD of the reward (1, 10) condition is approximately half of the PSD of the reward (1, 1) condition. As for the RMSE, <ref type="figure" target="#fig_4">Figure 2G</ref> shows an unnatural transition in which the RMSE of α does not decrease under the reward (1, 1) condition. This figure also indicates that a large reward leads to a gradual decrease in RMSE. One reason for the small RMSE in the early trials can be a prior distribution with a mean of 0.5, which corresponds to the mean of true . It can be said to be the effect of rather than , because increasing rewards has a similar impact on model characteristics compared with increasing , but is fixed in this simulation. <ref type="bibr" target="#b42">Robinson and Chase (2017)</ref> pointed out that a large leads to a drastic change in choice probability by increasing the parameter value, which leads to high estimation precision. Hence, the results of the present study are consistent with those of their study, but the present study evaluates this effect quantitatively. By contrast, <ref type="figure" target="#fig_4">Figure 2F</ref> indicates that the main factor that contributes to the PSD of β is the reward probability rather than the reward, although the relation is more complex than that in the case of α. The reward probability (0.8, 0.2) condition performs better than the (0.5, 0.5) condition. In addition, the reward (1, 10) and reward probability (0.5, 0.5) conditions perform the worst, although the difference becomes small at 200 trials. These results are consistent with those shown in <ref type="figure" target="#fig_4">Figure 2B</ref>. The result of the RMSE of β is similar to that of PSD.</p><p>The Fisher information can predict the effect of stimuli on PSD (see <ref type="figure" target="#fig_4">Figures 2A, 2B, 2E</ref>, and 2F). In this simulation, the Fisher information can accurately predict the order of the stimulus condition (e.g., comparing <ref type="figure" target="#fig_4">Figures 2B and 2F</ref>). Therefore, we can conclude that the two-step procedure works well in the Q-learning model in this situation. However, the Fisher information sometimes tends to underestimate or overestimate (e.g., PSD of at reward (1, 1) condition), which is consistent with the results of SS1. Therefore, researchers may have to use this procedure iteratively if they have some criteria, such as PSD &lt; 0.1, as we noted in SS1 and supplement B.</p><p>As for SS2(c), <ref type="figure" target="#fig_4">Figure 2I</ref> presents the result of the empirical PSD of α at each trial, as shown in <ref type="figure">Figure 1G</ref>. It is confirmed that reward probability reversal leads to a large decrease in the empirical PSD even in large reward conditions, especially in reward probability (0.8, 0.2). In addition, the extent of the decrease is larger than the reward (1, 1) condition. Although the PSD does not significantly decrease when the reward probability is (0.2, 0.8), the reward probability reversal condition leads to a higher estimation precision from the 20th to 30th trials.</p><p>As for the simulation in which the true (2) is changed, <ref type="figure" target="#fig_4">Figure 2J</ref> presents the difference between the asymptotic SD of Experiment 2 and that of Experiment 1. The value of this difference is 0 when the estimation precision of is the same as that of Experiment 1 regardless of the magnitude of the reward. The curve where the magnitude of the reward has no influence on the estimation precision of (value = 0) is similar to the line of (2) = 1 ,</p><p>(1) , which is indicated by the red dotted line. For example, assuming (1) = 3, the estimation precision of in Experiment 2 does not differ much from that in Experiment 1 if (2) = 3/10 with , (2) = 10. When the reward is changed to , (2) = 1, that is, when $10 is set as a unit of reward (i.e., rescaling), the above corresponds to comparing (2) with (1) = 3.</p><p>It is unclear whether the common reward setting in previous studies (1, 1) is desirable for parameter estimation, especially for . <ref type="bibr" target="#b5">Broomell and Bhatia (2014)</ref> pointed out that increasing the reward results in higher parameter discrimination (i.e., estimation precision) for the cumulative prospect theory model, which is a decision-making model. Assuming a fixed true regardless of the reward, the results of the Q-learning model in the present study are consistent with their results. If varies between experiments depending on the magnitude of the reward, the estimation precision will be dependent on the value. Whether a large reward is desirable for parameter estimation depends on the -reward relationship curve estimated by real data. If the -reward relationship curve is above</p><formula xml:id="formula_28">(2) = 1 ,<label>(2)</label></formula><p>(1) curve, then a large reward is desirable for the parameter estimation of .</p><p>From these simulations, researchers may decide to use an unbalanced reward (e.g., (1, 10) condition) and reward probability (0.8, 0.2) whose expectations for each slot are close and then reverse the reward probability in the course of the experiment if their interest is in . The present study discusses how to set the magnitude of the reward in Section 4. The result indicates that using the stimulus from a previous study that lacks a statistical basis may be undesirable in terms of estimation precision. In addition, this study emphasizes that Fisher information can predict the effects of the stimulus (or ) with a low computational cost because it involves an analytical calculation and does not need to estimate parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Simulation study 3 (SS3)</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">Method</head><p>The effect of the stimulus on estimation precision is investigated in the previous simulation studies. SS3 is aimed at studying the effect of the stimulus on the estimated correlation coefficient between the participant parameters of the Q-learning model ( , ) and some external trait parameters. Although we focus on estimation precision (PSD) in SS1 and SS2, such a correlation is often used to investigate some empirical hypotheses. It is expected that the stimulus resulting in high estimation precision would lead to a smaller correlation coefficient bias considering the attenuation of correlation coefficients (e.g., <ref type="bibr" target="#b28">Katahira, 2016)</ref>. Although the simulation flow in SS3 is similar to that in SS1(c), the setting of the true parameter values differs. This study generates one of the parameters that is chosen to be of research interest in that condition, either α or β, to have a correlation coefficient of approximately 0.5 with the external trait (for details, refer to the R code) while keeping the other nuisance parameter fixed as either = 0.5 or = 2. The total number of participants is 100. Note that when calculating the correlation, the external trait is assumed to be measured without error. Although this is unrealistic, this assumption will not affect the substantial results due to the lack of a good reason to assume that the effect of measurement error is dependent on the stimulus conditions.</p><p>The total number of trials is = 50. The stimulus conditions are the same as those for SS2(b) and 2(c). The MCMC settings are the same as those in the above simulations. The correlation coefficient between the parameters of the Q-learning model (α or β) and the external trait parameter is calculated. The simulation is repeated 100 times.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">Results and discussion</head><p>Table 1 presents the mean difference (i.e., bias) between the correlation coefficient estimate and its true value (approximately 0.5) for α (left panel) and β (right panel). The correlation coefficients are underestimated throughout the stimulus conditions. As for α, the left panel of <ref type="table">Table 1</ref> indicates that the reward (1, 10) condition leads to a smaller bias than the (1, 1) condition. Further, in the reward (1, 10) condition, reward probability reversal leads to a smaller bias than that in the fixed reward probability conditions (0.5, 0.5) and (0.8, 0.2). As for β, the right panel of <ref type="table">Table 1</ref> indicates that the reward probability (0.8, 0.2) condition leads to a smaller bias than the other reward probability conditions regardless of the reward.</p><p>These results are consistent with the estimation precision results for SS1(c), SS2(b), and SS2(c). In other words, a higher estimation precision leads to a smaller bias in the correlation coefficient. As described in SS1 and SS2, the optimal experimental design depends on the parameter to be focused on. When researchers focus on the correlation between α and another trait, a large reward (or large ) and reward probability reversal tend to lead to a smaller correlation coefficient bias. By contrast, when researchers focus on the correlation between β and other parameters, a large difference in reward probability is a desirable design for estimation precision and correlation coefficients. These results indicate that whether the correlation of α is larger than the correlation of β is dependent on the experimental design. This may be one of the reasons for the inconsistency observed in previous studies. For example, previous findings on the correlation between depression and the parameters of the Q-learning model are inconsistent.</p><p>Some studies (e.g., <ref type="bibr" target="#b3">Beevers et al., 2013;</ref><ref type="bibr" target="#b12">Chase et al., 2010)</ref> indicated that the learning rate, α, is correlated with depression. Other studies (e.g., <ref type="bibr" target="#b34">Kunisato et al., 2012)</ref> indicated that the depressed group has a lower inverse temperature, β, than the non-depressed group (see review by <ref type="bibr" target="#b42">Robinson &amp; Chase, 2017)</ref>. Although many factors would affect the true correlation coefficient (e.g., type of participants' disorders, questionnaire to measure trait, whether the population is clinical) and</p><p>estimation (e.g., task structure: whether negative reward is used, how many reward probability pairs are used), stimulus selection, which is the focus of the present study, can be one of the factors. For instance, using a probabilistic selection task (e.g., <ref type="bibr" target="#b12">Chase et al. 2010;</ref><ref type="bibr" target="#b34">Kunisato et al., 2012</ref>) may be suitable for estimating but not for because there is no reversing probability.</p><p>Although more study is needed because this task is not only for standard Q-learning model fitting but also for extended models, we can infer that this task is not optimal for parameter estimation for in the standard Q-learning model. Further, it is relevant to test-retest reliability. As indicated by the results of this simulation, higher estimation precision will lead to higher correlation (i.e., higher test-retest reliability). In the ADO framework, <ref type="bibr" target="#b0">Ahn et al. (2020)</ref> showed that ADO could improve test-retest reliability efficiently, although it was not adopted for the Q-learning model and is not a Fisher information-based method. It is important to understand how experimental stimuli affect correlation coefficient estimates.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Simulation study 4 (SS4)</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.1">Method</head><p>In the above simulation studies, it is assumed that the stimuli are fixed before conducting the experiments. Here, another method, CAT, is considered. CAT adaptively selects stimuli during trials depending on each participant's responses. For models that lack time series dependency, CAT is theoretically better than a fixed design because it can estimate trait parameters more precisely. Nevertheless, in the Q-learning model, researchers cannot drastically change the stimuli (reward probability) trial by trial because doing so will make participants unable to learn the reward probability. Therefore, it is important to check whether CAT actually has a good influence on parameter estimation in the Q-learning model under a realistic condition.</p><p>Hence, SS4 is aimed at investigating CAT for the Q-learning model and confirming that CAT achieves better estimation precision than random stimulus selection. The simulation flow differs from the above simulations: First, the stimuli of the first phase of the trials, which are 20 trials in the present simulation, and true parameter values are set. Parameters are estimated from the data for this first phase. Second, we select the stimulus with CAT (Section 2.2) or at random and estimate parameters at every 10 trials. Finally, when the predetermined number of trials (e.g., 200 trials) is completed using the above procedure, we estimate the parameters of the Q-learning model with the entire data and calculate the empirical PSD. In the second step, although the Fisher information matrix of th trials, ( ) (̂), is calculated using observation ( ) and ( ), , the Fisher information matrix of ( + 1) th to ( + 10)th trials, ( + ) (̂), is calculated with the expectation of ( +10) and ( +10), . Equation <ref type="formula" target="#formula_44">10</ref>is calculated by changing the reward probability. Two stimulus selection conditions are compared: the CAT condition in which the stimulus (only reward probability) is selected using the determinant of the Fisher information (Equation <ref type="formula" target="#formula_44">10</ref>) from the candidates of stimuli described below; and the random selection condition in which the reward probability is selected at random, that is, the stimuli are selected from a discrete uniform distribution.</p><p>The true parameter values are ∼ (12, 12), ∼ (1.5, 2.5). The total number of trials is = 200. For the number of initial trials where the stimulus is fixed (reward: (1, 1); reward probability: (0.5, 0.5)), even the CAT condition to obtain estimates is 20, and the stimulus is changed every 10 trials. The reward is fixed as (1, 1), (1, 5), or (1, 10) because CAT always selects the largest reward when the stimuli are selected with CAT (as discussed later).</p><p>The reward probability candidates range from 0.1 to 0.9 with an increment of 0.1, and we select from these candidate values. The stimulus selection conditions are CAT or random selection.</p><p>The MCMC settings are the same as those in the above simulations. The empirical PSD and RMSE for α and β are calculated. The simulation is repeated 50 times. <ref type="figure">Figure 3A</ref> presents the results of the PSD of α in the reward (1, 1) condition (left panel),</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.2">Results and discussion</head><p>(1, 5) condition (middle panel), and (1, 10) condition (right panel). <ref type="figure">Figure 3B</ref> (3C, 3D) presents the results of the RMSE for α (empirical PSD of , RMSE of ). As for the empirical PSD, <ref type="figure">Figure 3A</ref> indicates that CAT performs better than random stimulus selection in α in the reward</p><p>(1, 5) condition. Note that the effect of CAT is not large in the reward (1, 1) and <ref type="bibr">(1,</ref><ref type="bibr">10)</ref> conditions. The fact that the standard Q-learning model is a relatively simple model may be a potential cause. Importantly, the present CAT with slight modifications can be applied to more elaborate models, such as the forgetting model and the asymmetric learning model. As for RMSE, <ref type="figure">Figure 3B</ref> indicates that CAT performs better than random stimulus selection in α in the reward (1, 5) condition. There is an interaction with the magnitude of the reward. Note that in the reward (1, 1) condition, CAT performs worse than random stimulus selection. Therefore, researchers should carefully judge whether CAT is appropriate when the reward is (1, 1).</p><p>The effect of CAT on the PSD of β ( <ref type="figure">Figure 3C)</ref> is confirmed under the large unbalanced reward (1, 5) and (1, 10) conditions. The effect of CAT on the RMSE ( <ref type="figure">Figure 3D</ref>) in the (1, 5) condition is also confirmed. However, in our experience with other parameter settings (e.g., fixed parameters, = 0.5, = 2), the effect of CAT on β tends to fluctuate. One of the reasons for this is that Equation (12) essentially has more weight on α, as the scale of the Fisher information of α is larger than that of β.</p><p>In this study, CAT is developed for the Q-learning model. Previous studies have not focused on CAT for the Q-learning model, and it is proposed that this CAT can be applied across more elaborate models. The effect of CAT on α is confirmed, especially in the reward <ref type="bibr">(1,</ref><ref type="bibr">5)</ref> condition. Further, it is suggested that researchers could consider using the Fisher information of β instead of the determinant if their focus is on β.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">General Discussion</head><p>The present study proposes a two-step procedure using Fisher information and Monte Carlo simulation to design experiments, especially stimuli, for the standard Q-learning model with a statistical basis. After analytically deriving the Fisher information, this study explores the The results from SS1 and SS2 show that the magnitude of reward, the difference in reward probability, and the reversal of reward probability during repeated trials influence the estimation precision and that this influence depends on the parameters. Therefore, researchers should consider optimal experimental stimuli based on their objectives, taking into consideration their research purpose and interest. In particular, the magnitude of the reward may be a delicate issue, especially for the estimation precision of . Researchers can rescale the magnitude of the reward after collecting data without changing the estimation precision of . From SS2, it can be clearly stated that a large (unbalanced) reward is desirable for the estimation precision of assuming a fixed and that a large is desirable assuming a fixed reward. When there is a trade-off relationship between reward and , whether a large reward is desirable for the estimation precision of is dependent on this relationship. These simulations imply the importance of studies examining this relationship and the factors that determine , such as reward and motivation for the experiment. Further studies are required to investigate this point.</p><p>The results from SS3 confirm that the stimulus influences the bias of the correlation coefficient estimate. Essentially, the correlation coefficients are underestimated owing to measurement errors. A large reward (or large ) and reward probability reversal leads to a smaller bias in the correlation for α. A large difference in reward probability leads to a smaller correlation bias of . The inconsistent results of previous studies may be due to their use of different stimuli and their failure to correct the attenuation of correlation. The Monte Carlo simulation in SS3 provides information regarding the extent of this bias when researchers conduct experiments and interpret the results.</p><p>The findings from SS4 confirm that the empirical PSD can be decreased with fewer trials by applying CAT in the reward (1, 5) condition. This study indicates that the effect of CAT is dependent on the magnitude of the reward. For example, a substantial effect of CAT in the reward (1, 1) condition could not be found. Considering that too many trials may trigger the switching of strategy and careless responses, CAT will help solve these problems by reducing the number of trials required for estimation. Further, a more elaborate model expanded based on empirical demand may require CAT because of its increased complexity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Limitations and future research</head><p>One of the limitations of this study is that extended Q-learning models (e.g., <ref type="bibr" target="#b26">Ito &amp; Doya, 2009;</ref><ref type="bibr" target="#b30">Katahira, 2018)</ref> and other tasks are not considered. As for the model, the characteristics shown in the simulation studies are partly dependent on the models of data generation and analysis. Although the results of this study will share a common aspect with more elaborate Q-learning models because the standard Q-learning model is nested in them, it will be fruitful to investigate the characteristics of an extended model using Fisher information and Monte Carlo simulation. With regard to the tasks, although this study considers a basic and simple two-armed bandit task, the proposed framework can be applied to other tasks. For example, a two-stage decision task (e.g., <ref type="bibr" target="#b17">Daw et al., 2011;</ref><ref type="bibr" target="#b52">Toyama et al., 2017)</ref> in which the first-stage choice leads to different states of the second-stage task, can be considered. We can also include negative rewards and use a reward probability set that is not reversed, which differs from the reward probability used in this study (e.g., <ref type="bibr" target="#b12">Chase et al., 2010;</ref><ref type="bibr" target="#b34">Kunisato et al., 2012)</ref>.</p><p>Importantly, Fisher information (and Monte Carlo simulation) calculations for other models and tasks can be conducted with a slight modification. For example, when the choice probability of a model is determined as the difference between Q values, such as that in Equation <ref type="formula" target="#formula_3">4</ref>, the Fisher information can be represented in almost the same way as that in Equations (12)-(15), although the number of parameters increases. For parameters relevant to the Q values, the difference of the standard Q-learning model lies in the definition of Q values (Equation <ref type="formula" target="#formula_2">3</ref>) and their derivatives (Equation <ref type="formula">16</ref>). Further, the effect of CAT and F-MFI in more elaborate models should be studied in future research. Additionally, an extended study of CAT to improve the estimation precision of a particular parameter, such as β in the present study, may be fruitful.</p><p>This study derives the Fisher information of the Q-learning model and proposes a twostep procedure for designing an optimal experiment for estimation accuracy. The proposed method can be applied to more elaborate models and other tasks. The usefulness of designing experiments corresponding to specific research purposes and with an objective basis is highlighted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Declarations</head><p>Funding: This work was supported by grants from the Japan Society for the Promotion of Science <ref type="bibr">(Grant Numbers 1920J22350, 18H03612)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflicts of interest/Competing interests:</head><p>The authors declare that they have no conflict of interest.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Availability of data and material:</head><p>The datasets generated and/or analyzed during the current study are available from the Open Science Framework repository at https://osf.io/msf5e/?view_only=c15cbe98e65748609c224d129f9e5bbd.</p><p>Code availability: The R code used to produce the results in the five simulation studies is available from the Open Science Framework repository at https://osf.io/msf5e/?view_only=c15cbe98e65748609c224d129f9e5bbd.  Note. The values in the parentheses indicate standard deviation. Each row corresponds to a reward probability condition, and each column corresponds to a reward condition. Reversal condition means that the reward probability is reversed at every 10 trials.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fig. 1</head><p>Results of simulation study 1 SS1(a): (A) to (D). Asymptotic SD for each reward probability condition. <ref type="figure">Figures 1A</ref> and 1B correspond to the fixed reward probability condition, and <ref type="figure">Figures 1C and 1D</ref> correspond to the reward probability reversal condition   <ref type="figure" target="#fig_4">(Figures 2E and 2F</ref>) and RMSE ( <ref type="figure" target="#fig_4">Figures 2G and 2H)</ref> for each stimulus condition for each trial. ❍ and △ represent reward (1, 1) condition with reward probability (0.5, 0.5) and (0.8, 0.2), respectively. + and ✕ represent reward (1, 10) condition with reward probability (0.5, 0.5) and (0.8, 0.2), respectively. SS2(c): (I). <ref type="figure" target="#fig_4">Figure 2I</ref> is the same as <ref type="figure">Figure 1G</ref>, except that the reward condition is (1, 10). <ref type="figure" target="#fig_4">Figure 2J</ref> represents the contour plot of the asymptotic SD of Experiment 2-that of Experiment 1 while changing the reward value and true in Experiment 2. The red dotted line corresponds to</p><formula xml:id="formula_29">(2) = 1 ,<label>(2)</label></formula><p>(1) .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fig. 3</head><p>Results of SS4</p><p>The figures represent empirical PSD <ref type="figure">(Figures 3A and 3C)</ref> and RMSE ( <ref type="figure">Figures 3B and   3D</ref>) of each stimulus selection condition. <ref type="figure">Figures 3A and 3B</ref> represent the results of α,</p><p>and <ref type="figure">Figures 3C and 3D</ref> represent the results of β. The panels on the left, middle, and right represent the results of the (1, 1), (1, 5), and (1, 10) reward conditions, respectively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A</head><p>In this Appendix, we derive the Fisher information matrix for CAT. As noted previously, the key here is to regard , as a random variable. Then, the log likelihood is given by</p><formula xml:id="formula_30">log ( ( ) , ( ) | , ( ) ) = ∑{log ( | , − ) + log ( | , , − )} =1 .</formula><p>( 1)</p><p>However, researchers can ignore log ( ( ) | ( ) , , ( ) ) during the calculation of the derivative and estimation because log ( ( ) | ( ) , , ( ) ) is independent of the participant parameter . That is, it holds that</p><formula xml:id="formula_31">log ( ( ) , ( ) | , ( ) ) = log ( ( ) | , ( ) ).<label>( 2)</label></formula><p>Although the data-generating process of reward , , log ( ( ) | ( ) , , ( ) ), has often been ignored, it is modeled herein to conduct CAT (SS4). Considering the equations, we can derive Equations <ref type="formula" target="#formula_16">17</ref>to <ref type="formula" target="#formula_19">20</ref>as in Section 3.3.  Therefore, we can calculate expectations separately as follows:</p><formula xml:id="formula_32">E ( ( ) , ( ) ) [( , ( )) ( , ′ ( ))] , E ( ( ) , ( ) ) [( ,<label>( ))</label></formula><formula xml:id="formula_33">( , ( )) ( , ′ ( )) = (1 − I( ) )(1 − I( ′ ) ) [( −1, ( )) ( −1, ′ ( ))] + (1 − I( ) )I( ′ ) [( −1, ( ))] Δ −1, ′ + (1 − I( ′ ) )I( ) [( −1, ′ ( ))] Δ −1, + I( )I( ′ )Δ −1, Δ −1, ′ ,<label>( 3)</label></formula><formula xml:id="formula_34">E ( ( ) , ( ) ) [( , ( )) ( , ′ ( ))] = E ( − ) [(1 − I( ) )(1 − I( ′ ) )] E ( ( − ) , ( − ) ) [( −1, ( )) ( −1, ′ ( ))] + E ( − ) [(1 − I( ) )I( ′ )] E ( ( − ) , ( − ) ) [[( −1, ( ))] Δ −1, ′ ] + E ( − ) [(1 − I( ′ ) )I( )] E ( ( − ) , ( − ) ) [[( −1, ′ ( ))] Δ −1, ] + E ( − ) [I( )I( ′ )] E ( ( − ) , ( − ) ) [Δ −1, Δ −1, ′ ],<label>( 4)</label></formula><p>where</p><formula xml:id="formula_35">E ( − ) [(1 − I( ) )(1 − I( ′ ) )] = ′ {E[I( )](1 − ) 2 + (1 − E[I( )])} + (1 − ′ )(1 − ), E ( − ) [(1 − I( ) )I( ′ )] = (1 − ′ )E[I( )] E ( − ) [I( )I( ′ )] = ′ E[I( )].<label>( 5)</label></formula><p>Note that delta function, ′ , and E[I( )] are given by </p><formula xml:id="formula_36">′ = { 1 , = ′ 0 , ≠ ′ E[I( )] = { ( −1 = 1| ), = 1 1 − ( −1 = 1| ), = 2 ,<label>( 6)</label></formula><formula xml:id="formula_37">E ( ( ) , ( ) ) [( , ( )) , ′ ( )] = E ( −1) [1 − I( ) ] E ( ( −2) , ( −1) ) [( −1, ( )) −1, ′ ( )] + E ( −1) [(1 − I( ))I( ′ )] E ( ( −2) , ( −1) ) [( −1, ( )) Δ −1, ′ ] + E[I( )] E ( ( −2) , ( −1) ) [Δ −1, −1, ( )] + E ( −1) [I( )I( ′ )] E ( ( −2) , ( −1) ) [Δ −1, Δ −1, ′ ],<label>( 7)</label></formula><formula xml:id="formula_38">E ( ( ) , ( ) ) [ , ( ) , ′ ( )] = E ( ( − ) , ( − ) ) [ −1, ( ) −1, ′ ( )] + E[I( ′ )] E ( ( − ) , ( − ) ) [ −1, ( )Δ −1, ′ ] + E[I( )] E ( ( − ) , ( − ) ) [ −1, ′ ( )Δ −1, ] + E ( − ) [I( )I( ′ )] 2 E ( ( − ) , ( − ) ) [Δ −1, Δ −1, ′ ],<label>( 8)</label></formula><p>where</p><formula xml:id="formula_39">E ( − ) [1 − I( ) ] = (1 − E[I( )] ).</formula><p>Further,</p><formula xml:id="formula_40">E ( ( ) , ( ) ) [ , ( )] , E ( ( ) , ( ) ) [ , ( )] , E ( ( ) , ( ) ) [ , ]</formula><p>, and </p><formula xml:id="formula_41">E ( ( ) ,<label>(</label></formula><formula xml:id="formula_42">E ( ( ) , ( ) ) [ , ( )] = E ( ( − ) , ( − ) ) [ −1, ( )] + E[I( )] E ( ( − ) , ( − ) ) [Δ −1, ], E ( ( ) , ( ) ) [ , ( )] = E ( − ) [(1 − I( ) ] E ( ( − ) , ( − ) ) [ −1, ( )] + E[I( )] E ( ( − ) , ( − ) ) [Δ −1, ],<label>( 9)</label></formula><p>respectively. Considering the data-generating process of , , Equation (6),</p><formula xml:id="formula_43">E ( ( ) , ( ) ) [ , ]</formula><p>and E ( ( ) , ( ) ) <ref type="bibr">[ , 2</ref> ] are given by</p><formula xml:id="formula_44">E ( ( ) , ( ) ) [ , ] = ,1 ( −1 = 1| )(2 − ) ,1 + ,2 (1 − ( −1 = 1| ))( − 1) ,2 , E ( ( ) , ( ) ) [ , 2 ] = ,1 2 ( −1 = 1| )(2 − ) ,1 + ,2 2 (1 − ( −1 = 1| ))( − 1) ,2 ,<label>( 10)</label></formula><p>respectively. Our R code is based on the above equations. In SSA1(a), the true parameter values are = {0.2, 0.5, 0.8} and = {1, 3, 5} , and the number of trials is = 80. The reward is (1, 1), and the reward probabilities are (0.5, 0.5) or (0.8, 0.2). The MCMC settings are the same as those for SS1. The asymptotic SD and empirical PSD are calculated on the basis of the MCMC samples. The simulation is repeated 200 times, and the correlation coefficient between the asymptotic SD and the empirical PSD is calculated at each true parameter value condition. In this simulation, the empirical PSD is taken as the "correct" value because we aim to reduce the variance of the estimator (or posterior distribution). Therefore, our research question is whether the Fisher information (prediction) can predict the empirical PSD (correct value). In this study, the correlation coefficient is used instead of the RMSE because the correlation is enough from the perspective of optimal stimulus selection.</p><p>Specifically, a small asymptotic SD that leads to a small empirical PSD is enough to select stimuli minimizing the empirical PSD even if the means of the asymptotic SD and that of the empirical PSD are different.</p><p>In SSA1(b), the true parameter values are sampled as ∼ (12, 12) and ∼ (1.5, 2.5) . The simulation is repeated 50 times, and the asymptotic SD and empirical PSD for each trial are calculated. The other settings are the same as those for SSA1(a). An ̂ is used as a measure of the convergence diagnosis. Although there are 4 and 14 MCMC results for which ̂ is over 1.01 in SSA1(a) and SSA1(b), respectively, their maximum values are 1.025 and 1.030. Hence, it is concluded that convergence is adequately achieved. Note. Each row corresponds to a true β value condition, and each column corresponds to a true α value condition. <ref type="table">The table on</ref> the left represents the result of the reward probability (0.5, 0.5) condition, and the table on the right represents the result of the (0.8, 0.2) condition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.1.2 Results and discussion</head><p>For SSA1(a), Tables S1 and S2 present the resultant correlations between the asymptotic SD and empirical PSD for α and β, respectively. These tables show substantial correlations throughout the true parameter values, although the correlation slightly decreases when the values of the parameters approach extreme values (e.g., = 0.8, = 1 condition). The scatter plots for the condition of = 0.5 , = 3 , and reward probabilities (0.5, 0.5) for and in <ref type="figure">Figures S1A and S1B</ref>, respectively. These plots indicate that the asymptotic SD can predict the empirical PSD well. The correlation of for = 0.8, = 3 and that of for = 0.2, = 1 in the reward probability (0.5, 0.5) condition is the lowest correlation. However, evaluating all scatter plots, we conclude that this correlation is enough for an optimal design because a smaller asymptotic SD leads to a smaller empirical PSD averagely.</p><p>For SSA1(b), the results of the reward probability (0.8, 0.2) condition are not shown because they are similar to those of the (0.5, 0.5) condition. <ref type="figure">Figures S1C and S1D</ref> present the changes in PSD with trials for α and , respectively. <ref type="figure">Figure S1C</ref> indicates that the Fisher information can predict the empirical PSD well from the data of approximately 40 trials. It also indicates that the PSD of α decreases at a constant pace but is still as large as approximately 0.2 in 80 trials. Given the fact that the domain of α is [0, 1], this PSD is large because the credible interval covers more than three-fourths of its domain. Hence, the estimation precision of α is not high in this setting. <ref type="figure">Figure S1D</ref> indicates that the PSD of β decreases rapidly at first and then slowly from approximately 40 trials. Figures S1C and S1D also indicate that Fisher information can predict empirical PSD more precisely as the number of trials increases.</p><p>This study confirms that Fisher information can predict PSD even for a standard Q-learning model with sequential dependence. Hence, in SS1 to SS4, Fisher information is used to investigate the effect of stimuli on estimation precision with low computational cost (SS1 and SS2) and to conduct CAT for adaptive stimulus selection (SS4).</p><p>The estimation precision does not drastically increase after 40 trials. Furthermore, we can evaluate the estimation precision of each trial (from around 40 trials). Indeed, we do not argue that experimental tasks with only 40 trials are sufficient for all applications because the standard Q-learning model may not necessarily be the data-generating model in a real situation. Nevertheless, the results suggest that it is useful to design the number of trials on the basis of an objective criterion, such as PSD and asymptotic SD, assuming a specific model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fig. S1</head><p>Results of simulation study SSA1 SSA1(a): (A) and (B). Scatter plot of asymptotic SD (inverse of the root of Fisher information) and empirical PSD of α ( <ref type="figure">Figure S1A</ref>) and β ( <ref type="figure">Figure S1B</ref>). The solid line represents the point where the asymptotic SD equals the empirical PSD; hence, the Fisher information fully predicts PSD. SSA1(b): (C) and (D) Asymptotic SD and empirical PSD of α ( <ref type="figure">Figure S1C</ref>) and β ( <ref type="figure">Figure S1D</ref>) for each trial. The (blue) solid line represents the results of the asymptotic SD obtained by the Fisher information, and the (black) dotted line represents the results of the empirical PSD obtained by the MCMC estimation.</p><p>In SSA1, it is revealed that Fisher information can predict the empirical PSD in the Q-learning model. Although <ref type="bibr" target="#b16">Daw (2011)</ref> mentioned Hessian, which is the second derivative of the (log) likelihood, previous studies on the Q-learning model did not use Fisher information (or Hessian) to study the effects of stimuli. As previous studies (e.g., <ref type="bibr" target="#b9">Cavanaugh &amp; Shumway, 1996)</ref> discussed the use of Fisher information in other timeseries models, the present study confirms that Fisher information can be used in the Qlearning model, which has sequential dependency. Its prediction for PSD is good from trials as small as 40 or 50. The benefit of Fisher information is the ability to evaluate stimuli for estimation precision with a low computational cost.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Supplement B B.1 Calculation for a specific case</head><p>For a concrete explanation, let us describe how to conduct the two-step procedure, especially the calculation of the Fisher information, by working through SS1, particularly SS1(a). To evaluate the Fisher information of the candidate stimuli, we have to repeat the generation of random data and the calculation of the Fisher information while changing the stimuli. In addition, to calculate the expectations over parameters, true parameter values are generated from some distribution multiple times, and data generation is iterated with each parameter value.</p><p>All components of the data generation and calculation of the Fisher information are ,1 , ,2 , ( = 1), , ,1 , ,2 , ,1 , ,2 , F ( ) . For the data generation, we have to calculate (or generate) ,1 , ,2 , ( = 1), , ,1 , ,2 in this order. The calculation of ,1 , ,2 , ( = 1), is dependent on the model and parameters (Equations (3) to (5)). Generating , from is dependent on stimuli (reward and reward probability). In other words, data will be changed if true parameter values or stimuli are changed, and this will lead to different Fisher information values. We can update and generate all trials' data recursive calculations from the first trial. Specifically,</p><p>, can be calculated from −1, , −1 , −1, (Equation (3)), and ( = 1) can be calculated by , <ref type="figure">(Equation (4)</ref>). Furthermore, generating and , includes randomness. Therefore, we usually iterate the data generation and calculate the expectation. For the calculation of the Fisher information matrix, we need to calculate ,1 , ,2 . It can be calculated from −1, , −1 , −1, , −1, (Equation (16)).</p><p>Then, the Fisher information can be calculated by Equations (12) to (15). Let us check concretely how to update these values from the (t-1)-th trial to the t-th trial and calculate the Fisher information for of the t-th trial. To calculate the expectation over a parameter distribution, parameter values are generated with the assumed distribution. In SS1(a), we assume a beta (uniform) distribution for ( ) and perform the iteration 50 times. Suppose = 0.5, = 1 for simplicity in the calculation below. This is a simulation of one of the 50 iterations. In addition, as the aim is to evaluate the goodness of stimuli, the stimuli are changed. In SS1(a), we set the reward value (1, 1). The reward probability of A is eight evenly distributed numbers in points dividing [0.05, 0.95] and 0.5, and the reward probability of B = 1 -reward probability of A. In this case, suppose the reward probability of A = 0.05 and a nonreversal probability condition.</p><p>It is one condition of nine reward probability conditions. Suppose −1,1 = 0.25, −1,2 = 0.9375, ( −1 ) = 0.3346, −1 = 0, −1,2 = 1, −1,1 = 0, −1,2 = 0.5 . These values are based on one of the simulation results. Then, we can update these values. The Q value is calculated as ,1 = 0.25 + 0 = 0.25 and ,2 = 0.9375 + ⋅ (1 − 0.9375) = 0.9688 (see Equation <ref type="formula" target="#formula_2">3</ref>).</p><p>The choice probability is calculated as ( = 1) = −1 { ⋅ (0.25 − 0.9375)} ≒ 0.3276 (see Equation <ref type="formula" target="#formula_3">4</ref>). is generated with this probability, which includes randomness (see Equation <ref type="formula" target="#formula_4">5</ref>). , is generated with and stimuli (reward and reward probability), which include randomness too. For the Fisher information, the derivatives of the Q value can be updated. They are calculated as ,1 = 1 ⋅ 0 + 0 = 0 and ,2 = (1 − ) ⋅ 0.5 + 1 ⋅ (1 − 0.9375) = 0.3125 (see Equation (16)). Then the Fisher information of is calculated as F ( ) (1,1) = 0.3276 ⋅ (1 − 0.3276) ⋅ 2 ⋅ [0 − 0.3125] 2 ≒ 0.0215 (see Equations (12) and (13)). The other components of the Fisher information matrix can be calculated in the same way. We can calculate these values recursively from the first trial, with the assumption of 1,1 = 1,2 = 1,1 = 1,2 = 0, and obtain all trials' ,1 , ,2 , ( = 1), , ,1 , ,2 , ,1 , ,2 , F ( ).</p><p>In SS1(a), we iterate this calculation 50 times while changing the parameter values and the reward probability of A. Finally, the expectation of the Fisher information matrix over the parameter values for each reward probability condition (nine conditions) is obtained (i.e., <ref type="figure">Figures 1A and 1B)</ref>. Further, in SS1(a), we conduct the same simulation with a probability reversal condition. This procedure is the first step of the two-step procedure. The second step of the two-step procedure is a standard MCMC-based simulation. In this case, the reward and reward probability are fixed as some specific values that will provide higher estimation precision given the results obtained from above procedure. For instance, from <ref type="figure">Figures 1A to 1D</ref>, the extreme reward probability with reward probability reversal will lead to a higher estimation precision. Therefore, suppose that the reward is (1, 1) and the reward probability is (0.8, 0.2) with reversal. In addition, it is wise to calculate the expectations over true parameter values and randomness at generating , , . Therefore, we iterate the simulation 50 times and calculate the expectation of the empirical PSD. In one simulation of the 50 repetitions, we can generate data in the same way as that in the first step and obtain ,1 , ,2 , ( = 1), , ,1 , ,2 .</p><p>Then, we can estimate the parameters and obtain the empirical PSD from the MCMC estimation instead of conducting an approximation with the Fisher information matrix.</p><p>In terms of computational cost, we calculate the asymptotic SD and empirical PSD for nine reward probability conditions (SS1(a)) to compare the Fisher informationbased method and the MCMC-based method. <ref type="figure" target="#fig_4">Figures S2A to S2D</ref> represent the asymptotic SD and empirical PSD. The left (right) panels are the results of ( ), and the upper (lower) panels are the result of = 80 ( = 200) . As for prediction performance, although the asymptotic SD deviates from the empirical PSD, the asymptotic SD can almost predict the order of the empirical PSD. Therefore, Fisher information can be used to select good stimuli for parameter estimation; this process is the first step of the two-step procedure. As for computational time, the MCMC-based method is feasible in this case mainly because this situation is simple. The MCMC-based method takes 22 (50) minutes for T = 80 (200). The Fisher information-based method takes 11 (25) seconds. When researchers select other design variables, this time difference will be larger. For example, when researchers select a reward value (e.g., 5 candidates in SS2(a)), probability reversal or otherwise (2 patterns), the number of trials (e.g., 5-10 candidates), block length (successive trials having the same reward probability in probability reversal conditions, e.g., 5-10 candidates), and so on, the MCMC-based method may incur a high computational cost (e.g., one to two weeks). In addition, researchers may have to select the optimal design for each experiment because it also depends on parameter distribution assumption, as we describe below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B.2 Advanced design</head><p>It is important to clarify the criteria to move to the second step from the first step of the two-step procedure and the criteria to finish the two-step procedure. Basically, the criteria selection depends on how much estimation precision will be needed by researchers. For example, assume that researchers want to determine the adequate (minimum) number of trials to estimate with less than 0.2 width of a 95% credit interval or a PSD below 0.1. In the two-step procedure, first, we can run the simulation of the first step multiple times to find an adequate number of trials. If the optimal design, which has a minimum PSD and is realistic, meets our criterion (e.g., PSD &lt; 0.1), then we can move to the second step. In the second step, the empirical PSD is checked with the MCMC simulation. If the empirical PSD meets and is not much smaller than our criterion, then researchers can use these stimuli and the number of trials in the experiment. If the empirical PSD does not meet the criterion, which means the Fisher information-based approximation deviates from the empirical PSD, then researchers can go back to the first step and redesign the number of trials with consideration of this deviation. For example, if the deviation is 0.05, then we can pursue PSD = 0.05 in the first step. If this temporal criterion is met, we check whether the empirical PSD is below 0.1 again in the second step. This procedure is iterated until our criterion is met.</p><p>It is important to note that the calculations of the Fisher information and empirical PSD of the MCMC estimation are based on model and true parameter values.</p><p>In this study, we assume a beta distribution, which has a 0.5 mean and 0.1 SD for and a uniform distribution U(1.5, 2.5) for . This means that we assume that the parameters of participants are following this distribution. What happens when the assumed parameter distribution is different from the true distribution? In this case, it is wise to check the asymptotic SD while fixing the (optimal) design, but the parameter values should be changed after determining the optimal design with the two-step procedure. In short, researchers can run the first step of the two-step procedure by changing the parameter values instead of changing the stimuli. For example, we change the parameter values as follows: is [0.1, 0.9] with an increment of 0.1, and is [0.5, 4] with an increment of 0.5. <ref type="figure">Figures S3A ( )</ref> and S3B ( ) represent the asymptotic SD in this setting. We fix the reward as (1, 1) and the reward probability as (0.8, 0.2) with probability reversal.</p><p>Although we select the stimuli on the basis of the above beta distribution for , the estimation precision of the extreme value of (e.g., = 0.1, 0.9 ) will be almost as good as around 0.5 when is around 1. That is, we can estimate all correctly. In addition, if a participant's is lower, the estimation precision of will be lower. This is because when choice includes more randomness, estimation will be harder. The Fisher information changes smoothly with respect to the parameter values. This means that the best stimuli for = 0.5, for example, will be good for around 0.5 (e.g., 0.45, 0.55). However, the speed of this change depends on the model, and a completely wrong distribution assumption will lead to a poor prediction of the empirical PSD. We can assume a parameter distribution with a vague distribution like a uniform prior, researchers' knowledge, or posterior distribution from previous experiments. Regardless of the distribution assumption, checking the asymptotic SD of each parameter value (e.g., <ref type="figure">Figure S3A</ref>) is important.</p><p>In terms of the more advanced design variables, researchers may have to choose optimal probability reversal points. The block length (successive trials having the same reward probability) is 10 in this study. This is based on the authors' experience and intuition. One reviewer commented on this point, and thus, we check the effect of block length with Fisher information prediction. The Fisher information captures these design variables' effects. Researchers therefore need to conduct data generation and calculate the Fisher information while changing block length. <ref type="figure">Figure S3C</ref> presents the asymptotic SD for of each block length. The number of trials is 80. The result shows that although a block length of 10 may not be optimal, it will not be worse than a longer block length (e.g., 40) or a shorter one (e.g., 5). The optimal block length will be around 15 to 20 trials, although the asymptotic SD fluctuates even in this range. In this study, the block length is fixed because the optimal selection of this variable will make our simulation complex.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fig. S3</head><p>(A) and (B). Asymptotic SD for each parameter value. The stimuli are reward (1, 1) and reward probability (0.8, 0.2) with probability reversal. The left panels represent the results of α, and the right panels represent the results of β. (C). Asymptotic SD of for each block length (successive trials having the same reward probability).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>( , ′ ( ))] , ′ = 1, 2 . The reward probability , affects the Fisher information matrix through E ( ( ) , ( ) ) [ , ] . The calculations are described in detail in Appendix A.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fisher</head><label></label><figDesc>information's behavior and the relation between stimuli and estimation precision of participant's parameters by Monte Carlo simulation in the standard Q-learning model. This study confirms that the choice of stimuli influences the estimation precision (SS1 and SS2) and the correlation coefficient estimate (SS3). The effects of a stimulus are dependent on the parameters (α, β). Therefore, the optimal experiment is dependent on the researcher's objective, such as the aim to calculate the correlation between and .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>17 (0.06) −0.05 (0.04) Reversal −0.19 (0.07) −0.19 (0.07)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>. The left panels represent the results of α, and the right panels represent the results of . SS1(b): (E) and (F). Increase in Fisher information for each trial. The vertical dotted line represents the trial in which the reward probability is reversed in the reward probability reversal condition. The (black) solid line indicates the (0.5, 0.5) condition, the (green) thin dotted line indicates (0.8, 0.2), and the (red) dotted line indicates the reward probability reversal condition. SS1(c): (G) and (H). Empirical PSD of each reward probability condition for each trial. The vertical dotted line and the solid or dotted line represent the same conditions as those in Figures 1E and 1F.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 2</head><label>2</label><figDesc>Results of simulation study 2 SS2(a): (A) to (D). Contour plot of asymptotic SD for each stimulus condition. Figures 2A to 2D are the same as Figures 1A to 1D, except that the x-axis represents reward conditions, and the y-axis represents reward probability conditions. The red circle represents the stimulus conditions used in SS2(b) and 2(c). SS2(b): (E)-(H) Empirical PSD</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>where Δ , = , − , ( ) , I( ) = I A ( − 1 + −1 ) . (1 − I( ) )(1 − I( ′ ) ) is dependent only on −1 , and ( −1, ( )) ( −1, ′ ( )) is dependent on ( − ) , ( − ) considering the updated equation. The other terms remain the same.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>respectively. For example,E ( − ) [(1 − I( ) )I( ′ )] is ( −1 = 1| )(1 − ) if = ′ = 1 , 1 − ( −1 = 1| ) if = 1, ′ = 2 , ( −1 = 1| ) if = 2, ′ = 1 ,and , ′ ( )] and E ( ( ) , ( ) ) [ , ( ) , ′ ( )] are calculated as follows:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>) ) [ , 2 ] are required to calculate Equations (A4), (A7), and (A8). Considering the updated equations, Equations (3) and (16), E ( ( ) , ( ) ) [ , ( )] and E ( ( ) , ( ) ) [ , ( )] are given by</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head></head><label></label><figDesc>This simulation SSA1 consists of two sub-simulations. Although Fisher information provides asymptotic precision, the participant parameters in practice are estimated from finite data. Hence, SSA1(a) is aimed at confirming that the asymptotic SD based on Fisher information predicts the empirical PSD. Note that following a standard practice in Bayesian analysis, we consider the empirical PSD as the "correct" value of posterior dispersion in this study. In this sense, it is important to check the prediction performance of the Fisher information for empirical PSD. Moreover, SSA1(b) is aimed at investigating the relationship between the asymptotic SD and the empirical PSD with the number of trials required so as to establish a suitable number of trials. Although the number of trials is fixed (80 or 200) in this study, researchers have to choose the appropriate number of trials in a real experiment design because the number of trials can affect the estimation precision (see also supplement B). The basic simulation flow is similar to that in SS1 and SS2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head></head><label></label><figDesc>to (D). Asymptotic SD and empirical PSD from MCMC for each reward probability condition with a fixed reward probability. Figures S2A and S2B correspond to the number of trials T = 80, and Figures S2C and S2D correspond to T= 200. The left panels represent the results of α, and the right panels represent the results of β.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head></head><label></label><figDesc>Wilson, R. C., &amp; Collins, A. G. E. (2019). Ten simple rules for the computational modeling of behavioral data. ELife, 8, 1-33. https://doi.org/10.7554/eLife.49547Zhang, S., &amp; Lee, M. D. (2010). Optimal experimental design for a class of bandit problems.</figDesc><table><row><cell cols="3">Table 1. Correlation coefficient between Q-learning model parameters and an external trait parameter</cell></row><row><cell>(a) Correlation for α</cell><cell>(b) Correlation for β</cell><cell></cell></row><row><cell>Reward</cell><cell></cell><cell>Reward</cell></row><row><cell cols="2">Journal of Mathematical Psychology, 54, 499-508. https://doi.org/10.1016/j.jmp.2010.08.002 (1, 1) (1, 10)</cell><cell>(1, 1)</cell><cell>(1, 10)</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Table S1 .</head><label>S1</label><figDesc>Correlation between asymptotic SD and empirical PSD of α Note. Each row corresponds to a true β value condition, and each column corresponds to a true α value condition. The table on the left represents the result of the reward probability (0.5, 0.5) condition, and the table on the right represents the result of the (0.8, 0.2) condition. PSD is the posterior standard deviation.</figDesc><table><row><cell></cell><cell cols="4">Reward probability (0.5, 0.5)</cell><cell></cell><cell></cell><cell></cell><cell cols="3">Reward probability (0.8, 0.2)</cell></row><row><cell></cell><cell></cell><cell></cell><cell cols="2">True α value</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>True α value</cell></row><row><cell></cell><cell></cell><cell></cell><cell>0.2</cell><cell>0.5</cell><cell>0.8</cell><cell></cell><cell></cell><cell></cell><cell>0.2</cell><cell>0.5</cell><cell>0.8</cell></row><row><cell></cell><cell></cell><cell>1</cell><cell>0.712</cell><cell>0.782</cell><cell>0.704</cell><cell></cell><cell></cell><cell>1</cell><cell>0.709</cell><cell>0.614</cell><cell>0.576</cell></row><row><cell cols="2">True β value</cell><cell>3</cell><cell>0.852</cell><cell>0.700</cell><cell>0.483</cell><cell cols="2">True β value</cell><cell>3</cell><cell>0.795</cell><cell>0.610</cell><cell>0.642</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>0.887</cell><cell>0.622</cell><cell>0.618</cell><cell></cell><cell></cell><cell>5</cell><cell>0.802</cell><cell>0.661</cell><cell>0.831</cell></row><row><cell></cell><cell></cell><cell cols="7">Table S2. Correlation between asymptotic SD and empirical PSD of β</cell><cell></cell></row><row><cell></cell><cell cols="3">Reward probability (0.5, 0.5)</cell><cell></cell><cell></cell><cell></cell><cell cols="3">Reward probability (0.8, 0.2)</cell></row><row><cell></cell><cell></cell><cell></cell><cell cols="2">True α value</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>True α value</cell></row><row><cell></cell><cell></cell><cell>0.2</cell><cell>0.5</cell><cell>0.8</cell><cell></cell><cell></cell><cell></cell><cell>0.2</cell><cell>0.5</cell><cell>0.8</cell></row><row><cell></cell><cell>1</cell><cell>0.600</cell><cell>0.801</cell><cell>0.776</cell><cell></cell><cell></cell><cell>1</cell><cell>0.479</cell><cell>0.470</cell><cell>0.345</cell></row><row><cell>True β value</cell><cell>3</cell><cell>0.848</cell><cell>0.931</cell><cell>0.987</cell><cell></cell><cell>True β value</cell><cell>3</cell><cell>0.681</cell><cell>0.935</cell><cell>0.994</cell></row><row><cell></cell><cell>5</cell><cell>0.972</cell><cell>0.988</cell><cell>0.981</cell><cell></cell><cell></cell><cell>5</cell><cell>0.991</cell><cell>0.990</cell><cell>0.984</cell></row></table><note></note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0" />
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Rapid, precise, and reliable measurement of delay discounting using a Bayesian learning algorithm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">Y</forename><surname>Ahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Haines</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Hahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Teater</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pitt</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41598-020-68587-x</idno>
+		<ptr target="https://doi.org/10.1038/s41598-020-68587-x" />
+	</analytic>
+	<monogr>
+		<title level="j">Scientific Reports</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">12091</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Adaptive stimulus selection for multi-alternative psychometric functions with lapses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Bak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Pillow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Vision</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="1" to="25" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1167/18.12.4</idno>
+		<ptr target="https://doi.org/10.1167/18.12.4" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Influence of depression symptoms on history-independent reward and punishment processing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">G</forename><surname>Beevers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Worthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Gorlick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Nix</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Chotibut</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Maddox</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychiatry Research</title>
+		<imprint>
+			<biblScope unit="volume">207</biblScope>
+			<biblScope unit="page" from="53" to="60" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.psychres.2012.09.054</idno>
+		<ptr target="https://doi.org/10.1016/j.psychres.2012.09.054" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Parameter recovery for decision modeling using choice data. Decision</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Broomell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bhatia</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/dec0000020</idno>
+		<ptr target="https://doi.org/https://doi.org/10.1037/dec0000020" />
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="252" to="274" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Optimal decision stimuli for risky choice experiments: An adaptive approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Cavagnaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pitt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Management Science</title>
+		<imprint>
+			<biblScope unit="volume">59</biblScope>
+			<biblScope unit="page" from="358" to="375" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1287/mnsc.1120.1558</idno>
+		<ptr target="https://doi.org/10.1287/mnsc.1120.1558" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Adaptive design optimization: A mutual information-based approach to model discrimination in cognitive science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Cavagnaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">V</forename><surname>Kujala</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/neco.2009.02-09-959</idno>
+		<ptr target="https://doi.org/10.1162/neco.2009.02-09-959" />
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="887" to="905" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">On computing the expected Fisher information matrix for state-space model parameters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Cavanaugh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H</forename><surname>Shumway</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics &amp; Probability Letters</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="347" to="355" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/0167-7152(95</idno>
+		<ptr target="https://doi.org/https://doi.org/10.1016/0167-7152(95" />
+		<imprint>
+			<biblScope unit="page" from="31" to="34" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Chang</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11336-014-9401-5</idno>
+		<ptr target="https://doi.org/10.1007/s11336-014-9401-5" />
+	</analytic>
+	<monogr>
+		<title level="m">Psychometrics behind computerized adaptive testing</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="page" from="1" to="20" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Approach and avoidance learning in patients with major depression and healthy controls : relation to anhedonia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">W</forename><surname>Chase</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">T</forename><surname>Bullmore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Sahakian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">W</forename><surname>Robbins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Medicine</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="page" from="433" to="440" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1017/S0033291709990468</idno>
+		<ptr target="https://doi.org/10.1017/S0033291709990468" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">The multivariate adaptive design for efficient estimation of the time course of perceptual adaptation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Engel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="page" from="1073" to="1090" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-019-01301-6</idno>
+		<ptr target="https://doi.org/10.3758/s13428-019-01301-6" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Decision making, affect, and learning: Attention and performance XXIII</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daw</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/acprof:oso/9780199600434.001.0001</idno>
+		<ptr target="https://doi.org/10.1093/acprof:oso/9780199600434.001.0001" />
+		<editor>Delgado, M. R., Phelps, E. A., &amp; Robbins, T. W (Ed</editor>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>Trial-by-trial data analysis using computational models</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.neuron.2011.02.027</idno>
+		<ptr target="https://doi.org/10.1016/j.neuron.2011.02.027" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Models that learn how humans learn : The case of decision-making and its disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ramos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Balleine</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pcbi.1006903</idno>
+		<ptr target="https://doi.org/https://doi.org/10.1371/journal.pcbi.1006903" />
+	</analytic>
+	<monogr>
+		<title level="j">PLos Computional Biology</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Tracking of nociceptive thresholds using adaptive psychophysical methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Doll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Buitenweg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">G E</forename><surname>Meijer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Veltink</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="55" to="66" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-013-0368-4</idno>
+		<ptr target="https://doi.org/10.3758/s13428-013-0368-4" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">An item response theory model for incorporating response time data in binary personality items</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ferrando</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Lorenzo-Seva</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/0146621606295197</idno>
+		<ptr target="https://doi.org/10.1177/0146621606295197" />
+	</analytic>
+	<monogr>
+		<title level="j">Applied Psychological Measurement</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page" from="525" to="543" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">The effects of measurement errors on some multivariate procedures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Fleiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Shrout</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American Journal of Public Health</title>
+		<imprint>
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="page" from="1188" to="1191" />
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.2105/ajph.67.12.1188</idno>
+		<ptr target="https://doi.org/10.2105/ajph.67.12.1188" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Empirical priors for reinforcement learning models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2016.01.006</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2016.01.006" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">71</biblScope>
+			<biblScope unit="page" from="1" to="6" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Validation of decision-making models and analysis of decision variables in the rat basal ganglia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Doya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="9861" to="9874" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1523/JNEUROSCI.6157-08.2009</idno>
+		<ptr target="https://doi.org/10.1523/JNEUROSCI.6157-08.2009" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">How hierarchical models improve point estimates of model parameters at the individual level</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">73</biblScope>
+			<biblScope unit="page" from="37" to="58" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2016.03.007</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2016.03.007" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">The statistical structures of reinforcement learning with asymmetric value updates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page" from="31" to="45" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2018.09.002</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2018.09.002" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Decision-making based on emotional images</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fujimura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Okanoya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Okada</surname></persName>
+		</author>
+		<idno type="DOI">10.3389/fpsyg.2011.00311</idno>
+		<ptr target="https://doi.org/10.3389/fpsyg.2011.00311" />
+	</analytic>
+	<monogr>
+		<title level="j">Frontiers in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">311</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Bayesian adaptive estimation of psychometric slope and threshold</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">L</forename><surname>Kontsevich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Tyler</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/S0042-6989</idno>
+		<ptr target="https://doi.org/10.1016/S0042-6989" />
+	</analytic>
+	<monogr>
+		<title level="j">Vision Research</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="issue">98</biblScope>
+			<biblScope unit="page" from="285" to="290" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Effects of depression on reward-based decision making and variability of action in probabilistic learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Kunisato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Okamoto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ueda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Onoda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Okada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yoshimura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Yamawaki</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jbtep.2012.05.007</idno>
+		<ptr target="https://doi.org/10.1016/j.jbtep.2012.05.007" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Behavior Therapy and Experimental Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page" from="1088" to="1094" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Measurement error and its impact on partial correlation and multiple linear regression analyses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American Journal of Epidemiology</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page" from="864" to="874" />
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1093/oxfordjournals.aje.a114870</idno>
+		<ptr target="https://doi.org/10.1093/oxfordjournals.aje.a114870" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">A tutorial on fisher information</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marsman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Verhagen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P P P</forename><surname>Grasman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="page" from="40" to="55" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2017.05.006</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2017.05.006" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Multidimensional adaptive testing with optimal design criteria for item selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mulder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Van Der Linden</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11336-008-9097-5</idno>
+		<ptr target="https://doi.org/10.1007/s11336-008-9097-5" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="page" from="273" to="296" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">A tutorial on adaptive design optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Cavagnaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pitt</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2013.05.005</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2013.05.005" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page" from="53" to="67" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Optimal experimental design for model discrimination</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Myung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pitt</surname></persName>
+		</author>
+		<idno type="DOI">10.1037/a0016104</idno>
+		<ptr target="https://doi.org/10.1037/a0016104" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychological Review</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page" from="499" to="518" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Learning and choice in mood disorders: Searching for the computational parameters of anhedonia</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">J</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">W</forename><surname>Chase</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/CPSY_a_00009</idno>
+		<ptr target="https://doi.org/10.1162/CPSY_a_00009" />
+	</analytic>
+	<monogr>
+		<title level="j">Computational Psychiatry</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="208" to="233" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Multidimensional adaptive testing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">O</forename><surname>Segall</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/BF02294343</idno>
+		<ptr target="https://doi.org/10.1007/BF02294343" />
+	</analytic>
+	<monogr>
+		<title level="j">Psychometrika</title>
+		<imprint>
+			<biblScope unit="volume">61</biblScope>
+			<biblScope unit="page" from="331" to="354" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">An approach to time series smoothing and forecasting using the EM algorithm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H</forename><surname>Shumway</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Stoffer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Time Series Analysis</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="253" to="264" />
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1126/science.275.5306.1593</idno>
+		<ptr target="https://doi.org/10.1126/science.275.5306.1593" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Rstan: the R interface to Stan</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Stan</forename><surname>Development Team</surname></persName>
+		</author>
+		<ptr target="http://mc-stan.org/" />
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+	<note>R package version 2.21.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">A Bayesian analysis of human decisionmaking on bandit problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Steyvers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Wagenmakers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page" from="168" to="179" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.jmp.2008.11.002</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2008.11.002" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<title level="m">Reinforcement Learning: An Introduction</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>2nd Edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Cambridge</surname></persName>
+		</author>
+		<imprint>
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Dynamic experiments for estimating preferences: An adaptive method of eliciting time and risk parameters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Toubia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Evgeniou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Delquié</surname></persName>
+		</author>
+		<idno type="DOI">10.1287/mnsc.1120.1570</idno>
+		<ptr target="https://doi.org/10.1287/mnsc.1120.1570" />
+	</analytic>
+	<monogr>
+		<title level="j">Management Science</title>
+		<imprint>
+			<biblScope unit="volume">59</biblScope>
+			<biblScope unit="page" from="613" to="640" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title level="a" type="main">A simple computational algorithm of modelbased choice preference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Toyama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive, Affective, &amp; Behavioral Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="764" to="783" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13415-017-0511-2</idno>
+		<ptr target="https://doi.org/10.3758/s13415-017-0511-2" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Biases in estimating the balance between modelfree and model-based learning systems due to model misspecification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Toyama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Katahira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ohira</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.jmp.2019.03.007</idno>
+		<ptr target="https://doi.org/10.1016/j.jmp.2019.03.007" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">91</biblScope>
+			<biblScope unit="page" from="88" to="102" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Handbook of item response theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Van Der Linden</surname></persName>
+		</author>
+		<editor>W. J. van der Linden</editor>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="197" to="228" />
+		</imprint>
+	</monogr>
+	<note>Adaptive testing. volume three: application.</note>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1201/9781315119144</idno>
+		<ptr target="https://doi.org/10.1201/9781315119144" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Q-learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J C H</forename><surname>Watkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/BF00992698</idno>
+		<ptr target="https://doi.org/10.1007/BF00992698" />
+	</analytic>
+	<monogr>
+		<title level="m">Machine Learning</title>
+		<imprint>
+			<date type="published" when="1992" />
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="279" to="292" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

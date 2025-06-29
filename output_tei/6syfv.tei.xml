@@ -1,0 +1,1588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Using AI Uncertainty Quantification to Improve Human Decision-Making</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laura</forename><forename type="middle">R</forename><surname>Marusich</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><forename type="middle">Z</forename><surname>Bakdash</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yan</forename><surname>Zhou</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Murat</forename><surname>Kantarcioglu</surname></persName>
+						</author>
+						<title level="a" type="main">Using AI Uncertainty Quantification to Improve Human Decision-Making</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T11:54+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>AI Uncertainty Quantification (UQ) has the potential to improve human decision-making beyond AI predictions alone by providing additional probabilistic information to users. The majority of past research on AI and human decisionmaking has concentrated on model explainability and interpretability, with little focus on understanding the potential impact of UQ on human decision-making. We evaluated the impact on human decision-making for instance-level UQ, calibrated using a strict scoring rule, in two online behavioral experiments. In the first experiment, our results showed that UQ was beneficial for decision-making performance compared to only AI predictions. In the second experiment, we found UQ had generalizable benefits for decisionmaking across a variety of representations for probabilistic information. These results indicate that implementing high quality, instance-level UQ for AI may improve decision-making with real systems compared to AI predictions alone.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Using AI to improve human decision-making requires effective human-AI interaction. Recent work on human-AI interaction guidelines focuses on explainability and interpretability <ref type="bibr" target="#b3">(Amershi et al., 2019)</ref>, which may improve subjective human ratings of trust in and usability of AI. However, a quantitative synthesis of studies found that explanations may not generally improve decision accuracy beyond AI prediction alone <ref type="bibr" target="#b44">(Schemmer et al., 2022)</ref> in many application domains. One less-explored possibility for promoting effective human-AI interaction is AI Uncertainty Quantification (UQ) for predictions. AI UQ is posited to be key for human decision-making <ref type="bibr" target="#b1">(Abdar et al., 2021b;</ref><ref type="bibr" target="#b25">Jalaian et al., 2019)</ref>. However, there is conflicting evidence in the existing * Equal contribution 1 DEVCOM Army Research Laboratory 2 University of Texas at Dallas, Richardson, TX. Correspondence to: Laura Cooper &lt;laura.m.cooper20.civ@army.mil&gt;, Yan Zhou &lt;yan.zhou2@utdallas.edu&gt;. literature as to whether presenting AI UQ for predictions can improve human decision-making accuracy, and how to best communicate this uncertainty information <ref type="bibr" target="#b30">(Lai et al., 2021)</ref>. These conflicting results may be due in part to "a lack of discussion on the reliability of uncertainty estimates, sometimes referred to as calibration" <ref type="bibr">(Lai et al., 2021, p. 15)</ref>.</p><p>In order to resolve these questions, we use well-calibrated, instance-level AI Uncertainty Quantification (UQ) evaluated using a strict scoring rule <ref type="bibr" target="#b21">(Gneiting &amp; Raftery, 2007)</ref> using the ground truth for class labels 1 . We evaluate the impact of this AI UQ in two pre-registered, large sample size, online behavioral experiments assessing human decision-making. Decision-making is measured objectively using response accuracy and confidence calibration with accuracy. We found that providing high-quality AI UQ meaningfully improves decision-accuracy and confidence calibration over an AI prediction alone. Additionally, the benefits of this AI UQ appear to be generalizable -decision-making was similar for AI UQ presented with different visualizations and types of information. Our results indicate well-calibrated AI UQ is beneficial for decision-making.</p><p>The paper is structured as follows. In section 2, we provide the background information on uncertainty and human decision-making and an overview of existing techniques for AI UQ. Section 3 describes our UQ technique and experimental design. In section 4, we report findings from the behavioral experiments comparing human decision making accuracy with or without UQ information. In section 5, we report the impact of different visualizations of UQ information. Finally, sections 6 and 7 conclude by discussing the implications of our results and future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Background and Related Work</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Human Decision-Making and Uncertainty</head><p>The possible benefit of AI UQ is supported by work in the judgment and decision-making literature on decisionmaking under uncertainty. This work shows that providing overall prediction uncertainty enhances decision-making accuracy. For example, in weather forecasting, humans demonstrate higher decision-making performance when they receive well-calibrated probabilistic information (e.g., a forecast with a probability of rain), compared to only deterministic predictions (e.g., it will or will not rain) <ref type="bibr" target="#b16">(Frick &amp; Hegg, 2011;</ref><ref type="bibr" target="#b27">Joslyn &amp; LeClerc, 2013;</ref><ref type="bibr" target="#b37">Morss et al., 2008;</ref><ref type="bibr" target="#b38">Nadav-Greenberg &amp; Joslyn, 2009)</ref>. However, increasing information, even when it is task-relevant, is not always beneficial to human decision-making performance (e.g., <ref type="bibr" target="#b36">Marusich et al., 2016;</ref><ref type="bibr" target="#b19">Gigerenzer &amp; Brighton, 2009;</ref><ref type="bibr" target="#b2">Alufaisan et al., 2021)</ref>. An additional consideration is the way that uncertainty information is represented. In human decision-making, communicating uncertainty with visual representations and other intuitive methods can be especially effective <ref type="bibr" target="#b20">(Gigerenzer et al., 2007;</ref><ref type="bibr" target="#b23">Hullman et al., 2018)</ref>.</p><p>Despite previous general findings that uncertainty information is useful for decision-making, there is limited behavioral research assessing the benefits of AI UQ, particularly for human decision-making accuracy. Among studies that do assess objective accuracy performance (e.g., <ref type="bibr" target="#b51">Zhang et al., 2020;</ref><ref type="bibr" target="#b5">Buçinca et al., 2021)</ref>, both the methods and results vary. In particular, the quality of the UQ calibration varies, with some studies opting to simulate AI prediction confidence with wizard-of-oz techniques, and others using the prediction probabilities generated by their model, but without quantifying the calibration of those probabilities. As a result, the potential benefits for AI UQ remain at least somewhat of an open question <ref type="bibr" target="#b30">(Lai et al., 2021</ref>).</p><p>There is a clear gap for behavioral studies assessing human decision-making performance using quantifiably wellcalibrated AI UQ for predictions. Our method for AI UQ uses known class labels to ensure high-quality uncertainty information at the instance-level, as poorly calibrated uncertainty information is likely to be detrimental to decisionmaking. We emphasize that the application of known class labels to generate instance-level UQ aims to provide wellcalibrated AI UQ for individual predictions specifically in the context of human subject experiments. This approach is not designed for real-life deployment scenarios where class labels may not be known in advance. In the next section, we briefly provide context of existing techniques for AI UQ, which are often model-based and typically do not require labelled data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Techniques for AI UQ</head><p>Predictions by AI-based systems are subject to uncertainty from different sources. The source of uncertainty is either aleatoric, caused by noise in data and irreducible, or epistemic because of uncertain model distribution <ref type="bibr" target="#b28">(Kendall &amp; Gal, 2017)</ref>. Uncertainty quantification methods have been developed to assess the reliability of AI predictions <ref type="bibr" target="#b0">(Abdar et al., 2021a)</ref>, including Bayesian methods and ensemble methods <ref type="bibr" target="#b1">(Abdar et al., 2021b)</ref>.</p><p>Monte Carlo sampling <ref type="bibr" target="#b39">(Neal, 2012)</ref> and Markov chain Monte Carlo <ref type="bibr" target="#b42">(Salakhutdinov &amp; Mnih, 2008;</ref><ref type="bibr" target="#b43">Salimans et al., 2015;</ref><ref type="bibr" target="#b7">Chen et al., 2014;</ref><ref type="bibr" target="#b12">Ding et al., 2014;</ref><ref type="bibr" target="#b6">Chen et al., 2015;</ref><ref type="bibr" target="#b32">Li et al., 2016;</ref><ref type="bibr" target="#b22">Gong et al., 2019)</ref> are heavily used for uncertainty quantification in Bayesian techniques <ref type="bibr" target="#b28">(Kendall &amp; Gal, 2017;</ref><ref type="bibr" target="#b48">Wang et al., 2019;</ref><ref type="bibr" target="#b33">Liu et al., 2019a)</ref>. To estimate aleatoric uncertainty, a hidden variable is often proposed to represent the underlying data point x * from which a given instance x is only one of many possible observations of x * . Parameters modeling the transformation from x * to x can be sampled to obtain multiple copies of the hidden x * . For epistemic uncertainty, the distribution of model parameter θ is often approximated during training by achieving certain objective optimization, for example, the Kullback-Leibler divergence. The distribution of the prediction can be sampled from the samples of the learned model parameters. The predictive uncertainty can be established from the variance or entropy of the sampled predictions of the sampled hidden states of a given instance.</p><p>Quantifying uncertainty on learning models from a Bayesian perspective takes many different forms. Uncertainty Posterior distribution over BNN weights can be learned using variational inference <ref type="bibr" target="#b46">(Subedar et al., 2019;</ref><ref type="bibr" target="#b35">Louizos &amp; Welling, 2017;</ref><ref type="bibr" target="#b15">Farquhar et al., 2020;</ref><ref type="bibr" target="#b18">Ghosh et al., 2020)</ref>. On the other hand, Generative Adversarial Networks (GANs) are used to generate out-of-distribution (OoD) examples <ref type="bibr" target="#b40">(Oberdiek et al., 2022)</ref>. Implicit neural representations (INRs) are reformulated from a Bayesian perspective to allow for uncertainty quantification <ref type="bibr" target="#b47">(Vasconcelos et al., 2023)</ref>. Similarly, Direct Epistemic Uncertainty Prediction (DEUP) is proposed to address the issue that using the variance of the Bayesian posterior does not capture the epistemic uncertainty induced by model misspecification <ref type="bibr" target="#b29">(Lahlou et al., 2023)</ref>. Aleatoric uncertainty and epistemic uncertainty have also been modeled as universal adversarial perturbations <ref type="bibr" target="#b33">(Liu et al., 2019a)</ref>.</p><p>Ensemble models can enhance the predictive accuracy, however, it is highly debated whether an ensemble of models can provide a good uncertainty estimate <ref type="bibr" target="#b1">(Abdar et al., 2021b;</ref><ref type="bibr">Wilson &amp; Izmailov, 2020;</ref><ref type="bibr" target="#b45">Sensoy et al., 2018)</ref>. Recently, benefits of prior functions and bootstrapping in training ensembles with estimate of uncertainty have been discussed <ref type="bibr" target="#b14">(Dwaracherla et al., 2023)</ref>. Maximizing Overall Diversity takes into account ensemble predictions for possible future input when estimating uncertainty <ref type="bibr" target="#b24">(Jain et al., 2020)</ref>. Random parameter initialization and data shuffling have also been proposed to estimate the uncertainty of DNN ensembles <ref type="bibr" target="#b31">(Lakshminarayanan et al., 2017)</ref>. A Bayesian non-parametric ensemble (BNE) approach is proposed to account for different sources of model uncertainty <ref type="bibr" target="#b34">(Liu et al., 2019b</ref>). More details on extensive studies on quantifying uncertainty with respect to both Bayesian and ensemble methods, as well as in real applications can be found in (Abdar et al., 2021b).</p><p>However, prediction probabilities are prone to overconfidence in some AI models. There is a lack of discussion on the calibration of uncertainty estimates in the existing literature.</p><p>In this work, we achieved efficiency of UQ estimate by assessing the change of prediction yielded from repeatedly sampling noise adjacent to a given instance, and carefully calibrated the uncertainty information shown to the user by leveraging the ground truth. More precisely, we provide wellcalibrated uncertainty estimates in different visualizations of confidence intervals to the human participants. Unlike the existing work discussed above, our goal is to provide the uncertainty information to the human participants to understand whether well-calibrated uncertainty quantification information helps in user decision-making. To achieve this goal, we do not attempt to come up with a UQ method a priori. Instead, we take the liberty of knowing the true labels of given instances, and simplify the problem as sampling predictive confidence from instances distorted with a small amount of random noise. The quality of the disclosed uncertainty estimate is verified using a strictly proper scoring rule <ref type="bibr" target="#b21">(Gneiting &amp; Raftery, 2007)</ref> prior to use in two behavioral experiments. While there have been recent calls for research using UQ with human decision-making (e.g., <ref type="bibr" target="#b4">Bhatt et al. 2021;</ref><ref type="bibr" target="#b30">Lai et al. 2021)</ref>, the few existing studies tend to focus on qualitative or subjective assessments of human behavior (e.g., <ref type="bibr" target="#b41">Prabhudesai et al. 2023)</ref>. Furthermore, it is not clear how useful to decision-makers the UQ information provided in these studies is, due to lack of proper calibration.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Current Work</head><p>We conducted two experiments to assess the effect of providing visualizations of AI prediction UQ information upon the accuracy and confidence of human decision-making. The first experiment compares performance when AI uncertainty is provided to performance when only an AI prediction, or no AI information at all, is provided. The second experiment compares decision-making performance for different representations of AI uncertainty.</p><p>Our methods and results for the instance-level predictive UQ and behavioral experiments are fully reproducible. See the supplementary material for details and links.</p><p>In both experiments, we assessed our research questions using three different publicly-available and widely-used datasets: the Census, German Credit, and Student Performance datasets from the UCI Machine Learning Reposi-tory <ref type="bibr" target="#b13">(Dua &amp; Graff, 2017)</ref>, described in more detail below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Datasets</head><p>The Census dataset has 48,842 instances and 14 attributes. The missing values in the dataset were replaced with the mode (the most frequent value), and the dollar amounts were adjusted for inflation. The German Credit dataset has 1,000 instances and 20 attributes. The currency values were converted to dollars and adjusted for inflation. The Student Performance has 649 instances and 33 attributes. Three of the attributes first period grade, second period grade, and final grade were combined into one with their average. Each dataset was split into training (70%) and test (30%) data sets.</p><p>We selected these datasets because they involve real-world contexts that are fairly intuitive for non-expert human participants to reason about (e.g., will a student pass or fail a class?). In addition, using three datasets that vary in number of features and in the overall accuracy classifiers can achieve in their predictions ensures that our findings are not limited only to one specific dataset.</p><p>Several machine learning models were trained on all three datasets, including decision tree, logistic regression, random forest, and support vector machine. The best set of hyper-parameters was determined through grid search. Random forest was the best in terms of overall accuracy on the datasets and therefore was selected for use as the AI model in this study. The mean accuracy on the Census data is 85.3%, 75.7% on the German Credit data, and 85.1% on the Student Performance data. All classification tasks were completed on an Intel ® Xeon ® machine with a 2.30GHz CPU.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Instance-Level Predictive Uncertainty Quantification</head><p>UQ methods in existing literature estimate predictive uncertainty without the knowledge of the true labels of the test instances. These methods are subject to complicated calculations, sometimes poor convergence, lack of scalability, and sometimes, they are time and resource consuming <ref type="bibr" target="#b0">(Abdar et al., 2021a)</ref>. In our study, we aim to provide predictive uncertainty quantification to human decision-makers and use the advantage of knowing the true labels in advance. Therefore, we simplify the problem as sampling predictive confidence from samples of x with a small random disturbance and verify the quality of the uncertainty estimate using a strictly proper scoring rule <ref type="bibr" target="#b21">(Gneiting &amp; Raftery, 2007)</ref> before showing it to the human. Note that, without knowing the ground truth, this treatment of UQ would be reckless and naive. It would appear that we model a prior distribution over hypothesis as the distribution over observations in the noisy neighborhood of a given instance. However,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Census</head><p>German Credit Student Performance <ref type="figure">Figure 1</ref>. The Brier score of the "cloned" instances for Census (100), German Credit (100), and Student Performance (40) sampled for demonstration. Y -axis is the Brier score. Magenta marks the samples that are correctly predicted by the AI model, cyan marks samples incorrectly predicted by the model. Horizontal lines illustrate the mean of the Brier score, and its 0.5, 1, and 1.5 standard deviations.</p><p>given the true label of an instance, we can hypothesize that observations over its n neighboring noisy samples are n plausible fits for this instance, and confirm our hypothesis with a strictly proper scoring rule.</p><p>Predictive uncertainty consists of data uncertainty (aleatoric) and model uncertainty (epistemic). To model data uncertainty, we sample n instances from a Gaussian distribution within a standard deviation σ from a given instance x, assuming x = x * + η where x * is the clean input of x without the random disturbance η. Thus, given a prediction function parameterized by w, the class label of x is predicted as:</p><formula xml:id="formula_0">p(y|x, w) = p(y|x * , w)p(x * |x)dx *</formula><p>The posterior p(x * |x) is generally unknown. By assuming η ∼ N (0, σ 2 0 , I), we can sample from the posterior distribution given the noisy input x. In this study, we set n = 100 and σ 0 = 0.1. Similarly, for model uncertainty, given a set of training data (X, Y ), we assume there exists an uncertain set of m models with model uncertainty θ (m) ∼ p(θ|X, Y ). Hence, given an instance x, the probability of the class label of x is:</p><formula xml:id="formula_1">p(y|x, X, Y ) = E p(θ|X,Y ) [p(y|x, θ)].</formula><p>In this study, we tested an ensemble of logistic regression, support vector machine, and random forest to predict the class label. The best uncertainty estimate, however, was obtained by using the random forest alone, assessed by the Brier score discussed below.</p><p>Predictive uncertainty per instance was computed for 294 randomly selected Census instances, 300 German Credit instances, and 194 Student Performance instances, for use in the behavioral study. Predictive uncertainty at the instancelevel was measured on random samples in the neighborhood of the instance. More specifically, given an instance x, n random "clones" were sampled from a Gaussian distribution within δ standard deviation from the mean x. In the experiment, we let n = 100 and δ = 0.1 which provided sufficient statistical significance and constrained neighborhood choices. Class probabilities were computed using the trained random forest classifier for each of the 100 samples, and the 95% confidence interval of the class probabilities was used as the predictive uncertainty range for instance x. UQ computed from random forest alone was superior to that of the ensemble of logistic regression, support vector machine, and random forest, hence was used in the behavioral study.</p><p>Knowing the ground truth (class label) of the instances, we can verify the quality of the simulated predictive uncertainty using the Brier score (also referred to as Brier loss). The Brier score measures the mean squared difference between the predicted probability and the true outcome. For each selected instance x, with y ∈ {0, 1} and the predicted probability p i = P r(y i = 1) for each "cloned" sample x i , we compute the Brier score B = 1 n i (y − p i ) 2 between the predicted probability of the "cloned" samples and y-the actual label of x.</p><p>If the "cloned" samples are truly representative of x, the computed Brier score should reflect the correctness of the prediction made for x by the AI model M . A smaller Brier score means more accurate predictions made for the clones of x, and therefore should correspond to a correct classification for x by M . We verified empirically that the Brier scores of the predictive uncertainty is highly correlated with the true prediction for x by M , as shown in <ref type="figure">Figure 1</ref>. Points with low Brier score corresponds to instances where M is correct. In <ref type="figure">Figure 1</ref>, points in magenta are the samples correctly predicted by the AI model, and points in cyan are samples incorrectly predicted by the model. As can be seen, "clones" for each correctly predicted sample correspond to low Brier score loss, and vice versa, cloned samples for incorrectly classified samples produce high Brier scores. Horizontal lines illustrate the mean of the Brier score, and its 0.5, 1, and 1.5 standard deviations. The Brier score close to mean (approximately 0.25) is a highly accurate indicator of the classification outcome. In essence, the Brier score resembles the trust score <ref type="bibr" target="#b26">(Jiang et al., 2018)</ref> that has high precision at identifying correctly classified examples, and is adequate to assess the quality of the estimated UQ.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Behavioral Experiments: General Methods</head><p>We used the same experimental task across both Experiment 1 and 2, which was developed using jsPysch (De Leeuw, 2015) and hosted on MindProbe https://mindprobe. eu/ using Just Another Tool for Online Studies (JATOS) https://github.com/JATOS/JATOS. Each trial of this task included a description of an individual and a twoalternative forced choice for the classification of that individual. Each choice was correct on 50% of the trials, thus chance performance for human decision-making accuracy was 50%. In some conditions, an AI prediction or an AI prediction and a visualization of prediction uncertainty would also appear. <ref type="figure" target="#fig_0">Figure 2</ref> shows an example of the information appearing in the three AI conditions for a trial from the German Credit dataset condition (see supplementary material for more example trials). After making a decision, participants then entered their confidence in that choice, on a Likert scale of 1 (No Confidence) to 5 (Full Confidence). Feedback was then displayed, indicating whether or not the previous choice was correct.</p><p>For each dataset, we selected 50 instances with representative average AI prediction accuracies (Census: 88%, German Credit: 76%, Student Performance: 82%). Then, for each participant, we randomly sampled 40 of those 50 instances for the block of test trials, resulting in small variations in AI accuracy for each participant.</p><p>Online participants were recruited from Prolific (https: //www.prolific.co). They provided informed consent, viewed a series of instructional screens with examples, completed 8 practice trials, followed by 40 test trials, and a brief series of questionnaires (demographics, self-reported strategies, subjective usability, subjective task difficulty, task understanding, and an assessment of risk literacy <ref type="bibr" target="#b8">(Cokely et al., 2012)</ref>, see supplementary material). Most participants completed the task in less than 20 minutes, and they were paid $5.00 for their participation (i.e., well above the U.S. federal minimum hourly wage). This research received Institutional Review Board (IRB) approval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Experiment 1</head><p>Experiment 1 compared participant decision-making accuracy in three conditions: Control (no AI prediction information), AI Prediction, and AI Uncertainty (AI prediction plus a visualized point estimate of AI uncertainty), see <ref type="figure">Figure</ref> 2. All hypotheses and methods were pre-registered (https://aspredicted.org/ZW9_Z54).</p><p>We hypothesized that for all three datasets, participant decision accuracy would be highest in the AI Uncertainty condition, followed by the AI Prediction condition, and lowest in the Control condition. Similarly, we hypothesized that confidence calibration (positive association between confidence and accuracy) would be strongest in the AI Uncertainty condition, followed by the AI Prediction condition, and lowest in the Control condition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Participants</head><p>We recruited nearly 50 participants in each of 9 experimental conditions, for a total of 445 participants (48.8% male, 48.5% female, 2.7% other or prefer not to answer). The majority (68.8%) of participants were 18-44 years old.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Results and Discussion</head><p>We excluded trials with reaction times that exceeded three standard deviations above the mean; this resulted in the removal of 396 out of 17,800 trials across all participants. An omnibus 3 (AI Condition) x 3 (Dataset) ANOVA for mean accuracy indicated a significant main effect of AI condition (F (2, 436) = 84.11, p &lt; 0.001, η 2 p = 0.28; see left side of <ref type="figure" target="#fig_1">Figure 3</ref>). This large effect size is driven primarily by the differences between the Control condition and the other two conditions. However, we also used Tukey's honest significance test to conduct post-hoc comparisons between individual conditions. These comparisons showed not only that accuracy in the AI Prediction condition was higher than in the Control condition (t(436) = 9.91, p &lt; 0.0001), but also that accuracy in the AI Uncertainty condition was further improved (although to a lesser extent) over the AI Prediction condition (t(436) = 2.36, p = 0.049). There was also a significant main effect of dataset upon accuracy (F (2, 436) = 144.72, p &lt; 0.001, η 2 p = 0.40). Unsurprisingly, human accuracy was lowest in the German Credit dataset, for which AI accuracy is also relatively low, and human accuracy was highest in the Census dataset, where AI accuracy is also relatively high.</p><p>To assess confidence calibration, we fit a multilevel model <ref type="bibr" target="#b17">(Gelman &amp; Hill, 2006</ref>) that included dataset, AI condition, and confidence ratings as fixed-effect predictors, with varying intercepts for each participant. The multilevel model accounts for a moderate amount of variance in fixed and varying effects, conditional Pseudo-R 2 = 0.10. This model indicated that the relationship between confidence and accuracy interacted with both dataset and AI condition, illustrated in <ref type="figure" target="#fig_2">Figure 4</ref>.</p><p>As hypothesized, confidence was most highly calibrated with accuracy in the AI Uncertainty condition, followed by the AI Prediction condition, and lowest in the Control condition. See data and code links in the supplementary material for details of the model. We also analyzed the impact of AI condition and dataset upon participants' response times (RT). Using an omnibus 3 x 3 ANOVA, we found a significant main effect of dataset upon RT (F (2, 436) = 6.22, p = 0.002, η 2 p = 0.03), with participants responding slowest in the Student Performance dataset (see left side of <ref type="figure" target="#fig_3">Figure 5</ref>), perhaps due  to the larger number of attributes to consider for each instance. We did not find significant effects of AI condition (F (2, 436) = 1.97, p = 0.14, η 2 p = 0.009) or an interaction effect (F (4, 436) = 0.13, p = 0.97, η 2 p = 0.001). These results imply that the accuracy benefit for AI UQ information is not merely due to a speed/accuracy tradeoff among participants <ref type="bibr" target="#b49">(Wickelgren, 1977)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Experiment 2</head><p>Experiment 1 demonstrated that decision-making performance can be improved with AI UQ information; we designed Experiment 2 to test if different representations of UQ might be more or less beneficial for decisionmaking. We compared performance with distributions of uncertainty probabilities to point-estimated probabilities, as well as two different visualizations of uncertainty (needle vs. dotplot), again using the same three datasets used in Experiment 1 (see <ref type="figure" target="#fig_4">Figure 6</ref>). All hypotheses and methods were pre-registered (https://aspredicted. org/CJW_71H). We hypothesized that for all three datasets, both participant decision accuracy and confidence calibration would be higher with distribution information than for point-estimated UQ in the AI Uncertainty condition, followed by the AI Prediction condition, and lowest in the Control condition. We also hypothesized that, within the distribution conditions, accuracy and confidence calibration would be higher for the dotplot visualization than for the needle visualization, due to the more detailed information about the shape of distributions available in the dotplot, compared to the needle which only shows the distributions as a uniform range.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Participants</head><p>We recruited 50 participants in each cell, for a total of 600 participants (48.5% male, 49.3% female, 2.2% other or prefer not to answer), from the Prolific platform. Most participants (75.3%) were 18-44 years old.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Results and Discussion</head><p>We excluded 553 trials (out of 24,000 across all participants) with reaction times that exceeded three standard deviations above the mean. An omnibus 2 (point vs. distribution) x 2 (needle vs. dotplot) x 3 (dataset) ANOVA for mean accuracy indicated a significant main effect of dataset (F (2, 588) = 188.77, p &lt; 0.001, η 2 p = 0.39), where performance was again highest for the Census dataset, followed by Student Performance, and lowest for German Credit. However, there was no significant main effects of point vs. distribution (F (1, 588) = 0.28, p = 0.60, η 2 p &lt; 0.001) or visualization type (F (1, 588) = 0.16, p = 0.69, η 2 p &lt; 0.001). Neither was there evidence of significant first-order interaction effects among the three manipulated variables, see right side of <ref type="figure" target="#fig_1">Figure 3</ref>).</p><p>As in Experiment 1, we fit multilevel models with varying intercepts for each participant to assess confidence calibration. We found that the best-fitting model (as assessed by fit statistics: AIC and BIC) had only confidence, dataset, and their interaction as fixed-effect predictors, see <ref type="figure" target="#fig_5">Figure 7</ref>. The best fit model indicates confidence calibration, again, accounts for a moderate amount of variance in fixed and varying effects, conditional Pseudo-R 2 = 0.13. Including point vs. distribution or visualization type did not appear to improve model fit or to predict accuracy performance above and beyond what is predicted by dataset and confidence. See data and code links in the supplementary material for details of the model. Thus, contrary to the pre-registration, neither our accuracy or confidence calibration results indicate support for our Experiment 2 hypotheses. The hypotheses were that performance would be better with distribution information for UQ than for point-estimated UQ, and that within the distribution condition, performance would be better with dotplots than with the needle visualization.</p><p>Additionally, we analyzed RT in Experiment 2 (see right side of <ref type="figure" target="#fig_3">Figure 5</ref>) to rule out speed/accuracy tradeoffs in the performance results. An omnibus 2 x 2 x 3 ANOVA indicated no significant effect of dataset (F (2, 588) = 0.09, p = 0.92, η 2 p &lt; 0.001), point vs. distribution (F (1, 588) = 0.06, p = 0.81, η 2 p &lt; 0.001), or visualization type (F (1, 588) = 0.01, p = 0.91, η 2 p &lt; 0.001) upon RT. Neither was there evidence of significant interaction effects among the three manipulated variables.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">Exploratory Analyses</head><p>Although this work was not specifically designed to assess whether the combination of humans plus AI generally exceeded the accuracy of AI predictions, we conducted exploratory analyses to investigate how often this occurred. In both experiments, we found that a small subset of participants were able to outperform the accuracy of the AI predictions they received (see <ref type="table" target="#tab_0">Table 1</ref>). AI uncertainty enabled humans to outperform the AI accuracy more frequently and with patterns of mean differences suggesting greater improvements. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">General Discussion, Limitations, and Future Work</head><p>The overall results of Experiment 1 showed that providing AI UQ to human decision-makers improved accuracy and confidence calibration performance over and above providing an AI prediction alone. In Experiment 2, we did not find meaningful differences between different representations of UQ. Taken together, our findings suggest that the benefit of AI UQ may not be overly sensitive to the representation of the UQ information. Also, adding more information (here, the UQ distribution), even though task-relevant, did not improve decision-making which is consistent with prior research <ref type="bibr" target="#b36">(Marusich et al., 2016;</ref><ref type="bibr" target="#b19">Gigerenzer &amp; Brighton, 2009;</ref><ref type="bibr" target="#b2">Alufaisan et al., 2021)</ref>.</p><p>Here, the humans and AI had identical information so we could evaluate well-calibrated UQ. Normatively, algorithms tend to outperform human decision-making in a variety of tasks; a clear exception is when people have knowledge the algorithm does not <ref type="bibr" target="#b10">(Dawes et al., 1989)</ref>. In such situations, it is possible that the AI and human combined can produce better performance than either alone <ref type="bibr" target="#b9">(Cummings, 2014)</ref>. Exploratory results suggested AI uncertainty may increase the frequency of people exceeding AI accuracy, although this was not a common occurrence; likely because both the human and the AI had the same information.</p><p>In this work, we did not compare different UQ techniques but did demonstrate that, using a Brier score, our UQ technique performed well in practice. It is possible that UQ techniques that do not perform as well as ours may not improve human decision-making accuracy. In future work, we plan to use other UQ techniques, including less effective ones to understand the impact of UQ quality on human decisionmaking accuracy. Similarly, behavioral experiments were limited to comparing point versus distributions and two visualizations of predictive uncertainty. It is possible that other visualizations may make providing distribution information more effective, and we plan to conduct future work assessing more UQ visualization techniques.</p><p>Finally, we used a relatively simple binary classification decision-making task. In more complex application domains, where humans encounter multi-class classification problems, the impact of UQ information on human decision making could be different. Future work should explore multi-class classification problems, as well as the use of AI UQ for complex tasks where people, such as experts, have knowledge unknown to the AI model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conclusion</head><p>Our extensive behavioral experiments show that providing high quality AI uncertainty information improves human decision accuracy and confidence calibration over the AI prediction alone. This human performance benefit was not limited to only a specific visual representation of UQ information. In previous work, there is an absence of evaluating calibration for AI UQ <ref type="bibr" target="#b30">(Lai et al., 2021)</ref>. Here, we used Brier scores to quantify the calibration of our implementation of AI UQ. We showed the AI UQ used here was well-calibrated by leveraging the existing class labels of test instances.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">Impact Statements</head><p>Recently, understanding how humans and AI systems can work better together has emerged as an important challenge. Although previous work has explored how and when explainable AI may help human decision making, the impact of providing uncertainty information to humans has not been explored in depth in the context of AI systems. To address this challenge, in this work, we explore whether providing uncertainty information to humans may improve decision making and potentially correct errors caused by the AI models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Software and Data</head><p>See supplementary material or https://osf.io/ cb762/.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 2 .</head><label>2</label><figDesc>Example showing the information appearing in the three AI conditions in Experiment 1 for a trial from the German Credit dataset condition.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Participant accuracy in Experiments 1 (left) and 2 (right). Error bars represent 95% confidence intervals.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4 .</head><label>4</label><figDesc>Predicted effects (level 2/overall results of multilevel model) of confidence ratings, dataset, and AI condition upon accuracy in Experiment 1. Steeper, positively-sloped lines indicate better confidence calibration. Shaded areas represent 95% confidence intervals for the predicted values.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 5 .</head><label>5</label><figDesc>Participant response times (RT) in milliseconds in Experiment 1 (left) and Experiment 2 (right). Error bars represent 95% confidence intervals.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 6 .</head><label>6</label><figDesc>Example of the four conditions (point vs. distribution, and needle vs. dotplot) in Experiment 2, using a trial from the German Credit dataset.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 7 .</head><label>7</label><figDesc>Predicted effects (level 2/overall results of multilevel model) of confidence ratings and dataset upon accuracy in Experiment 2. Steeper, positively-sloped lines indicate better confidence calibration. Shaded areas represent 95% confidence intervals for the predicted values.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 .</head><label>1</label><figDesc>Number of participants who outperformed the AI</figDesc><table><row><cell cols="4">Human Accuracy &gt;AI (n) ≤AI (n) &gt;AI (%)</cell></row><row><cell>Experiment 1</cell><cell></cell><cell></cell><cell></cell></row><row><cell>AI Prediction</cell><cell>2</cell><cell>148</cell><cell>1.33%</cell></row><row><cell>AI Uncertainty</cell><cell>7</cell><cell>141</cell><cell>4.73%</cell></row><row><cell>Experiment 2</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Point Needle</cell><cell>8</cell><cell>142</cell><cell>5.33%</cell></row><row><cell>Point Dotplot</cell><cell>8</cell><cell>142</cell><cell>5.33%</cell></row><row><cell>Dist Needle</cell><cell>11</cell><cell>139</cell><cell>7.33%</cell></row><row><cell>Dist Dotplot</cell><cell>7</cell><cell>143</cell><cell>4.67%</cell></row></table><note></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">We wish to highlight that for the classification task, ground truths for class labels are utilized to offer well-calibrated, high quality, instance-level uncertainty quantification for human subject experiments.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>We thank Mary Grace Kozuch for helpful feedback on a previous version of this paper.</p><p>The views and conclusions contained in this document are those of the authors and should not be interpreted as representing the official policies, either expressed or implied of the U.S. DEVCOM Army Research Laboratory or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for Government purposes notwithstanding any copyright notation. M.K. and Y.Z. were supported in part by NSF awards OAC-1828467, DMS-1925346, CNS2029661, OAC-2115094, ARO award W911NF-17-1-0356, and a gift from Cisco Inc.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A review of uncertainty quantification in deep learning: Techniques, applications and challenges</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Abdar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pourpanah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hussain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rezazadegan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ghavamzadeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fieguth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Khosravi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">R</forename><surname>Acharya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Makarenkov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nahavandi</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.inffus.2021.05.008</idno>
+		<idno>1566-2535. doi: 10.1016/ j.inffus.2021.05.008</idno>
+		<ptr target="https://doi.org/10.1016/j.inffus.2021.05.008" />
+	</analytic>
+	<monogr>
+		<title level="j">Inf. Fusion</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="issue">C</biblScope>
+			<biblScope unit="page" from="243" to="297" />
+			<date type="published" when="2021-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">A review of uncertainty quantification in deep learning: Techniques, applications and challenges</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Abdar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pourpanah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hussain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rezazadegan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ghavamzadeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fieguth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Khosravi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">R</forename><surname>Acharya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Information Fusion</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page" from="243" to="297" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Does explainable artificial intelligence improve human decision-making?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Alufaisan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Marusich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Z</forename><surname>Bakdash</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kantarcioglu</surname></persName>
+		</author>
+		<idno>doi: 10.1609/ aaai.v35i8.16819</idno>
+		<ptr target="https://ojs.aaai.org/index.php/AAAI/article/view/16819" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2021-05" />
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page" from="6618" to="6626" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Guidelines for human-ai interaction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Amershi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Weld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vorvoreanu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fourney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Nushi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Collisson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Suh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Iqbal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">N</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Inkpen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 CHI conference on human factors in computing systems</title>
+		<meeting>the 2019 CHI conference on human factors in computing systems</meeting>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="1" to="13" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Uncertainty as a form of transparency: Measuring, communicating, and using uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Bhatt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Antorán</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">V</forename><surname>Liao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sattigeri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fogliato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Melançon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Krishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stanley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Tickoo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Nachman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Chunara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Srikumar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Weller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Xiang</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3461702.3462571</idno>
+		<idno>9781450384735. doi: 10. 1145/3461702.3462571</idno>
+		<ptr target="https://doi.org/10.1145/3461702.3462571" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 AAAI/ACM Conference on AI, Ethics, and Society, AIES &apos;21</title>
+		<meeting>the 2021 AAAI/ACM Conference on AI, Ethics, and Society, AIES &apos;21<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2021" />
+			<biblScope unit="page" from="401" to="413" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">To trust or to think: Cognitive forcing functions can reduce overreliance on ai in ai-assisted decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Buçinca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">B</forename><surname>Malaya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Z</forename><surname>Gajos</surname></persName>
+		</author>
+		<idno type="DOI">https://doi-org.ezproxy.uta.edu/10.1145/3449287</idno>
+		<ptr target="https://doi-org.ezproxy.uta.edu/10.1145/3449287" />
+	</analytic>
+	<monogr>
+		<title level="j">Proc. ACM Hum.-Comput. Interact</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">CSCW1</biblScope>
+			<date type="published" when="2021-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">On the convergence of stochastic gradient mcmc algorithms with high-order integrators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carin</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 28th International Conference on Neural Information Processing Systems</title>
+		<meeting>the 28th International Conference on Neural Information Processing Systems<address><addrLine>Cambridge, MA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="2278" to="2286" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Stochastic gradient hamiltonian monte carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Fox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Guestrin</surname></persName>
+		</author>
+		<ptr target="https://proceedings.mlr.press/v32/cheni14.html" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Machine Learning</title>
+		<editor>Xing, E. P. and Jebara, T.</editor>
+		<meeting>the 31st International Conference on Machine Learning<address><addrLine>Bejing, China</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2014-06" />
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="22" to="24" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Measuring risk literacy: The berlin numeracy test</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">T</forename><surname>Cokely</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Galesic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ghazal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Garcia-Retamero</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Judgment and Decision making</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="25" to="47" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Man versus machine or man+ machine?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Cummings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Intelligent Systems</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="62" to="69" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Clinical versus actuarial judgment</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Dawes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Faust</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Meehl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">243</biblScope>
+			<biblScope unit="issue">4899</biblScope>
+			<biblScope unit="page" from="1668" to="1674" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">jspsych: A javascript library for creating behavioral experiments in a web browser</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>De Leeuw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior research methods</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page" from="1" to="12" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Bayesian sampling using stochastic gradient thermostats</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Babbush</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Skeel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Neven</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ghahramani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Welling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cortes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Lawrence</surname></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper_files/paper/2014/file/21fe5b8ba755eeaece7a450849876228-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>Weinberger, K.</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">27</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">UCI machine learning repository</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dua</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Graff</surname></persName>
+		</author>
+		<ptr target="http://archive.ics.uci.edu/ml" />
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Ensembles for uncertainty estimation: Benefits of prior functions and bootstrapping. Transactions on Machine Learning Research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dwaracherla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Osband</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Asghari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">V</forename><surname>Roy</surname></persName>
+		</author>
+		<idno>2835- 8856</idno>
+		<ptr target="https://openreview.net/forum?id=IqJsyulDUX" />
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Try depth instead of weight correlations: Mean-field is a less restrictive assumption for deeper networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Farquhar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Gal</surname></persName>
+		</author>
+		<idno>abs/2002.03704</idno>
+		<ptr target="https://arxiv.org/abs/2002.03704" />
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Can end-users&apos; flood management decision making be improved by information about forecast uncertainty? Atmospheric Research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Frick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hegg</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="page" from="296" to="303" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Data analysis using regression and multilevel/hierarchical models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hill</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">From variational to deterministic autoencoders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ghosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S M</forename><surname>Sajjadi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vergari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Black</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</author>
+		<ptr target="https://openreview.net/forum?id=S1g7tpEYDS" />
+	</analytic>
+	<monogr>
+		<title level="m">8th International Conference on Learning Representations</title>
+		<meeting><address><addrLine>Addis Ababa, Ethiopia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="volume">2020</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Homo heuristicus: Why biased minds make better inferences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gigerenzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Brighton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in cognitive science</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="107" to="143" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Helping doctors and patients make sense of health statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gigerenzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gaissmaier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kurz-Milcke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Woloshin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological science in the public interest</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="53" to="96" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Strictly proper scoring rules, prediction, and estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gneiting</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Raftery</surname></persName>
+		</author>
+		<idno type="DOI">10.1198/016214506000001437</idno>
+		<ptr target="https://doi.org/10.1198/016214506000001437" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American Statistical Association</title>
+		<imprint>
+			<biblScope unit="volume">102</biblScope>
+			<biblScope unit="issue">477</biblScope>
+			<biblScope unit="page" from="359" to="378" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Icebreaker: Element-wise efficient information acquisition with a bayesian deep latent gaussian model</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tschiatschek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nowozin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Hernández-Lobato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zhang</surname></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper_files/paper/2019/file/c055dcc749c2632fd4dd806301f05ba6-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>Wallach, H., Larochelle, H., Beygelzimer, A., d&apos;Alché-Buc, F., Fox, E., and Garnett, R.</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">32</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">In pursuit of error: A survey of uncertainty visualization evaluation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Qiao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Correll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kale</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE transactions on visualization and computer graphics</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="903" to="913" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Maximizing overall diversity for improved uncertainty estimates in deep ensembles</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mueller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gifford</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename></persName>
+		</author>
+		<idno type="DOI">10.1609/aaai.v34i04.5849</idno>
+		<ptr target="https://ojs.aaai.org/index" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2020-04" />
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="4264" to="4271" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Uncertain context: Uncertainty quantification in machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Jalaian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Russell</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AI Magazine</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="40" to="49" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">To trust or not to trust a classifier</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">Y</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gupta</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 32nd International Conference on Neural Information Processing Systems, NIPS&apos;18</title>
+		<meeting>the 32nd International Conference on Neural Information Processing Systems, NIPS&apos;18<address><addrLine>Red Hook, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="5546" to="5557" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Decisions with uncertainty: The glass half full</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Joslyn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Leclerc</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Current Directions in Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="308" to="315" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">What uncertainties do we need in bayesian deep learning for computer vision</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kendall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">; I</forename><surname>Gal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">V</forename><surname>Luxburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Wallach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fergus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vishwanathan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Garnett</forename></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper_files/paper/2017/file/2650d6089a6d640c5e85b2b88265dc2b-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>R.</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">30</biblScope>
+		</imprint>
+	</monogr>
+	<note>Guyon,</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">DEUP: Direct epistemic uncertainty prediction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lahlou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nekoei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">I</forename><surname>Butoi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bertin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rector-Brooks</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Korablyov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno>2835- 8856</idno>
+		<ptr target="https://openreview.net/forum?id=eGLdVRvvfQ" />
+	</analytic>
+	<monogr>
+		<title level="j">Transactions on Machine Learning Research</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Towards a science of human-ai decision making: a survey of empirical studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">V</forename><surname>Liao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Smith-Renner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Tan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.11471</idno>
+		<imprint>
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Simple and scalable predictive uncertainty estimation using deep ensembles</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Lakshminarayanan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pritzel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Blundell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Neural Information Processing Systems, NIPS&apos;17</title>
+		<meeting>the 31st International Conference on Neural Information Processing Systems, NIPS&apos;17<address><addrLine>Red Hook, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="6405" to="6416" />
+		</imprint>
+	</monogr>
+	<note>ISBN 9781510860964</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Learning weight uncertainty with stochastic gradient mcmc for shape classification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Stevens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Pu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Gan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carin</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename></persName>
+		</author>
+		<idno type="DOI">10.1109/CVPR.2016.611</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE Computer Society Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Computer Society Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016-12" />
+			<biblScope unit="page" from="5666" to="5675" />
+		</imprint>
+	</monogr>
+	<note>Generated from Scopus record by KAUST IRTS on 2021-02-09</note>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Universal adversarial perturbation via prior driven uncertainty approximation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ji</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Huang</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/ICCV.2019.00303</idno>
+		<ptr target="https://doi.org/10.1109/ICCV.2019" />
+	</analytic>
+	<monogr>
+		<title level="m">2019 IEEE/CVF International Conference on Computer Vision, ICCV 2019</title>
+		<meeting><address><addrLine>Seoul, Korea (South)</addrLine></address></meeting>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2019-11-02" />
+			<biblScope unit="page" from="2941" to="2949" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Accurate uncertainty estimation and decomposition in ensemble learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Paisley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-A</forename><surname>Kioumourtzoglou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Coull</surname></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper_files/paper/2019/file/1cc8a8ea51cd0adddf5dab504a285915-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>Wallach, H., Larochelle, H., Beygelzimer, A., d&apos;Alché-Buc, F., Fox, E., and Garnett, R.</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">32</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Multiplicative normalizing flows for variational bayesian neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Louizos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Welling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 34th International Conference on Machine Learning</title>
+		<meeting>the 34th International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page" from="2218" to="2227" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Effects of information availability on commandand-control decision making: Performance, trust, and situation awareness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Marusich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Z</forename><surname>Bakdash</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Onal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schaffer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>O'donovan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Höllerer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Buchler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gonzalez</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/0018720815619515</idno>
+		<idno type="PMID">26822796</idno>
+		<ptr target="https://doi.org/10.1177/0018720815619515" />
+	</analytic>
+	<monogr>
+		<title level="j">Human Factors</title>
+		<imprint>
+			<biblScope unit="volume">58</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="301" to="321" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">Communicating uncertainty in weather forecasts: A survey of the us public. Weather and forecasting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Morss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Demuth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Lazo</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page" from="974" to="991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Uncertainty forecasts improve decision making among nonexperts</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Nadav-Greenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Joslyn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cognitive Engineering and Decision Making</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="209" to="227" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title level="m" type="main">Bayesian learning for neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Neal</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012" />
+			<publisher>Springer Science &amp; Business Media</publisher>
+			<biblScope unit="volume">118</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">UQGAN: A unified model for uncertainty quantification of deep classifiers trained via conditional GANs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Oberdiek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Fink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rottmann</surname></persName>
+		</author>
+		<ptr target="https://openreview.net/forum?id=djOANbV2zSu" />
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>Oh, A. H., Agarwal, A., Belgrave, D., and Cho, K.</editor>
+		<imprint>
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Understanding uncertainty: How lay decision-makers perceive and interpret uncertainty in human-ai decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Prabhudesai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Asthana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Huan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">V</forename><surname>Liao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Banovic</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3581641.3584033</idno>
+		<ptr target="https://doi.org/10.1145/3581641.3584033" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 28th International Conference on Intelligent User Interfaces, IUI &apos;23</title>
+		<meeting>the 28th International Conference on Intelligent User Interfaces, IUI &apos;23<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="page" from="379" to="396" />
+		</imprint>
+	</monogr>
+	<note>Association for Computing Machinery</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Bayesian probabilistic matrix factorization using markov chain monte carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mnih</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1390156.1390267</idno>
+		<idno>9781605582054. doi: 10.1145/ 1390156.1390267</idno>
+		<ptr target="https://doi.org/10.1145/1390156.1390267" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 25th International Conference on Machine Learning, ICML &apos;08</title>
+		<meeting>the 25th International Conference on Machine Learning, ICML &apos;08<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2008" />
+			<biblScope unit="page" from="880" to="887" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Markov chain monte carlo and variational inference: Bridging the gap</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Welling</surname></persName>
+		</author>
+		<ptr target="https://proceedings.mlr.press/v37/salimans15.html" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 32nd International Conference on Machine Learning</title>
+		<editor>Bach, F. and Blei, D.</editor>
+		<meeting>the 32nd International Conference on Machine Learning<address><addrLine>Lille, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-07" />
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="7" to="09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">A meta-analysis of the utility of explainable artificial intelligence in human-ai decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schemmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hemmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Nitsche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kühl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vössing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2022 AAAI/ACM Conference on AI, Ethics, and Society</title>
+		<meeting>the 2022 AAAI/ACM Conference on AI, Ethics, and Society</meeting>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="page" from="617" to="626" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Evidential deep learning to quantify classification uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sensoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kandemir</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 32nd International Conference on Neural Information Processing Systems, NIPS&apos;18</title>
+		<meeting>the 32nd International Conference on Neural Information Processing Systems, NIPS&apos;18<address><addrLine>Red Hook, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="3183" to="3193" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Uncertainty-aware audiovisual activity recognition using deep bayesian variational inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Subedar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Krishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Tickoo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Huang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</title>
+		<meeting>the IEEE/CVF International Conference on Computer Vision (ICCV)</meeting>
+		<imprint>
+			<date type="published" when="2019-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Uncertainty quantification of end-to-end implicit neural representations for computed tomography</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Vasconcelos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">W</forename><surname>Teh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Uncertainr</surname></persName>
+		</author>
+		<idno>2835-8856</idno>
+		<ptr target="https://openreview.net/forum?id=jdGMBgYvfX" />
+	</analytic>
+	<monogr>
+		<title level="j">Transactions on Machine Learning Research</title>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Aleatoric uncertainty estimation with testtime augmentation for medical image segmentation with convolutional neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Aertsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Deprest</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ourselin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Vercauteren</surname></persName>
+		</author>
+		<idno>0925-2312. doi: 10.1016/j. neucom.2019.01.103</idno>
+	</analytic>
+	<monogr>
+		<title level="j">NEUROCOMPUTING</title>
+		<imprint>
+			<biblScope unit="volume">338</biblScope>
+			<biblScope unit="page" from="34" to="45" />
+			<date type="published" when="2019-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Speed-accuracy tradeoff and information processing dynamics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Wickelgren</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Psychologica</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="67" to="85" />
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Bayesian deep learning and a probabilistic perspective of generalization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Izmailov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 34th International Conference on Neural Information Processing Systems, NIPS&apos;20</title>
+		<meeting>the 34th International Conference on Neural Information Processing Systems, NIPS&apos;20<address><addrLine>Red Hook, NY, USA, 2020</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+		</imprint>
+	</monogr>
+	<note>ISBN 9781713829546</note>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Effect of confidence and explanation on accuracy and trust calibration in ai-assisted decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">V</forename><surname>Liao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">K</forename><surname>Bellamy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2020 conference on fairness, accountability, and transparency</title>
+		<meeting>the 2020 conference on fairness, accountability, and transparency</meeting>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="page" from="295" to="305" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

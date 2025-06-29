@@ -1,0 +1,1155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Using deep neural networks as a guide for modeling human planning</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ionatan</forename><surname>Kuperwajs</surname></persName>
+							<email>ikuperwajs@nyu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Center for Neural Science</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Heiko</forename><forename type="middle">H</forename><surname>Schütt</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Center for Neural Science</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wei</forename><forename type="middle">Ji</forename><surname>Ma</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Center for Neural Science</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">New York University</orgName>
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Using deep neural networks as a guide for modeling human planning</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>When developing models in cognitive science, researchers typically start with their own intuitions about human behavior in a given task and then build in mechanisms that explain additional aspects of the data. This refinement step is often hindered by how difficult it is to distinguish the unpredictable randomness of people&apos;s decisions from meaningful deviations between those decisions and the model. One solution for this problem is to compare the model against deep neural networks trained on behavioral data, which can detect almost any pattern given sufficient data. Here, we apply this method to the domain of planning with a heuristic search model for human play in 4-in-a-row, a combinatorial game where participants think multiple steps into the future. Using a data set consisting of 10, 874, 547 games, we train deep neural networks to predict human moves and find that they accurately do so while capturing meaningful patterns in the data. Thus, deviations between the model and the best network allow us to identify opportunities for model improvement despite starting with a model that has undergone substantial testing in previous work. Based on this analysis, we add three extensions to the model that range from a simple opening bias to specific adjustments regarding endgame planning. Overall, our work demonstrates the advantages of model comparison with a high-performance deep neural network as well as the feasibility of scaling cognitive models to massive data sets for systematically investigating the processes underlying human sequential decision-making.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>The standard approach to computational modeling in cognitive science involves handcrafting a model and specifying free parameters that are adjusted to produce behaviors consistent with empirical data <ref type="bibr" target="#b0">1,</ref><ref type="bibr">2</ref> . Model predictions are then evaluated using the parameter values that achieve the best match to the data. Based on these evaluations, the model is iteratively amended to reduce remaining errors. Whether a specific change is accepted or not is usually based on model comparison techniques, balancing the tradeoff between complexity and goodness of fit. This methodology yields interpretable models because all innovations are implemented by the researcher, but it provides no guidance for when to stop searching for candidate models or what changes to try. In this pipeline, there is no way to distinguish whether the unexplained variance represents natural variability in human behavior or could be explained by a crucial change to the model. Even if it can be determined that the model needs improvement, adjustments are usually based on intuition and manual engineering.</p><p>One method for addressing these limitations is to fit deep neural networks to behavioral data. Deep neural networks make minimal assumptions about underlying cognitive mechanisms and have sufficient capacity to represent virtually any computational process <ref type="bibr">3,</ref><ref type="bibr">4</ref> . Training a network to predict human behavior in a particular task allows the network to detect patterns in the data without requiring human understanding of these patterns. An important step is then validating that the network is indeed accurately capturing human decisions. After validation, the predictions from the network can be compared against a cognitive model's predictions. Namely, deviations between the model and the network guide the model improvement process by highlighting situations in which the model requires novel mechanisms to explain human behavior. When there is no clear way of summarizing or pooling data across many trials, this method is more effective than simply investigating the model's errors, which are often caused by noise that no model can explain. One potential problem with this approach is that neural networks are so flexible that they run the risk of overfitting. Regularization methods are a standard solution to overfitting in scenarios with limited data, while having access to a large data set for training can ameliorate this problem.</p><p>Consequently, neural network methods for guided model improvement have established themselves as an emerging field in cognitive science. The approach that we described in the previous paragraph is particularly useful in settings where the task is complex enough to extract additional meaningful information and when large-scale data exists to train relatively simple, feedforward network architectures. This method was pioneered to discover algorithms underlying human decision-making <ref type="bibr">5,</ref><ref type="bibr">6</ref> and categorization <ref type="bibr">7</ref> . A related line of work has started to develop recurrent neural networks for automated model discovery, thus far primarily in reinforcement learning environments <ref type="bibr">[8]</ref><ref type="bibr">[9]</ref><ref type="bibr">[10]</ref><ref type="bibr">[11]</ref> . Recurrent neural networks are notoriously more difficult to train A B D C <ref type="figure">Figure 1</ref>. Task and cognitive model. (A) An example board position in 4-in-a-row in the laboratory version of the task (top) and the gamified version used on the mobile platform (bottom). Two players, black and white or yellow circles and green stars, alternate placing pieces on the board, and the first player to connect four pieces in any orientation wins the game. (B) Features used in the heuristic function of the cognitive model, which are intermediate patterns to winning the game. Features with identical colors are constrained to the same weights, and the heuristic evaluation is a sum over the counts of these features. The model also includes a central tendency feature and a 4-in-a-row feature. (C) Illustration of the heuristic search algorithm. In the root position, black is to move. After expanding the root node with two candidate moves for black and evaluating the resulting positions using the heuristic function, the algorithm selects the highest value node (V = 2.3) on the second iteration and expands it with two candidate moves for white. The algorithm evaluates the resulting positions, and backpropagates the lowest value (V = 0.3), since white is the opponent, meaning that the value in the red solid box replaces the one in the red dashed box and the root node is updated to the highest value among its children (V = 1.8). On the next iteration, the algorithm will again expand the child node with the highest value. (D) Decision tree built by the model. The red nodes indicate the sequence of highest-value moves for both players. Note that different branches of the tree are evaluated to different depths. and analyze, but in turn can provide results for the simpler tasks and smaller data sets that are more ubiquitous throughout the field. Together, these approaches share the common goal of improving the process for developing cognitive models across a variety of domains.</p><p>Recently, a growing body of literature has started to examine the algorithms underlying human sequential decisionmaking <ref type="bibr">[12]</ref><ref type="bibr" target="#b12">[13]</ref><ref type="bibr" target="#b13">[14]</ref><ref type="bibr" target="#b14">[15]</ref><ref type="bibr" target="#b15">[16]</ref><ref type="bibr" target="#b16">[17]</ref><ref type="bibr" target="#b17">[18]</ref> . Planning involves the mental simulation of future actions and their consequences in order to make a decision, but evaluating every possible course of action in real-world environments is simply intractable. Therefore, a fruitful approach has been to employ tasks with larger state spaces than are typically used in cognitive science coupled with process-level models to investigate how people plan <ref type="bibr" target="#b18">19</ref> . This combination of complex tasks and models in addition to the fact that planning is an unobservable internal process limits traditional model development frameworks and makes it an ideal domain for testing more powerful methods. One such example is 4-in-a-row, a combinatorial game where players need to think multiple steps into the future to win ( <ref type="figure">Figure 1A</ref>). Additionally, human decisions have been well-described by a computational cognitive model in both laboratory and online experiments <ref type="bibr" target="#b19">20</ref> . These conditions make 4-in-a-row particularly fitting for an approach to model improvement driven by neural networks: a task with many different states where the key underlying features are hard to identify, a detailed model that is already informative about human planning but can be refined further, and a very large data set for training neural networks.</p><p>Here, our main contribution is to use deep neural networks to estimate the noise ceiling, or the best fit that can be achieved  <ref type="figure">Figure 2</ref>. Neural network architecture. The board is represented as a 2 ⇥ 4 ⇥ 9 tensor filled with zeros where there are no pieces and ones where there are pieces. One matrix encodes the user's pieces, and the second encodes the AI agent's pieces. The board representation is flattened to a 72-dimensional vector, and then passed into a series of hidden layers. Each hidden layer contains a fully connected layer, a ReLU nonlinearity, another fully connected layer, and then adds the input from skip connections (red dashed box). Finally, the fully connected output layer has 36 units and is passed through a softmax function, which yields the probability that the model assigns to the human player selecting each position of the board. In addition to varying the number of hidden layers in the network, the number of units per fully connected layer is also varied when testing different networks.</p><p>on the data, relative to a cognitive model and subsequently improve that model. We begin by describing the planning task and large-scale data set as well as the heuristic search model and neural network architecture. Specifically, we emphasize the methods used to fit the model and train the neural network such that they can be compared while making use of the entire data set. Then, we show that scaling up the size of the network approaches a satisfactory upper bound on the likelihood of predicting human moves, and that the best network matches human behavior well on a variety of quantitative and behavioral measures. We investigate the residuals between the model and the network, deriving various candidate model improvements from our analysis. Namely, we implement and test three distinct mechanisms that take into account early game biases, complex interactions between model features that result in overlooked moves, and novel features in the heuristic function. Taken together, our work highlights how deep neural networks and massive data sets can be leveraged to more systematically refine cognitive models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task and data set</head><p>Our task is a variant of tic-tac-toe, in which two players alternate placing tokens on a 4-by-9 board ( <ref type="figure">Figure 1A</ref>). The objective is to get four tokens in a row horizontally, vertically, or diagonally. This task, which we call 4-in-a-row, is at a level of complexity that far exceeds tasks commonly used in psychology, providing rich human behavior for which computational modeling is still tractable <ref type="bibr" target="#b18">19</ref> . The game has approximately 1.2 ⇤ 10 16 non-terminal states, and can be leveraged to study the interplay between different reinforcement learning systems <ref type="bibr" target="#b20">21</ref> , the nature of expertise <ref type="bibr" target="#b19">20</ref> , or comparisons between human and machine learning <ref type="bibr" target="#b21">22</ref> . Importantly, a cognitive model exists for this task, which provides a starting point for further model development.</p><p>We partnered with Peak, a mobile app company, to implement a visually enriched version of 4-in-a-row on their platform (https://www.peak.net), which users play at their leisure in their daily environment. We are currently collecting data at a rate of approximately 1.5 million games per month, and here we used a subset consisting of 82, 761, 594 moves from 10, 874, 547 games and 1, 234, 844 unique users collected between September 2018 and April 2019. In this version of the task, users always move first against an AI agent implementing the model of human planning that we describe in the next section, with parameters adapted from fits on previously collected human-versus-human games <ref type="bibr" target="#b19">20</ref> . We partitioned the data into three sets: 90% for training (9, 787, 093 games), 5% for validation (543, 727 games), and 5% for testing (543, 727 games). The training and testing sets were used for both the neural networks and the cognitive models, and the validation set was used to monitor learning and experiment with hyperparameters for the neural networks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Cognitive model of human planning</head><p>One of the main goals of this work is to iteratively improve an interpretable cognitive model of human planning by comparing its predictions with our best neural network and subsequently testing various mechanisms inspired by this analysis. To avoid confusion, the word model always signifies this cognitive model, while the deep neural network will be referenced as the  network. When we implement extensions of this cognitive model later on in the paper, we will further delineate by labeling each model. The model of interest combines a heuristic evaluation function ( <ref type="figure">Figure 1B</ref>), which is a weighted linear combination of board features <ref type="bibr" target="#b22">[23]</ref><ref type="bibr" target="#b23">[24]</ref><ref type="bibr" target="#b24">[25]</ref> , with the construction of a decision tree via best-first search ( <ref type="figure" target="#fig_1">Figure 3C</ref>-D). Best-first search iteratively expands nodes on the principal variation, or the sequence of actions that lead to the best outcome for both players given the current decision tree <ref type="bibr" target="#b25">26</ref> . To allow the model to capture variability in human play and make human-like mistakes, we added Gaussian noise to the heuristic function and included feature dropout. For each move the model makes, it randomly omits some features from the heuristic function before it performs search. Such feature omissions can be interpreted as lapses of selective attention <ref type="bibr" target="#b26">27</ref> . During search, the model also prunes the decision tree by removing branches with low heuristic value <ref type="bibr" target="#b12">13</ref> . In previous work, we used this model to fit behavioral data across a wide array of experiments and find robust evidence for increased planning depth with expertise <ref type="bibr" target="#b19">20</ref> . As such, the model has already been subject to extensive tuning and model comparison. While fitting the model, we estimated the log probability of a move in a given board position with inverse binomial sampling <ref type="bibr" target="#b27">28</ref> , and optimized the log-likelihood function with Bayesian adaptive direct search <ref type="bibr" target="#b28">29</ref> . A major technical challenge involves scaling up the fitting procedure for the cognitive model such that it makes use of the large-scale data set and is directly comparable to the neural network. To achieve this, we fit parameters for the entire training set. On each model evaluation, we evaluate the log-likelihood on 100, 000 trials. We found that this yields an unbiased and sufficiently precise estimate of overall performance. We then optimized this approximate likelihood for 20 different training runs and selected the best-performing parameter set for testing. On the test data set, we ran 100 repetitions per move to estimate a log-likelihood, followed by 200 simulations in each board position to get a probability distribution over move predictions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Neural network training</head><p>To achieve sufficiently high performance on our data set, we constructed a deep neural network architecture that can be systematically scaled up. All of our networks take a tensor representation of the current board state and return a probability distribution for the next move over all board positions. The predictions for different board positions are independent of each other in order to match the cognitive model. We encode each board as two 4 ⇥ 9 binary matrices. The first matrix has ones indicating the location of the user's pieces, while the second 4 ⇥ 9 matrix has ones marking where the AI agent's pieces are located. Unoccupied locations contain a zero in both matrices. Thus, the input to each network is 2 ⇥ 4 ⇥ 9, and the output of the network is a 36-dimensional vector, with each element representing a corresponding index of the board.</p><p>The architecture for our networks consists of an input layer that feeds into several hidden layers followed by an output layer ( <ref type="figure">Figure 2</ref>). The input layer flattens the 2 ⇥ 4 ⇥ 9 board into a 72-dimensional vector and projects it to the number of dimensions used by the hidden layers with a fully connected layer. Each hidden layer consists of two fully connected layers with a rectified linear function between them and skip connections. These skip connections add the input of the hidden layer to its output without transformation, and aid in avoiding the vanishing gradient problem <ref type="bibr" target="#b29">30</ref> . The output layer is a fully connected layer that projects from the dimensionality of the hidden layer to 36 units corresponding to the log probabilities for each board position. During training, we scaled the network architecture by varying the number of hidden layers as well as the number of units in each fully connected layer. In <ref type="figure">Figure S1A</ref>, we show an example loss curve for the largest network that we trained. We observed nearly identical performance on validation and test data that we did not use for training, indicating that overfitting is not an issue for our data set.  . Summary statistics as validation that the neural network exhibits human-like behavior. Each statistic is averaged by move number for moves made by users (black circles), the neural network (blue lines), or a random model (green dashed lines).</p><p>To eliminate potential predictions at squares occupied by pieces already on the board, we subtracted a large value from the output at these locations. The final softmax operator always sets the corresponding outputs to exactly 0 and normalizes the probability distribution over all open positions. This also nulls all gradients for the occupied positions such that their values are ignored for gradient backpropagation and learning during training. Prior work used convolutional networks to predict human moves in Go 31, 32 , and we initially tested similar architectures in our task. However, we consistently found that the convolutional networks performed worse than the fully connected layers in preliminary training runs. Therefore, we decided to move forward using only fully connected networks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Neural network evaluation</head><p>In order to predict human behavior, we trained a total of 25 networks that varied along two dimensions: the number of hidden layers and the number of units per layer, spanning a range from 5 to 80 layers and 200 to 4000 units. We continued scaling up the networks until the log-likelihood on the test data reached a plateau, meaning that additional increases in either dimension would not lead to significant increases in performance ( <ref type="figure" target="#fig_1">Figure 3A</ref>). The largest network achieved a negative log-likelihood of 1.87 per move and a prediction accuracy of 41.71% on the test data. Additionally, this network's log-likelihoods per move were highly correlated with the networks that are one step smaller in either direction, further supporting our conclusion that our results would not radically change with larger networks (Figure S1B-C). Therefore, we continue to analyze the largest network in the remainder of the paper. A full specification of the networks that we trained and their performance is available in <ref type="table">Table S1</ref>.</p><p>We then assessed whether the network convincingly captures behavioral patterns. We first considered the accuracy of the network's predictions ( <ref type="figure" target="#fig_1">Figure 3B</ref>) and the entropy of the network's output distributions ( <ref type="figure" target="#fig_1">Figure 3C</ref>), both broken down by move number. Intuitively, positions in the early game are harder to predict because they consist of fairly empty boards where no player can immediately win the game, and therefore result in lower accuracy and higher entropy for the network's output. Conversely, positions in the middle and late game are much easier to predict as there are fewer alternatives and more pieces to inform decision-making, leading to higher accuracy and lower entropy for the network's output. These positions are also more likely to contain winning moves, which lead to more stereotyped decisions. We then investigated the negative log-likelihood for the network's predictions as a function of playing strength, computed using Elo ratings <ref type="bibr" target="#b32">33</ref> , which are a standard metric for relative skill level in zero-sum games such as chess. Our network is able to more successfully capture the moves of stronger players compared to weaker ones ( <ref type="figure" target="#fig_1">Figure 3D</ref>), since unpredictable errors in gameplay are more common in the latter group. In <ref type="figure" target="#fig_3">Figures  S2-4</ref>, we show example board positions for each of the previous analyses, and in <ref type="figure" target="#fig_4">Figure S5A</ref>-B we further analyze network accuracy as a function of number of guesses and log-likelihoods for players with varying levels of gameplay experience.</p><p>Next, we computed a set of summary statistics that characterize human play in 4-in-a-row. For each move made by each user, we calculated the distance from the chosen square to the center of the board, the distance to pieces owned by that user, the distance to pieces owned by the opponent, the distance to the center of mass of that user's pieces, the distance to the center of mass of the opponent's pieces, the number of that user's pieces on the 8 squares neighboring the chosen square, and the number of opposing pieces on neighboring squares. We also indicated whether with their chosen move, the user created a threat to win on the next move or parried a threat from their opponent. We computed these statistics for moves made by the network in the same positions encountered by human players and for random moves. <ref type="figure" target="#fig_3">Figure 4</ref> shows the average of these summary statistics aggregated across all users in the test set as a function of move number. This analysis probes systematic patterns in people's gameplay, for example a tendency to start playing near the center of the board and gradually expand outwards. For all summary statistics, people deviated considerably from random, and the neural network matched the data almost exactly. In sum, these results establish that the neural network accurately captures human decision-making in 4-in-a-row.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Comparing the cognitive model and neural network</head><p>In terms of overall performance, the cognitive model that we have discussed so far, which we subsequently refer to as the baseline model, performed worse than the network on all measures that we tested. Specifically, the baseline model achieved a negative log-likelihood of 2.17 (0.30 more than the network) and prediction accuracy of 34.88% (6.83% less than the network) on the test data. Additionally, the network's predicted log-likelihood per move was typically higher than that of the model (t = 322.86, p &lt; 2 ⇤ 10 308 , <ref type="figure" target="#fig_4">Figure 5A</ref>). The baseline model's average accuracy per move was lower than the network's throughout the course of gameplay ( <ref type="figure" target="#fig_4">Figure S5C</ref>), and on the summary statistics, the model deviated further from human data than the network ( <ref type="figure" target="#fig_5">Figure S6</ref>). Thus, there is room for improving the baseline model. Having established that there exist mechanisms that describe aspects of human behavior but were overlooked in the construction of the baseline model, our goal is to identify and implement such mechanisms. An initial attempt at this might involve the traditional model development approach, namely directly comparing the baseline model to the data. However, even with the size of our data set, most board positions beyond the early game were only encountered once by human players. Therefore, many of the 2, 698, 483 board positions where the baseline model predicted that a different move was more likely than the one that humans actually made represent unpredictable random human behavior rather than a failure of the model. In  fact, board positions that resulted in a low log-likelihood for the baseline model were often not predicted well by the network either, and largely seemed to be human errors in gameplay such as overlooking an immediate win or making a random move ( <ref type="figure" target="#fig_5">Figure 6</ref>, first column). In short, direct comparisons between the model and data are not particularly informative. The neural network, however, provides a viable alternate to compare the baseline model against. To do so, we used the Kullback-Leibler (KL) divergence as a measure of the difference between the output distributions of the network and model on any given board position. By pooling information across board positions, the neural network can produce a better estimate of the difference between the model and the true human policy and can thus give better guidance for model improvements. Indeed, the largest differences between the baseline model and the neural network were more interpretable than the largest differences between the baseline model and the data ( <ref type="figure" target="#fig_5">Figure 6</ref>, second column). After sorting the deviations, we manually inspected the board positions with the highest KL divergence and grouped positions together that shared identifiable features. Then, for each deviation, we implemented a change to the model to address the differences between the model and the network based on our understanding of the task and the model. We then validated that the change indeed altered the model's predictions for the specific board positions that prompted the change. For example, when we added a new component to the model's heuristic value function, we passed a number of board positions from the subset of deviations as input, and compared across simulations that the model now predicts the correct move where the previous iteration did not. Only after this testing procedure did we fit the amended model to the data. More specifically, we identified three mechanisms that appeared to be shared across subsets of the largest deviations between the model and the network, each leading to a new iteration of the baseline model. We implemented these cumulatively: each model contains all features of the baseline model, any prior extensions, and a new extension.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Testing candidate model improvements</head><p>The first model extension consists of a corner bias for the opening move. The neural network comparison highlighted that users are quite likely to play in the corners in the opening, in particular in the upper left corner. There is no strategic reason for making these moves, but the network detects these preferences nonetheless. Since this pattern is especially prevalent on the first move ( <ref type="figure" target="#fig_4">Figure S5D</ref>), we added a set of parameters that can give higher value to moves being considered in each of the corners of the board <ref type="figure" target="#fig_4">(Figure 5B, left)</ref>. In terms of implementation, this mirrors the central tendency feature that is already present in the baseline model. While this was a fairly incremental model improvement in terms of negative log-likelihood on the test data as compared to the baseline model (t = 4.24, p = 2.28 ⇤ 10 5 , <ref type="figure" target="#fig_4">Figure 5C</ref>), it serves as an initial proof of concept for our methodology.</p><p>The second model extension targets defending against opponent threats. In our analysis, we noticed that the model often  <ref type="figure">Figure 7</ref>. Representative residuals between the defensive weighting model and the neural network (first column) and the phantom features model and the neural network (second column). The format for the board positions is the same as for <ref type="figure" target="#fig_5">Figure 6</ref>.</p><p>overlooks immediate losses in favor of promising offensive moves elsewhere on the board, while both users and the network do not systematically make these errors. An example of this is shown in rightmost board in the second column of <ref type="figure" target="#fig_5">Figure 6</ref>. This is particularly prevalent when the defensive move creates no new features for the player and the player can create multiple features for themselves closer to the center of the board. The explanation for the model's behavior is that it assigns relatively high value to the offensive moves, causing the defensive moves to be pruned from the search tree. Thus, the defensive moves are never explored, even after the moves that the model expands preferentially are evaluated during tree search. To fix this deviation, we specify a weight in the heuristic function that explicitly recognizes immediate opponent threats ( <ref type="figure" target="#fig_4">Figure 5B</ref>, middle). With this change, the defensive moves are now no longer overlooked, as they are almost always valued highly enough to avoid pruning. As such, the defensive weighting model significantly improved in terms of negative log-likelihood on the test data from the baseline (t = 33.48, p = 8.85 ⇤ 10 246 ) and opening bias models (t = 28.93, p = 5.25 ⇤ 10 184 , <ref type="figure" target="#fig_4">Figure 5C</ref>). This further validates our proposed approach, as we were able to account for an important, more complicated mechanism that we had no prior knowledge about beforehand. Without the neural network comparison, it would have been nearly impossible to detect this detrimental interaction between pruning and the heuristic evaluation in the end game. The final model extension adds phantom features. These were inspired by positions in which users preferentially play to create or defend against features that are already part of the heuristic function but do not have empty squares contained within the feature to eventually win the game. An example of this is shown in leftmost and center boards in the second column of <ref type="figure" target="#fig_5">Figure 6</ref>. We define these in the 3-in-a-row case on the edges of the board, and include them in the model's heuristic evaluation ( <ref type="figure" target="#fig_4">Figure 5B, right)</ref>. When looking at the log-likelihoods across training runs for the phantom features model, they are fairly similar overall to the defensive weighting model, with the best parameter set that we use for testing only resulting in a difference of 0.001. This final extension did not exceed the defensive weighting model's performance on the test set (t = 9.87, p = 5.54 ⇤ 10 23 ), but still improved from the baseline (t = 24.13, p = 1.32 ⇤ 10 128 ) and opening bias models (t = 19.59, p = 1.92 ⇤ 10 85 , <ref type="figure" target="#fig_4">Figure 5C</ref>). Thus, we have no evidence that people use phantom features in 4-in-a-row.</p><p>Treating the defensive weighting model as our best model variant, we show that the model's predicted log-likelihood per move is typically higher than that of the baseline model, and that this is particularly true in moves that had a high difference in terms of log-likelihood between the models ( <ref type="figure" target="#fig_4">Figure 5D</ref>). This suggests that our added mechanisms are correctly accounting for the moves that the baseline model was initially worst at predicting. Finally, we repeated our analysis of the largest differences between the two best model extensions and the neural network ( <ref type="figure">Figure 7</ref>). As expected, this revealed that the residuals for the defensive weighting model still contain the board positions that inspired our phantom features model, whereas the residuals for the phantom features model no longer contain these and instead highlight new deviations. This suggests that the lack of improvement shown by the phantom features model is due to a tradeoff between moves in which the phantom feature weights are helping and those in which they are not. In other words, despite accounting for the desired errors that the network is able to correctly predict, the phantom features model might require an alternate implementation. It is also possible that an entirely new mechanism altogether could account for these residual board positions. A full specification of the cognitive models that we tested and their performance is available in <ref type="table">Table S2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>In this paper, we trained deep neural networks to predict human moves in 4-in-a-row using a large-scale data set. We ensured that these networks estimate a reasonable upper bound on how well any model can explain human behavior by incrementally scaling up the networks and validating that any further scaling would result in marginal increases in performance. We then analyzed the best network, finding that the network captures general trends in human play. This provided us with a model that was able to predict human decisions more accurately than an interpretable cognitive model of human planning without requiring manual engineering. We then explored the positions in which the neural network was more accurate than the baseline model, leading to several candidate mechanisms for model improvement. Finally, we investigated the results from three new models that added an opening bias, defensive weighting, and phantom features, analyzing both overall goodness of fit and relative predictability compared to the neural network. Taken together, these results highlight the advantages of using deep neural networks as a guide for modeling human planning.</p><p>In comparing the neural network with our baseline model, our results suggested mechanisms that had not been previously considered and improved the model's performance in 4-in-a-row. The defensive weighting discovery in particular is a combination of the model's value function, forward search algorithm, and pruning mechanism that greatly affected its predictions in certain crucial positions, but would've been very difficult to detect without the neural network. Our findings also imply that further refinements for the model variants that we present here exist. For example, the opening bias that people display surely extends beyond just the first move and is more indicative of a faster, model-free process in the early game. Similarly, the phantom features could require a more sophisticated weighting of parameters or implementation altogether outside of the heuristic function to avoid any tradeoffs with other moves. Additionally, our approach can facilitate the generation of completely new hypotheses to explain the remaining residuals. An example in this category is reconsidering the underlying mechanism for the moves that inspired the phantom features model. Another unaddressed but consistent residual appeared for situations when the players did not start playing in the center of the board. In these games, people and the network tended to continue to play away from the center of the board in close proximity to existing pieces, while the model preferred building new central features. In sum, our approach allows for continued discovery and testing of novel mechanisms in the cognitive model. However, for the purpose of this paper, the existing set of extensions serve to primarily demonstrate the viability of guided model improvement via deep learning for complex models of human planning.</p><p>While our method provides a framework for guided model improvement with neural networks, it has several limitations. The first is that the effort of implementing, testing, and analyzing such networks might not be worth the effort if the task is simple enough. Many of the tasks that are utilized in psychology studies have a small enough state space that all substantially different situations can be investigated by hand and/or enough data is available for individual situations to make deviations between the raw data and model predictions meaningful. In such tasks, the utility of our approach is greatly reduced. Another limitation is that training neural networks requires large amounts of data. If less data is available, overfitting becomes a major concern for flexible architectures and the alternative of using less flexible network architectures implies biases in the network predictions that need to be justified. Additionally, such networks are inherently more challenging to train. Standardized tools for streamlining the neural network fitting process might alleviate these problems by reducing the burden on researchers to construct and analyze the networks. Collectively, such tool development might be worthwhile for cognitive science given the recent prominence of neural network-driven model improvement methods, but we do not provide such tools here. In terms of the method itself, a potential limitation is that we currently sort the trial-by-trial deviations and identify shared patterns manually. To automate the pattern extraction process, we could apply clustering or other machine learning methods to the board positions showing deviations between the network and the model. This would result in groups of board positions that we then inspect more closely for shared features. Another alternative might be to have 4-in-a-row "experts" who have played many games and have high estimated Elo ratings interpret the deviations between the model and neural network to reduce investigator bias. This mirrors studies in the chess literature <ref type="bibr" target="#b33">[34]</ref><ref type="bibr" target="#b34">[35]</ref><ref type="bibr" target="#b35">[36]</ref> , and could generate new ideas for potential model improvements.</p><p>What do the mechanisms that we identify from the deviations between the model and neural network tell us about planning and human cognition? One takeaway is that people have inherent biases, meaning that they consistently prefer one out of many equivalent solutions to problems when there is no rational reason to do so. Humans display such systematic biases in many tasks <ref type="bibr" target="#b36">37</ref> , and the literature on these biases and how to model them may be informative to structure the biases players show in 4-in-a-row and while planning more generally. Our model extensions also suggest that people's heuristic functions may be more sophisticated than a simple sum of features, accounting for complex tradeoffs between pieces on the board depending on the context of the board position. Further, we observed in earlier studies that individuals seem to evaluate positions differently, as feature weights vary when the cognitive model is fit to each participant. Adjusting the heuristic function to be more human-like and account for nuanced individual differences is a challenge, but the size of the data set paired with the neural network's predictions can guide this process. While these specific features of gameplay are tied to 4-in-a-row, they point to the interaction between heuristic evaluations and forward search, and how either of these mechanisms may change depending on the individual and context they are placed in. These are fundamental aspects of human planning, and uncovering more nuanced intuitions for how the mind navigates this process may provide principles that generalize across planning tasks.</p><p>More broadly, our work provides a framework for model construction that makes use of both deep neural networks and large-scale experiments. Cognitive science as a discipline has trended towards massive data sets collected via online studies, in part to obtain rich data in participants' real-world environments and clarify whether results derived from constrained laboratory tasks generalize. To this end, leveraging methods from machine learning to aid in model development is a particularly important undertaking for the field. Our approach is most useful in complex tasks where comparing a model directly with human decisions is noisy due to few repetitions of any particular state. In our case, both of the previous criteria were satisfied, albeit with a cognitive model that has already undergone rigorous testing against alternatives in previous work. It is reasonable to assume that the model refinement process would be greatly expedited in situations where tedious manual adjustments derived from intuition for the task can be avoided altogether. Therefore, we argue that this method will be valuable in the development of future cognitive models of planning as well as other complex human behavior. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Using deep neural networks as a guide for modeling human planning</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>SUPPLEMENTARY INFORMATION</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Large-scale mobile data</head><p>In collaboration with the mobile app company Peak (https://www.peak.net), we designed a large-scale study of people playing 4-in-a-row. When signing up for the app, users consented to a privacy policy, which included a provision that aggregated and anonymized data might be shared with third parties such as universities. The Institutional Review Board of New York University determined that no further consent was required and approved the research protocol as exempt.</p><p>Overall, we collected 11, 529, 163 games where users always play first and the game board itself is vertically oriented and gamified. Users play at-will against a computer opponent. We filtered the data to remove games where the user times out of any move, since timing out creates games where the computer opponent plays first or makes two consecutive moves. This procedure resulted in 82, 761, 594 moves from 10, 874, 547 games and 1, 234, 844 unique users. In order to generate the computer opponents, we made slight modifications to the cognitive model described in the main text and in greater detail later on in the supplement: (1) we used a pruning rule that keeps only the K highest-value children in each node of the search tree, (2) we added a scaling constant that multiplies the weights of features belonging to the opponent and for features of different orientation, and (3) we artificially added a delay to each computer move to simulate thinking times, which monotonically increased with the number of search iterations that the computer performed on each move. This ensured that the computer played faster in easy positions compared to hard ones. We created 7 classes of computer opponents of varying strength by specifying distinct parameter ranges derived from previous work 1 that corresponded to estimated Elo ratings 2 , and matched users with an opponent on each game based on their track record of game results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Neural network training and testing</head><p>The neural networks were all implemented using PyTorch 3 . We used stochastic gradient descent for training and reduced the learning rate if the loss associated with the validation set was stagnant for 3 epochs. The initial learning rate was set to 0.001, and we decayed the learning rate by a multiplicative factor of 0.2 at each decrease. We trained each network for a total of 10 epochs using a cross entropy loss function. Cross entropy loss is an appropriate choice for our task because it combines a logarithmic Softmax and negative log-likelihood, and is often used for classification problems where the goal is to assign weight to each of a number of classes. All layers had their biases initialized to 0 and weights drawn from a normal distribution with mean 0 and standard deviation 0.01, and we use a batch size of 128. In <ref type="figure">Figure S1A</ref>, we show example training and validation curves for the largest network. Curves for the remaining networks look similar, with a sharp improvement in the first few epochs that flattens out in later epochs, along with a minor effect caused by decreasing the learning rate.</p><p>In <ref type="figure">Figure S1B</ref>-C, we validated the network's training procedure by showing that the likelihoods are correlated between the largest network and the networks that are one step smaller in terms of either number of units per layer or number of hidden layers. In <ref type="table">Table S1</ref>, we enumerate all combinations of networks that we trained, including the average negative log-likelihood per move and overall accuracy on the test set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Cognitive model specification</head><p>Here we give an overview of the cognitive model of human planning, and full algorithmic details necessary for implementation are available in the paper that introduces and describes the model 1 . The model combines tree search with a feature-based value function, stochastic feature dropping, and value-based pruning.</p><p>The core component of the model is an evaluation function V (s) which assigns values to board states s <ref type="bibr">[4]</ref><ref type="bibr">[5]</ref><ref type="bibr">[6]</ref> . The higher this value, the more likely the player is to win from that state. We assume that people use value function approximation 7 such that A C B <ref type="figure">Figure S1</ref>. Neural network training procedure. (A) Training and validation curves over the 10 training epochs for the best network, which has 80 hidden layers and 4, 000 units per layer. (B) Scatterplot of the negative log-likelihood for every move on the test data set between the best network and the network with 80 hidden layers but only 2, 000 units per layer (r = 0.99, p &lt; 2 ⇤ 10 308 ). (C) Same as (B), but comparing the best network with the network that has 4, 000 units per layer but only 40 hidden layers (r = 0.99, p &lt; 2 ⇤ 10 308 ).  <ref type="table">Table S1</ref>. All trained neural networks designated by a combination of the number of hidden layers and number of units per layer. Each network has a corresponding average negative log-likelihood per move as well as overall prediction accuracy on the test data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Number of hidden layers Number of units per layer NLL Accuracy</head><p>their value function is a weighted linear sum of features. For this sum, we used the following 5 features: center, connected 2-in-a-row, unconnected 2-in-a-row, 3-in-a-row and 4-in-a-row. The center feature assigns a value to each square corresponding to inverse Euclidean distance from the board center, and sums up the values of all squares occupied by the player's pieces. The  <ref type="table">Table S2</ref>. All tested cognitive models designated by added mechanism. Each model represents the best parameter combination on the training data over 20 runs, and has a corresponding average negative log-likelihood per move as well as overall prediction accuracy on the test data.</p><p>other 4 features count how often the associated pattern occurs on the board horizontally, vertically, or diagonally. We associate weights w i to these features, and define the value function as follows:</p><formula xml:id="formula_0">V (s) = 4 Â i=0 w i f i (s, self) 4 Â i=0 w i f i (s, opponent).<label>(1)</label></formula><p>The evaluation function guides the construction of a decision tree with an iterative best-first search algorithm <ref type="bibr">8</ref> . Each iteration, the algorithm chooses a board position to explore, evaluates the positions resulting from each legal move, and prunes all moves with value below that of the best move minus a threshold q . The algorithm has a stopping probability g, resulting in a geometric distribution over the number of iterations.</p><p>To account for variability in people's choices, we added three sources of noise. Before constructing the decision tree, we randomly dropped features at specific locations and orientations to model selective attention, which are omitted during the calculation of V (s). During tree search, we added Gaussian noise to V (s) at each node. Finally, we included a lapse rate l .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model extension specification</head><p>To iterate on the baseline model, we implemented mechanisms inspired by comparison with the best neural network. Specifically, we investigated the board positions that resulted in the largest difference in terms of predictability between the neural network and the baseline model. This resulted in three model variants, which we describe in this section. Note that each model addition is kept for later extensions. For example, the defensive weighting model has all mechanisms of the baseline model, the opening bias mechanism, and the additional defensive weighting mechanism. The negative log-likelihoods for each of these model variants on the test data set as well as their overall accuracy are shown in <ref type="table">Table S2</ref>. The opening bias model was inspired by early game moves that are played towards the left side of the board and the corners of the board, a phenomenon that can be corroborated by looking at the histogram of first moves made by users in the data set ( <ref type="figure" target="#fig_4">Figure S5D</ref>). Therefore, we added 4 feature weights to V (s), which are only active on the opening move and correspond to each of the corners of the board. This allows the model to more flexibly predict human moves that stray from the center of the board. While this addition improved the model fit, the magnitude of the effect is minor, likely because it only affects 1 out of the possible 18 moves that a player makes in any given game. A more sophisticated mechanism could extend these biases to all moves by decaying their influence throughout gameplay. Even further, humans likely use a retrospective system in early game decisions where planning is less informative <ref type="bibr">9</ref> . If this is the case, these biases might be shaped by habit or the success of certain opening sequences in previous games. Investigating the tradeoff between prospective and retrospective decision-making is out of the scope of the current paper, but is an entire field in and of itself and integrating such a mechanism into this model would most likely improve its performance. The defensive weighting model was inspired by situations where the baseline model failed to defend against immediate threats. In specific positions where the human player should defend against an immediate loss, the baseline model predicts that the user will instead create high-value features for themselves elsewhere on the board. This happened when the created features were valued much more highly than the removed 3-in-a-row feature for the opponent, such that the defending move was pruned from the decision tree. Both the neural network and the data did not show this pattern of oversights. To fix this, we added another feature weight to V (s), which explicitly targets immediate threats made by the opponent. With this change, leaving a winning move for the opponent on the board is devalued such that the move that defends against this threat is not pruned from the tree. Additionally, we noticed that the baseline model could not overlook 4-in-a-row features during its search because it used the correct win condition to build the tree. To enable overlooking the 4-in-a-row feature, we made the detection of terminal states dependent on the 4-in-a-row feature instead and fixed the value for this feature to the arbitrary, very high value of 10, 000. This is certainly not the only possible implementation to push the model to consider defending against immediate threats, but it successfully eliminated these errors and improved the model fit. Beyond that, it is certainly plausible that people pay special attention to opponent threats as a cognitive mechanism.  Finally, the phantom features model was inspired by board positions in which the the network and humans seemed to create or defend against 3-in-a-row features where there is no space for the final piece needed to win the game. The features in the baseline model all require that there are empty squares on the board to complete a 4-in-a-row. We enumerated the 4 3-in-a-rows that occur in the corners of the board following this pattern, and added a feature weight that scales their contribution to V (s). Interestingly, this did not improve the model fit from the defensive weighting model although it did improve the predictions for the board positions that we based this extension on. This means that adding these features is causing the model to perform worse in other positions. A more general mechanism might take this tradeoff into account by, for example, checking the proximity of the piece that is being considered by the player to the rest of their own pieces. Another possibility is that these boards do not represent phantom features at all, but rather a different mechanism that can still account for these board positions. Regardless, this extension can be iterated on further to create a better cognitive model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>3/8</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model fitting</head><p>The baseline model has 9 parameters: the 5 feature weights, the pruning threshold q , stopping probability g, the feature drop rate d , and the lapse rate l . For the various model improvements, we added a few additional parameters: the 4 corner weights for the opening move, the defensive scaling weight, and the phantom features weight. For the defensive weighting and phantom features model variants, we removed one of the feature weights from the baseline model, namely the one for 4-in-a-row that is replaced by a fixed high value. Therefore, our model improvements have a total of either 13 or 14 parameters.</p><p>Unfortunately, deriving the log-likelihood analytically requires marginalization of all latent variables (i.e. which features are dropped, the value at each node and the number of iterations in the search algorithm), which is intractable. Instead, we estimated the log probability in a given board position with inverse binomial sampling (IBS) <ref type="bibr">10</ref> , which compares the data to simulated data generated from the model. IBS is unbiased but its estimates are noisy. Additionally, we cannot calculate gradients of the log-likelihood, so we optimized the log-likelihood function with Bayesian adaptive direct search <ref type="bibr">11</ref> . In past work, the cognitive model was fit to individual users using 5-fold cross-validation to reduce overfitting. Since we wanted to make the model fits comparable with the neural network, we inferred parameters while treating the entire training set as one user, effectively eliminating any concerns regarding overfitting. To make this computationally feasible, we evaluated the log-likelihood on 100, 000 trials that are randomly sampled for each evaluation. We tested both lower and higher numbers of evaluations, deciding on the value that balanced reliability of the likelihood estimates across training runs as well as fitting time. For each model variant, we ran the fitting procedure 20 different times, choosing the combination of parameters that resulted in  <ref type="figure" target="#fig_1">Figure S3</ref>. Example high and low entropy board positions for the neural network's output distribution. The format for the board positions is the same as for <ref type="figure" target="#fig_7">Figure S2</ref>. the best log-likelihood. On the test data set, we then ran 100 repetitions to estimate the log-likelihoods for each move and 200 simulations in each board position to get a probability distribution over potential moves.</p><p>The fitting pipeline for both the neural network and the planning models is computationally expensive. We performed the model fits on the NYU high-performance computing cluster (Intel Xeon E5-2690v2 CPUs 3.0GHz). All of our code is implemented in parallel, including data loading and IBS. On our hardware, fitting takes anywhere from one or two days to a week depending on the size of the network or the number of evaluations used for the planning model. In this article, we trained a total of 25 neural networks and fit a total of 80 cognitive models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Example board positions</head><p>In order to ensure that the best neural network is capturing human gameplay in 4-in-a-row with its predictions, we examined board positions sorted according to different criteria. In this section we provide a number of illustrative examples for each analysis. For the accuracy analysis, we sorted board positions by the negative log-likelihood of the network's prediction compared to the data ( <ref type="figure" target="#fig_7">Figure S2</ref>). High accuracy boards were those in which there was an immediate win or loss present, or a combination of both, and the user made the same move as the network. Low accuracy boards were those in which the human made a clear error in gameplay, usually playing far away from the pieces on the board. These positions also typically include an immediate win or loss, or just a generally strong move to make that the network favors. This further serves to show that the network is approximating human behavior, minus the mistakes that we are not interested in capturing with any model. For the entropy analysis, we sorted board positions by the entropy H of the network's output distribution p n ( <ref type="figure" target="#fig_1">Figure S3</ref>):</p><formula xml:id="formula_1">H = Â p n ⇤ log(p n ).</formula><p>(2)</p><p>High entropy boards were those in which the network was unsure of where to play, typically consisting of only a few pieces on the board where presumably human behavior is highly variable. Even in these positions, the network assigns higher probability to squares adjacent to existing pieces on the board where people tend to play. Meanwhile, low entropy boards where the network is sure of its prediction were similar to high accuracy boards, with the network and the data agreeing on exploiting 3-in-a-rows for the player or defending against opponent 3-in-a-rows. Once again, this shows that the network is behaving in a way that aligns with our intuitions about gameplay in 4-in-a-row, confidently predicting human moves when user behavior is more stereotyped and there are more pieces on the board.</p><p>For the playing strength analysis, we estimated a user's playing strength from games against computer opponents using Elo ratings 2 ( <ref type="figure" target="#fig_3">Figure S4</ref>). More specifically, we used the publicly available program Bayeselo 12 . To measure Elo ratings of  <ref type="figure" target="#fig_3">Figure S4</ref>. Example board positions played by stronger and weaker users for the neural network's predictions. The format for the board positions is the same as for <ref type="figure" target="#fig_7">Figure S2</ref>. all players against a common baseline, we ran Bayeselo on a database containing all human-versus-computer games and a simulated computer-versus-computer tournament, in which each computer plays once against every other computer, including itself. Ratings calculated for relatively few games can be statistically unreliable, so we included only players who had played at least 20 total games played in our analysis, resulting in 115, 968 unique users. We used a common baseline to compute Elo ratings across all experimental data, which outputs an Elo rating for each user and AI agent in the data set that can be directly compared to one another. Moves made by players with higher Elo ratings tended to be easier for the network to correctly predict, as stronger players play more consistently and make fewer errors. For example, strong players tend to create features for themselves or block opponent features when it is rational to do so, and they play in the most common squares of the board as predicted by the network in the opening. Moves made by players with lower Elo ratings tended to be more difficult for the network to correctly predict, as weaker players make more mistakes and have more lapses in gameplay. This includes behaviors like playing far away from existing pieces, overlooking opportunities to create or defend against strong features, and playing away from the center on the first move.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Neural network validation</head><p>We conducted a few additional analyses to corroborate the neural network's performance and compare with the cognitive model. First, we validated that giving the network more opportunities to correctly predict the human move quickly converged to 100% accuracy ( <ref type="figure" target="#fig_4">Figure S5A</ref>). This was indeed the case when averaged by move number, as the network starts out at its overall accuracy of 41.71% with a single guess, and converges to near perfect accuracy with only a few additional guesses. This is important as a sanity check that even if the network is wrong about the human move, the correct move is still among the top candidates. Next, we investigated the effect of experience on the negative log-likelihood of the network's predictions ( <ref type="figure" target="#fig_4">Figure S5B</ref>). Number of games played is roughly correlated with Elo ratings, and repeating our playing strength analysis with experience resulted in a similar decreasing trend. Further, looking at the board positions associated with different experience levels provided additional evidence for the relationship between playing strength and experience. As expected, high experience players made moves and were predicted by the network similarly to stronger players and low experience players make errors and were predicted by the network similarly to weaker players.</p><p>In order to further compare the neural network with the cognitive model, we repeated a number of analyses from the main text with the model. One of these is average accuracy as a function of move number, where the model shows a similar trend across gameplay as the network but with a consistently lower accuracy ( <ref type="figure" target="#fig_4">Figure S5C</ref>). Finally, we computed all 9 summary statistics for the model as well. Overall, the model performs similarly to the network (and in turn the data) on many of these, highlighting the fact that the model was already capturing many aspects of human play. This was expected given the large  <ref type="figure" target="#fig_3">Figure S4</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A C B</head><p>D E I H G F <ref type="figure" target="#fig_5">Figure S6</ref>. Comparison of summary statistics between the neural network and the baseline model. Each statistic is averaged by move number for the neural network (blue lines) and the baseline model (orange lines).</p><p>number of iterations on the model in previous work <ref type="bibr" target="#b0">1</ref> . The largest deviations between the network and the model occurred in a few distinct places: (1) the distance to the center of the board in the early game where the network strayed from the center more than the model does, (2) the number of threats made where the model both overestimated and underestimated the rate at which to create 3-in-a-rows at different points in gameplay, and (3) the number of threats defended against where the model played too defensively in the middle game. These differences relate to the mechanisms we extracted from our comparison of the model and the network that we ended up implementing in our model extensions. This analysis was done in the main text by looking at board positions with high Kullback-Leibler divergence L between the network's output distribution p n and the model's output distribution p b on every move, defined as:</p><formula xml:id="formula_2">L = p b ⇤ log p b p n = p b ⇤ (log p b log p n ).<label>(3)</label></formula></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Scaling up the neural network achieves a satisfactory upper bound on goodness of fit. (A) Negative log-likelihood on the test data set as a function of the number of hidden layers and number of units per hidden layer in each network. (B) Accuracy as a function of move number for the best neural network, averaged across the test set. (C) Entropy of the best neural network's output distribution as a function of move number, averaged across the test set. (D) Negative log-likelihood on the test data set as a function of playing strength, computed as an Elo rating (binned into quantiles).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4</head><label>4</label><figDesc>Figure 4. Summary statistics as validation that the neural network exhibits human-like behavior. Each statistic is averaged by move number for moves made by users (black circles), the neural network (blue lines), or a random model (green dashed lines).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Iterating over cognitive model extensions using the neural network. (A) Density plot of the difference in log-likelihood per move in the test set for the neural network and baseline model. Inset is the histogram version of the same log-likelihood difference (mean of baseline minus neural network: 0.29993 ± 0.00039). (B) Model extensions derived from comparing the board positions that the neural network correctly predicted and the baseline model did not. (C) Negative log-likelihood for each model extension for the best set of parameters across 20 different fitting runs on the training data (light orange) as well as averaged across each move in the test set for the same parameters (dark orange). Error bars indicate the standard error of the mean for the test set. (D) Density plot of the difference in log-likelihood per move in the test set for the defensive weighting model and baseline model (mean of baseline minus defensive weighting: 0.03097 ± 0.00022).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 6 .</head><label>6</label><figDesc>Representative residuals between the baseline model and the data (first column) and the baseline model and the neural network (second column). For each board position, we report the KL divergence between the output distributions of the model and the network, as well as the negative log-likelihood of the human move for the model and the network. The user is playing black while the computer opponent is playing white. Additionally, the red shading indicates the probability distribution of the network's move prediction, the open circle indicates the user's selected move, and the dashed circle indicates the baseline model's predicted move.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure S2 .</head><label>S2</label><figDesc>Example high and low accuracy board positions for the neural network's predictions. The user is playing black while the computer opponent is playing white. Additionally, the red shading indicates the probability distribution of the network's move prediction and the open circle indicates the user's selected move.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure S5 .</head><label>S5</label><figDesc>Additional validation that the neural network achieves a satisfactory upper bound on goodness of fit and exhibits human-like behavior. (A) Accuracy as a function of the number of guesses given to the neural network to correctly predict the human move, averaged across the test test. (B) Negative log-likelihood on the test data set as a function of the user's experience level, or total number of games played (binned into quantiles). (C) Accuracy as a function of move number for the neural network (blue) and baseline model (orange), averaged across the test set. (D) Histogram of the user's first move across all games in the data set, which the network approximates. An example board position where the network's opening move distribution is shown can be found in</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Large differences between the baseline model and the data</head><label></label><figDesc></figDesc><table><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="3">Large differences between the baseline</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="3">model and the neural network</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>neural network</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>probability</cell></row><row><cell>Board position</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>human move</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>baseline model</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>prediction</cell></row><row><cell>KL divergence</cell><cell>0.014</cell><cell>0.000</cell><cell>0.014</cell><cell>0.093</cell><cell>0.083</cell><cell>0.074</cell></row><row><cell>Baseline model</cell><cell>8.491</cell><cell>8.491</cell><cell>8.480</cell><cell>2.789</cell><cell>2.875</cell><cell>1.871</cell></row><row><cell>Neural network</cell><cell>10.489</cell><cell>11.893</cell><cell>5.731</cell><cell>0.068</cell><cell>0.332</cell><cell>0.054</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>6/12</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2"><head>Board position KL divergence Model extension Neural network Large differences between the defensive weighting model and the neural network Large differences between the phantom features model and the neural network</head><label></label><figDesc></figDesc><table><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>neural network</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>probability</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>human move</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>model extension</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>prediction</cell></row><row><cell>0.094</cell><cell>0.093</cell><cell>0.090</cell><cell>0.087</cell><cell>0.086</cell><cell>0.082</cell></row><row><cell>2.378</cell><cell>2.728</cell><cell>2.364</cell><cell>2.086</cell><cell>2.450</cell><cell>2.547</cell></row><row><cell>0.317</cell><cell>0.332</cell><cell>0.162</cell><cell>0.404</cell><cell>0.814</cell><cell>0.224</cell></row></table><note></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3"><head>Ionatan Kuperwajs 1,* , Heiko H. Schütt 1 , and Wei Ji Ma 1,2</head><label></label><figDesc>New York University, Center for Neural Science, New York, NY, United States 2 New York University, Department of Psychology, New York, NY, United States</figDesc><table /><note>1* ikuperwajs@nyu.edu</note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>We thank Peak for the task implementation and large-scale data collection. We thank Gianni Galbiati for testing early versions of the convolutional network architecture on the task, as well as Bas van Opheusden for helpful discussions regarding the cognitive model fitting and improvements. This work was supported by grant IIS-1344256 from the National Science Foundation and by grants R01MH118925 and R21MH126269 from the National Institutes of Health to W.J.M., as well as by Graduate Research Fellowship number DGE183930 from the National Science Foundation to I.K.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Code availability</head><p>Source code for the project is available at two separate repositories: one for for the deep neural networks and subsequent analysis (https://github.com/ionatankuperwajs/4IAR-nns) and another for the implementation of the baseline model and the model improvements (https://github.com/ionatankuperwajs/4IAR-improvements).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data availability</head><p>The data set used throughout the current study is not publicly available per the agreement between NYU and Peak. The trained neural networks and cognitive model fits and parameters are however available upon request from the corresponding author. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Competing interests</head><p>The authors declare no competing interests.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Additional information</head><p>Supplementary information is available for this paper. Correspondence and requests for materials should be addressed to ikuperwajs@nyu.edu.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Busemeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Diederich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Cognitive</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Modeling</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+			<pubPlace>Sage</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Trial-by-trial data analysis using computational models. Decis. making, affect, learning: Atten. performance XXIII</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="page">23</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">On the computational power of neural nets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">T</forename><surname>Siegelmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Sontag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. computer system sciences</title>
+		<imprint>
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="page" from="132" to="150" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Deep learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">nature</title>
+		<imprint>
+			<biblScope unit="volume">521</biblScope>
+			<biblScope unit="page" from="436" to="444" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Scaling up psychology via scientific regret minimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Peterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proc. Natl. Acad. Sci</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page" from="8825" to="8835" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Using large-scale experiments and machine learning to discover theories of human decision-making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Peterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Bourgin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Reichman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">372</biblScope>
+			<biblScope unit="page" from="1209" to="1214" />
+			<date type="published" when="2021" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Capturing human categorization of natural images by combining deep networks and cognitive models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Battleday</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Peterson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. communications</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="1" to="14" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Models that learn how humans learn: the case of decision-making and its disorders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ramos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">W</forename><surname>Balleine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page">1006903</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Predictive and interpretable: Combining artificial neural networks and classic cognitive models to understand human learning and decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Summerfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="page" from="2023" to="2028" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Cognitive model discovery via disentangled rnns</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Eckstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Kurth-Nelson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023" />
+			<biblScope unit="page" from="2023" to="2029" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Automatic discovery of cognitive strategies with tiny recurrent neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ji-An</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Benna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Mattar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note>bioRxiv 2023-04</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Model-based influences on humans&apos; choices and striatal prediction errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Daw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Seymour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuron</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page" from="1204" to="1215" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Bonsai trees in your head: how the pavlovian system sculpts goal-directed choices by pruning decision trees</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">J</forename><surname>Huys</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">1002410</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Prospective optimization with limited resources</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Snider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Poizner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gepshtein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS Comput. Biol</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page">1004501</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Optimizing the depth and direction of prospective planning using information values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Sezener</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dezfouli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Keramati</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLOS Comput. Biol</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Planning to plan: a bayesian model for optimizing the depth of decision tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2021" />
+			<biblScope unit="volume">43</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Rational use of cognitive resources in human planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Callaway</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nat. Hum. Behav</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="1112" to="1125" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">People construct simplified mental representations to plan</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Ho</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">606</biblScope>
+			<biblScope unit="page" from="129" to="136" />
+			<date type="published" when="2022" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Tasks for aligning human and machine planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Curr. Opin. Behav. Sci</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="127" to="133" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Expertise increases planning depth in human gameplay</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Prospective planning and retrospective learning in a large-scale combinatorial game</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">2019 Conference on Cognitive Computational Neuroscience</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="13" to="16" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Comparing machine and human learning in a planning task of intermediate complexity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">S</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><forename type="middle">D</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Topping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Annual Meeting of the Cognitive Science Society</title>
+		<meeting>the Annual Meeting of the Cognitive Science Society</meeting>
+		<imprint>
+			<date type="published" when="2022" />
+			<biblScope unit="volume">44</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Planning as heuristic search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bonet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Geffner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artif. Intell</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page" from="5" to="33" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Deep blue</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Campbell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Hoane</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hsu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artif. intelligence</title>
+		<imprint>
+			<biblScope unit="volume">134</biblScope>
+			<biblScope unit="page" from="57" to="83" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Generalized best-first search strategies and the optimality of a</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dechter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pearl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. ACM (JACM)</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="505" to="536" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">A feature-integration theory of attention</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Treisman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gelade</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cogn. psychology</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="97" to="136" />
+			<date type="published" when="1980" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Unbiased and efficient log-likelihood estimation with inverse binomial sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">1008483</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Practical bayesian optimization for model fitting with bayesian adaptive direct search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Neural Information Processing Systems</title>
+		<meeting>the 31st International Conference on Neural Information Processing Systems</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="1834" to="1844" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Deep residual learning for image recognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE conference on computer vision and pattern recognition</title>
+		<meeting>the IEEE conference on computer vision and pattern recognition</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="770" to="778" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Mimicking go experts with convolutional neural networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Nair</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Artificial Neural Networks</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2008" />
+			<biblScope unit="page" from="101" to="110" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Training deep convolutional neural networks to play go</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Storkey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International conference on machine learning</title>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="1766" to="1774" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">The rating of chessplayers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Elo</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1978" />
+			<publisher>Arco Pub</publisher>
+		</imprint>
+	</monogr>
+	<note>past and present</note>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Counting backward during chess move choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Holding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bull. Psychon. Soc</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="421" to="424" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Theories of chess skill</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Holding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychol. Res</title>
+		<imprint>
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="page" from="10" to="16" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Adaptive expert decision making: Skilled chess players search more and deeper</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Campitelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Gobet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ICGA J</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="209" to="216" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Probabilistic models of cognition: Exploring representations and inductive biases</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Chater</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kemp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Perfors</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="357" to="364" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Expertise increases planning depth in human gameplay</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">The rating of chessplayers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Elo</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1978" />
+			<publisher>Arco Pub</publisher>
+		</imprint>
+	</monogr>
+	<note>past and present</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Pytorch: An imperative style, high-performance deep learning library</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Paszke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<publisher>MIT press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Planning as heuristic search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bonet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Geffner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artif. Intell</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page" from="5" to="33" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Deep blue</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Campbell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Hoane</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hsu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artif. intelligence</title>
+		<imprint>
+			<biblScope unit="volume">134</biblScope>
+			<biblScope unit="page" from="57" to="83" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Policy gradient methods for reinforcement learning with function approximation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mcallester</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Mansour</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Generalized best-first search strategies and the optimality of a</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dechter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pearl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. ACM (JACM)</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="505" to="536" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Prospective planning and retrospective learning in a large-scale combinatorial game</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kuperwajs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">2019 Conference on Cognitive Computational Neuroscience</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="13" to="16" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Unbiased and efficient log-likelihood estimation with inverse binomial sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Van Opheusden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">1008483</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Practical bayesian optimization for model fitting with bayesian adaptive direct search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Acerbi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Neural Information Processing Systems</title>
+		<meeting>the 31st International Conference on Neural Information Processing Systems</meeting>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page" from="1834" to="1844" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Mm algorithms for generalized bradley-terry models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Hunter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The annals statistics</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="384" to="406" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,1068 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Webcam-based online eye-tracking for behavioral research</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Xiaozhi</forename><surname>Yang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">The Ohio State University</orgName>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ian</forename><surname>Krajbich</surname></persName>
+							<email>krajbich.1@osu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">The Ohio State University</orgName>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Economics</orgName>
+								<orgName type="institution">The Ohio State University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Webcam-based online eye-tracking for behavioral research</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T13:43+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+				<p>Experiments are increasingly moving online. This poses a major challenge for researchers who rely on in-lab techniques such as eye-tracking. Researchers in computer science have developed web-based eye-tracking applications (WebGazer; Papoutsaki et al., 2016) but they have yet to see use in behavioral research. This is likely due to the extensive calibration and validation procedure, inconsistent temporal resolution (Semmelmann &amp; Weigelt, 2018), and the challenge of integrating it into experimental software. Here, we incorporate WebGazer into a widely used JavaScript library among behavioral researchers (jsPsych) and adjust the procedure and code to reduce calibration/validation and improve the temporal resolution (from 100-1000 ms to 20-30 ms). We test this procedure with a decision-making study on Amazon MTurk, replicating previous in-lab findings on the relationship between gaze and choice, with little degradation in spatial or temporal resolution. This provides evidence that online web-based eye-tracking is feasible in behavioral research.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>How people allocate attention is a crucial aspect of human behavior. It dictates the degree to which different information is weighted in guiding behavior. Attention is sometimes measured indirectly by inferring it from choice data or response times (RT). But increasingly, attention has been measured more directly using eye-tracking. Eye-tracking makes use of the eye-mind hypothesis: people generally look at the information that they are thinking about <ref type="bibr" target="#b13">(Just &amp; Carpenter, 1984</ref>) (though not always).</p><p>The use of eye-tracking has become an important tool in decision science, and behavioral science more generally, as it provides a detailed representation of the decision process <ref type="bibr" target="#b20">(Mormann et al., 2020)</ref>. It has been used to understand the accumulation of evidence in sequential sampling models of choice <ref type="bibr" target="#b14">(Krajbich, 2019)</ref>, context effects in multi-attribute choice <ref type="bibr" target="#b21">(Noguchi &amp; Stewart 2014)</ref>, strategic sophistication in games <ref type="bibr" target="#b27">(Polonio et al., 2015)</ref>, selfish vs. pro-social tendencies in altruistic choice <ref type="bibr" target="#b39">(Teoh et al., 2020)</ref>, and simplification strategies in multi-attribute choice <ref type="bibr" target="#b30">(Reeck et al. 2017)</ref>. In addition to applications in decision research, eye-tracking is widely used in other areas of psychology such as emotion recognition <ref type="bibr" target="#b25">(Pell &amp; Kotz, 2011)</ref> and reading <ref type="bibr" target="#b29">(Rayner, 2009)</ref>, as well as areas outside of psychology such as driving behavior <ref type="bibr" target="#b19">(Miyoshi &amp; Nakayasu, 2011)</ref>.</p><p>A challenge to the continued growth of eye-tracking research is the shift of behavioral research from brick-and-mortar labs to the internet <ref type="bibr" target="#b11">(Goodman &amp; Paolacci, 2017)</ref>. This shift has been accelerated dramatically during the COVID-19 pandemic. While online data collection has many advantages (e.g. speed, affordability), it has, so far, not been used to collect eye-tracking data in behavioral research.</p><p>However, there is reason for hope. Eye-tracking has garnered a lot of interest in the domain of human-computer interaction. For example, gaze-aware games can improve the gaming experience by providing timely effects at the gazed location <ref type="bibr" target="#b16">(Majaranta et al., 2019)</ref>.</p><p>Consequently, researchers in computer science have been working to improve the algorithms to determine gaze location (e.g., WebGazer, <ref type="bibr" target="#b22">Papoutsaki et al., 2016</ref>; Smartphone eye-tracking, <ref type="bibr" target="#b40">Valliappan et al. 2020;</ref><ref type="bibr">TurkerGaze, Xu et al., 2015)</ref>.</p><p>Here, we capitalize on these recent advances to investigate the possibility of bringing eye-tracking research online. We start with WebGazer, a JavaScript toolbox that was developed to monitor peoples' eye movements while on the internet <ref type="bibr" target="#b22">(Papoutsaki et al., 2016)</ref>. Until now, it has not been used in behavioral research, except in one methods article demonstrating some basic gaze properties <ref type="bibr" target="#b33">(Semmelmann &amp; Weigelt, 2018)</ref>. In that article, the authors used an extensive calibration and validation procedure that occupied approximately 50% of the study time. That article also found that WebGazer's temporal resolution is relatively low and inconsistent, but left it unclear what caused these problems and whether they can be solved.</p><p>Here, we show that these temporal aspects of WebGazer can indeed be substantially improved.</p><p>Another set of issues with online eye-tracking are the requirements on the user/participant's side. In the lab, researchers control the computer and camera quality, the lighting, the participant's positioning, etc. Online, researchers have little control over these things. Therefore, we seek to establish basic requirements and develop simple procedures for participants to follow in order to maximize data quality. It is also important that participants understand that they are not being recorded and so there are no privacy violations as the images and video do not leave the participant's computer.</p><p>An advantage of online eye-tracking is that it lowers the bar for researchers to use eyetracking in their own work. To further improve accessibility, we seek to ease the programming requirements for using WebGazer in behavioral experiments. To that end, we integrate WebGazer into a user-friendly, open-source psychology toolbox called JsPsych <ref type="bibr" target="#b7">(De Leeuw, 2015)</ref>. JsPsych is built on JavaScript, includes a library of commands for behavioral experiments, and also allows for integration of JavaScript-based libraries such as WebGazer.</p><p>This addresses potential concerns about the difficulty of incorporating WebGazer into existing behavioral paradigms.</p><p>To illustrate these issues and our solutions, we conducted a simple online value-based experiment on Amazon Mechanical Turk (MTurk). We aimed to replicate the robust links between gaze and choice that have been documented in the literature (i.e., <ref type="bibr" target="#b1">Amasino et al., 2019;</ref><ref type="bibr" target="#b2">Ashby et al., 2016;</ref><ref type="bibr">Fisher 2017;</ref><ref type="bibr" target="#b9">Ghaffari &amp; Fiedler, 2018;</ref><ref type="bibr" target="#b10">Gluth et al., 2020;</ref><ref type="bibr">Krajbich et al., Pärnamets et al., 2010;</ref><ref type="bibr" target="#b35">Sepulveda et al., 2020;</ref><ref type="bibr" target="#b37">Sheng et al., 2020;</ref><ref type="bibr">Shimojo et al., 2003;</ref><ref type="bibr" target="#b39">Teoh et al., 2020)</ref>. Notably, this experiment took just a couple of days to run, in contrast to standard eyetracking experiments which typically take several weeks to run. In the supplementary material we provide a template experiment and our experimental materials.</p><p>We also note that online eye-tracking is potentially a useful tool for all online researchers, as it can be used to ensure that study participants are humans and not computer algorithms, i.e. bots <ref type="bibr" target="#b3">(Buchanan &amp; Scofield, 2018;</ref><ref type="bibr" target="#b5">Buhrmester et al., 2011)</ref>. We hope that this work will help facilitate the continued growth of both eye-tracking and online behavioral research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Participants</head><p>125 participants from Amazon MTurk participated in this study. Of these, 49 successfully passed the initial calibration + validation and completed the study. The Ohio State University Institutional Review Board approved the experiment and participants provided informed consent prior to the study. Participants received $7 for completing the study. We required participants to be located in the United States and have a 95% or higher HIT approval rate. In addition, we required participants to have a laptop with a webcam.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Privacy</head><p>Given that WebGazer uses participants' webcams to monitor their gaze location, privacy concerns naturally arise. Therefore, it is important to note, and to highlight for participants, that the webcam images are processed locally and never leave the participants' computers. What leaves their computer is the output of the WebGazer algorithm, namely horizontal (x) and vertical (y) coordinates of where WebGazer thinks the participant is looking at a given point in time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Experimental Software/materials</head><p>The experiment was programmed in JavaScript, based on the jsPsych and WebGazer libraries.</p><p>To improve WebGazer's temporal resolution we removed some seemingly unnecessary computations that occur in each animation frame of a webpage. The original code calls the getPrediction() function at every animation frame to load the measured gaze location. This step is necessary when providing gaze-contingent feedback, but otherwise just consumes computational resources. These extra computations appear to gradually degrade WebGazer's temporal resolution.</p><p>To deal with this, we modified the loop() function for each animation frame to avoid the getPrediction() call when possible (for the case we just need face tracking data to draw face overlay, the CLM tracker is called separately, and similarly for pupil features needed in the face feedback box). In addition, we also used the recently added ridge thread regression method, which reduces computational demands.</p><p>We used Heroku (which is a cloud platform; https://www.heroku.com) as our server-side support for the experiment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task</head><p>The study included three parts: 1). Recruitment and initial preparations</p><p>We asked participants to close any unnecessary programs or applications on their computers before they began. Also, we asked them to close any browser tabs that could produce popups or alerts that would interfere with the study (see <ref type="figure" target="#fig_5">Fig. S3</ref>). Once the study began, participants entered into full-screen mode.</p><p>Before participants began the calibration/validation process, we provided detailed instructions about how to position themselves. We first showed them instructions from <ref type="bibr" target="#b33">Semmelmann &amp; Weigelt (2018)</ref>. For example, they should sit directly facing the webcam to ensure full visibility of their face. We also added several tips we learned from the pilot study. In detail, we asked participants to 1). use their eyes to look around the screen and avoid moving their head; 2). keep lights in front of them rather than behind them so that the webcam could clearly see their faces; 3). avoid sitting with a window behind them <ref type="figure" target="#fig_3">(Fig. S2</ref>).</p><p>After reading the instructions, participants saw a screen where they could position themselves appropriately using the live feed from their webcam. Once they were properly positioned, they could advance to the calibration and validation stage.</p><p>2). Calibration + validation Participants next had to pass an initial calibration + validation task ( <ref type="figure" target="#fig_1">Fig. 1A)</ref>. At the beginning of the calibration, a video feed appeared in the top left corner of the screen. Participants could use this video feedback to adjust their position and center their face in a green box in the center of the video display. Once properly positioned, participants could press the space bar to advance to the next step.</p><p>Next, participants saw a sequence of 13 calibration dots appear on the screen, each for three seconds <ref type="bibr" target="#b33">(Semmelmann &amp; Weigelt, 2018)</ref>. The task was simply to stare directly at each dot until it disappeared.</p><p>Next, participants entered the validation procedure. The validation procedure was essentially identical to the calibration procedure, except for the following differences. Each validation dot lasted for two seconds. Within those two seconds, WebGazer made 100 measurements (one every 20ms). Measurements within first 500ms were removed to account for gaze transitions. Each measurement was labeled as a hit if it was within X pixels of the center of the dot (X increased with each failed calibration/validation attempt, see below). If at least 80% of the measurements were hits, we labeled the dot as valid, and it turned green. Otherwise, the dot turned yellow (in the validation instructions, we told participants to try to make every dot turn green). Out of 13 validation dots, if the valid dot proportion was at least Y, the experiment proceeded.</p><p>Participants had three chances to pass this initial calibration + validation task. With each new attempt, we increased the pixel threshold (X) for a hit and the valid-dot threshold (Y). In particular, the pixel thresholds (X) were: 130px, 165px, and 200px; the valid-dot thresholds were: 80%, 70%, and 60%. If a participant failed the calibration + validation three times, we compensated them with 50 cents and ended the experiment.</p><p>We adopted this procedure to give poorly calibrated participants a chance to reposition themselves and try again, while also acknowledging that some participants might not be able to sufficiently improve their setup to pass the most stringent requirements. This also allowed us to assess if initial calibration attempt(s) predicted any of the later results (see Supplementary Note 1).</p><p>3). Hypothetical food choice task.</p><p>After passing the initial calibration and validation, participants proceeded to the choice task ( <ref type="figure" target="#fig_1">Fig.   1B</ref>). This paradigm was initially used in <ref type="bibr" target="#b15">Krajbich et al. (2010)</ref> to study how gaze influences value-based decisions. Participants first rated their desire for 70 snack food items on a discrete scale from 0 to 10. Participants were told that 0 means indifference towards the snack, while 10 indicates extreme liking of the snack. They could also click a "dislike" button if they didn't like a food item. Participants used the mouse to click on the rating scale.</p><p>After the rating task, participants were recalibrated and validated. They were eye-tracked for the remainder of the study.  Participants would only see one dot at a time. During calibration only, the participant's face was present at the top left corner of the screen, along with a green box for positioning. During validation only, the dots would change color to indicate a valid or invalid measure. B). Overview of the experiment. There was an initial calibration + validation phase to screen out problematic participants. Next, participants rated how much they liked 70 different food items. Then there was another calibration + validation. This was followed by 100 binary-choice trials where participants chose which food they preferred; there was a recalibration + validation halfway through these trials. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Recalibration + Validation</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Recalibration + Validation</head><p>Next, participants began the binary choice task. 100 trials were randomly generated using pairs of the rated items, excluding the disliked items. Participants were told to choose their preferred food in each trial. They selected the left option by pressing the left arrow key and the right option by pressing the right arrow key.</p><p>Between trials, participants were either presented with a fixation cross at the center of the screen or, every ten trials, with a sequence of three red validation dots. In the latter case, the first two validation dots appeared randomly at one of 12 possible positions, while the last dot always appeared at the center of the screen. For each of those validation dots, the pixel threshold was set at 130px with a threshold of 70%, and the presentation time was 2 seconds. A recalibration would be triggered if participants failed more than four validation dots in two successive intertrial validation.</p><p>After 50 trials, participants were given the option to take a short break. After the break, they were recalibrated and validated.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data cleaning</head><p>Out of 49 participants, 48 participants' data were fully received. One participant's data were only partially received, with 32 choice trials.</p><p>To ensure good data quality for the analysis linking gaze to behavior, we checked the intertrial validation pass rate and excluded participants who failed too many. As mentioned above, the pixel threshold was set at 130px with a threshold of 70% for each validation dot. A participant's pass rate was their fraction of valid intertrial dots. There were 35 participants with pass rates higher than 0.45, eight participants with pass rates between 0.3 and 0.4, and six participants with pass rates below 0.2. For those participants with pass rates between 0.3 and 0.4, we identified the longest intervals that did not include two consecutive complete validation failures (six consecutive missed dots). If those intervals contained at least 20 behavioral trials, we included those trials in the analysis (see <ref type="figure">Fig. S5</ref>). In particular, we included 50, 40, and 20 trials from three additional participants. Thus, 38 participants were included in total.</p><p>We also excluded individual trials based on RT and dwell times. We removed trials with RTs shorter than 0.4s or longer than 10s, and trials with potentially problematic fixation data as follows: 1). The gaze measurements were always at the center of the screen. 2). The sampling interval was higher than 200ms (10 times larger than expected). After these exclusions, the mean number of trials was 80 (SD = 27).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Stimuli and ROI definition</head><p>Each food image was 450px by 320px. We defined AOIs in terms of the percentage of the screen size. Gaze within 25 to 75 percent of the screen height and 5 to 45 percent of the screen width were considered the left AOI, while gaze within 25 to 75 percent of the screen height and 55 to 95 percent of the screen width were considered the right AOI.</p><p>As a robustness check, we also tried defining AOIs in pixels, adding 90px horizontal buffers and 54px vertical buffers to the edges of the images. There were no qualitative differences using this alternative AOI definition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Computer resolution/browser usage</head><p>Participants' screen widths ranged from 1280px to 2560px and screen heights ranged from 719px to 1440px. Out of 49 participants who passed the initial calibration, 45 of them used Chrome (33 used version 85; 10 used version 84; 1 used version 77; 1 used version 75), and 4 of them used Firefox (version 80).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Basic setup and data quality</head><p>To begin, it is worth briefly describing a standard eye-tracking procedure in the brick-and-mortar lab. Typically, the eye-tracking camera is situated either below or above the computer screen, between the screen and the participant (Schulte-Mecklenbeck, Kühberger, &amp; Johnson, 2019).</p><p>The participant is seated, often with their head immobilized in a chinrest (though not always).</p><p>Participants are instructed to try to keep their heads still during the experiment. Before the experiment begins, participants go through a calibration procedure in which they stare at a sequence of dots that appear at different locations on the screen <ref type="figure" target="#fig_1">(Fig. 1A)</ref>. A subsequent validation procedure has the participant look at another sequence of dots, to establish how well the eye-tracker's estimate of the gaze location aligns with where the participant is supposed to be looking (i.e. the dots). During the experiment, validation can be repeated (to varying degrees) to ensure that the eye-tracker is still accurate.</p><p>With WebGazer we used a similar procedure, with some qualifications. First, before signing up for the experiment, we required participants to be using a laptop with a webcam, and to be using an appropriate web browser (see Methods). We also asked them to close any applications that might produce popups. We had no control over the participant's environment and we could not immobilize their head, but we did provide them with a number of suggestions for how to optimize performance, including keeping their heads still, avoiding sitting near windows, keeping light sources above or in front of them rather than behind them, etc. (see Methods). Participants had three chances to pass the calibration and validation procedure, otherwise the experiment was terminated, and they received a minimal "showup" fee (see Methods).</p><p>During the experiment, we incorporated a small number of validation points into the inter-trial intervals, rather than periodically having a full procedure with many validation points.</p><p>This step allowed us to evaluate data quality over time; in future experiments this step could be skipped or replaced with ongoing calibration points. We did recalibrate halfway through the choice task. The time interval between the calibration at the beginning of the choice task and the second calibration was 5.39 minutes on average (SD = 2.66 mins).</p><p>Prior work has documented the spatial resolution of WebGazer <ref type="bibr" target="#b33">(Semmelmann &amp; Weigelt, 2018)</ref>. They established that, shortly after calibration and validation, online precision is comparable to, but slightly worse than that in the lab (online: 18% of screen size, 207px offset; in-lab: 15% of screen size, 172px offset). However, an unresolved issue is whether that spatial resolution persists as time goes on.</p><p>To assess spatial resolution over time, we examined the hit ratio for validation dots as the experiment went on. For each measurement, we calculated the Euclidean distance (in pixels)</p><p>between the recorded gaze location and the center of the validation dot. If this distance was below a critical threshold (see Methods), we labeled the measurement a hit, otherwise we labeled it a miss. The hit ratio is simply the proportion of hits out of all the validation measurements (see Methods). Aside from an initial drop shortly after each calibration/validation, the hit ratio remained quite steady over time ( <ref type="figure" target="#fig_3">Fig. 2A</ref>; mean hit ratio as a function of trial number: " = -0.00048, se( " ) = 0.00021, p = 0.028). <ref type="table">Table S3</ref> shows the mean/median hit ratios for every intertrial validation.</p><p>A second, potentially more serious issue is temporal resolution over time. Eye-tracking setups often come with dedicated computer hardware due to the required computations. With online eye-tracking, there is no second computer and we have little control over participants'</p><p>hardware. If the computations overwhelm the participants' hardware, the temporal resolution may suffer dramatically.</p><p>To assess temporal resolution over time, we examined the average time interval between gaze estimates made by WebGazer as the experiment went on. As we feared, an earlier pilot experiment revealed that the time interval between estimates increases dramatically over time, from 95ms (SD = 13ms) in the first ten trials, to 680 ms (SD = 64ms) by the halfway point (13.20 min (SD = 3.55 min)). This decreased back to 99ms (SD = 12ms) after recalibration but then increased to 972ms (SD = 107ms) by the end of the experiment. This kind of time resolution is unacceptable for most behavioral work. However, with some modifications to the WebGazer code (see Methods) we were able to reduce computational demands. As a result, the time interval between estimates in our main experiment remained steady at 24.85 on average (SD = 12.08ms) throughout the experiment <ref type="figure" target="#fig_3">(Fig. 2B)</ref>. This time resolution is comparable to many in-lab eye-trackers currently on the market and in scientific use <ref type="bibr" target="#b6">(Carter &amp; Luke, 2020)</ref>.</p><p>To further quantify spatial resolution, we also examined the initial validation data from another WebGazer study using the same calibration and validation procedure (N=83, details reported elsewhere 1 ). Here, we summarize the sample mean and sample deviation for each validation dot <ref type="table">(Table 1)</ref>. We found offsets in the range of 117.61 px -170.78 px. We also calculated a confusion matrix to examine how often WebGazer estimated the incorrect validation dot <ref type="figure" target="#fig_5">(Fig. 3)</ref>. These results indicate that the spatial precisions are mostly consistent across the validation dots, with some exceptions at the corners of the screen (as is also common in the lab).</p><p>In particular, the validation dots at the corners of the screen had significantly larger offsets than the other dots (mixed-effects regression of offsets on the validation dot position (at the corner vs. not at the corner): " = 29.10, p = 0.023).  Table1. This table summarizes the statistics related to validation samples in another study (reported elsewhere). Each row represents a validation dot position, with the horizontal xcoordinate followed by the vertical y-coordinate, relative to the top left corner of the screen. For example, 20%;80% represents a dot at the bottom left corner of screen, 20% of the way right and 80% of the way down. Each validation sample represents a single gaze measurement produced by WebGazer. Ideally, WebGazer would give a measurement every 20ms in the experiment. Mean distances represent the average Euclidean distance between the measured gaze location and the center of the validation dot. Standard deviations are calculated for each condition using all validation samples for that condition.  We selected the nine equally spaced validation dots and examined the spatial distribution of observed gaze samples for each of those dots. Ideally, we would only observe gaze samples at the current dot position, as would be indicate by solid black along the diagonal and light grey everywhere else. The location of the gaze sample was calculate using Euclidean distance. If the Euclidean distance between the sample and a dot position was within 15% of the screen width (192 pixels for a laptop with 1280px screen width), then the sample was assigned to that dot. For instance, if the Euclidean distance between a sample and dot (20%; 20%) is smaller than 15% of the screen width, then the sample is assigned to (20%; 20%). The coordinates (X,Y) of the validation dots are displayed along the diagonal. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Dot position</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Analysis of the dataset</head><p>To verify the quality of online eye-tracking, we sought to replicate the robust links between gaze and choice that have been documented in the literature (e.g., <ref type="bibr" target="#b15">Krajbich et al., 2010;</ref><ref type="bibr">Krajbich &amp; Rangel, 2011;</ref><ref type="bibr">Shimojo et al., 2003)</ref>. We used <ref type="bibr" target="#b15">Krajbich et al. (2010)</ref>'s binary choice experiment as a basis for comparison <ref type="figure" target="#fig_1">(Fig. 1B)</ref>. This experiment was originally run with an eye-tracker with comparable time resolution of 20ms. In that version, participants first rated 70 snack foods, then in 100 trials decided which of two snack foods they would prefer to eat. Our online version of that experiment was identical except for the particular stimuli, the number of trials, and the fact that the decisions were hypothetical.</p><p>In the original experiment, accuracy rates for rating differences of {1, 2, 3, 4 ,5} were {0.65, 0.76, 0.84, 0.91, 0.94}; in the MTurk study they were {0.65, 0.79, 0.87, 0.90, 0.92}.</p><p>Thus, despite being hypothetical, decisions in the MTurk study were very similar in quality.</p><p>Response times (RT) in the original study declined with absolute value difference from 2.55s to 1.71s. Similarly, RTs in the MTurk study declined from 1.42s to 1.17s, though they were significantly shorter than the original study, as indicated by a mixed-effects regression of log(RT) on absolute value difference and a dummy variable for the online study ( " = -0.91, se( " ) = 0.03, two-sided p = 10 -16 ). While MTurk respondents were considerably faster in their decisions, they still exhibited the expected relationship between difficulty and RTs (mixed effects regression of log(RT) on absolute value difference: " = -0.026, se( " ) = 0.004, two-sided p = 10 -9 ). Other behavioral analyses can be found in Supplementary Note 2.</p><p>Next, we turn to the eye-tracking data. Key relationships that we sought to replicate here include correlations between dwell times and choice, and between the last fixation location and choice.</p><p>The first analysis models the choice (left vs. right) as a function of rating difference (left -right) and total dwell time difference (left -right) over the course of the trial, using a mixedeffects logistic regression. We found a strong significant effect of relative dwell time ( " = 0.57, se( " ) = 0.14, two-sided p = 10 -5 ), even after accounting for item ratings <ref type="figure">(Fig. 4A</ref>).</p><p>We also examined heterogeneity in this relationship, using individual-level logistic regressions. Twenty-six (68%) participants exhibited positive coefficients (12 were significant at two-sided p &lt; 0.1). This is comparable, though somewhat less consistent than in the original inlab dataset <ref type="figure">(Fig. 5</ref>).</p><p>The second analysis examines the effect of individual dwells. Here we model the choice (first-seen vs. other) as a function of the rating difference (first -other) and the duration of the first dwell, again with a mixed-effects logistic regression. We again find a significant effect of the initial dwell time ( " = 0.43, se( " ) = 0.22, two-sided p = 0.04), even after accounting for the item ratings <ref type="figure">(Fig. 4B)</ref>.</p><p>The third analysis examines the effect of the final fixation location. Here we model the choice (last seen vs. other) as a function of the rating difference (last seen-other), again with a mixed-effects logistic regression. We find a strong significant intercept term ( " = 0.24; se( " ) = 0.06, two-sided p = 10 -5 ), indicating a bias to choose the last-seen item <ref type="figure">(Fig. 4C</ref>). However, this last-fixation effect is smaller in this dataset compared to the original dataset.</p><p>One noticeable difference between this dataset and the original in-lab results <ref type="bibr" target="#b15">(Krajbich et al., 2010)</ref> is in the duration of the average dwell (lab: 576 ms (SD = 380 ms), MTurk: 380ms</p><p>(SD = 291ms)). However, this may reflect that RTs were considerably shorter in  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>We have presented our attempt at online eye-tracking in behavioral research. Online data collection is increasingly common, especially during the COVID-19 pandemic. This should not be a barrier to studying visual attention.</p><p>Although there are some options available for online eye-tracking, none have been adopted by behavioral researchers. Some software (e.g., TurkerGaze) requires extensive programming knowledge. Other software such as Realeye (https://www.realeye.io) is not open source and can be very expensive to use. In general, when trying to build an online eye-tracking experiment there are several features to consider: 1). The flexibility of stimulus presentation (is it possible to adjust the paradigm/software for different experiments?) 2). The difficulty of the experimental programming (does the implementation of the paradigm/software require extra expertise?) 3). The retrieval of the eye-tracking data (can the data be retrieved and stored in a useable format?) 4). The accessibility of the resources (is the software/paradigm open-source?).</p><p>We assessed these dimensions with our toolbox and found that it performs well on all these dimensions, as it provides total flexibility, is integrated in user-friendly jsPsych, stores the eye-tracking data with the other behavioral measures, and is open-source.</p><p>An important issue that we addressed in this study is the amount of calibration and validation required to run a successful experiment. In prior work, calibration and validation has taken up to 50% of the experiment time <ref type="bibr" target="#b33">(Semmelmann &amp; Weigelt, 2018)</ref>. However, with our modifications, we found that it is possible to get by with less, as there appears to be little to no degradation in spatial or temporal precision over time, at least on the time scale of our experiment. In our study, the mean fraction of the time participants spent in calibration or validation was 40%, but we likely could have gone lower. Moreover, we found that most participants were able to pass the initial calibration in their first attempt, minimizing the time that they spend on calibration and validation (see <ref type="figure" target="#fig_1">Supplementary Note 1)</ref>. Going forward, we would suggest assigning a single calibration + validation phase at the beginning of the study (to screen out unusable participants). Occasional inter-trial validation dots may also be useful as a measure of data quality, or alternatively inter-trial calibration dots may be useful to improve data quality.</p><p>Of course, the amount of calibration should depend on the spatial precision required. If there are more areas of interest (AOI) then more calibration may be necessary.</p><p>Along those lines, one unresolved issue is how many distinct AOIs can be effectively used online. Here we used a simple design with two AOIs. Based on WebGazer's spatial precision, we estimate that one could use six AOIs without any degradation in data quality <ref type="table">(Table 1</ref>). More than that and gaze in one AOI might start to register in another AOI.</p><p>Presumably, better data analysis methods could be used to filter out spurious data points, if one needed more AOIs.</p><p>Another issue is how far the time resolution can be pushed. Here we went with 50 Hz, which seemed to work well. Most common webcams have a sampling rate of around 50Hz (e.g., Logitech C922 camera with 60Hz sampling rate) and so that is likely the limit on temporal resolution.</p><p>Notably, visual angle, which is one common measure reported in eye-tracking studies, is not available with the current toolbox. However, WebGazer does detect users' faces using the clmtrackr library (a face fitting library; <ref type="bibr" target="#b18">Mathias, 2014)</ref> and then extracts the eye features <ref type="bibr" target="#b31">(Robal et al., 2018)</ref>. It should therefore be possible to calculate a participant's distance to the screen, and from that estimate visual angle. Future research should attempt to address this issue.</p><p>Previous research has documented the advantages and disadvantages of conducting behavioral research online (i.e., <ref type="bibr" target="#b17">Mason &amp; Suri, 2012)</ref>. We would like to highlight several benefits of online eye-tracking compared to in-lab eye-tracking. First, tasks on MTurk allow many participants to participate in the study simultaneously. In contrast, in-lab eye-tracking studies typically are one-on-one sessions, with one participant and one experimenter in the laboratory (but see <ref type="bibr" target="#b12">Hausfeld et al. 2020)</ref>. Therefore, collecting data in the lab is time and labor intensive. We completed data collection in three days, while it would take weeks to collect the same amount of data in the lab. Second, the low cost of online eye-tracking is also another distinct advantage, as it requires no special hardware on the experimenter's side and the software involved is all free and open access.</p><p>On the other hand, there are some limitations to the online approach (e.g. <ref type="bibr">Ahler, Roush, &amp; Sood, 2020)</ref>. One issue is with the number of participant exclusions. In a typical lab study, only a small number of participants are excluded. For example, our in-lab comparison study <ref type="bibr" target="#b15">(Krajbich et al. 2010)</ref> only excluded 1 participant out of 40. Meanwhile, in the online study, we excluded over half of the participants. However, this comparison is somewhat misleading.</p><p>Online, most exclusions were done before the experiment even began; participants could not begin the experiment until they passed hardware checks and then the calibration/validation. In the lab, participants who cannot be calibrated or who simply fail to show up to their scheduled session would normally not be counted as "exclusions", they would simply not be mentioned.</p><p>So, while we might be concerned about potential selection effects where we are only studying people who have good laptops, are able to position themselves properly, and follow directions, there are also similar concerns in lab experiments where we are only studying college students who are motivated enough to sign up for a study, show up to their session, and follow directions.</p><p>Additionally, online studies in general suffer from higher rates of attrition. Researchers have found that up to 25% of MTurk respondents are suspicious or fraudulent, e.g. bots <ref type="bibr">(Ahler et al., 2020)</ref>. Given that we cannot observe our participants nor control their environment or hardware (aside from requiring a laptop with a webcam), it is not surprising that we have lots of exclusions. We would argue that what matters is the final number of participants, rather than the fraction of recruited participants.</p><p>On a related point, one common issue with online studies is ensuring that participants are human and not computer "bots". Researchers have developed ways to filter out bot data after the fact <ref type="bibr" target="#b8">(Dupuis et al., 2019;</ref><ref type="bibr" target="#b26">Permut, Fisher, &amp; Oppenheimer, 2019)</ref> or to use extra items to screen out bots during the study <ref type="bibr" target="#b3">(Buchanan &amp; Scofield, 2018)</ref>. The problem with the former approach is that it requires assumptions about how these bots will respond. Savvy Mturk users might be able to program bots that violate those assumptions. The latter approach is more similar to ours, but it typically requires participants to exert extra effort that is irrelevant to the task, and these extra measures may also be defeated by savvy programmers. WebGazer provides a simple way to ensure that participants are human beings, without any additional questions or statistical tests.</p><p>While it is surely not impenetrable, faking eye-tracking data would be no small feat.</p><p>In summary, we see a lot of promise for online eye-tracking, even beyond the COVID pandemic. While it is by no means perfect, it provides a fast, accessible, and potentially more representative way to study visual attention in behavioral research. We look forward to seeing the ways in which researchers take advantage of this opportunity.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 .</head><label>1</label><figDesc>Experiment Design. A). Visualization of the calibration + validation process.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 2 .</head><label>2</label><figDesc>Spatial precision (A) and temporal resolution (B) over time. (A) The hit ratio, namely the proportion of successful intertrial validation points, as a function of number of validations completed. 10 intertrial validation trials were included per participant. The vertical orange line represents the recalibration halfway through the experiment. (B) The gaze sampling interval, namely the delay between gaze measurements, as a function of the number of choice trials completed. The white circles indicate the median values. The black bars in the center of the violins represent the interquartile range. The blue violins represent all of the observations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 3 .</head><label>3</label><figDesc>Validation prediction accuracy.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>this experiment than in the lab experiment. The average dwell time, as a fraction of RT, was comparable between the lab (M = 0.25, SD = 0.15) and MTurk (M = 0.29, SD = 0.19) experiments.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 4 .Figure 5 .</head><label>45</label><figDesc>Relations between gaze and choice. A) Choice as a function of the total dwell-time difference between the left option and the right option in a given trial. B). Choosing the first seen item as a function of the first gaze dwell time. C). Choice as a function of the value differences between the two options, split by the location of the last fixation. In each plot, the red line/dots represent the results in Krajbich et al.(2010)'s dataset; the blue line/dots represent the results in the online MTurk study. The error bars represent the mean ± standard errors. The blue circles are data from individual participants in the MTurk data. Individual-level dwell time coefficients and p-values. (A) Coefficients and (B) pvalue distributions from the online MTurk study. (C) Coefficients and (D) p-value distributions from Krajbich et al. (2010)'s dataset. (A-C) Dwell-time coefficients are extracted from the individual-level logistic regressions of choice on dwell time difference; each bar represents one participant. p-values indicate the significance of those coefficients. Negative p-values are for individuals with coefficients less than zero.</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1">This project used WebGazer in political decision making. The timeline of the study was similar to the food choice study presented here. Participants first completed an initial calibration and validation stage. Participants who successfully passed the initial stage went on to make political choices while they were eye-tracked. This dataset includes only those participants who passed the calibration, using the same criteria as in the food study.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>We are grateful to Yuchen Pang for technical support and discussions. I.K. gratefully acknowledges National Science Foundation CAREER award 1554837 and the Cattell Sabbatical Fund.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Author Contributions</head><p>X. Yang and I. Krajbich jointly conceived the study. X. Yang programmed the study, collected the data, wrote the analysis code, and analyzed the data. X. Yang and I. Krajbich co-wrote the manuscript. I. Krajbich oversaw the project. Both authors approved the final submitted version of the manuscript.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">The micro-task market for lemons: Data quality on Amazon&apos;s Mechanical Turk</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Ahler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Roush</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Sood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Meeting of the Midwest Political Science Association</title>
+		<imprint>
+			<date type="published" when="2019-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Amount and time exert independent influences on intertemporal choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Amasino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Sullivan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Kranton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Huettel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="383" to="392" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Applications and innovations of eye-movement research in judgment and decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Ashby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">G</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Krajbich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Wedel</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Methods to detect low quality data and its implication for psychological research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Buchanan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Scofield</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="2586" to="2596" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-018-1035-6</idno>
+		<ptr target="https://doi.org/10.3758/s13428-018-1035-6" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Amazon&apos;s Mechanical Turk: A New Source of Inexpensive, Yet High-Quality, Data?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Buhrmester</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kwang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Gosling</surname></persName>
+		</author>
+		<idno type="DOI">10.1177/1745691610393980</idno>
+		<ptr target="https://doi.org/10.1177/1745691610393980" />
+	</analytic>
+	<monogr>
+		<title level="j">Perspectives on Psychological Science</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="3" to="5" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Best practices in eye tracking research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">G</forename><surname>Luke</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.ijpsycho.2020.05.010</idno>
+		<ptr target="https://doi.org/10.1016/j.ijpsycho.2020.05.010" />
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Psychophysiology</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page" from="49" to="62" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">jsPsych: A JavaScript library for creating behavioral experiments in a Web browser</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>De Leeuw</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13428-014-0458-y</idno>
+		<ptr target="https://doi.org/10.3758/s13428-014-0458-y" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="12" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Detecting computer-generated random responding in questionnaire-based data: A comparison of seven indices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dupuis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Meier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Cuneo</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13428-018-1103-y</idno>
+		<ptr target="https://doi.org/10.3758/s13428-018-1103-y" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="2228" to="2237" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">The power of attention: Using eye gaze to predict other regarding and moral choices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ghaffari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Fiedler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological science</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1878" to="1889" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Value-based attention but not divisive normalization influences decisions with multiple alternatives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kortmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Vitali</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature human behaviour</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="634" to="645" />
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Crowdsourcing consumer research</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Paolacci</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/jcr/ucx047</idno>
+		<ptr target="https://doi.org/10.1093/jcr/ucx047" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Consumer Research</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="196" to="210" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Strategic gaze: An interactive eye-tracking study</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hausfeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Von Hesler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Goldlücke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Economics</title>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Using eye fixations to study reading comprehension</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Just</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Carpenter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">New Methods in Reading Comprehension Research</title>
+		<imprint>
+			<biblScope unit="page" from="151" to="182" />
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Accounting for attention in sequential sampling models of decision making</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Krajbich</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.copsyc.2018.10.008</idno>
+		<ptr target="https://doi.org/10.1016/j.copsyc.2018.10.008" />
+	</analytic>
+	<monogr>
+		<title level="j">Current Opinion in Psychology</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="6" to="11" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Visual fixations and the computation and comparison of value in simple choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Krajbich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Armel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rangel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Neuroscience</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page">1292</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Eye Movements and Human-Computer Interaction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Majaranta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K.-J</forename><surname>Räihä</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hyrskykari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Špakov</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-20085-5_23</idno>
+		<ptr target="https://doi.org/10.1007/978-3-030-20085-5_23" />
+	</analytic>
+	<monogr>
+		<title level="m">Eye Movement Research: An Introduction to its Scientific Foundations and Applications</title>
+		<editor>C. Klein &amp; U. Ettinger</editor>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2019" />
+			<biblScope unit="page" from="971" to="1015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Conducting behavioral research on Amazon&apos;s Mechanical Turk</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Mason</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Suri</surname></persName>
+		</author>
+		<idno type="DOI">10.3758/s13428-011-0124-6</idno>
+		<ptr target="https://doi.org/10.3758/s13428-011-0124-6" />
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="23" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">clmtrackr: Javascript library for precise tracking of facial features via Constrained Local Models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mathias</surname></persName>
+		</author>
+		<ptr target="https://github.com/auduno/clmtrackr" />
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Analysis of relationship between characteristics of driver&apos;s eye movements and visual scene in driving events</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Miyoshi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nakayasu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">2011 IEEE International Conference on Fuzzy Systems</title>
+		<imprint>
+			<date type="published" when="2011-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title level="m" type="main">Time to pay attention to attention: Using attention-based process traces to better understand consumer decision-making. Marketing Letters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mormann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Janiszewski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Russo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Aribarg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J S</forename><surname>Ashby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bagchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bhatia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kovacheva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meissner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Mrkva</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s11002-020-09520-0</idno>
+		<ptr target="https://doi.org/10.1007/s11002-020-09520-0" />
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">In the attraction, compromise, and similarity effects, alternatives are repeatedly compared in pairs on single dimensions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Noguchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Stewart</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.cognition.2014.03.006</idno>
+		<ptr target="https://doi.org/10.1016/j.cognition.2014.03.006" />
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">132</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="44" to="56" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Webgazer: Scalable webcam eye tracking using user interactions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Papoutsaki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sangkloy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Laskey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Daskalova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hays</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Twenty-Fifth International Joint Conference on Artificial Intelligence-IJCAI</title>
+		<meeting>the Twenty-Fifth International Joint Conference on Artificial Intelligence-IJCAI</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Pärnamets</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Johansson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Balkenius</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Spivey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Richardson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Biasing moral decisions by exploiting the dynamics of eye gaze</title>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="issue">13</biblScope>
+			<biblScope unit="page" from="4170" to="4175" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">On the time course of vocal emotion recognition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Pell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Kotz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PLoS One</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page">27256</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">TaskMaster: A tool for determining when subjects are on task</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Permut</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fisher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Oppenheimer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Methods and Practices in Psychological Science</title>
+		<imprint>
+			<date type="published" when="2019" />
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="188" to="196" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Strategic sophistication and attention in games: An eye-tracking study</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Polonio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Di Guida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Coricelli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Games and Economic Behavior</title>
+		<imprint>
+			<biblScope unit="volume">94</biblScope>
+			<biblScope unit="page" from="80" to="96" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.1016/j.geb.2015.09.003</idno>
+		<ptr target="https://doi.org/10.1016/j.geb.2015.09.003" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">The 35th Sir Frederick Bartlett Lecture: Eye movements and attention in reading, scene perception, and visual search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rayner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Quarterly journal of experimental psychology</title>
+		<imprint>
+			<biblScope unit="volume">62</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1457" to="1506" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Search predicts and changes patience in intertemporal choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Reeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="issue">45</biblScope>
+			<biblScope unit="page" from="11890" to="11895" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Webcam-based attention tracking in online learning: A feasibility study</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Robal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lofi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hauff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">23rd International Conference on Intelligent User Interfaces</title>
+		<imprint>
+			<date type="published" when="2018-03" />
+			<biblScope unit="page" from="189" to="197" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">A handbook of process tracing methods for decision research: A critical review and user&apos;s guide</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schulte-Mecklenbeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kühberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Johnson</surname></persName>
+		</author>
+		<editor>J. G.</editor>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Online webcam-based eye tracking in cognitive science: A first look</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Semmelmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Weigelt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavior Research Methods</title>
+		<imprint>
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="451" to="465" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title/>
+		<idno type="DOI">10.3758/s13428-017-0913-7</idno>
+		<ptr target="https://doi.org/10.3758/s13428-017-0913-7" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sepulveda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Usher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Davies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Benson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ortoleva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Martino</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title level="m" type="main">Visual attention modulates the integration of goal-relevant evidence and not value</title>
+		<imprint>
+			<biblScope unit="page">60705</biblScope>
+			<pubPlace>Elife, 9</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Sheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Seok</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Thelaus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Platt</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Decomposing loss aversion from gaze allocation and pupil dilation</title>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="issue">21</biblScope>
+			<biblScope unit="page" from="11356" to="11363" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Attentional priorities drive effects of time pressure on altruistic choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">Y</forename><surname>Teoh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Yao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Cunningham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Hutcherson</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-020-17326-x</idno>
+		<ptr target="https://doi.org/10.1038/s41467-020-17326-x" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Accelerating eye movement research via accurate and affordable smartphone eye tracking</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Valliappan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Steinberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rogers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Ramachandran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shojaeizadeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kohlhoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Navalpakkam</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41467-020-18360-5</idno>
+		<ptr target="https://doi.org/10.1038/s41467-020-18360-5" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4553</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Ehinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Finkelstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Kulkarni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Xiao</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title level="m" type="main">Crowdsourcing Saliency with Webcam based Eye Tracking</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Turkergaze</surname></persName>
+		</author>
+		<idno>ArXiv:1504.06755</idno>
+		<ptr target="http://arxiv.org/abs/1504.06755" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">Online tutorial &amp; experiment demo &amp; data availability</title>
+		<ptr target="https://github.com/xiaozhi2/webgazertutorial" />
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

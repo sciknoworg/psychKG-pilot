@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Compositional generalization in multi-armed bandits</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tankred</forename><surname>Saanum</surname></persName>
+							<email>tankred.saanum@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Biological Cybernetics</orgName>
+								<address>
+									<settlement>Tübingen</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><surname>Schulz</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Max Planck Institute for Biological Cybernetics</orgName>
+								<address>
+									<settlement>Tübingen</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Maarten</forename><surname>Speekenbrink</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Experimental Psychology</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Compositional generalization in multi-armed bandits</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:05+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Compositionality</term>
+					<term>Reinforcement learning</term>
+					<term>Transfer learning</term>
+					<term>Gaussian Processes</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>To what extent do human reward learning and decision-making rely on the ability to represent and generate richly structured relationships between options? We provide evidence that structure learning and the principle of compositionality play crucial roles in human reinforcement learning. In a new multiarmed bandit paradigm, we found evidence that participants are able to learn representations of different reward structures and combine them to make correct generalizations about options in novel contexts. Moreover, we found substantial evidence that participants transferred knowledge of simpler reward structures to make compositional generalizations about rewards in complex contexts. This allowed participants to accumulate more rewards earlier, and to explore less whenever such knowledge transfer was possible. We also provide a computational model which is able to generalize and compose knowledge for complex reward structures. This model describes participant behaviour in the compositional generalization task better than various other models of decision-making and transfer learning.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Humans have a remarkable propensity for discovering structure in data. For instance, we can easily recognize that certain quantities, like global CO2 emissions, increase approximately linearly with time, or that the quality of certain fruits and vegetables varies periodically with the time of year. Moreover, having learnt such representations, we can combine and compose them to generate more sophisticated structures. For instance, if we know that a variable increases linearly over years, and periodically within years, we can combine this knowledge into a compositional representation of the statistical relationship between the variable and time.</p><p>Compositionality is argued to be indispensable to various parts of human cognition, such as language and reasoning <ref type="bibr" target="#b4">(Hauser, Chomsky, &amp; Fitch, 2002;</ref><ref type="bibr" target="#b1">Fodor, 1987)</ref>, but its role in reinforcement learning (RL) has received less attention. Recent work shows that structure and function learning support reward prediction and guide exploration in RL tasks <ref type="bibr" target="#b11">(Schulz, Franklin, &amp; Gershman, 2020;</ref><ref type="bibr" target="#b13">Stojić, Schulz, P. Analytis, &amp; Speekenbrink, 2020)</ref>. The ability to combine such learnt representations compositionally could prove highly advantageous to performance in novel and complex RL situations.</p><p>Seeking to expound upon these ideas, we introduce the compositionally-structured bandit task, a paradigm for study-ing compositional generalization and transfer learning in a class of RL tasks in which an agent needs to sequentially choose between options (the "arms" of the bandit), balancing exploration and exploitation in order to accumulate as much reward as possible. Crucially, in our paradigm, certain reward functions the agent encounters are compositions of reward functions encountered previously, allowing the agent to gain more rewards by harnessing the appropriate compositional inductive biases.</p><p>To foreshadow our results, we found substantial evidence that participants composed knowledge of previously learnt reward structures to make generalizations about rewards in novel situations. This compositional knowledge transfer afforded participants the ability to make more informed decisions in these novel situations, allowing them to focus their decisions and exploration on more rewarding options and hence accumulate more rewards earlier on. We also propose a novel computational model that combines symbolic reasoning, embodied in a generative grammar, with statistical inference, embodied in Gaussian process regression, which can reproduce human behaviour in our task. Ultimately, our results suggest that the principles of compositionality may play a crucial role in human reward learning and decision-making.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The compositionally-structured bandit</head><p>In traditional bandit tasks, the agent selects at each trial t an option/arm a t ∈ A from the choice set A, which produces a reward r t drawn from an option-specific reward distribution. In structured bandit tasks <ref type="bibr" target="#b11">(Schulz et al., 2020;</ref><ref type="bibr" target="#b13">Stojić et al., 2020)</ref>, each arm a is described by a set of features x a , and rewards are drawn from a joint distribution that is governed by a latent function f :</p><formula xml:id="formula_0">r t = f (x a t ) + ε t (1) where ε t ∼ N (0, σ 2 ).</formula><p>As such, rewards are determined by a latent function defined over the features of the arms in the choice set. Critically, this function defines a structural relation between the features and rewards. For instance, rewards may increase linearly with certain features of the arms, such as their spatial position, their color, and so forth. Learning the structures that govern the rewards can significantly improve performance, as it allows the agent to generalize from past observations to novel, unexplored options of the choice set.</p><p>The compositionally-structured bandit extends this paradigm by allowing rewards to be governed by multiple latent reward functions, where each reward function is associated with a set of contextual features f. In such multi-task or contextual bandit problems, the expected rewards associated with each arm changes depending on the contextual features f, i.e. which latent function currently governs its reward distribution. As such, the agent is tasked with learning a separate reward function for each context. Finally, in our paradigm the features of a context may be composed of other features which the agent explored and learned about in the past. That is, certain contexts will contain the features of multiple other contexts which the agent encountered in the past. We call such contexts compositional. Crucially, in our setup the latent reward function in these contexts is always an additive composition of the latent functions governing rewards in the corresponding constituent contexts. This way, the agent can make informed predictions about the reward structure in compositional contexts by composing the reward functions learnt in the relevant prior contexts.</p><p>We implemented this bandit task in a game where participants had to sequentially choose which dish (arm) to offer to alien customers in order to maximise the customers' payment (reward). Each dish was made up of a specific amount of two visually distinct ingredients (features), x. Alien customers were adorned with visual attributes, which reflected the contextual features f. Rewards were defined by contextspecific reward functions over the two-dimensional features:</p><formula xml:id="formula_1">r t = f (x t , f t ) + ε t .</formula><p>Crucially, the reward functions for some contexts were compositions of the reward functions of other contexts. The game was structured in four rounds, each containing several contextual reward functions (both compositional and not), for which participants had a set amount of trials to select arms. With this task, we set out to investigate how humans explored and exploited options in a task which allowed both for structure learning and compositional generalization. We hypothesized that participants would compose representations of reward-structures learnt in the past to make informed decisions when the latent function and contextual features were compositional. As such, we expected the rewards obtained on the first trial of compositional contexts to be higher than those of non-compositional contexts. Moreover, we reasoned that if participants composed reward functions from past contexts, then uncertainty around the compositional context would be significantly reduced, and the need for exploration would decrease. We therefore hypothesized that participants would explore less in compositional contexts.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Method Participants</head><p>We recruited 47 participants (22 female, M age = 28.3, SD age = 7.5) through Prolific. All participants had an approval rate of 95% or more, were fluent English speakers and had no color vision deficiencies. To improve the quality of the data, participants had to complete a tutorial before beginning the task. Participants were rewarded a base payment of £1.92 and a performance-dependent bonus payment of £1 on average. It took participants 22.9 minutes to complete the task on average (SD time = 6.9).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task and procedure</head><p>Participants gave their informed consent and were instructed that they would play a game where their job was to combine two types of ingredients to make and sell food items to aliens. The aliens would then give money for the served food and the amount of money they gave depended on how much they liked the food they were served. Participants were also informed that the aliens had different colored symbols on their bellies that signal their food preferences, and that aliens with similar features had similar preferences.</p><p>On each trial, participants were presented with an alien customer (contextual cue), and then selected a dish to serve from a two-dimensional ingredient space, in which each dimension corresponded to the amount (between 0 to 10) of an ingredient. Formally, each possible dish from the 11×11 grid representing the feature space was a reward-generating arm in a contextual bandit task. Participants were also informed how many trials were left in the current round. For each context, the reward function was either a noncompositional linear or periodic function defined over a single dimension in the input space, or an additive composition of such functions (see <ref type="figure" target="#fig_1">Figure 2</ref>). Which latent function currently governed the reward distributions was determined by the contextual cues (i.e. the colored symbols on the alien's belly). The non-compositional functions were accompanied with either a star or triangle symbol, rendered in either red or blue. The symbol type always matched the type of reward function (linear or periodic), whereas the symbol color always matched which input dimension this function was defined over (i.e. the first or second ingredient). Allocation of functions and dimensions to symbol types and colors was randomized for each participant. For contexts featuring two symbols, the latent reward function was a composition of the functions related to each symbol in isolation. In total, participants were tested on 10 unique reward functions, six of which were compositional (see <ref type="table">Table 1</ref>). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Round Latent function</head><p>Trials</p><formula xml:id="formula_2">1 Lin(X), Per(Y ), Lin(X) + Per(Y ) 40, 40, 20 2 Lin(Y ), Per(X), Lin(Y ) + Per(X) 20, 20, 20 3 Lin(X), Per(Y ), Lin(Y ), Per(X), Lin(X) + Per(X), Lin(Y ) + Per(Y )</formula><p>10, 10, 10, 10, 10, 10</p><formula xml:id="formula_3">4 Lin(X), Per(Y ), Lin(X) + Lin(Y ), Per(X) + Per(Y ), Lin(X) + Per(X), Lin(Y ) + Per(Y ), Lin(X) + Per(Y ), Lin(Y ) + Per(X)</formula><p>10, 10, 10, 10, 10, 10, 10, 10 <ref type="table">Table 1</ref>: The four rounds, and the latent reward functions they feature. Lin denotes the linear function, and Per the periodic function. The X's and Y 's point to the dimension over which the function was defined. The trial column indicates how many trials participants had to select arms for the respective functions in that round. Reward functions appeared in the order they are shown in the table, except for in round 4, where the order was randomized. When a function only mentions one dimension (e.g. Lin(x)), the other dimension (Y ) is unrelated to reward.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Behavioral Results</head><p>In all rounds, participants gained significantly more rewards than the chance levels of those rounds (round 1, t <ref type="formula">(</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Transfer learning</head><p>To test for transfer learning, we analysed the reward obtained on the first trial of each context. Compositional generalization is indicated by a higher reward for the first encounter with a compositional context than for the first encounter with the constituting simple contexts. As numerical rewards varied with reward functions, we first normalized all obtained rewards as the fraction of the maximum attainable reward for that context. We then used a linear mixed-effects model predicting these normalized rewards from reward function type and round (expressed as orthogonal contrast codes). The model also included participant-specific random intercepts and slopes to account for individual differences in learning. Rewards obtained on the first compositional trials were significantly higher than rewards obtained on the first trials of the simple functions t(846) = 6.35, p &lt; .001. On average, participants scored 17.15% higher on the first trial of compositional contexts than on the first trial of simple contexts. Before having been given the chance to learn from it directly, participants were significantly more likely to select an optimal arm on the first trial in the compositional contexts than chance level (computed as the number of optimal arms divided by the total number of arms), both in the first (t(46) = 4.05, p &lt; .001) and the second round (t(46) = 5.24, p &lt; .001). Interestingly, on the first trial of the compositional context in round 1, participants had not yet had the opportunity to learn that compositional contexts had compositional reward functions, indicating that their employment of compositional generalization reflected an a priori inductive bias, rather than something they learnt through trial and error.</p><p>We also investigated whether participants improved in harnessing compositionality to make informed decisions in compositional contexts. To assess whether there was such a learning-to-learn effect <ref type="bibr" target="#b3">(Harlow, 1949)</ref> for compositional inference, we tested whether mean rewards for the first compositional trial in round 1 were significantly different from those in round 2. Indeed, a t-test revealed that mean rewards for the first compositional trial in round 2 were significantly higher than those of round 1, t(46) = 2.51, p = .02. Furthermore, more participants selected the optimal arm on the first trial of the compositional context in round 2 than in round 1 (40.4% percent compared to 29.8% percent), though this difference was not statistically significant, t(46) = 1.3, p = .2. Though the number of participants who selected an optimal arm on the first trial of the compositional context in round 3 was not significantly different than chance t(93) = 1.06, p = .2, in round 4 significantly more chose an optimal arm than chance on the first trial of contexts containing functions composed of two linear functions t(46) = 4.76, p &lt; .001, or two periodic functions t(46) = 4.82, p &lt; .001.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Exploration</head><p>To assess how participants explored in the task's different contexts, we sought to predict exploration with a mixed effects model, using the same predictors as the transfer learning model, and random intercepts and slopes for the effect of round. We operationalized relative exploration through the Shannon entropy of the distribution over participants' choices over the two-dimensional feature space in each context. Informally, the entropy of a distribution quantifies its unpredictability. As a distribution approaches uniform, its entropy increases, and vice versa. Consequently, in contexts where participants explore a larger portion of the choice set, the corresponding choice distribution will be more uniform, and entropy will be high. As such, entropy will be low when participants exploit more, or employ more strongly guided exploration.</p><p>Participants explored less in compositional contexts compared to simple contexts: There was a significant difference between the entropy of participants' choice distributions in the compositional and simple contexts, t(751.03) = −8.71, p &lt; .001, indicating that participants explored more for simple functions, and exploited more for compositional functions. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model-based analysis</head><p>The behavioral results indicate participants were able to transfer their knowledge between contexts, composing new reward functions by combining simpler reward functions in a productive fashion. To account for this, we now propose a computational-level model which is able to learn and compose such structures through Bayesian inference and knowledge transfer over a grammar of functions.</p><p>Earlier work has modelled human function learning as Gaussian process (GP) regression <ref type="bibr" target="#b2">(Griffiths, Lucas, Williams, &amp; Kalish, 2009;</ref><ref type="bibr" target="#b11">Schulz et al., 2020)</ref>. This is a non-parametric Bayesian method for inferring functions from data, and when coupled with a decision strategy such as Upper Confidence Bound (UCB) sampling, also provides a good account of human behaviour in multi-armed bandit tasks <ref type="bibr" target="#b13">(Stojić et al., 2020;</ref><ref type="bibr" target="#b15">Wu, Schulz, Speekenbrink, Nelson, &amp; Meder, 2018)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Gaussian Processes</head><p>A Gaussian process defines a distribution over functions, such that for any set of input points x 1 , ..., x n , the outputs f (x 1 ), ..., f (x n ) follow a joint (multivariate) Gaussian distribution, f ∼ GP . In our case, the input points x are the features of the arms (ingredient combinations) in the contextual bandit task, and the outputs f (x) are the rewards.</p><p>A GP is defined by a mean function m(x) = E[ f (x)] and a covariance function</p><formula xml:id="formula_4">k(x, x )) = E[( f (x) − m(x))( f (x ) − m(x ))].</formula><p>The latter is also known as the kernel and defines how the random outputs of any two input points covary. The posterior distribution over the outputs, given observations</p><formula xml:id="formula_5">D n = {X n = [x 1 , ..., x n ], y n = [y 1 , ...y n ]},</formula><p>is also a GP with mean and kernel function <ref type="bibr" target="#b12">(Schulz, Speekenbrink, &amp; Krause, 2018)</ref> where k(x, x ) is the kernel function, k is the kernel matrix containing the prior covariance between testing and observed input points, and K is the kernel matrix containing the covariance between all observed input points. Consequently, in our task, the rewards generated at each arm are modelled as normally distributed random variables in a GP. To make predictions about rewards in a given context c, we derive the posterior GP using the rewards already observed in c, and use its mean function m(x) to make predictions. The kernel is central to GP regression: There are several kinds of kernels, each specifying different structures which are imposed on the functions modelled by the GP, and each encoding assumptions about the functions' structure, such as linearity and periodicity, smoothness and noise. As such, how a GP interpolates and extrapolates from observations is determined by its kernel. Another crucial property of these positive-definite GP kernels is that they are closed under addition and multiplication, such that if k is a kernel function and k is a kernel function, then so is k + k and k × k <ref type="bibr" target="#b0">(Duvenaud, 2014)</ref>. Consequently, there is an infinite set of kernels available to model the covariance structure of a function. This makes GPs able to express a vast range of rich functional forms. Unfortunately, this also complicates the task of selecting an appropriate kernel for a particular regression problem, as there is an infinite set of arbitrarily complex candidate kernels to select from, each of which will have a different likelihood of generating the data.</p><formula xml:id="formula_6">m post (x) = k T (K + σ 2 ) −1 y T (2) k post (x, x ) = k(x, x ) − k T (K + σ 2 ) −1 k<label>(3)</label></formula><p>Exploiting the compositional properties of kernels, we rely on a compositional kernel grammar <ref type="bibr" target="#b0">(Duvenaud, 2014;</ref><ref type="bibr" target="#b5">Janz, Paige, Rainforth, van de Meent, &amp; Wood, 2016)</ref> to solve this problem for the various reward structures participants encounter. The kernel grammar is a generative model of covariance functions which probabilistically produces kernels. In our approach, it starts by sampling a kernel from a base set containing the standard kernels used in the literature, namely the linear, periodic, and radial basis kernels <ref type="bibr" target="#b0">(Duvenaud, 2014)</ref>, B = {k Lin , k Per , k RB }, and recursively expands this kernel through a sequence of steps in which it samples a new kernel k ∼ B and either adds or multiplies it with the current kernel. At each step, there is a probability γ that the grammar stops and returns the current production. As such, the parameter γ controls the productivity of the grammar, and the complexity of the kernels being produced.</p><p>As this grammar implicitly defines a prior over kernel functions, we seek to approximate the posterior over kernels, embodying the hypothesized structure of the reward function being modelled, given the observations. We do this by first sampling 100 kernels from the grammar and computing the corresponding posterior GPs. We then obtain each GP's marginal likelihood, using their respective kernel in our hypothesis set, and compute the posterior probability of these kernels, given the reward data observed.</p><formula xml:id="formula_7">p(k | D) ∝ p(D | k)p(k) (4)</formula><p>With this posterior distribution we compute a final posterior GP, which is the sum of all posterior GPs (using their respective kernels), weighted by their posterior probability. We rely on this procedure to capture the structure of the reward functions we tested participants on in our experiment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Transfer learning</head><p>For the model to be able to compose reward structures from past contexts and tasks, we equipped it with what has been referred to as a Neural Dictionary <ref type="bibr" target="#b8">(Pritzel et al., 2017)</ref>. This dictionary consists of a set of keys, which are vectors f c encoding the features of encountered contexts c, and corresponding values which are the posterior GPs learnt for c. Upon computing a posterior GP for a context, as per the last section, it writes an entry into the dictionary whose key is the feature vector of the context, and whose value is this posterior GP. If the context has been visited previously, it overwrites the old posterior GP with the new one. Crucially, whenever the model encounters a context whose reward function is composed of two previously seen functions, we ask it to transfer knowledge from previously explored contexts. This is achieved by computing the similarity between the current context c and all previously seen contexts c , κ(c, c ) where κ(•, •) is a similarity measure. This assigns a similarity score 0 ≤ κ(c, c ) ≤ 1 to each c in the dictionary, which we normalize by the total similarity. We found cosine similarity to be a suitable measure for our task</p><formula xml:id="formula_8">κ(c, c ) := f c • f c f c • f c .<label>(5)</label></formula><p>With these similarity scores, we derive a new GP which is the sum of the posterior GPs stored in the dictionary, weighted by their similarity to the current context c * .</p><formula xml:id="formula_9">GP * = N ∑ i GP i κ(c * , c i ) ∑ m j κ(c * , c j )<label>(6)</label></formula><p>This not only allows the model to use informed priors about the current context's reward function based on its similarity to tasks encountered in the past, but also to compose previously learnt representations of the reward structure by adding them together, if the contexts in which these representations were learnt are similar to the current context.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Choice probabilities</head><p>The model derives a GP with a mean vector m(x), describing the predicted rewards at each arm, and a covariance function k(x, x ), with σ(x) = k(x, x) reflecting the uncertainty of its predictions. We use both of these components to devise a decision strategy for the model. In particular, we evaluate the quality of each arm Q(x) using the Upper confidence bound sampling (UCB) algorithm <ref type="bibr" target="#b14">(Sutton &amp; Barto, 2018)</ref> </p><formula xml:id="formula_10">Q(x) = m(x) + βσ(x),<label>(7)</label></formula><p>where β is a parameter controlling how reducing uncertainty should be traded off against exploiting higher-rewarding arms. As such, this strategy attempts to strike a balance between pure exploration and pure exploitation strategies, and is a solution to the exploration-exploitation trade-off. We convert the arms' Q-values to choice probabilities using a softmax function (discarding the temperature parameter τ)</p><formula xml:id="formula_11">P(x) = exp(Q(x)) ∑ N i exp(Q(x i ))<label>(8)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>We estimated how likely our model, which we will refer to as the GP-grammar model, was to produce participants' choices on the first trials of the compositional contexts. The complexity penalty γ for the kernel grammar was set to 0.8, and the exploration parameter β for the UCB strategy was set to 1.96 (reflecting the 95% confidence interval of the estimated reward). We compared the GP-grammar model to several alternatives: a random model which assigns to all arms a uniform probability of being selected P(x) = 1/121, three lesioned versions of the GP-grammar model, employing only a linear, periodic, or RBF kernel, respectively, but retaining the Neural dictionary for transfer learning, and lastly a Universal Value Function Approximator (UVFA) <ref type="bibr" target="#b9">(Schaul, Horgan, Gregor, &amp; Silver, 2015)</ref>. The UVFA is a state-of-the-art transfer learning model which, in our task, learns rewards both across options and contexts. In our approach, the UVFA took the form of a GP with an RBF kernel, using both option features and context features to learn and predict rewards. Since the RBF kernel is universal <ref type="bibr" target="#b10">(Schölkopf &amp; Smola, 2002)</ref>, the UVFA and the lesioned RBF models could recover the compositional ground truth. The advantage of the GP-grammar model, however, lies in its ability to elicit the appropriate priors about the latent structure more strongly and with less data by performing Bayesian inference. Crucially, the models were tested on choices made before participants had observed any reward function values for this context. As such, any computational model that does not transfer knowledge from prior contexts on these trials will make identical predictions to the random model on these trials as well.</p><p>To estimate the GP-grammar model's performance in reproducing participants' choices, we sequentially derived the posterior GP for each context encountered by participants as described in the last section, conditioning the corresponding GP on all input-output points that participant had observed for that context. We endowed each context with a one-hot encoded vector, encoding whether the context featured a star, a triangle, or both, and whether the symbol(s) were blue or red, respectively. In contexts whose latent reward function was compositional, we computed the contextually informed GP, based on the cosine similarity between the relevant context vectors, as per equations (5) and (6). Making use of the mean and covariance function of this GP, we computed the Q-values for all possible arms and converted them to choice probabilities, using (7) and (8) respectively. The lesioned models were trained the same way, and the UVFA was simply conditioned on all previously seen observations, including the relevant context vectors as features. For each participant, we obtained the average probability of generating their choices for all models, and summed up the models' log likelihoods across participants. With these quantities we computed the posterior probability of the models, assuming a uniform prior, as well as McFadden's pseudo-R 2 values <ref type="bibr" target="#b7">(McFadden et al., 1973)</ref></p><formula xml:id="formula_12">, R 2 = 1 − L(M) L(M random )</formula><p>, quantifying the degree to which a model explains the variance over and above chance, where R 2 = 0 correspond to chance levels, and R 2 = 1 corresponds to a model infinitely more accurate than chance.</p><p>We found the GP-grammar model was substantially more likely to reproduce participants' choices than the other models, obtaining a posterior probability of P(M | y) &gt; 0.999, and an R 2 score of 0.29, also higher than all alternative models (UVFA: R 2 = 0.04, linear kernel: R 2 = 0.23, periodic kernel: R 2 = 0.05, RBF kernel: R 2 = 0.05). That the GPgrammar model outperformed both the lesioned and UVFA models suggests that human compositional generalization in contextual bandit tasks not only relies on the ability to discover sophisticated reward structures, but also on the the ability to compose such structures. <ref type="figure">Figure 4</ref>: A: Participant performance in the compositional context of the first round compared to the performance of our full model ("Grammar") and that of a GP using an RBF kernel. B: McFadden's R 2 for all models. Our full model is denoted by "Grammar".</p><p>Moreover, our results suggest that this propensity relies both on the ability to discover richly structured representations of how rewards are distributed in a choice space and on being able to compose and combine such representations when contextual features call for it. As such, our Bayesian grammar-based approach for discovering viable covariance functions for GPs combined with a compositional transfer learning mechanism, presents itself as a suitable, Bayesian model of generalization in compositional bandit tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>We assessed the extent to which humans harness compositionality to support reward learning and decision-making in RL settings. Our results indicate that participants were able to learn representations of the abstract structures governing how rewards were generated, and more importantly, make informed, compositional generalizations from these simpler representations. This is indicated by first rewards being significantly higher for contexts containing compositional latent functions: Since the compositional functions were always preceded by the simple functions from which they were composed, participants could make informed predictions about rewards in compositional contexts before having observed any input-output pairs. That participants explored less in compositional contexts offers further compelling evidence for this transfer of knowledge: By harnessing compositionality in novel contexts, participants could sidestep the need for exploration, and compose representations of past reward functions to select higher-rewarding options earlier. Ultimately, these results suggest that compositionality, a principle commonly invoked in linguistics and cognitive science to account for the productivity and systematicity of human cognition <ref type="bibr" target="#b1">(Fodor, 1987;</ref><ref type="bibr" target="#b6">Lake, Salakhutdinov, &amp; Tenenbaum, 2015)</ref>, should be central in theories of human RL and decision-making as well.</p><p>We also developed a novel computational model able to reproduce core aspects of the compositional generalization observed in the behavioural data. This model conceptualizes reward-structure learning as GP regression, where the kernel embodying the latent structure is discovered through Bayesian inference over a set of compositional kernels produced by a generative grammar. The ability to compose such representations is conceptualized as similarity-based knowledge transfer, in which a novel representation is constructed as an additive composition of prior learnt representations, weighted by the similarity between the prior and present contexts. This model was substantially more likely to generate participant choices on the first trial of the compositional contexts than lesioned counterparts and another transfer learning model. In the end, our modelling results suggest that structure learning in humans may be supported by symbolic, grammarlike computations, and that contextual similarity judgements underpin how humans compose latent structures.</p><p>One current caveat is that we only tested participants' propensity for compositional knowledge transfer in settings where the latent function was an additive composition of two simpler functions. To gain further evidence for our hypotheses, in future work, we aim to test whether these behavioural effects persist in tasks with more complex compositional structures, such as multiplicative or change-point functions <ref type="bibr" target="#b0">(Duvenaud, 2014)</ref>, and extend our model to be able to generalize about such compositions as well.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Screenshot from the task. The option features correspond to amounts of ingredients, which can be selected by adjusting the sliders.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>A: The linear reward functions used in the four rounds. B: The periodic reward function, reused for all rounds. C: The compositional, linear-periodic reward function from Round 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>A, B: Mean rewards per trial obtained for compositional and average of non-compositional reward functions in round 1 and 2. C, D: Entropy histograms for compositional and average of noncompositional reward functions in round 1 and 2. Plotted lines represent the kernel density estimate of the histograms.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head></head><label></label><figDesc>146.56) = 36.38, p &lt; .001, round 2 t(146.05) = 27.29, p &lt; .001, round 3 t(312.14) = 32.58, p &lt; .001, round 4 t(392.91) = 35.32, p &lt; .001), indicating that they were able to learn about and exploit the latent reward functions.</figDesc><table /><note></note></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Automatic model construction with Gaussian processes Unpublished doctoral dissertation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Duvenaud</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Cambridge</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Psychosemantics: The Problem of Meaning in the Philosophy of Mind</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Fodor</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1987" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Modeling human function learning with Gaussian processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lucas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Kalish</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="page" from="553" to="560" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">The formation of learning sets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Harlow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Psychological review</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="1949" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">The faculty of language: what is it, who has it, and how did it evolve?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Hauser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Chomsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Fitch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">298</biblScope>
+			<biblScope unit="issue">5598</biblScope>
+			<biblScope unit="page" from="1569" to="1579" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Janz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Paige</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Rainforth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-W</forename><surname>Van De Meent</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Wood</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.06863</idno>
+		<title level="m">Probabilistic structure discovery in time series data</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Human-level concept learning through probabilistic program induction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Lake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">350</biblScope>
+			<biblScope unit="issue">6266</biblScope>
+			<biblScope unit="page" from="1332" to="1338" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Conditional logit analysis of qualitative choice behavior</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mcfadden</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1973" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pritzel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Uria</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Srinivasan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Puigdomènech</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hassabis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">.</forename><surname>Blundell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1703.01988</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Episodic Control</title>
+		<imprint>
+			<date type="published" when="2017-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Universal value function approximators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Schaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Horgan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Gregor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 32nd international conference on machine learning</title>
+		<editor>F. Bach &amp; D. Blei</editor>
+		<meeting>the 32nd international conference on machine learning<address><addrLine>Lille, France</addrLine></address></meeting>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2015-07" />
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="1312" to="1320" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Learning with kernels: Support vector machines, regularization, optimization, and beyond</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Smola</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<publisher>MIT Press</publisher>
+			<pubPlace>Cambridge, MA, USA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Finding structure in multi-armed bandits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">T</forename><surname>Franklin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Psychology</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page">101261</biblScope>
+			<date type="published" when="2020" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">A tutorial on gaussian process regression: Modelling, exploring, and exploiting functions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Speekenbrink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krause</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Mathematical Psychology</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page" from="1" to="16" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">It&apos;s new, but is it good? How generalization and uncertainty guide the exploration of novel options</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Stojić</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Analytis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Speekenbrink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Experimental Psychology: General</title>
+		<imprint>
+			<biblScope unit="volume">149</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1878" to="1907" />
+			<date type="published" when="2020-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Reinforcement learning: An introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Barto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Generalization guides human exploration in vast decision spaces</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Speekenbrink</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Nelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Meder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="915" to="924" />
+			<date type="published" when="2018-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

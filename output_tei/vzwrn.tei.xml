@@ -1,0 +1,1957 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /opt/grobid/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Reverse-engineering the Self Authors</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Paul</surname></persName>
+							<email>la.paul@yale.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Philosophy</orgName>
+								<orgName type="institution">Yale University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tomer</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+							<email>tullman@fas.harvard.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Psychology</orgName>
+								<orgName type="institution">Harvard University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Julian</forename><surname>De Freitas</surname></persName>
+							<email>defreitas@g.harvard.edu</email>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Marketing, Harvard Business School</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+							<affiliation key="aff3">
+								<orgName type="department">Department of Brain and Cognitive Sciences</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Reverse-engineering the Self Authors</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.6.1" ident="GROBID" when="2025-06-29T14:09+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>intelligence</term>
+					<term>action</term>
+					<term>centering</term>
+					<term>decision making</term>
+					<term>learning</term>
+					<term>planning</term>
+					<term>agent</term>
+					<term>the self</term>
+					<term>POMDP</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>To think for yourself, you need to be able to solve new and unexpected problems. This requires you to identify the space of possible environments you could be in, locate yourself in the relevant one, and frame the new problem as it exists relative to your location in this new environment. Combining thought experiments with a series of self-orientation games, we explore the way that intelligent human agents perform this computational feat by &quot;centering&quot; themselves: orienting themselves perceptually and cognitively in an environment, while simultaneously holding a representation of themselves as an agent in that environment. When faced with an unexpected problem, human agents can shift their perceptual and cognitive center from one location in a space to another, or &quot;re-center&quot;, in order to reframe a problem, giving them a distinctive type of cognitive flexibility. We define the computational ability to center (and re-center) as &quot;having a self,&quot; and propose that implementing this type of computational ability in machines could be an important step towards building a truly intelligent artificial agent that could &quot;think for itself&quot;. We then develop a conceptually robust, empirically viable, engineering-friendly implementation of our proposal, drawing on well established frameworks in cognition, philosophy, and computer science for thinking, planning, and agency.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Remarkable advances in models for planning and decision making are a recent success story in cognitive science. While decision making remains an ongoing topic of rich study, a framework dedicated to boundedly rational planning over states, actions, and state transitions has brought together work in cognition, neuroscience, behavioral research, economics, optimization, and artificial intelligence <ref type="bibr">(Sutton, 1988;</ref><ref type="bibr">Wellman, 1990;</ref><ref type="bibr" target="#b86">Watkins and Dayan, 1992;</ref><ref type="bibr">Barto, Bradtke, and Singh, 1995;</ref><ref type="bibr" target="#b71">Schultz, Dayan, and Montague, 1997;</ref><ref type="bibr" target="#b33">Kaelbling,Littman, and Cassandra, 1998;</ref><ref type="bibr" target="#b1">Baker et al., 2009;</ref><ref type="bibr" target="#b65">Puterman, 2014;</ref><ref type="bibr" target="#b40">Lewis et al, 2014;</ref><ref type="bibr">Gershman, Horovitz, and Tenenbaum, 2015;</ref><ref type="bibr" target="#b68">Russell and</ref><ref type="bibr" target="#b68">Norvig 2016/2020)</ref>. Developments in AI have been especially exciting, with recent advances in machine learning creating machines that consistently outdo top experts at a wide variety of tasks <ref type="bibr" target="#b72">(Silver et al., 2017</ref><ref type="bibr">(Silver et al., , 2017b</ref><ref type="bibr">Schrittweiser et al., 2020)</ref>. While much work remains, formal and descriptive approaches to human decision making have made significant progress.</p><p>Yet, there is something missing in these approaches: Who is doing all this planning and deciding-and how? The answer may seem obvious: the agent! But what is the computational structure of this agent, especially if it is supposed to be an intelligent agent acting in a humanlike way?</p><p>We think that what's missing from current approaches cannot be resolved merely by adding data to a current planning framework: the computational structure of such an agent must support the ability to learn and think for itself. Accordingly, we'll propose a computational framework for reverse-engineering an agent that can "think for itself", drawing on well established work in cognition, philosophy, and computer science for thinking, planning, and agency. Our intended audience includes psychologists, computational cognitive scientists, philosophers interested in connecting formal epistemology to cognitive science, AI and ML researchers who hope to build machines that plan and think for themselves, and more broadly, anyone who is interested in the science of the mind.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Engineered systems and thinking for oneself</head><p>A truly intelligent agent can think for itself without being guided or reprogrammed by its engineer. It can recognize, when faced with an unanticipated problem, that its current actions are not leading to a desired outcome. In response to this it can change its plans, identify the new problem it needs to solve, and act to achieve its new goal. When doing so, it can execute its plans in a flexible, general-purpose way, learning for itself what it needs to do without having to be reprogrammed, rewired, or redirected. Such intelligence is characteristic of human agents, but, we hope, could also be artificially constructed. What kind of a machine could think for itself?</p><p>Can a self-cleaning oven think for itself? Obviously not. A self-cleaning oven cannot, on its own, flexibly solve new problems that require assessing a novel situation, or plan an appropriate course of action in response to a new problem. A self-cleaning oven may include basic representations of temperature and the like, but it does not have a model of the environment, and certainly lacks a representation of its own function and state as part of that environment. It does not have a perspective on itself. Rudimentary machines of this sort do not seem to think for themselves, nor could they. Does a self-driving car think for itself? Self-driving cars do have simple forms of the abilities that an oven lacks <ref type="bibr" target="#b42">(Luettel et al., 2012)</ref>. A self-driving car represents its spatial environment, and its mapping systems capture a notion of where it is, at least approximately, relative to the rest of the world. However, current self-driving cars rely largely on non-human-like computations that include a great amount of pre-labeled data and a relatively precise GPS location. Importantly, they do not construct a representation of the environment that includes the self-driving car itself from sensory data. Even with such computational abilities, a futuristic self-driving car would not be able to think for itself in the intended sense. Such a car could make decisions, but it would not do so as an agent, representing itself and flexibly updating its representation of itself. To drive home this point, think of the engineer who builds a self-driving car. The engineer has a representation or model of the car in mind, C, which includes many sub-components and processes and concepts, such as "the car will need to be able to locate itself on a map". The car, once built, is a realization of C, but does not include this representation of itself as a realization of C amongst its own computations, and so cannot change this realization if the need arises. A car that does not represent itself as an agent in its environment cannot think for itself in the way that a human does. It has only some of the abilities needed to think for itself in the way that humans do. Do machine-learning systems that have been described as "learning for themselves" think for themselves in the intended sense? A widely accepted standard model of intelligence naturally accommodates very simple forms of learning, analogous to classical conditioning, instrumental conditioning, and other basic adaptive processes. In today's AI systems, these learning processes are implemented via optimization algorithms that tune parameters of a fixed function (such as an artificial neural network) to improve performance on some tasks or datasets.</p><p>The designers of some of AI's high-profile recent successes refer to these systems as ultimately intended to learn and think for themselves <ref type="bibr" target="#b6">(Botvinick et al., 2017)</ref>, as in the case of Go champion programs AlphaGo <ref type="bibr" target="#b72">(Silver et al., 2017)</ref>, and AlphaZero <ref type="bibr">(Silver et al., 2017b)</ref>, or more general purpose game-programs like <ref type="bibr">MuZero (Schrittweiser et al., 2020)</ref>. Such a system decides for itself how to play, like any game AI. It also learns for itself by playing against a model of itself. This property is a central part of these systems' appeal. AlphaZero and MuZero are intelligent by a simple outcome measure of success --they play specific games well. They are also intelligent by a measure of generalization --they play many games well.</p><p>Yet, again, there is an important sense in which a system such as AlphaZero lacks basic requirements needed for a human-like ability to represent itself, and thus to think for itself in our intended sense. AlphaZero has a rudimentary representation of AlphaZero in the sense that it learns from playing games that are drawn from the decisions it would make. But AlphaZero does not represent or orient itself as the decision-making agent in a certain situation (playing a certain game, against a certain opponent, at a certain point in its history) while it plays its game. For example, AlphaZero lacks the ability to realize that it is now playing a game of Go-in contrast to another game it could be playing. If it were unexpectedly interrupted, such that the only way to keep playing would be to play a different game, AlphaZero would not be able to step back, compare the game it is now playing to the possible situation where it plays the new game it needs to play, and choose to play this new game as a solution to its unanticipated problem.</p><p>More generally, when faced with an unanticipated problem, such a machine does not represent itself as being in a new possible situation, locating and selecting the right options, and flexibly updating its representation of itself as it does so. Thus, AlphaZero lacks the ability to think for itself in our computational sense. If we label the representation that the engineers building AlphaZero had in mind as R, then AlphaZero does not have its own representation of a realization of R, nor will it build such a representation, even if it runs out eternity playing itself over and over again. It cannot solve unanticipated problems by representing itself in different possible situations and reframing its goals in the flexible, adaptive way that intelligent human agents can. These machines are missing a distinctive kind of computational structure that humans employ when adaptively planning and successfully acting.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2">Centering</head><p>In contrast to the machines we described above, an intelligent human agent represents itself as an agent that is distinct from yet located within its local environment. People can triangulate different perceptions of themselves in an environment (see e.g. <ref type="bibr" target="#b11">Burgess, 2006;</ref><ref type="bibr" target="#b0">Avraamides and Kelly, 2008)</ref>, allowing them to represent their actions as linked to a perspective at a location. As we will argue below, such an agent performs a complex, highly abstract, computational task where they locate themselves in-and represent themselves as located within-a domain. As we will put it, they "center" themselves.</p><p>After they center themselves, human agents plan and act, basing their plans on the perspective they have from their center. If they discover they are not solving the right problem, they adjust: they re-center themselves at a new location, setting up and solving new action problems from their new center.</p><p>An example can help to illustrate: You awake to pitch-black darkness in an unfamiliar room. Feeling your way around, you touch a bedside table, then a lamp, eventually finding the light switch. Leisurely glancing at the clock, you suddenly realize that you are late! You have just a few minutes to get to the meeting where you are to present. You rush around, gather your things, and hurry out the door.</p><p>When you awoke, you found yourself with an immediate problem to solve: you were in a dark room and needed light. You translated this into the problem of finding a light switch. Successfully finding and turning on the light required basic motor planning and navigation of the local environment. Glancing at the clock, however, changed the nature of the task. When you saw what time it was, you recognized that you had a new problem: unless you hurried out the door, you wouldn't get to your session on time.</p><p>As we will put it, you had to re-center yourself, by centering yourself at a new location in time. This necessitated a sudden change of plans. But note that by changing your plans, you didn't merely solve a new problem. You also solved a new kind of problem, one involving a constructive act of cognition. To find yourself with the simple and ordinary problem of getting to your talk on time, you needed to perform a series of sophisticated computational feats.</p><p>First, you had to recognize that you were not solving the right problem, as part of recognizing that your goal of getting to the session on time would not be achieved by your current actions. Then, you had to replace your old problem with this new, previously unanticipated problem. To do this, you had to implicitly represent a range of possible actions, review them, and select a new action to take. As part of doing this, you had to identify the space of possible (temporal) locations, locate yourself at the relevant one, frame the new problem as it existed relative to your new location, and set the problem up relative to your new constraints. This involved representing yourself as able to occupy a new possible temporal location, locating and selecting the right one, and flexibly updating your representation of yourself as you did so. Only once you'd performed these computational tasks, temporally realigning yourself, could you act effectively, directing your attention to solving the right problem.</p><p>The dark hotel room example illustrates a general truth. In general, to shift yourself from solving a problem that will not get you to your goal to solving a problem that will, you must be able to think flexibly: you must reorient yourself. This relies on the ability to represent a space of possible problems, to recognize that you are not currently solving the right problem, and then to choose another one. You are implicitly trying to answer the question: which problem should I solve?</p><p>The way you answer this question matters. Existing state-of-the-art algorithms might approach a need for aligning oneself to one's environment and problem space straightforwardly, by processing all the information around the agent in order to learn associations that reliably lead to success (see e.g <ref type="bibr" target="#b21">Durrant-Whyte and Bailey, 2006;</ref><ref type="bibr" target="#b12">Cadena et al., 2016)</ref>. But as our example suggests, and as we will develop below, people can do something very different.</p><p>People can organize their domain through treating themselves as the perceptual and cognitive center of their world, implicitly representing themselves as an agent that is distinct from, yet embedded inside, an environment, and coordinate their perceptual and cognitive center with a location in this environment. They then formulate their plans from this agent-centered perspective, which assumes that they are located in a domain as an agent with perceptual affordances and orientations keyed to this location. Crucially, they do this by simultaneously coordinating different types of representations of themselves (for philosophical discussion, see e.g., List 2023).</p><p>An example drawn from a famous children's story will illustrate. One morning, just after the snow stops, Piglet happens upon Pooh, who is walking slowly around in a circle, staring intently at the ground. Piglet asks Pooh what he is doing, and Pooh replies that he is tracking something. They discuss the possibility that it might be a Woozle, and Pooh and Piglet proceed to track together. The tension escalates as a second set of tracks, and then a third, join the first. When a fourth set of tracks appears, Piglet abruptly leaves the area. Pooh, left alone to reflect, is interrupted from his thoughts by Christopher Robin, who's been watching the whole scene from up above, perched in the old oak tree.</p><p>"Silly old Bear," says Christopher Robin. "What were you doing? First you went round the spinney twice by yourself, and then Piglet ran after you and you went round again together, and then you were just going round a fourth time." On hearing this, Pooh stops, sits down, and thinks. Then, very slowly, he fits one of his paws into the tracks, and it dawns on him:  <ref type="bibr">Milne, Winnie-the-Pooh, 1926)</ref> When Pooh fits his paw into the track, he performs something that is cognitively isomorphic to what a lost human agent does when they locate themselves on a map <ref type="bibr" target="#b60">(Perry, 1979)</ref>. He combines his own perceptual inputs and his own perspective on himself with the observational information given by another perspective (that of Christopher Robin). In doing so, he discovers new information, which he uses to replace one model of his world with another model, centering himself in a new environment. More generally, when he found himself solving the wrong problem, he responded by discovering and solving a new kind of problem. He did so by reviewing the way he was thinking of the world, selecting a way of thinking that better fit his evidence (the evidence provided by Christopher Robin), and re-centering himself by juxtaposing his perceptual and cognitive center with this new evidence. In the process, he solved the problem of who was creating the tracks.</p><p>While the story is fanciful, it captures a deep truth about the way that human agents flexibly realign themselves with the world to solve problems. There are two particular features of this approach that our Pooh example highlights: (i) an agent discovers that it is misaligned with its world, and in response, in order to properly realign itself, performs a type of cognitive adjustment involving (ii) a triangulation task that requires it to coordinate its first person representation of features from within its environment with a third person representation of itself or its position to relocate (or find) itself at a new location.</p><p>Our thought is that the ability to center oneself and re-center oneself is a hallmark of intelligence. We do not propose that this ability requires consciousness: below, in section 6, we will develop a minimal, functionalist implementation of our approach by extending the widely accepted "POMDP" model of what it is to be an intelligent, problem-solving agent.</p><p>2 You are here now Centering requires an agent to identify the location of its perceptual and cognitive center in a space.</p><p>To better understand the nature of this task, consider the sign "you are here now". Suppose that you have never encountered the notion of a physical (or virtual) map. One day, you are finding your way around a new city, and you find yourself standing next to a map. You ask someone in front of you for help, and they point to a small piece of paper with a dot on it labeled with "you are here now." A potential response on your part might then be: "no, I'm over here in front of you. That's a dot on a piece of paper on a billboard. Rude." The initial barrier to cross here is understanding that you are the referent of the dot on the paper, such that the dot on the paper map represents your spatial location from the map's global or "bird's eye" perspective. That is, you must have the ability to identify your perceptual and cognitive center with the dot that represents your position in the space. Once you have centered yourself on the dot in this way, you can use the map to perform tasks. (A map is useless until you locate yourself on it.) For example, you might see a building in front of you, recognize its juxtaposition to your location as represented on the map, and use this information to determine that you need to turn left to get to a cafe. Here, you triangulate your first person line of sight on the building with your external ("third person") representation of yourself at your map location in order to figure out how to get to a goal.</p><p>Centering yourself by triangulating these different representations is necessary to use the map to navigate. However, it may not be sufficient. If, as you use the map, you begin to have problems (you keep getting lost, you cannot find things you saw on the map), you may realize that, in fact, you are using the wrong map! As it turns out, the map you consulted was created by a practical joker preying on ignorant tourists. In this case, an adjustment is required: you need to replace the old map with a new one that accurately represents the space, and, re-triangulating, find your location on the new map. Then, you can continue to pursue your goal. That is, you need to re-center, moving from one icon (representing one proposed location) to another (representing a new proposed location), in order to successfully navigate your physical space.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">The Avatar Problem</head><p>To investigate the structure of how we center ourselves by identifying our perceptual and cognitive center with a representation <ref type="bibr">[TU12]</ref> of our location in a space, we explored how humans and other agents perform such centering tasks when playing video games. We also explored how, in these games, when human and other agents are disoriented, they re-center themselves.</p><p>Many video games are populated by agents, who have different affordances, properties, and goals. Each character in the game is assumed to have affordances, properties, and goals. Some, though not all, video games include the notion of an 'avatar'. Of the many agents and characters that may populate a game, the avatar is the agent that represents the player in the game. When you play a game using your avatar, the avatar responds to your commands and performs various tasks for you. Your avatar gives you agency-by-proxy in the game. Now imagine being handed an unfamiliar video game with many agents one could play. You have an initial problem: Which agent is your avatar?</p><p>To play, you must solve what we call "The Avatar Problem": you must locate which avatar represents you in the game, and center yourself on that avatar, giving you agency in the game. Centering yourself on your avatar allows you to answer important kinds of questions. What does your avatar look like? What are your avatar's affordances? What can it do? What are its goals? Where is your avatar located on the game map, and in what frame is the avatar? Where is the avatar located relative to the general timeline of the game? Without answering these questions, you cannot play the game.</p><p>There are at least two basic problems for centering on the right avatar: representation and search. First, your space of possible cognitive representations needs to include the notion of an avatar, distinct from the representation of agents more generally. Second, within the space of all possible avatars, only a subset will be relevant for this specific game, and you must find the right one.</p><p>Locating one's avatar is a crucial initial process, one that is implicitly assumed to be given by the game designer, is performed effortlessly by players, and is not explicitly part of the inference problem for many artificial agents. But its transparency belies its importance: It is there, and in our example, without it, the game cannot even be played.</p><p>It might seem that the problem of finding your avatar is trivial: simply mash some keys or move a cursor, and observe which agent's movement correlates with this manipulation. Note, though, that what you are doing is exactly our point: you are discovering which avatar-icon represents you in the game space, in order to discover which avatar has your agency. Other solutions are possible --the game might tell you in words which agent is your avatar (`you are Mario'), or show a pulsating arrow pointing at a particular avatar representation. Our point is that knowing which agent represents you involves a computational task that often, in ordinary games, is performed so effortlessly one does not even realize a problem is being solved.</p><p>To explore how human agents center on a representation of themselves when they play a game that presents them with a version of the Avatar problem[PL15] , we devised a logic game in De <ref type="bibr">Freitas et al. 2023 (Figure 3, top)</ref>, modifying an existing environment <ref type="bibr" target="#b51">(Pan et al., 2019)</ref>, and made to interface with the OpenAI Gym gaming ecosystem <ref type="bibr" target="#b10">(Brockman et al., 2016)</ref>. In our logic game, you must get to a goal item (green block), but you don't know initially who you are. Four agents (red blocks) make for good initial guesses for an avatar.</p><p>In De Freitas et al., we hypothesized that when given this game (and several others with similar underlying structure) and told to simply play it, human players necessarily go through a two step process: First, they try to figure out 'which avatar am I?'. Only once this is done, they pursue the explicit goal of the game (navigating to the goal item) by navigating their avatar. Note that the game doesn't have to be solved through such a process, one can simply mash keys until the end-screen appears. One could also learn a policy that is better than random chance, but still does not involve centering. However, it is both intuitive, and as we discuss below, empirically the case, that people first locate an avatar as "theirs", and then pursue their plans. In this game a player is one of the 4 agents (red blocks), and each level ends when the player's avatar reaches a green block. Here, moving DOWN disambiguates two possible selves. If moving down produces no visible change, then you must be one of the bottom two agents. Moving RIGHT reveals that the digital self was in the bottom left corner. Knowing this, a player can navigate it to the reward. Bottom, performance of humans and models: (A) Number of steps taken by all agents, averaged every 20 levels. Error shading reflects standard error of the mean. (B) Zooming in on level-by-level human players for the first hundred levels. Horizontal lines above the plot indicate levels where the human performance is indistinguishable from optimal (i.e., Bayes Factor above 1.0). (C) Violin plot showing the correlations between the number of steps until the first visible displacement occurred and the total step count, for each participant. Error bars reflect 95% confidence intervals, and stars beneath the plot show the significance resulting from one sample t-test comparing the correlation values against chance ('***' = p &lt; .001). (D) Zooming in on artificial players for the last hundred levels, averaged every 20 levels. (E) Heatmaps of normalized action patterns for the first hundred levels (top row) and last hundred levels (bottom row), with human performance for the first hundred levels included for comparison. Yellow shows the most visited, and purple shows the least visited, locations by the digital self.</p><p>De Freitas et al created many levels of the game, sampling at random from different configured stages. On each level, the (real) Avatar starts randomly in one of the four corners. We compared the behavior of several different agent classes on this game: (1) A random agent, (2) a set of RL algorithms that learn in a frame-by-frame fashion from pixel representations (DQN, A2C, TRPO, ACER, PPO2, OC), and (3) human players, specifically 20 naive participants who were asked to play the game with minimal instructions. The human players played for 100 levels, while the artificial agents played for 2000 levels.</p><p>As can be seen in <ref type="figure" target="#fig_2">Figure 3</ref> (bottom), people almost immediately converge on needing few steps to finish the game.There is a further, important feature of our results: nonhuman agents performed differently from human agents. While the RL agents do learn to perform better over time (compared to a random agent) they reach a limit before human performance.</p><p>In other games that posed different variants of the avatar problem, we found that even when RL agents did eventually near human performance, they did not do so by self orienting but by using more 'brittle' strategies that were overfitted to the game in question: We introduced another possible avatar target (red block), which caused a marked decrement in RL agent performance despite having no effect on self-orientation mechanics. In De Freitas et al. we show such results for a series of progressively harder self-orientation games.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Humans as Avatars</head><p>Recognizing the structure of how we perform this computational task games is instructive. In particular, we propose that the way humans exploit their ability to center on themselves as physical, embodied agents in the real world mimics the way we solve the avatar problem. In real life, human agents perform the very same computational task, triangulating their perceptual and proprioceptive inputs with different third person representations of themselves to represent themselves as an embodied agent in the world.</p><p>Set in this context, the way we solve the Avatar Problem in ordinary First-Person games, where the camera is aligned with an avatar's first-person perspective, is of particular interest (see <ref type="figure" target="#fig_3">Figure 4</ref>, especially 4(d)). In the First-Person avatar task, the "line of sight" and other first-person sensory inputs presented to the player represent the perceptual and proprioceptive "within-the-boots" inputs of the avatar. These inputs are taken by default (by the game) to define the avatar's first-person perspective in the game.</p><p>A player can solve the avatar problem in First-Person games by triangulating changes in these perceptual "within-the-boots" inputs with causal manipulations of a particular avatar. To do this, they can center themselves on their avatar by implicitly locating themselves "within" the avatar, taking on the first-person perspective of the avatar as their "own" (even if conceptually at one remove, that is, knowing it is their perspective as taken within the game). They then coordinate this perspective with different third person representations of the avatar. The task can be performed in a variety of ways: for example, the player can link to their avatar by coordinating the given avatar first person point of view with representations such as different "over the shoulder" camera angles on the avatar, or with "bird's eye" visual inputs of the avatar's location on the map <ref type="bibr" target="#b53">(Paul 2016)</ref>.</p><p>By triangulating the perceptual and proprioceptive "within-the-boots" inputs of the avatar with different third person representations of the avatar, a player represents themselves, to some extent, as virtually embodied by this avatar (as it is located in the virtual space). Such an experience is familiar to anyone who has played a First-Person game or used a virtual reality headset.</p><p>Crucially, the agent identifies its perceptual inputs as its own, as opposed to taking them to be alien inputs from some foreign other (as could happen in certain pathological cases where the default goes awry). When things are working properly, your cognitive system makes the contingent inference that the sensory inputs you are relying on are "yours", generating an initial basis for self-identification with your mental representation of your physical embodiment in the world (which, we assume, is coincident with and generated by your physical brain and body).</p><p>That is, the brain generates a perceptual first-person "point of view", a minimal, perspectival, representation of the world, created from what it infers to be the physical source of its perceptual inputs. We'll label the bundle of perceptual, proprioceptive, and interoceptive inputs that constitutes this first-person point of view the "core self" (for a related but different concept of a "minimal self" see <ref type="bibr" target="#b24">Gallagher 2000</ref>). In our model, then, the agent constructs its core self from observations that are largely sensory and proprioceptive.</p><p>The agent then integrates its core self with additional representations of itself as an embodied agent along the spectrum from first to third person representations <ref type="bibr">[1]</ref> (see <ref type="figure" target="#fig_3">Figure 4</ref>, c-d, above), generating a structured representation of itself that triangulates representations of itself, as anchored in its physical body "from within" and "from without". It is the real-life version of what ordinarily happens in a First-person game, where the "line of sight" and other first-person sensory inputs presented to the player are represented as the perceptual and proprioceptive "within-the-boots" inputs of the avatar, and are triangulated with third person representations of the avatar.</p><p>As with solving the Avatar Problem and the "you are here (now)" problem, performing this triangulation involves a sophisticated computational feat that, in ordinary circumstances, is so effortless that one does not even realize a problem is being solved.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Centering as problem solving</head><p>We propose that the ability to center and re-center is just as important for navigating conceptual environments as it is for navigating physical environments. Just as we can re-center ourselves on new spatial and temporal locations in order to get somewhere on time, we can re-center ourselves on hypothetical possibilities in order to successfully explore new conceptual spaces and achieve new goals.</p><p>That is, for more abstract contexts, the metaproblem of "which problem should I solve?" can be approached in the same way as we approach it in physical spaces. When lost or disoriented in conceptual space, or when faced with a new or unexpected possibility, a human agent can mentally review the possibility of being located at an entirely different location, reorient themselves by re-locating themselves, and from this new position, re-frame a problem. Here, we use "space" and "location" in a domain general way. A space can be any sort of environment, and a location can be any sort of point in that space. Our point is that a human agent can flexibly solve new problems by re-centering themselves in a new space of possibilities.</p><p>As we might put it, locating oneself at the right possibility is solving an abstract version of "you are here now" for a conceptual map. (Think of various computational techniques for searching a probability space as involving mathematical analogues of this kind of conceptual task.) We saw this with our example of Pooh and the Woozle. When Pooh fits his paw into the track, he triangulates his within-the-boots information (holding fixed his implicit centering on his physical body) with the new information about the properties of his environment as given by Christopher Robin, and in response, relocates himself on his possibility map, solving the problem of who was responsible for the tracks.</p><p>Our defense of the role of centering for human action and planning builds on formal philosophical treatments of indexicality and centered worlds epistemology. There is a long tradition of philosophical thought experiments illustrating the linguistic and cognitive importance of centering for agency and self-involving belief (for contemporary discussions see <ref type="bibr" target="#b19">Dennett, 1991;</ref><ref type="bibr" target="#b20">Dennett, 1992;</ref><ref type="bibr" target="#b30">Ismael, 2006;</ref><ref type="bibr" target="#b48">Nagel, 1986;</ref><ref type="bibr" target="#b56">Paul, 2018;</ref><ref type="bibr" target="#b64">Pollock, 2006</ref><ref type="bibr" target="#b60">, Perry 1979</ref>. For a brief introduction, see Box 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>BOX 1: Indexicality and Centered Worlds</head><p>Following a tradition in the philosophy of language and mind, the content of a psychological attitude can be characterized by a set of possibilities. This insight serves as a foundation for philosophical models of indexical attitudes, including self-involving beliefs, desires, and other attitudes using "centered possible worlds".</p><p>In modal metaphysics, a possible world represents a way a world could be. A centered possible world represents a way an environment could be from a particular "center" or "perspective" in that world, that is, the way the world might be for a given individual at a given spatiotemporal location in that world.</p><p>Indexical expressions are expressions that include terms such as "I" or "now" whose referents are determined by the context in which they are tokened. Indexical properties are properties of place, time, individual, and world. They are captured by indexical truths expressed by sentences such as "I am in the Stanford library" or "The meeting starts now". They vary as an agent's context varies. We can see the need for a semantics of variability when we compare "I am in the Stanford library" to "Rudolf is in the Stanford library": the truth of the first varies from speaker to speaker, the truth of the second does not. <ref type="bibr" target="#b67">Recanati (2012)</ref> has argued that the use of mental files can capture the variable nature of indexical thought, and for a classic treatment of the semantics of indexical expressions, see <ref type="bibr" target="#b34">Kaplan (1979</ref><ref type="bibr" target="#b35">Kaplan ( , 1989</ref>. For a thorough introduction see <ref type="bibr">Braun (2017)</ref>.</p><p>Some endorse the thesis that we employ a distinctive "de se" semantics for the indexical "I", often described as the "essential indexical," to capture distinctive metaphysical and epistemic features of perspectival, first person thought. They argue that this semantics is needed to adequately represent perspectival features of reality, in particular, features concerning ourselves and our relationship to other parts of the world. Here, we make no commitment to any distinctive notion of de se content (though we are happy to grant that consciousness may endow our agent with a special kind of subjective presentation of truths about itself). Centering, on our account, need not involve a commitment to de se content, nor a commitment to consciousness.</p><p>Readers interested in the debate about indexicality and de se contents should consult Bermúdez (2017), Devitt (2013), <ref type="bibr" target="#b13">Campbell (1994)</ref>, Cappelen and Dever (2013), <ref type="bibr">Ismael (2007)</ref>, <ref type="bibr" target="#b30">Ismael (2006)</ref>, <ref type="bibr" target="#b39">Lewis (1979)</ref>, Liao (2012), Magidor (2015), <ref type="bibr" target="#b45">Millikan (1990)</ref>, Ninan (2013), Paul (2017), <ref type="bibr" target="#b57">Peacocke (2008)</ref>, <ref type="bibr" target="#b60">Perry (1979)</ref>, <ref type="bibr" target="#b59">Perry (1977)</ref>, <ref type="bibr" target="#b67">Recanati (2012)</ref>, <ref type="bibr" target="#b70">Schellenberg (2008)</ref>, <ref type="bibr" target="#b75">Stalnaker (2010)</ref>, and the formalization of the account of the self and of self-knowledge given in <ref type="bibr" target="#b61">Perry (1996)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">A POMDP implementation</head><p>We have argued that, to solve a new or unanticipated problem, people identify the space of possible situations, center themselves in the relevant one, and reframe their problem relative to this new environment. Our thought is that this type of flexibly thinking for oneself could usefully be reverse-engineered in artificial systems. Building a machine with the computational structure needed for centering and re-centering could contribute to current attempts to create machine-learning systems that could think in ways that resemble the way people think.</p><p>Accordingly, we define the computational ability to center (and re-center) as "having a [computational] self," and we describe the process of centering and re-centering as a type of thinking for oneself. We recognize that this definition of having a self departs substantially from extant interpretations in related areas, such as those of Garfield (2022), <ref type="bibr" target="#b76">Starmans and Bloom (2012)</ref>, <ref type="bibr" target="#b77">Strawson (2013</ref><ref type="bibr" target="#b78">Strawson ( , 2017</ref>, <ref type="bibr" target="#b79">Taylor (2008)</ref>, <ref type="bibr" target="#b82">Thompson (2014)</ref>, and Zhahavi (2008). As we have a distinctively different project in hand from those working in those literatures, we reinterpret and redefine the notion for our own purposes here.</p><p>As we use the phrase, an individual's "having a self" is an individual manifesting the ability to (i) construct a core self, (ii) construct and hold a model of the environment that includes its core self in addition to independent temporal, spatial, agential, modal, and other relevant properties in its environment, (iii) use this information to build richly structured representations, including a first-person representation of its embodied self from a "within the boots" point of view, along with third-person representations of itself, and align its core self with these representations to "center" itself on its body as an agent in its world, and (iv) orient and reorient itself by shifting its perceptual and cognitive center to new locations in new spaces in order to reframe and solve new problems.</p><p>Our proposal is that, if a machine had this kind of self, it would be closer to being able to think for itself, in particular, to think and act in the way that humans do. For example, if a self-driving car had a self in our sense, it would have improved problem solving capacities, because it would be able to recognize when it was failing to achieve its goal and replace it with a new approach.</p><p>Developing this point, if the car had a center, it would have a representation of itself in terms of its perceptual center as tied to its physical embodiment, created by its triangulation of its first and third person inputs. If it had an accident in snowy weather and slid into a ditch, it would know it had to shift itself from solving its current problem, defined by the act of driving on the road to a particular destination, to a new problem that is defined by the need to call for emergency services. (Note that, if the machine cannot represent itself, it cannot know *it* needs emergency services. It might know that some car needs emergency services, but part of what is crucial here is that it identifies itself as needing those services. Recall the subtle but crucial fact that centering relies on the identification of perceptual inputs as one's own.)</p><p>In order to figure out which problem to solve, the car could then shift its center in order to consider hypothetical possibilities. It could use its ability to represent itself as an agent distinct from the rest of its environment to represent a variety of possible situations it could be in, representing itself abstractly in a space of possibilities as being the same agent but having different "locations" (occupying different hypothetical possibilities). Finally, it would be able to select a location that better fits its inputs (just as we can make better or worse choices between different avatars based on what we "see" in front of us), re-center itself, and reframe its problems and goals.</p><p>The same point applies to the other sorts of machines we discussed: for example, if AlphaZero had a self in our sense, it would be able to represent itself as playing a game of Go, and thus be able to re-center itself to play a new possible game if play were unexpectedly interrupted or changed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">The standard model</head><p>In a machine-learning context, we need to explore ways of implementing our idea. Accordingly, below, we sketch an engineering-based treatment of our concept of centering and our notion of "having a self," one that can be implemented using current approaches to building intelligent machines.</p><p>A standard AI model of intelligence is a rational agent that acts to maximize its expected utility in a given environment, subject to the agent's beliefs about the structure of the environment and its constraints. The behavior of this rational planning agent is broadly captured by the "fundamental equation of AI": Effectively searching over actions out of a large space of actions requires planning. Knowing which action is available in a given state requires a world model, as does knowing how the environment will evolve given a particular state and action pair. Calculating the expectation requires probabilistic reasoning about likely results and priors over states and observations. Utilities can be more than simple mappings from states to an ordering, and can involve goals and values which are themselves drawn from expectations about correct behavior. The state is not directly given, but rather is filtered through observation, and the link between the true state, the observation, and the resulting belief requires a model of perception. A rational agent will choose an action (a) that maximizes (argmax) its utility in expectation (E), where the utility is a function of the agent's belief over its current state (s), which itself is derived from the Environment, given observations and actions (see e.g. Russell and Norvig 2016/2020, and compare also to more basic notions of maximizing expected utility in e.g. von <ref type="bibr" target="#b85">Neumann and Morgenstern 1944;</ref><ref type="bibr" target="#b69">Savage 1954</ref>). This structure is sufficient for generating rational action in the sense of forming intentions to act that one believes will lead to the fulfillment of one's desires (cf. <ref type="bibr">Dennett 1987)</ref>. Note that this equation can apply to subjectively rational agents with limitations on memory, compute time, knowledge, and so on (see e.g. <ref type="bibr" target="#b8">Bratman, Israel, and Pollock, 1988;</ref><ref type="bibr" target="#b26">Gershman, Horvitz, and Tenenbaum 2015;</ref><ref type="bibr">Paul and Quiggin 2018;</ref><ref type="bibr">Leider and Griffiths 2020)</ref>. However, the structure by itself admits arbitrary utilities, beliefs, environments, and actions. Actual implementations require additional models of the world in order to be effective.</p><p>Models of rational action have proven useful and successful in operations research and robotics, as well as in computational cognitive science and computational neuroscience (see e.g.; <ref type="bibr" target="#b33">Kaelbling, Littman, and Cassandra, 1998;</ref><ref type="bibr">Schulz, Dayan, and Montague, 1997;</ref><ref type="bibr" target="#b1">Baker, Saxe and Tenenbaum, 2009;</ref><ref type="bibr" target="#b5">Butterfield et al., 2009;</ref><ref type="bibr" target="#b32">Jern and Kemp, 2015;</ref><ref type="bibr" target="#b31">Jara-ettinger et al., 2016;</ref><ref type="bibr" target="#b2">Baker et al. 2017)</ref>. Here, we develop an account framed using Partially Observable Markov Decision Processes (POMDPs, pronounced "pom-dee-pees").</p><p>POMDPs are well-suited as a model for intelligent action <ref type="bibr" target="#b33">(Kaelbling, Littman, and Cassandra, 1998)</ref> in the sense of achieving a goal in a situation that is well-specified by the system's engineer (for a more formal overview of POMDPs, see Box 2). POMDP algorithms have become a touchstone across communities of researchers with diverse goals, including research into the nature and consequences of rational agency, human and animal deviations and approximations to rational action, and also people's intuitive theories of the mental lives of other people. POMDPs are often intractable to fully solve, and many approximations exist, but the general approach provides a useful theoretical framework to work in.</p><p>Our approach allows agents to organize their domain from their agent-centered perspective by extending standard POMDP machinery ("extended POMDPs", or for short, "ePOMDPs"). We then extend them further to create meta-ePOMDPs. We propose to capture the way that humans flexibly center and re-center themselves in response to changing conditions using this meta-ePOMDP model. We emphasize that our arguments do not hinge on the particular framework of POMDPs; rather, we propose them as a particular way to concretely implement an abstract conceptual claim.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Box 2: Partially Observable Markov Decision Processes</head><p>Partially Observable Markov Decision Processes (POMDPs) are a framework for modeling decision-making in uncertain environments unfolding over time. The solution of a particular POMDP for a given agent will give the optimal policy for that agent in that environment. That is, the solution of a POMDP provides the action that the agent should take in any given state, in order to maximize the agent's expected reward. POMDPs are extensions of Markov Decision Processes (MDPs, see e.g. <ref type="bibr" target="#b65">Puterman, 2014)</ref> to cases in which the agent may be uncertain of its exact state. POMDPs have proven useful in different classes of decision-making problems in operations research and robotics. POMDPs have also proven useful in cognitive science as models of 'inverse-planning', where the goal is not to generate an action or plan, but rather to use an observed sequence of actions to recover the underlying mental variables --the intentions, beliefs, and utilities --that led to those actions (see e.g. <ref type="bibr" target="#b2">Baker et al. 2017</ref>). An exact solution to a given POMDP can be obtained via state recursion, but this is generally computationally intractable. There are many different algorithms for practically approximating a solution to a given POMDP (see e.g. <ref type="bibr" target="#b7">Bertsekas, 2017)</ref>. When an agent is in state s and they take an action a, they receive utility U(s,a) and a new observation O(T(s,a), a).</p><p>Without direct access to its state, the agent maintains a belief over its state, a function which places a probability distribution over the set of possible states. The belief is updated in the following way:</p><formula xml:id="formula_0">b(s_t+1) = P(s_t+1 | s_t, a, o_t+1) ∝ O(s_t+1, a) * sum_s [T(s_t, a)*b(s_t)]</formula><p>That is, the agent takes an action a in a given state s, receives a new observation O(s_t+1, a), and updates its previous belief b(s_t) by considering the ways it may have received this new observation via the transition function. This can also be seen as forming a posterior over states by combining the prior on the space of states regardless of observation, with the likelihood of receiving the given new observation conditioned on a given state.</p><p>'Solving' a standard MDP gives a probability distribution on the next action, given the current state, such that following this policy will guarantee maximal reward in expectation. A POMDP similarly gives a policy for taking the next action, but based on the current belief rather than the current state. An MDP can be inverted to infer an agent's goals and costs. A POMDP can be inverted to additionally infer an agent's beliefs.</p><p>As an example of a simple POMDP, consider a scenario in which an agent navigates a simple grid-world to find sources of reward, given its beliefs and desires (see <ref type="figure">Figure 6</ref>). Given a specific set-up (possible states and actions, as well as utility, observation, and transition functions), the solution to this POMDP will be a series of actions that moves the agent from its initial state to maximize its utility. For example, the POMDP solution could dictate a series of moves to get to L, assuming the reward for L outweighs the cost of motion given the agent's location. <ref type="figure">Figure 6</ref>: An example of a planning domain, in which the state encodes the location of the agent and items, and the position of the walls. The transition function implements gridlike motion, and the utility is composed of costs of action and rewards from reaching particular states. We have omitted the observation function for brevity. The 'solution' to this POMDP with this setup would dictate the motion of a rational agent, such as moving towards L. Here, the transition, utility, and observation functions have all been pre-specified, and implement a grid-like world with particular reward. The general case POMDP can involve arbitrary action sets, states, transitions, utilities, and observation functions.</p><p>Note that in this example the state is unitary, and does not distinguish the agent from the world. While the state description includes the agent location, it is no different from including the location of a wall or a potential goal. Also, we intentionally used an example with the familiar behavior of navigating to a target location or goal. But the logic of POMDP solutions would have carried through and found the 'rational' solution with arbitrary inputs (e.g. a transition function that connected the space willy-nilly, an observation function that arbitrarily connected state to perception, randomly drawn costs and rewards over states, and so on).</p><p>The associated matrices and functions can just as well describe an agent-less logic-satisfiability problem. In practice, POMDPs are not used by engineers to solve random combinations of transitions, observations, and utilities. The type of planning problems that are of interest occupy only a tiny portion of the general space of possible POMDPs (though this tiny portion is still large indeed). This smaller space of interest is not arbitrary, and can be characterized by extensions we detail next.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">The ePOMDP</head><p>While POMDPs define an infinite space of possible planning problems, only a particular subspace is of interest. Our conceptual demarcation of this subspace draws on contemporary philosophical work in epistemology, language and mind concerning the way human agents distinguish between themselves and the rest of the world, and within this framework, constantly center and re-center themselves in their environments in order to represent and act effectively <ref type="bibr" target="#b4">(Bermúdez 2017</ref><ref type="bibr" target="#b30">, Ismael 2006</ref><ref type="bibr" target="#b56">, Paul 2018</ref>.</p><p>We thus extend the POMDP framework to include the class of "enriched POMDPs": for short, "ePOMDPs". A simplified depiction of a model in which an agent observes its environment through first-person perception and forms a belief about its state, that includes a model of the entities in play, their types, and their effects on the environment. The agent can use its intuitive physics and beliefs to choose an action from the set it believes is available to it, and plan to take actions that change the world state to increase its utility. Note that the agent's belief about the world state includes an identification of itself, as well as the placement of a 'line of sight' akin to placing a camera in a scene, which then allows for a forward-rendering of the scene as it would appear to an agent in that location.</p><p>More specifically, ePOMDPs are a class of POMDPs that includes: (a) Separation between world and agent states: The most basic distinction missing in a standard POMDP is a distinction between the agent and the rest of the world. In a POMDP without any other specifications, there is a single unitary notion of "state" that includes both the state of the world (e.g., which objects are where) and the state of the agent in the world (e.g., where am I). Our enrichment of a POMDP begins by distinguishing the states of the world and the states of the agent, replacing the unitary space of abstract states with a cross product of two spaces: one for the state of the world (W), and one for the state of the agent (M). For now, it does not matter that the agent correctly distinguishes W and M, only that this distinction exists in the representation of the overall state.</p><p>Such distinctions are natural, and are already in use in some existing POMDPs. As a recent example, consider how <ref type="bibr" target="#b66">Rabinowitz et al. (2018)</ref> separate W in the sense of a transition function that dictates movement in a grid-world with walls, from M in the sense of agents with different utilities and observations (see also <ref type="bibr" target="#b29">Haber et al., 2018, and</ref><ref type="bibr" target="#b36">Kim et al. 2020</ref>, for recent examples of explicitly separating a self-model and a world-model in a learning agent). This distinction allows one to put different agents into the 'same' world, or the same agent into different worlds, with varying expected behaviors. Our intention is to call attention to the fact that the standard formal setup of a planning framework such as a POMDP does not explicitly distinguish agent and world states, and yet that this distinction is necessary, natural, and consequential. <ref type="bibr">[PL20]</ref> (b) Entity classes: Even without the agent state, the world state is too unitary to be useful. An ePOMDP differentiates structure in the world state W by classes of entities that constrain and shape utilities, transitions, observations, and actions. Important classes include objects (possible sources of reward, and targets of actions), and barriers (constraints on actions and observations). To give a specific example, when building a POMDP of the gridworld depicted in <ref type="figure">Figure 6</ref>, an engineer would not laboriously hand-code all cells of the SxSxA transition matrix. Rather, the engineer may create an entity such as a 'wall' and a corresponding piece of code stating agents can't move through walls. New environments can then populate the transition matrix without much hand coding, by porting over the 'wall' class.</p><p>(c) Enriched observation function O: In the most general case, observation functions are arbitrary mappings from states and actions, to probability distributions over Ω. In practice, the agent is usually assumed to have a particular perspective on the world, coming from its sensors. To (partially) capture a "first person" perspective, we replace the arbitrary observation function with the process of sensory input (perception), including proprioception, going from a particular sensory input to a belief over the world state and agent state, which includes for example the location of objects, barriers, and the agent. The process of sensory observation in (c) is used to update beliefs over states of the world, but such states can be first-and third-person. As mentioned in Section 4, by this first/third person distinction we do not mean narrative voice or ownership but point-of-view (see <ref type="figure" target="#fig_3">Figure 4</ref> and cf. e.g. Libby and Eibach, 2011). First-person representations refer to an egocentric, within-the-boots, camera-is-where-avatar-is representation such as that used when rendering a first-person scene in a game. Third-person person representations refer to non-first-person representations and can include allocentric representations, as well as bird's-eye-view, above-the-shoulder, etc. A useful part of perceptual representations include the notion of an isovist, a polygon containing the points in the environment that are within a field of view centered on the agent's sensors and with a potential viewing angle (see e.g. <ref type="bibr" target="#b16">Davis and Benedikt, 1979;</ref><ref type="bibr" target="#b47">Morariu, Prasad, and Davis 2007)</ref>. Though such an isovist can be useful in rendering a first-person view, it does not itself correspond to a first-person view.</p><p>While all perceptual observations are degenerately first-personal, different observational data can be processed in ways that result in distinctive representations. Relating to the notion of perspective in (c), the state, observation, and belief functions of an ePOMDP can either support first-or third-person representations: different data streams, contexts, and modes of presentation may affect the update of the belief over state spaces in different ways, depending on whether they are coded as first-person or third-person, and the state spaces that beliefs are updated over may be first-or third-person.</p><p>As a specific example, consider the viewpoint of an agent going to get food from a food-truck (cf. <ref type="bibr" target="#b2">Baker et al., 2017)</ref>, standing on the street looking out into a busy intersection and examining the buildings and roads and using this information to self-locate. Contrast this with looking at a map with a blue dot saying 'You are here (now)'. Both observations can be used to update the agent's belief about its location in a grid-map representation (which is an allocentric third-person representation of the state of the agent), but we would call the type of representation in the first case 'first person', and in the second case 'third person'. Again, both data streams come from light impinging on the agent's visual sensors, but they are processed differently, and can affect belief updating in different ways. Also, note that the representations rely on the distinction already made in (a) between agent and world.</p><p>(e) Enriched transition function T: The most basic formulation of the transition function is an arbitrary mapping from states and actions to states. However, a practical engineer cannot hope to fully specify the transition probabilities between any state-and-action-combination. Even if they could be specified, the resulting gigantic look-up table may be cumbersome to the point of futility. Instead, the enriched transition function is a simplified approximation of the underlying dynamics of the environment. A useful such transition function is a 'physics engine', and in particular the physics engine software of the sort employed in real-time video games. Consider how such a game engine can take an input that was not pre-specified by the software engineer in advance (e.g. throwing a ball in a particular state of the world) and through an approximation of the resulting world dynamics to transition the world into a new state (e.g. throwing a ball at a cup in this state would result in the state of a specific mess). Such physics engine representations are useful for AI planning, prediction, and inference <ref type="bibr">(cf. Lake et al., 2017)</ref>, and an equivalent`mental game engine' may play a large role in people's intuitive physical reasoning and basic common sense reasoning (see e.g. <ref type="bibr" target="#b80">Téglás et al., 2011;</ref><ref type="bibr" target="#b3">Battaglia, Hamrick, and Tenenbaum, 2013;</ref><ref type="bibr" target="#b74">Smith and Vul, 2013;</ref><ref type="bibr">Sandorn et al., 2013;</ref><ref type="bibr" target="#b84">Ullman et al., 2017</ref>).</p><p>(f) Enriched action sets A: The given action set in a particular state for a reasonable real-world agent would come about through an understanding of its body and the world model, in addition to relevant constraints from morality, psychology, and physics. That is, instead of the agent's possible actions in a grid-world always being {up, down, left, right, none}, an agent en-route to an actual food-truck has a myriad of possible actions at its disposal, organized hierarchically (from 'left foot forward', up to 'turn right at the interaction', up to 'get food'). Many potential actions are simply not considered in the first place. For example, the agent could somersault all the way to the food-truck, but people likely don't even consider this option (see e.g. <ref type="bibr" target="#b62">Phillips and Cushman, 2017)</ref>.</p><p>(g) Enriched utilities U: Rather than a mapping from state to rank or number, a more complex and temporally extended decision process can involve utilities of utilities. The utility functions themselves would also be derived from an understanding of world models and intuitive psychology, including theories of harm, intention, and morality. This aspect of planning is less fully realized in current planning algorithms, though it has been emphasized in cognitive psychology (e.g. <ref type="bibr" target="#b37">Kleiman-Weiner, Saxe and Tenenbaum, 2017)</ref> and is receiving increased attention as human-machine interaction becomes more commonplace.</p><p>We propose that a machine (or animal) that can be described by an ePOMDP is closer to having our sort of "self" than a current expert game-playing AI, and is also closer to having human-like intelligence, as it has a correlate to a human agent's way of representing itself as being at its intellectual center. The enriched notions of the ePOMDP give meaning to an agent representing itself as having an intellectual center or having a particular psychological orientation in the world, as well as having a first-person perspective from itself and a third-person perspective on itself (both determined by its observation function from sensor data to belief distributions over world, and agent states defined in terms of relevant entities).</p><p>We hope that AI researchers will recognize ePOMDPs as a natural way to explicitly bring out ideas which are already in use to some degree in many applications. Many sophisticated specific problems in robotics and intelligent planning may achieve this level of reasoning, including ones whose solution would be a great and lucrative accomplishment, such as a fully automated self-driving car.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3">Building an ePOMDP</head><p>Specifying and solving a specific ePOMDP is far from trivial. However, our ePOMDP does not yet realize the full computational notion of flexibly "thinking for oneself" that we are aiming for. We need more. In particular, we need to attend to one level above this planning framework, the level of an agent that sets up and solves an ePOMDP for itself, and represents itself as performing this process. This is the level of the engineer constructing an agent.</p><p>From the point of view of an engineer designing an intelligent agent, building even one specific ePOMDP is difficult, and potentially highly impactful. But from the point of view of the intelligent agent itself, fixedly holding any one specific ePOMDP is not sufficient to realize "having a self". Our agent must also be able to generate different ePOMDPs for different tasks. The possessive connotation of "have" is slightly misleading here, as "having a self" in our sense is more about realizing a process of generation and inference conducted from its intellectual center than "having" something. By analogy, consider an agent that can see or that "has vision" through a process of inverse-graphics (see e.g, Baumgart 1974; <ref type="bibr" target="#b89">Yuille and Kersten, 2006</ref>; and more recently <ref type="bibr" target="#b38">Kulkarni et al., 2015)</ref>. The agent's vision is not to be located in any one specific successful parsing of a visual scene, but in its general ability to do so, by inverting a generative process that could in principle produce myriad scenes.</p><p>Consider then an agent that can generate different ePOMDPs. In a given situation, at a given moment, an agent needs to generate a specific ePOMDP and maintain it until a task is complete, or the ePOMDP is abandoned. This abstract computational problem is analogous to the high-level problem faced by roboticists: finding the set-up of the problem for the robot in the first place. The question becomes: of the space of all possible ePOMDPs that the agent can consider, what is the right ePOMDP to use, right now? This is an implementation of the computational process we described earlier, viz., selecting the right possibility (location) from the space of all the possibilities (locations) available to the agent.</p><p>The value of an ePOMDP can be broken down into two main categories: advantage and aptness. The advantage criterion is meant to capture the basic notion of whether a task is best compared to other things one could be doing. A particular ePOMDP might be scored lower because it solves problems the agent does not care about, or violates a moral norm, or is not feasible, or does not live up to a host of other meta-values. In the same way actions and states are associated with values within a specific ePOMDP or other planning frameworks, there can be meta-values <ref type="bibr" target="#b23">(Frankfurt, 2004)</ref> for each ePOMDP that are related to its overall expected utility, likelihood, morality, and so on. Meta-values and meta-preferences of advantage may be multidimensional and incommensurable. For example, staying at work to solve a gnawing problem may be more directly compared to (and preferred to) staying at work to stare at the wall, but it is more difficult to compare it with taking a child on a surprise movie trip. While such meta-values are important for the agent, they are not important for our current analysis, and we do not develop them further.</p><p>Aptness, or relevance, is the second criterion. The agent needs to choose a particular ePOMDP that correctly represents the world, as well as it as the relevant agent, given how it sees itself (given its other inputs and beliefs). Consider a roboticist that is trying to build an ePOMDP to solve a task, but must also account for the first-person visual input of the robot. Such input constrains the space of relevant ePOMDPs. The relevance criteria requires a match between the ePOMDP representation and the agent's already existing first-person inputs. The agent receives first-person inputs independently of its choice of a specific ePOMDP; such inputs are available with regard to indexical properties of location, time, environment, and agent identity.</p><p>A specific ePOMDP out of the set of all possible ones is matched with this representation through the specification of these properties (where, when, world, who am I). For the person at work considering what to do with their afternoon, both staying to work and going to the movies are apt if they correctly match the person's indexical properties ("I am Jane Doe, in this office, on a Tuesday", etc). There are a multitude of other ePOMDPs that might be preferred or dispreferred for advantage values, but are not apt. For example, take any ePOMDP that has as a starting point the indexical properties that describe being Julius Caesar, surveying the battle of Alesia, on a Wednesday. Such an ePOMDP exists, and would be very useful for Caesar, but would be rejected out of hand or not considered by Jane Doe.</p><p>In terms of ePOMDPs, the question is which first-person data one should condition on when building an ePOMDP to account for the data. In a game, when solving the avatar task, the engineer can solve the problem of identifying which line of sight is yours, by either making the choice for you, or presenting different lines of sight that you can explicitly choose from. In the human version of this task, as we noted in Section 4, your brain already solves this problem, by contingently identifying its perceptual and proprioceptive inputs as "yours".</p><p>Once the data to condition on is established, an apt ePOMDP accounting for that data can be constructed. This enriched POMDP includes a coordination between third-person representations such as allocentric representations of the scene (where an agent is, where are they facing) and first-person representations (the rendered, within-the-boots image as seen by the avatar's eyes).</p><p>Put in terms of ePOMDPs, in daily life a person's first-person perceptions and related core self representations are automatically the relevant data to condition on for the process of constructing an ePOMDP that is used to account for and coordinate these representations in order to effectively act, carry out plans, and achieve goals. Once parts of an ePOMDP like firstand third-person perspectives are identified and coordinated, other parts such as planning --the main justification for having a POMDP --can be carried out.</p><p>We can now put it simply: If we envision all ePOMDPS as inhabiting a space, then centering involves the task of selecting an apt ePOMDP from this space to account for a privileged set of independently specified perceptual data, that is, selecting the right possibility from the possibility space and locating oneself at this possibility. Re-centering involves switching from one ePOMDP and replacing it with another in response to a breakdown in the match between the current ePOMDP and the world. The task involves generating and selecting ePOMDPs over large and long scales of space and time, as well as over (hierarchies of) abstract spaces and richer situations. It requires matching one's perceptual data to an ePOMDP over and over again, in a range of environments, constructing, triangulating, and updating one's self-representations using local and global inputs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.4">Meta ePOMDPs</head><p>To bring out the importance of re-centering to problem solving, return to our example of Pooh and the Woozle as an example of how updating with ePOMDP replacement can be used to identify and solve a new problem when implicit assumptions on how an agent represents itself in its environment are overturned.</p><p>Self-correction and re-centering occur when an agent implicitly realizes the ePOMDP it has been employing no longer matches the world in a substantive way, generating a switch from one ePOMDP to another. Through re-centering, agents update their representation of themselves in their environment (including representations of their relations to other agents), reorient themselves, and reinterpret themselves and their surroundings. (We use the term "re-centering" for substantial realignment and effective ePOMDP replacement as opposed to minor refinements.)</p><p>The type of radical cognitive reorientation we consider could be captured in a representationally rich probabilistic programming language (see e.g. <ref type="bibr" target="#b27">Goodman, Mansinghka et al., 2008;</ref><ref type="bibr" target="#b28">Goodman et al., 2016;</ref><ref type="bibr" target="#b22">Evans et al., 2018)</ref>, particularly those designed to model agents and their recursive representations of themselves and other agents, e.g. Gen <ref type="bibr" target="#b15">(Cusumano-Towner et al., 2019)</ref>. Other AI paradigms may be possible, but it is interesting to consider which ones could build an agent flexible enough to handle the re-centering that Pooh needs to do in the Woozle case.</p><p>In <ref type="figure" target="#fig_9">Figure 8</ref>, we represent Pooh as an agent solving a particular ePOMDP P1 (in which the Woozle is creating the tracks) and then, after a point T, solving a different ePOMDP P2 (in which Pooh is creating the tracks). Note that each ePOMDP represents a space for learning, belief revision, and action, but the transition represents a radical departure in which entire belief, action, and agent spaces are revised. The engineering question is how to build a space of ePOMDPs, and an agent that can choose to transition from P1 to P2.</p><p>How do we represent the replacement of one ePOMDP by another on our account? From a functional perspective (see e.g. <ref type="bibr" target="#b44">Marr and Poggio, 1976;</ref><ref type="bibr" target="#b50">Oaksford and Chater, 2001;</ref><ref type="bibr" target="#b81">Tenenbaum et al., 2011)</ref>, it is relatively straightforward to model Pooh's switch from P1 to P2. 'Simply' do the following: define the space of all possible ePOMDPs; place a high value on P1 (high value in the sense of both advantage and aptness); define a likelihood function on the new data such that given particular information at time T, the value over ePOMDPs is higher on P2 than P1 (as P1 no longer 'aptly' describes the situation). Pooh is first solving a particular ePOMDP (P1). After time T (putting his paw into the print) Pooh transitions to a different ePOMDP (P2) in which there is no Woozle, and in which various spaces of possibilities and functions have changed (indicated by a *). It is not just that Pooh's specific belief over the world state has changed, but that his space of possibilities for the world states and their relation to actions has changed: he chooses a different location in conceptual space.</p><p>While this account is conceptually viable, it isn't fully psychologically or computationally satisfying. The formulation fails to capture the radical nature of the transition, and the psychological difficulty of the reorganization.</p><p>Cognitively speaking, while Pooh has the machinery to represent both P1 and P2 in principle, at times t&lt;T Pooh does not even entertain B as a possibility. To capture the self-correction in the way we actually reason, we need to put the transition at the algorithmic level, in which agents only entertain a sub-part of the whole hypothesis space at any given moment. Such agents may move from one hypothesis to the next while failing to represent other psychologically "more distant" parts of the hypothesis space due to computational limitations (for a similar discussion in the domain of children's learning of theories, see <ref type="bibr" target="#b83">Ullman, Goodman, and Tenenbaum, 2012</ref>; for a discussion of approximate rationality and the relationship between algorithmic and functional levels see <ref type="bibr" target="#b81">Tenenbaum et al., 2011, and</ref><ref type="bibr">Gershman, Horovitz, and</ref><ref type="bibr"></ref> for a discussion and model of how people know which action not to even entertain, see <ref type="bibr" target="#b63">Phillips, Morris, and Cushman, 2019</ref>; for a classic proposal of artificial agents that need to act and plan in a practical, resource-bounded way, see <ref type="bibr" target="#b8">Bratman, Israel, and Pollock, 1988)</ref>.</p><p>The Woozle example illustrates the importance of re-centering in three ways. First, the change in POMDPs involves a switch of assignments (from "a Woozle" to "me"), and a corresponding change in interpretation of the data (the tracks), and of the environment (the individual responsible for the tracks). The change of interpretation is substantial, stemming from Pooh's discovery that he is the source of the causal tracks. The correction here is not merely that he was mistaken about which agent was making the tracks: that more minimal sort of correction would have occurred if the switch had been from a Woozle to, say, a Wizzle. What is more substantial is that Pooh re-centers in a way that solves his own version of the Avatar Problem: he switches to a model where he is the source of the tracks, re-centering and replacing his Woozle model with a model where he is the primary causal agent, and, importantly, where he is the source of his own deception (for in-lab examples of misattributions of self action to other vice versa, see e.g. <ref type="bibr" target="#b87">Wegner and Wheatley, 1999;</ref><ref type="bibr" target="#b88">Wegner, Fuller, and Sparrow, 2003)</ref>.</p><p>Woozle involves substantial self-correction, involving the reinterpretation of several variables. As part of his re-centering, Pooh updates the variables in a way that backwards-corrects the previously held values. In this example of re-centering, it is not merely that the world was X, and now it is Y. The agent also reasons that, from some point in time, the world was always Y, and grasps how many values need to be reset and updated accordingly, which is algorithmically challenging.</p><p>Finally, in this process of updating and backwards-correction, the agent (Pooh) does not transition mindlessly from ePOMDP P1 to ePOMDP P2. Pooh switched P1 with P2, and represented that this replacement occurred. He recognizes he was wrong, that a switch has happened, and updates his self-awareness, i.e., he solves an abstract version of "you are here now", and updates his structured, internal representation of himself in his world as a consequence.</p><p>Pooh's ability to discover these things about his world is realized in virtue of the fact that the agent (Pooh) regards himself as an agent in structurally the same way that a human agent is able to regard potential avatars when solving the Avatar matching task, and similarly is able to regard potential versions of itself and its world when selecting a possibility from a possibility space, i.e., when selecting between different representations of the world. Such centering allows an agent to understand what their previous self was doing, that they were mistaken, and why they were mistaken. This type of thinking, conditioned on one's ability to center oneself, and re-center oneself when conflicts or problems arise, is precisely what we think engineers should aim for when building a computational model or an AI that is intended to be able to think like a human.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conclusion: Building a machine that thinks for itself</head><p>We take our ePOMDP framework to constitute a small but important step towards understanding the computational way that humans represent themselves in order to act, plan, and self-correct when they "think for themselves" as agents. We think this structure is of interest to cognitive scientists who want to better understand how people learn and think for themselves, and could be useful for AI researchers in their quest to build an artificial agent that can truly think for itself.</p><p>We recognize that we have not provided a fully formalized account, and we do not claim that our ePOMDPs can completely capture the complex task of constructing, coordinating, and updating the representations needed to implement a computational self. However, we think that even the initial work we've done opens up a range of possibilities for modeling hallmark features of intelligent agency.</p><p>In particular, our proposed architecture is relevant for other outstanding challenges of interest to AI, cognitive science, and philosophy, as these ideas can extend well beyond the particular contexts we've discussed here. For example, we hope it can be extended to model scenarios involving agents persisting over longer timescales, to modeling agents making moral and other types of normative assessments and inferences, to deciding in changing contexts, and to capturing joint action and multiple agent systems involving shared experience.</p><p>The ultimate goal is to expand from an account of a minimal computational self, centered in an immediate spatiotemporal context, to a broad notion of a self: one that can locate itself across lifetimes and generations, across families and groups of agents, and in structures of shared agency. To accomplish this goal will require an interdisciplinary effort, where scientists and philosophers work together. But it is this grand project that we ourselves are most excited about, and we hope others in AI, cognitive science and philosophy will join us.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Pooh and Piglet hunt the Woozle (Illustration by Ernest H. Shepard) "'Yes,' said Winnie-the-Pooh. 'I see now,' said Winnie-the-Pooh. 'I have been Foolish and Deluded,' said he, 'and I am a Bear of No Brain at All.'" --(A.A.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>You are here now</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Top, example scenario:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 :</head><label>4</label><figDesc>Example frames from different kinds of games, showing different (visual) viewpoints, avatars, and representations that need to be linked to and coordinated. (a) Frame from Pac-Man, a classic 2d game in which one of the agents (Pac-Man, in yellow) is the avatar, with relevant controls and goals, but no first-person perspective built into the game. (b) Frame from City Skylines, a town-building game with a bird's-eye 3D perspective, but no specific avatar. (c) Frame from Zelda: BoTW, showing the player's avatar from an over-the-shoulder perspective (top), as well as relevant information about their location and heading in the form of a mini-map (bottom). (d) Frame from Mirror's Edge, the avatar visual viewpoint is presented from its first-person, within-the-boots perspective.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 :</head><label>5</label><figDesc>The fundamental equation of AI.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>Figure designbased on a concept from Max Kleiman-Weiner, with inspiration from Peter Norvig.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>a POMDP is a tuple (S, A, T, U, Ω, O): S -The space of possible states the world can be in A(s) -The set of actions available to an agent in a given state s. T(s,a) -The transition function, a probability distribution over states conditioned on the agent being in a state s and taking the action a. That is, T(s,a) = P(s' | s, a). U(s,a) -the utility function mapping from a given state and action to a reward. In inverse planning this is often split into U(s,a) = R(s) -C(a). That is, states can carry reward but actions are costly. Ω -the space of possible observations an agent can receive. O(s,a) -an observation function from state-action pairs to an observation in Ω.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 7 :</head><label>7</label><figDesc>Figure 7: A simplified depiction of a model in which an agent observes its environment through first-person perception and forms a belief about its state, that includes a model of the entities in play, their types, and their effects on the environment. The agent can use its intuitive physics and beliefs to choose an action from the set it believes is available to it, and plan to take actions that change the world state to increase its utility. Note that the agent's belief about the world state includes an identification of itself, as well as the placement of a 'line of sight' akin to placing a camera in a scene, which then allows for a forward-rendering of the scene as it would appear to an agent in that location.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>(d) First-and third-person representations:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 8 :</head><label>8</label><figDesc>A simplified presentation of the Woozle world.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>We are grateful to: Adam Bear, John Bengson, José Luis Bermúdez, Paul Bloom, Philip Corlett, Fiery Cushman, Stan Dehaene, Nina Emery, Branden Fitelson, Sam Gershman, Dan Greco, Max Kleiman-Weiner, Marta Kryven, Michael Littman, Dilip Ninan, Brian Scholl, Ted Shear, Jack Spencer, Barry Taylor, Ilker Yildirim, and members of the Columbia University First Person Discussion Group for helpful comments on early versions of this manuscript. <ref type="figure">Figure 2</ref> ("You are Here Now") was created by Melisa Machuret ("Whiteboard-Girl"). This work was supported by the Center for Minds, Brains and Machines (CBMM), under NSF STC award CCF-1231216.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conflicts of Interest</head><p>The authors declare no conflicts of interest. <ref type="bibr">[1]</ref> Note that for our purposes in this paper we take 'third person' to refer broadly to agent-representations that are not 'within-the-boots-first-person sensory inputs' (see <ref type="figure">Figure 4a</ref>-c). This includes a range of perceptual and cognitive representations an agent takes to be about its core self, which need to, in turn, be coordinated with its perceptual and cognitive first-person representations. <ref type="bibr">[2]</ref> A good interactive introduction to POMDPs as models of agents is available in Chapter 3 of <ref type="bibr">Evans, Stuhlmüller, Salvatier, &amp; Filan (2017)</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Footnotes</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Multiple systems of spatial memory and action</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Avraamides</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Kelly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive processing</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="93" to="106" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Action understanding as inverse planning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="329" to="349" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Rational quantitative attribution of beliefs, desires and percepts in human mentalizing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">L</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Jara-Ettinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Human Behaviour</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Simulation as an engine of physical scene understanding</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Battaglia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Hamrick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the National Academy of Sciences</title>
+		<meeting>the National Academy of Sciences</meeting>
+		<imprint>
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical report</note>
+	<note>Geometric modeling for computer vision. DTIC Document</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Understanding &apos;I&apos;: Language and Thought</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">José</forename><surname>Bermúdez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Luis</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>Oxford University Press</publisher>
+			<pubPlace>Oxford</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Modeling aspects of theory of mind with Markov random fields</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Butterfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">C</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Sobel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schwertfeger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Social Robotics</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="41" to="51" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Building machines that learn and think for themselves</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew</forename><surname>Botvinick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Behavioral and Brain Sciences</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Dynamic programming and optimal control</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Bertsekas</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>Athena Scientific</publisher>
+			<pubPlace>Belmont, Massachusetts</pubPlace>
+		</imprint>
+	</monogr>
+	<note>4th edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Plans and Resource Bounded Practical Reasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Israel</forename><surname>Bratman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pollock</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="349" to="55" />
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Indexicals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Braun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The Stanford Encyclopedia of Philosophy</title>
+		<editor>N. Zalta</editor>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Brockman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Cheung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pettersson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schulman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Zaremba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.01540</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Openai gym. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Spatial memory: how egocentric and allocentric combine</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Burgess</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="551" to="557" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Past, present, and future of simultaneous localization and mapping: Toward the robust-perception age</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cadena</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Carlone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Carrillo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Latif</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Scaramuzza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Neira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Reid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Leonard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on robotics</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1309" to="1332" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Campbell</surname></persName>
+		</author>
+		<title level="m">Past, Space and Self</title>
+		<meeting><address><addrLine>Oxford</addrLine></address></meeting>
+		<imprint>
+			<publisher>Clarendon Press</publisher>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">The inessential indexical: On the philosophical insignificance of perspective and the first person</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Cappelen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dever</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>OUP</publisher>
+			<pubPlace>Oxford</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Gen: a general-purpose probabilistic programming system with programmable inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">F</forename><surname>Cusumano-Towner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Saad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Lew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">K</forename><surname>Mansinghka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation</title>
+		<meeting>the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2019-06" />
+			<biblScope unit="page" from="221" to="236" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Computational models of space: Isovists and isovist fields</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">S</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Benedikt</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1979" />
+		</imprint>
+		<respStmt>
+			<orgName>Computer Science Department, University of Texas at Austin</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">Self-Orienting in Human and Machine Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Freitas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Uğuralp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Oğuz-Uğuralp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Paul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ullman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023" />
+		</imprint>
+	</monogr>
+	<note>working paper.</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The Myth of the Problematic De Se&apos;</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Devitt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Attitudes De Se: Linguistics, Epistemology, Metaphysics</title>
+		<editor>A. Capone &amp; N. Feit</editor>
+		<meeting><address><addrLine>Cambridge, MA</addrLine></address></meeting>
+		<imprint>
+			<publisher>CSLI Publications, Stanford. Dennett, D</publisher>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+	<note>The intentional stance</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Consciousness Explained, &apos;&apos;The Origin of Selves</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dennett</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1991" />
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="163" to="73" />
+			<pubPlace>Penguin</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title level="m" type="main">The Self as a Center of Narrative Gravity.&apos;&apos; In Self and Consciousness: Multiple Perspectives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dennett</surname></persName>
+		</author>
+		<editor>F. S. Kessel, P. M. Cole, and D. L. Johnson. Hillsdale, NJ: Lawrence Erlbaum</editor>
+		<imprint>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Simultaneous localization and mapping: part I</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Durrant-Whyte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Bailey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE robotics &amp; automation magazine</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="99" to="110" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Modeling Agents with Probabilistic Programs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Stuhlmüller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Salvatier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Filan</surname></persName>
+		</author>
+		<ptr target="http://agentmodels.org" />
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title level="m" type="main">Taking ourselves seriously &amp; Getting it Right.The Tanner Lectures on Human Values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Frankfurt</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004" />
+		</imprint>
+		<respStmt>
+			<orgName>delivered at Stanford University</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Philosophical conceptions of the self: implications for cognitive science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gallagher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="14" to="21" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Losing Ourselves: Learning to Live Without a Self</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Garfield</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022" />
+			<publisher>Princeton University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Computational rationality: A converging paradigm for intelligence in brains, minds, and machines</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Gershman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Horvitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">349</biblScope>
+			<biblScope unit="issue">6245</biblScope>
+			<biblScope unit="page" from="273" to="278" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Church: a language for generative models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Mansinghka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Bonawitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Uncertainty in Artificial Intelligence</title>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<ptr target="https://probmods.org/" />
+		<title level="m">Probabilistic Models of Cognition</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>and The ProbMods Contributors. 2nd ed.. Retrieved</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title level="m" type="main">Learning to play with intrinsically-motivated self-aware agents</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Haber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mrowca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fei-Fei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Yamins</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1802.07442</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">The situated self</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Ismael</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">The naïve utility calculus: Computational principles underlying commonsense psychology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Jara-Ettinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Gweon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Schulz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="589" to="604" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">A decision network account of reasoning about other people&apos;s choices</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kemp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page" from="12" to="38" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Planning and acting in partially observable stochastic domains</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Kaelbling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Cassandra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Artificial intelligence</title>
+		<imprint>
+			<biblScope unit="volume">101</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="99" to="134" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">On the logic of demonstratives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kaplan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of philosophical logic</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="81" to="98" />
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kaplan</surname></persName>
+		</author>
+		<title level="m">Demonstratives. Themes from Kaplan</title>
+		<editor>Joseph Almog, John Perry and Howard Wettstein</editor>
+		<imprint>
+			<date type="published" when="1989" />
+			<biblScope unit="page" from="481" to="563" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Active World Model Learning with Progress Curiosity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sano</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Freitas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Haber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Yamins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2020" />
+			<biblScope unit="page" from="5306" to="5315" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Learning a commonsense moral theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kleiman-Weiner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Saxe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">167</biblScope>
+			<biblScope unit="page" from="107" to="123" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Kulkarni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Whitney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kohli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1503.03167</idno>
+		<title level="m">Deep convolutional inverse graphics network</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Attitudes de dicto and de se</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lewis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Philosophical Review</title>
+		<imprint>
+			<biblScope unit="volume">88</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="513" to="543" />
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Computational rationality: Linking mechanism and behavior through bounded utility maximization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Howes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="279" to="311" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">What are centered worlds? The Philosophical Quarterly</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">Y</forename><surname>Liao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Noûs</title>
+		<imprint>
+			<biblScope unit="volume">62</biblScope>
+			<biblScope unit="issue">247</biblScope>
+			<biblScope unit="page" from="316" to="340" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>The many-worlds theory of consciousness</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Autonomous Ground Vehicles-Concepts and a Path to the Future</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Luettel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Himmelsbach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Wuensche</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the IEEE</title>
+		<imprint>
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="page" from="1831" to="1839" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">The myth of the de se</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Magidor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Perspectives</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="249" to="283" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+		<title level="m" type="main">From understanding computation to understanding neural circuitry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Marr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Poggio</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">The myth of the essential indexical. Noûs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Millikan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1990" />
+			<biblScope unit="page" from="723" to="734" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">The complete tales of Winnie-the-Pooh</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Milne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">H</forename><surname>Shepard</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+	<note>Penguin</note>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Human activity understanding using visibility context</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">I</forename><surname>Morariu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S N</forename><surname>Prasad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">S</forename><surname>Davis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IEEE/RSJ IROS Workshop: From sensors to human spatial concepts (FS2HSC)</title>
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<monogr>
+		<title level="m" type="main">The view from nowhere</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Nagel</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1986" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">Self-Location and Other-Location</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ninan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophy and Phenomenological Research</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page" from="301" to="331" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">The probabilistic approach to human reasoning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Oaksford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Chater</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="349" to="357" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Pan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Yi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Song</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.11082</idno>
+		<title level="m">How You Act Tells a Lot: Privacy-Leakage Attack on Deep Reinforcement Learning</title>
+		<imprint>
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title level="m" type="main">Transformative Experience</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Paul</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>Oxford University Press</publisher>
+			<pubPlace>Oxford</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Who am I? The immersed first personal view</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Paul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Power and Limits of Artificial Intelligence</title>
+		<editor>Antonio M. Battro and Stanislas Dehaene</editor>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">First personal modes of presentation and the structure of empathy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Paul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Inquiry</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="189" to="207" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Paul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Healy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transformative Treatments. Noûs</title>
+		<imprint>
+			<biblScope unit="issue">52</biblScope>
+			<biblScope unit="page" from="320" to="335" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">De Se Preferences and Empathy for Future Selves</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Paul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Philosophical Perspectives: Philosophy of Mind</title>
+		<editor>John Hawthorne and Jason Turner</editor>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page" from="7" to="39" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+		<title level="m" type="main">Truly Understood</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Peacocke</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Oxford University Press</publisher>
+			<pubPlace>Oxford</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">The mirror of the world: Subjects, consciousness, and self-consciousness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Peacocke</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Frege on demonstratives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Perry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Review</title>
+		<imprint>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page" from="474" to="497" />
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+		<title level="m" type="main">The problem of the essential indexical</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Perry</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1979" />
+			<biblScope unit="page" from="3" to="21" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<title level="m" type="main">The self</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Perry</surname></persName>
+		</author>
+		<editor>Edward Craig</editor>
+		<imprint>
+			<date type="published" when="1996" />
+		</imprint>
+		<respStmt>
+			<orgName>Routledge Encyclopedia of Philosophy. Routledge</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Morality constrains the default representation of what is possible</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Phillips</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Cushman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="issue">18</biblScope>
+			<biblScope unit="page" from="4649" to="4654" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">How we know what not to think</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Phillips</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Morris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Cushman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="issue">12</biblScope>
+			<biblScope unit="page" from="1026" to="1040" />
+			<date type="published" when="2019" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">What Am I? Virtual Machines and the Mind ⁄ Body Problem</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pollock</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophy and Phenomenological Research</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="237" to="309" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<monogr>
+		<title level="m" type="main">Markov decision processes: discrete stochastic dynamic programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Puterman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>John Wiley &amp; Sons</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Rabinowitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Perbet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Eslami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Botvinick</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1802.07740</idno>
+		<title level="m">Machine Theory of Mind</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Recanati</surname></persName>
+		</author>
+		<title level="m">Mental files</title>
+		<imprint>
+			<publisher>Oxford University Press</publisher>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<monogr>
+		<title level="m" type="main">Artificial intelligence: a modern approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Norvig</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+			<publisher>Pearson Education</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<monogr>
+		<title level="m" type="main">The Foundations of Statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Savage</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1954" />
+			<publisher>Wiley</publisher>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title level="a" type="main">The Situation-Dependency of Perception</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Schellenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Philosophy</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="55" to="84" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<analytic>
+		<title level="a" type="main">A neural substrate of prediction and reward</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Schultz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Montague</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">275</biblScope>
+			<biblScope unit="issue">5306</biblScope>
+			<biblScope unit="page" from="1593" to="1599" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<analytic>
+		<title level="a" type="main">Mastering the game of Go without human knowledge</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schrittwieser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Simonyan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Antonoglou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hassabis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">550</biblScope>
+			<biblScope unit="issue">7676</biblScope>
+			<biblScope unit="page" from="354" to="359" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<analytic>
+		<title level="a" type="main">A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schrittwieser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Antonoglou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Guez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lanctot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Sifre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kumaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Graepel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Lillicrap</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">362</biblScope>
+			<biblScope unit="issue">6419</biblScope>
+			<biblScope unit="page" from="1140" to="1144" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<analytic>
+		<title level="a" type="main">Sources of uncertainty in intuitive physics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Vul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Topics in cognitive science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="185" to="199" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<monogr>
+		<title level="m" type="main">Our knowledge of the internal world</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Stalnaker</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title level="a" type="main">Windows to the soul: Children and adults see the eyes as the location of the self</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Starmans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bloom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognition</title>
+		<imprint>
+			<biblScope unit="volume">123</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="313" to="318" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<analytic>
+		<title level="a" type="main">Self-Intimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Strawson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phenomenology and the Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="31" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b78">
+	<monogr>
+		<title level="m" type="main">The Subject of Experience</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Strawson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>Oxford University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b79">
+	<monogr>
+		<title level="m" type="main">Sources of the Self</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Taylor</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Harvard University Press</publisher>
+			<pubPlace>Cambridge, MA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b80">
+	<analytic>
+		<title level="a" type="main">Pure reasoning in 12-month-old infants as probabilistic inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Téglás</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Vul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Girotto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">L</forename><surname>Bonatti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">science</title>
+		<imprint>
+			<biblScope unit="volume">332</biblScope>
+			<biblScope unit="issue">6033</biblScope>
+			<biblScope unit="page" from="1054" to="1059" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b81">
+	<monogr>
+		<title level="m" type="main">How to grow a mind: Statistics, structure, and abstraction. science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kemp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">331</biblScope>
+			<biblScope unit="page" from="1279" to="1285" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b82">
+	<monogr>
+		<title level="m" type="main">Waking, Dreaming, Being: Self and Consciousness in Neuroscience, Meditation, and Philosophy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Thompson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>Columbia University Press</publisher>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b83">
+	<analytic>
+		<title level="a" type="main">Theory learning as stochastic search in the language of thought</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">D</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Development</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="455" to="480" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b84">
+	<analytic>
+		<title level="a" type="main">Mind games: Game engines as an architecture for intuitive physics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Ullman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Spelke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Battaglia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tenenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in Cognitive Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page" from="649" to="665" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b85">
+	<monogr>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Von Neumann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Morgenstern</surname></persName>
+		</author>
+		<title level="m">Theory of Games and Economic Behavior</title>
+		<meeting><address><addrLine>Princeton</addrLine></address></meeting>
+		<imprint>
+			<publisher>Princeton University Press</publisher>
+			<date type="published" when="1944" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b86">
+	<analytic>
+		<title level="a" type="main">Q-learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Watkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dayan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Machine learning</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="279" to="292" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b87">
+	<analytic>
+		<title level="a" type="main">Apparent mental causation: Sources of the experience of will</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Wegner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Wheatley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">American Psychologist</title>
+		<imprint>
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page">480</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b88">
+	<analytic>
+		<title level="a" type="main">Clever hands: Uncontrolled intelligence in facilitated communication</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Wegner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">A</forename><surname>Fuller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Sparrow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Personality and Social Psychology</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b89">
+	<analytic>
+		<title level="a" type="main">Vision as Bayesian inference: analysis by synthesis?</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yuille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kersten</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Trends in cognitive sciences</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="301" to="308" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>
