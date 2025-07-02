@@ -4,9 +4,11 @@ from pathlib import Path
 from typing import List
 from bs4 import BeautifulSoup
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from instructor import Instructor, patch_instructor
+from instructor import Instructor
+from tqdm import tqdm
+import torch
 
 # --------- Step 1: Define Your Pydantic Schema ---------
 class PsychTriple(BaseModel):
@@ -22,10 +24,10 @@ def extract_text_from_tei_xml(tei_path: str) -> str:
             body = soup.find('text')
             return body.get_text(separator='\n') if body else ''
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        print(f"Error parsing {tei_path}: {e}")
         return ""
 
-# --------- Step 3: Build the Prompt (schema introspection handled by Instructor) ---------
+# --------- Step 3: Build the Prompt ---------
 def build_prompt(text: str) -> str:
     return f"""
 You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
@@ -60,18 +62,24 @@ Output: Provide your response as a JSON list in the following format:
 def process_file(file_path: str, output_dir: str, llm: Instructor):
     text = extract_text_from_tei_xml(file_path)
     if not text:
-        print(f"Skipping empty or malformed text in {file_path}")
+        print(f"⚠️ Skipping empty or malformed text in {file_path}")
         return
 
-    prompt = build_prompt(text[:100000])  # the context length for Qwen is 128K tokens
+    prompt = build_prompt(text[:100000])  # Truncate for context limits
+    output_path = Path(output_dir) / (Path(file_path).stem + ".json")
+    prompt_path = output_path.with_suffix(".prompt.txt")
+
+    # Log the prompt for debugging
+    with open(prompt_path, "w", encoding="utf-8") as f:
+        f.write(prompt)
 
     try:
-        # This is where Instructor handles prompt formatting + schema validation + retry!
-        results: List[PsychTriple] = llm(prompt, output_type=List[PsychTriple])
-        output_path = Path(output_dir) / (Path(file_path).stem + ".json")
+        results = llm(prompt, output_type=List[PsychTriple])
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump([r.dict() for r in results], f, indent=2)
-        print(f"✅ Processed: {file_path}")
+        print(f"✅ {file_path} | Extracted {len(results)} triples")
+    except ValidationError as ve:
+        print(f"❌ Validation failed for {file_path}:\n{ve}")
     except Exception as e:
         print(f"❌ Failed to process {file_path}: {e}")
 
@@ -79,18 +87,28 @@ def process_file(file_path: str, output_dir: str, llm: Instructor):
 def main(input_dir="input_xml", output_dir="extracted_json"):
     os.makedirs(output_dir, exist_ok=True)
 
-    model_name = "Qwen/Qwen2.5-72B-Instruct"  # or another instruct model
+    model_name = "Qwen/Qwen2.5-72B-Instruct"
+
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        device_map="auto",
+        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+    )
 
-    # Load text-generation pipeline
-    text_gen_pipeline = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=8000) #Qwen can generate upto 8K tokens
+    text_gen_pipeline = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        max_new_tokens=8000,
+        return_full_text=False
+    )
 
-    # 🧠 Enable Instructor retry + schema formatting
-    patched_pipeline = patch_instructor(text_gen_pipeline, max_retries=3)
-    llm = Instructor(patched_pipeline)
+    # No patch_instructor anymore – just wrap the HF pipeline
+    llm = Instructor(text_gen_pipeline)
 
-    for xml_file in Path(input_dir).glob("*.xml"):
+    files = list(Path(input_dir).glob("*.xml"))
+    for xml_file in tqdm(files, desc="Processing TEI XML files"):
         process_file(str(xml_file), output_dir, llm)
 
 if __name__ == "__main__":

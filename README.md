@@ -35,15 +35,15 @@ Instructions to run on a GPU server
 1. Create a Python virtual environment
 
 ```
-python3 -m venv myenv
+python3.11 -m venv myenv3_11
 ```
 
-Replace myenv with your preferred environment name.
+Replace myenv_11 with your preferred environment name.
 
 2. Activate the virtual environment
 
 ```
-source myenv/bin/activate
+source myenv3_11/bin/activate
 ```
 
 
