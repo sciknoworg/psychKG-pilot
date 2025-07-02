@@ -29,3 +29,21 @@ After o3 processing
 Total articles processed: 1618
 Articles with extracted constructs and measures: 1464
 Articles without relevant content: 154
+
+Instructions to run on a GPU server
+
+1. Create a Python virtual environment
+
+```
+python3 -m venv myenv
+```
+
+Replace myenv with your preferred environment name.
+
+2. Activate the virtual environment
+
+```
+source myenv/bin/activate
+```
+
+
