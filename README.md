@@ -23,3 +23,9 @@ git clone https://github.com/sciknoworg/psychKG-pilot.git
 cd psychKG-pilot
 pip install requests openai beautifulsoup4 pydantic
 ```
+
+After o3 processing
+=== Extraction Summary ===
+Total articles processed: 1618
+Articles with extracted constructs and measures: 1464
+Articles without relevant content: 154
