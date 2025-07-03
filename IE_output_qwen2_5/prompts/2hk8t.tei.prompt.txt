@@ -1,0 +1,4891 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction
+To achieve our goals and navigate a world that is teeming with distractions, humans rely on cognitive control to manipulate limited processing resources in a goal-directed manner. While it is known that cognitive control fluctuates as we complete the tasks of the day and upregulates attention as we encounter competing sources of information, the mechanisms and time courses of these processes remain a topic of active research. In addition to work showing post-feedback modulation of attention via cognitive control to improve future performance 
+(Blais, Robidoux, Risko, & Besner, 2007;
+Botvinick, Cohen, & Carter, 2004;
+Verguts & Notebaert, 2008)
+, there is growing evidence that cognitive control acts at faster time scales as well 
+(Braver, 2012;
+Goschke automaticity (Ulrich et al., 2015)
+. Notably, all three of the existing flanker SSMs describe decision and attentional processes that are calculated as a function of time. As such, these models assume cognitive control processes engage based only on the stimulus at hand and the amount of time spent on a trial. This contrasts with the connectionist models, which assume cognitive control is based on layered inputs from continuously-interacting populations of neurons.
+In the current article, we introduce an SSM of the flanker task in which cognitive control and attention are emergent properties of the dynamics of the decision itself. Three core concepts from decades of research on cognitive control are foundational to this work: 1) conflict arises from the mutual activation of multiple choice options, 2) cognitive control is deployed as a direct response to the presence of conflict, and 3) cognitive control biases visual attention toward goal-relevant information. We begin with a standard two-accumulator SSM framework, in which noisy evidence for each possible response accumulates through time until a decision boundary is reached. In our model, a measure of cognitive control is continuously calculated within-trial based on the total amount of evidence across responses. The area of the visually attended region is in turn calculated from the cognitive control output, narrowing onto the target as cognitive control increases or widening as the need for control relaxes away. As in the shrinking spotlight (SSP) model introduced by White, 
+Ratcliff, and Starns (2011)
+, the evidence for each response is calculated from the amount of attention allocated to target and distractors, respectively. The proposed model is a closed-loop system, in which cognitive functions are a passive byproduct of interacting processes within the broader decision and action. This framework presents a parsimonious alternative to modularized conflict monitoring and cognitive control in the connectionist models, and also serves as a biologically plausible alternative to the strictly timebased processes in the SSMs.
+The idea of cognitive control as an emergent property of activation dynamics has been suggested previously 
+(Mayr & Awh, 2009
+; e.g. 
+Ward & Ward, 2006)
+ and has been implemented in a connectionist model of the flanker task 
+(Scherbaum et al., 2012)
+. The current work stands apart, however, in a number of ways. First, our novel implementation of dynamic processing in an SSM framework allows us to focus on within-rather than between-trial mechanisms. Second, the SSM framework in combination with Bayesian-inspired analysis techniques gives us the power to go beyond generating data that only matches summary statistics, and to fit our model to full distributions choice-RT data at the individual-subject level. This allows us to assess our model's ability to capture the nuanced differences in performance from subject to subject. Third, we fit multiple model variants representing alternative mechanistic hypotheses to the same sets of observed data, and provide a quantified comparison of goodness-of-fit statistics. Given that nearly all published models are able to match observed data in some capacity, the ability to directly compare fit quality based on full distributions of data is critical for model falsifiability.
+We did not simply want to determine if a within-trial mechanism for cognitive control could generally capture the data, but rather wanted to identify which specific patterns of subject-level data were better fit by our model compared to a time-based alternative.
+
+
+Evidence accumulation processes
+We developed models with an attentional system driven by cognitive control as previously described, and compared them to models with an attentional system driven by time as in the SSP developed by 
+White and colleagues (2011)
+. Given that our mechanism of interest critically depends on the evidence for two-choice alternatives, defining the nature of competition between accumulators was a matter of importance. There is considerable discrepancy on this point when comparing the relevant connectionist models to the flanker SSMs. In connectionist models, units representing separate groups of neurons are organized into layers, which in turn correspond to different elements of a trial such as perception, attention, and decision. Units connect to one another in a weighted fashion, passing excitatory or inhibitory inputs from layer to layer. Though units critically affect each other, they typically maintain some level of independence due to random noise, nonlinear activation functions, probabilistic firing, and passive decay of activity (e.g. 
+Liu, Holmes, & Cohen, 2008;
+McClelland & Cleeremans, 2009)
+. As such, activation of both "left" and "right" decision units in a flanker task may occur simultaneously. The existing flanker SSMs, however, consider evidence for the two responses to be perfectly anticorrelated, and only evidence for the "left" or the "right" can be above zero at any given time. To compare these assumptions, the models in our investigation included evidence accumulation mechanisms that were either strongly-correlated as in the original flanker SSMs, or were weakly-correlated and governed by leak and lateral inhibition mechanisms to approximate elements of the connectionist framework. Specifically, model variants incorporated calculations from two well-studied SSMs:
+the feedforward inhibition (FFI) model 
+(Shadlen & Newsome, 2001
+) and the leaky-competing accumulator (LCA) model 
+(Usher & McClelland, 2001
+.
+
+
+Summary and outline
+In our main comparison, each model contains a combination of mechanisms from two different categories: drive to attentional processes (time-based vs. control-based attentional processing),
+MODELING  and competition between accumulators (strongly-vs. weakly-correlated). These alternative mechanisms are illustrated as a flowchart in 
+Figure 1
+. As in the SSP, visual attention is conceptualized as a target-centered density function for a Gaussian distribution. The standard deviation of the attentional spotlight changes throughout a trial, either as a function of time itself or an internal calculation of cognitive control. Drift rates for the two accumulators in the decision process are determined by the area under the attentional spotlight allocated to the target and flankers, respectively. Evidence for each response is calculated within either the FFI or the LCA framework, such that the accumulators are strongly-or weakly-correlated with one another as they stochastically race toward a decision boundary. In the control-based models, cognitive control is represented as the cumulative distance between the total evidence and a threshold, .
+Because the conflict models were designed as a closed-loop system, this measure of cognitive control feeds back into the calculation of the attentional spotlight standard deviation at the next moment in time.
+MODELING WITHIN-TRIAL CONFLICT 11 within either an FFI or LCA framework (Panel 4). For control-based models, cognitive control as calculated as the cumulative distance between total evidence and a threshold 
+(Panel 5)
+. This measure is in turn used to calculate the standard deviation of the attentional spotlight in the control-based models, whereas the spotlight shrinks at a constant rate in the time-based models.
+We fit all models to data collected in three experiments. Experiment 1 was a standard flanker task with arrow stimuli, in which participants indicated whether a central target was pointing 'left' or 'right'. We were interested in observing how models with dynamic mechanisms for cognitive control would compare to those with time-based mechanisms in the standard paradigm,
+given that the time-based flanker SSMs have been shown to capture general congruency and conditional accuracy effects in the past 
+(White et al., 2011)
+. In Experiment 2, which was designed and administered by 
+Servant and colleagues (2014)
+, participants were asked to indicate whether a target circle was red or blue while ignoring congruent (same-color) or incongruent (different-color) distractor circles. Importantly, targets varied in color saturation across six different conditions while the color saturation of the flankers was held constant. Here, the models with strongly-correlated accumulation mechanisms would predict equal and opposite evidence for the 'red' and 'blue' responses across saturation conditions. Models with weakly-correlated accumulation mechanisms governed by leak and lateral inhibition, however, would predict variations in evidence for each response that correspond to the perceptual strength of the relevant stimulus. In Experiment 3, EEG data were collected as participants completed a standard flanker task. With its high temporal resolution, EEG methods provided insight into the decision process during a standard flanker task that we could not get from behavior alone. Using latent input joint modeling analyses 
+(Mack, Preston, & Love, 2013;
+Palestro, Sederberg, Osth, Van Zandt, & Turner, 2018;
+Turner, Forstmann, Love, Palmeri, & Van Maanen, 2017)
+, we determined the correlation between each model's calculations of attentional drive and observed neural activity at the level of each individual trial. Across these three experiments, we found converging evidence that control-based attention processes in combination with evidence accumulation mechanisms governed by leak and lateral inhibition provided the best fits to behavioral data and uniquely mapped onto observed decision-related signals in the brain.
+Our goal was to investigate the possibility of cognitive control as an emergent property of decision dynamics, within a framework that was amenable to data-fitting and quantifiable comparisons. Starting with an existing SSM that was designed to capture the behavioral effects of perceptual conflict, we developed, fit, and compared new model variants that represent competing hypotheses on the nature of within-trial decision processes. We were specifically interested in exploring two attributes of the decision-making process: competition between accumulators, and the driving force underlying attention. Through model comparison and modelbased EEG analyses, we investigated how competition between choice alternatives dynamically affects decision processes that manifest in the brain. We have organized the current article as follows. First, we will provide an overview of the existing SSMs of behavior under conditions of perceptual conflict. Second, we will discuss the details of the models we developed to investigate the within-trial dynamics of the decision process in the flanker task, and the theoretical predictions of each. Third, we present the methods and results of the three experiments that served as a testbed for our model investigation, as well as the details of our model-fitting procedures. Lastly, we provide an interpretation of our results and a discussion of our findings.
+
+
+Model development
+Two existing SSMs of the flanker task were central to our investigation: the shrinking spotlight model of 
+White and colleagues (2011)
+ and the dual-stage, two-process model of 
+Hübner and colleagues (2010)
+. Given our specific interest in within-trial mechanisms of attention, we selected these models due to their intended fidelity to findings from the attention literature. Both models were designed as variants of the diffusion decision model (DDM), in which a single accumulator accrues evidence through time toward one of two response boundaries 
+(Laming, 1968;
+Ratcliff, 1978)
+. The single-accumulator structure is meant to represent the difference in firing between populations of neurons tuned to each choice (P. 
+Smith & Ratcliff, 2004)
+. While the standard DDM assumes evidence accumulation proceeds at a constant drift rate through time, the SSP and DSTP include alternate implementations of a time-varying drift rate in order to capture conditional accuracy effects in the flanker task.
+The SSP follows the zoom lens metaphor of attention, in which attention is represented by a gradient of strength about a central focal point that can expand and contract alongside the area of the visual field. Retinotopic mapping studies in fMRI have provided evidence that visual attention is indeed oriented around a central fixation point in a graded fashion 
+(Brefczynski & DeYoe, 1999;
+Tootell et al., 1998)
+ and that attention-related neural activity negatively scales with the size of the attended region in a zoom lens-like manner (N. 
+Müller, Bartelt, Donner, Villringer, & Brandt, 2003)
+. This work contributed to the idea that attentional resources are finite, and that top-down selective processing is necessary for preferentially allocating attention to behaviorally-relevant stimuli and events 
+(Mesulam, 1990
+(Mesulam, , 1999
+. In the SSP, the spotlight concept is implemented as a density function for a Gaussian distribution that is centered on the target, and each item (e.g. arrow) in the stimulus occupies one unit of perceptual space. The standard deviation of the spotlight shrinks as a function of time, and drift rate is calculated at each time step based on the area under the curve allocated to each item. Though attempts to fit the SSP to data from tasks other than the flanker task have yielded mixed results 
+(Servant et al., 2014;
+Ulrich et al., 2015)
+, the model is still able to capture a wide range of behaviors across task conditions 
+(White et al., 2011)
+ and includes recoverable parameters governing the time-varying drift rate 
+(White, Servant, & Logan, 2018)
+.
+The DSTP, in contrast, builds off of the dual-process hypothesis, which proposes that two processing routes take effect when a stimulus appears: a direct, automatic route dominated by the perceptual qualities of the stimuli, and a slower, effortfully-controlled route that depends on the goal at hand 
+(De Jong et al., 1994;
+Kornblum, Hasbroucq, & Osman, 1990)
+. As illustrated by 
+Figure 2
+, the DSTP specifies two discrete stages of visual processing: 1) an early stage for identifying simple stimulus features and perceptual filtering, and 2) a late stage dedicated to processing the target. The early stage is divided into two racing diffusion processes: a stimulus selection phase and a response selection phase. Boundaries in each phase represent target and flanker stimuli, respectively. If the response selection phase terminates first, a response corresponding to the crossed boundary is made immediately, based only on the perceptual features of the stimulus. If the stimulus selection phase terminates first, the model transitions into the late, target-processing stage (stage 2). In Stage 2, the drift rate of the response selection phase shifts to reflect the outcome of the stimulus selection phase. The starting value of Stage 2 equals the value of the response selection process at the time that the stimulus selection process crossed a boundary. The direction of the drift rate in Stage 2 reflects the choice outcome of the stimulus selection phase. While this model can capture behavioral data patterns on a flanker task under various conditions and has gained support from electromyography data 
+(Servant, White, Montagnini, & Burle, 2015)
+, a recent parameter recovery study indicated that the drift rate parameters could not be reliably recovered from simulated data 
+(White et al., 2018)
+. We selected the SSP as the basis of our model investigation, systematically modifying the original model to incorporate an attentional spotlight driven by cognitive control as well as strongly-and weakly-correlated evidence accumulation mechanisms. The continuous, singleprocess format of the SSP was amenable to these modifications, whereas the multi-step architecture of the DSTP imposes constraints on when perceptual conflict can occur during a decision. Within our comparison of model mechanisms, our goal was to test the theory that cognitive control and related modulation of attention are emergent properties of the dynamics of the decision process. Our hypothesis, as implemented in the SSP framework, assumes that these dynamic processes interact and update continuously throughout a trial. While the cognitive control processes in the DSTP are generally time-based because the stimulus selection phase is a diffusion process with a constant drift rate, one could argue that attention in the DSTP depends on decision dynamics in addition to time alone. Specifically, the switch-point in the Stage 2 response selection drift rate is determined by the outcome of Stage 1 processes, rather than occurring at a predetermined time point. We therefore fit the DSTP to the behavioral data across our three experiments in addition to our SSP variants as a point of comparison, given that the DSTP offers an alternative account of the decision-based attention processes of interest.
+Equations and details of our implementation of the DSTP can be found in the supplementary materials. In the following sections, we provide the details of mechanisms we implemented within the SSP framework as part of our main investigation.
+
+
+Competition between accumulators
+While the original SSP was implemented within a diffusion model framework, we adapted the shrinking spotlight mechanism within a single-boundary, dual-accumulator framework. These two classes of models make subtly different assumptions about which neural processes are represented by evidence accumulation. In the diffusion models, evidence represents the cumulative difference in firing across populations of neurons corresponding to each of two choice options. A response is made when this difference is sufficiently large, and a boundary representing one of the two choices is crossed. In contrast, evidence in the accumulator models reflects direct competition between the two most active populations of neurons during a decision.
+Here, a response is made when one population of neurons reaches a predetermined firing rate threshold. Models from these two classes have been fit to data and compared extensively over the past several years, with the general consensus being that different classes of models are appropriate for different kinds of decisions (P. 
+Smith & Ratcliff, 2004)
+. In our project, we were interested in testing which set of assumptions is appropriate for decisions involving perceptual conflict: are decisions in the flanker task based on the difference in neural representations of targets and distractors, or the active competition between them?
+Evidence accumulation in our models was mathematically defined using either LCA or FFI mechanisms. LCA is a well-known example of the accumulator class of models, and was designed to reflect observed biological mechanisms in the brain 
+(Abbot, 1991;
+Amit, Brunel, & Tsodyks, 1994)
+. Each accumulator in the LCA model passively leaks evidence through time, and is inhibited based on the strength of the other accumulators. The FFI model, in contrast, features two accumulators with crossed inputs and no leak. As in 
+Turner et al. (2016)
+, we constrained the FFI model so that evidence accumulation for each choice was anticorrelated with that of the other. This implementation was meant to mimic the single-accumulator diffusion model framework, in which a movement toward one decision boundary necessitated a movement away from the other. Similarly for the constrained FFI model, one accumulator moving toward the decision boundary requires the other to move toward zero. 
+Figure 3
+ provides illustrations of how evidence accumulation for two choice options occurs in the FFI and LCA models. Because evidence in the constrained FFI model is anticorrelated, the path of the decision process diffuses along a single plane and the total evidence can only increase if one accumulator reaches zero, as shown in 
+Figure 3
+, Panel C. 
+Figure 3
+, Panel F shows that the decision path in the LCA model is not isolated to a diagonal plane due to the independence of the accumulators. 
+
+
+Constrained FFI model
+Evidence for each accumulator is denoted . is As described in 
+Turner, Sederberg, & McClelland (2016)
+, and activation are represented by where and denote the drift rates for accumulator and the alternative respectively. To approximate the continuous differential equation for , we used the Euler method to discretize time, selecting a step size of dt=0.01 modified by a time constant of (S. 
+Brown, Ratcliff, & Smith, 2006)
+. The degree of noise in the accumulation process is represented by , a driftless Wiener process distributed as . In line with the conventions of accumulator models, evidence for each accumulator c was bound at zero so that neither accumulator could ever be negative. Evidence for each alternative accumulates through time until decision threshold is reached, and a response is selected in favor of the winning accumulator. Response time, then, is equal to the sum of the time taken for one of the accumulators to reach and non-decision time , which comprises early visual processing and motor preparation. Although different approaches could have been taken, accumulator starting points were set in relation to the decision threshold such that for {1,2}. This choice of starting point has been selected in previous modeling work 
+(Ditterich, 2010;
+van Ravenzwaaij, van der Maas, & Wagenmakers, 2012)
+ to align with findings from single unit recordings 
+(Churchland, Kiani, & Shadlen, 2008
+).
+
+
+LCA model
+While evidence in the constrained FFI model is strongly correlated, LCA accumulators are weakly correlated, linked only by lateral inhibition processes that repel the accumulators away from one another via parameter . Evidence for each choice passively decays throughout the accumulation process at a rate equal to leak parameter . Activation at is given by
+Again, we used the Euler method to discretize time, selecting a step size of dt=0.01 modified by a time constant of . Evidence accumulates through time until the decision threshold is reached, and a response is made after non-decision time . Evidence was bound at 0 and starting points were set to a proportion of threshold such that for {1,2}.
+
+
+Drive to attention mechanisms
+Our core mechanistic hypothesis is that attention is directly modulated within-trial as an emergent property of decision-making dynamics. This hypothesis is based on evidence of withintrial changes in attention and cognitive control from neuroimaging 
+(Czernochowski, 2015;
+Nigbur et al., 2015;
+Scherbaum et al., 2011)
+ and connectionist models in which cognitive control is dynamically mobilized in response to the mutual activation of multiple response nodes 
+(De Pisapia & Braver, 2006;
+Frank, 2006;
+Scherbaum et al., 2012;
+Verguts, 2017)
+. Our proposed control-driven attention mechanism stands in contrast to existing SSMs of decision processes Our selection of the cognitive control function was based on three factors. 1) Cognitive control is recruited in response to the presence of conflict 
+(Botvinick et al., 2004;
+Larson et al., 2014;
+Miller & Cohen, 2001)
+, which is defined as the mutual activation of multiple choice options 
+(Botvinick et al., 2001
+(Botvinick et al., , 1999
+. Our implementation of the SSP within a dual-accumulator model framework allows us to track evidence for both response options throughout a trial, and we opted to base our calculation of cognitive control on the total amount of evidence in the system. 2)
+Braver's dual mechanisms of control framework (2012) suggests that when conflict exceeds the available resource of cognitive control, cognitive control is upregulated within-trial until conflict can be successfully resolved. When conflict is resolved, cognitive control is allowed to decrease.
+The active level of cognitive control, then, is continuously compared to a required level of control, and is updated accordingly throughout a trial. We implemented this idea into our models by calculating cognitive control as an evidence-based signal relative to a threshold, where the threshold represents a predetermined level for optimal conflict resolution. 3) Given that more conflict occurs on incongruent compared to congruent trials 
+(Botvinick et al., 1999;
+Gratton et al., 1992)
+, cognitive control should reach a higher peak on incongruent compared to congruent trials. Combining all of these factors, we developed a measure of cognitive control that is based on the dynamics of the evidence accumulation process, generally builds through time, is able to relax toward the end of a trial as conflict is resolved, and naturally demonstrates differences between task conditions. Average simulations of within-trial cognitive control signals for each task condition are shown in 
+Figure 4
+, alongside time signals for contrast. Because our calculation of cognitive control is based on the sum of evidence at each time step, the mode of evidence accumulation (FFI vs. LCA) has notable effects on the moment-to-moment changes in cognitive control, and subsequently, the behavior of the spotlight. The accumulators in the FFI model are strongly correlated and trade off as shown by the phase plane plots in developed FFI and LCA model variants in which the spotlight is driven by time with additional within-trial variability. As described in Section 2.2.3, the standard deviation of the noise distribution was added as a free parameter, so that variability in the spotlight calculation could be added as needed to optimally fit the data. 
+Figure 5
+ shows calculations of attentional spotlight widths through time, generated from the FFI-conflict and LCA-conflict models as well as timeand time+noise-based models. In the following sections, we will provide the mathematical details of each type of attentional spotlight mechanism that we explored in the current project. each simulation displayed as a gray line to demonstrate the between-trial variability captured by each model. A single additional simulation is shown as a red line to illustrate differences in within-trial variability.
+
+
+Time-based attention
+As in the original SSP, our two-accumulator implementations of the model calculate drift rate through time based on an attentional spotlight. Drift rate is governed by three free parameters:
+attentional strength , width of the spotlight at the beginning of a trial , and the rate at (2)
+
+
+Control-based attention
+In contrast to time being the driving force to the attentional spotlight, we defined a subset of models in which the spotlight standard deviation was calculated continuously as where represents cognitive control. As described previously, cognitive control was calculated based on the cumulative distance between the total amount of evidence in the system and a conflict threshold , such that As in the time models, drift rates were calculated via Equations 1 and 2.
+
+
+Time with noise
+As shown in 
+Figure 5
+, the control-based models allow for more variability in drive to the attention system compared to the time models. While this variability is a natural consequence of calculating based on the state of noisy accumulators, we wanted to investigate whether the addition of random variability would be equally suitable for fitting the data. As such, we developed variants of the time models that included an additional free parameter . Noise was drawn from a driftless Wiener process such that . The standard deviation of the spotlight was then calculated from the noisy time-based signal, such that .
+
+
+Summary of model variants
+Our current investigation was centered around four variants of the SSP, each containing a different combination of evidence accumulation mechanisms (strongly-correlated, FFI vs.
+weakly-correlated, LCA) and calculations for visual attention (time-based vs. control-based).
+Because the control-based models allow for variability in the behavior of the attentional spotlight whereas the time-based models do not, we included FFI and LCA variants of time models in which within-trial noise was injected into the spotlight calculation.  Data from three experiments served as the testbed for the seven model variants. The first experiment was a standard flanker task, which was intended to test each model's ability to capture basic behavioral effects between conditions. The second experiment included a manipulation in which the perceptual strength of the target relative to the flanker items varied from trial to trial. These data were fit by adding free parameters to modify perceptual input strength (p) depending on the perceptual strength of each item in the stimulus array. The third experiment was a standard flanker task during which we also recorded scalp EEG measurements.
+The models were fit to behavior alone for all experiments, and simulation methods were used in our analysis of data collected in Experiment 3 to observe which models most successfully mapped onto within-trial EEG voltage at each electrode.
+
+
+Experiment 1
+Given that the SSP was designed to capture data in a standard flanker task and has successfully fit patterns of responses across conditions 
+(White et al., 2011)
+, we wanted to test all of our SSP model variants in this domain as well. Participants completed a standard flanker experiment, in which they indicated the direction of a central arrow while ignoring congruent, incongruent, or neutral distractor items. Although we only fit the models to data from congruent and incongruent trials, we hoped that the inclusion of neutral trials would boost flanker effects via increased rarity of incongruent trials 
+(Gratton et al., 1992)
+ while maintaining equal numbers of congruent and incongruent observations.
+
+
+Method
+
+
+Procedure
+After providing written informed consent, participants were seated in a cubicle and asked to turn off all electronic devices. Instructions for the task appeared on the computer screen, and were read aloud by the experimenter. Each block began with a summarized instruction screen to remind participants of the appropriate response mappings while also providing an opportunity to take a short break from the task. The instruction summary remained on the screen until the participant pressed the ENTER key to proceed. During each trial, a fixation cross appeared in the center of the screen for 1000 ms before being removed. The trial stimulus then appeared on the screen after a jittered duration of 100-900 ms. Participants responded by pressing the 'J' key on the keyboard if the arrow in the center of the array pointed left, and the 'K' key if the center arrow pointed right. Participants were asked to respond with their right forefinger and right middle finger respectively. Only responses made 150 ms after the stimulus appeared were recorded, and the stimulus was removed from the screen immediately after the participant made a valid response. Participants were given an unlimited amount of time to respond, but were instructed to respond as quickly and accurately as possible. were presented in white font on the horizontal midline of a dark gray field. Each stimulus consisted of a target arrow in the center of 6 flanker items, 3 to the left and 3 to the right.
+
+
+Stimuli and apparatus
+
+
+Participants
+27 undergraduate students at The Ohio State University participated in Experiment 1 in exchange for partial course credit. All participants provided informed consent in accordance with the requirements of the Institutional Review Board at the university. One participant's data were excluded from analysis due to failure to exceed a chance level of performance on the task.
+
+
+Model-fitting and comparison
+The seven models were fit to each participant's data independently using probability density approximation (PDA) methods described by 
+Turner and Sederberg (2014)
+  set in a chain is accepted with Metropolis Hastings probability, such that parameters have a higher probability of survival if they fit the data better than the previous proposal, and concurrent chains inform one another on each iteration. Using each proposed parameter set θ*, we simulated each model 30,000 times to produce a set of data X such that X ~ Model(θ*). From these distributions, we constructed a simulated probability density function using an Epanechnikov kernel 
+(Turner & Sederberg, 2014;
+Turner et al., 2016)
+ to estimate the form of X. We then calculated the density of each point in the observed data Y under the given set of parameters θ using the equation:
+Where is an approximation of the functional form of simulated data X. We then approximated the likelihood function using the equation .
+Finally, the posterior density for a given parameter set was approximated by combining the likelihood function and the set of prior distributions π(θ) with the equation:
+.
+This procedure was implemented in 50 chains for 600 "burn-in" iterations to identify the maximum a posteriori (MAP) estimate, followed by 1,600 sampling iterations to generate full posterior distributions. A purification step was implemented every 5 iterations for the accepted population, in which likelihood values were recalculated and replaced in order to prevent chains from getting stuck in spuriously high-likelihood regions of the posterior 
+(Holmes, 2015;
+Turner, Schley, Muller, & Tsetsos, 2018)
+. Priors were selected to be uninformative in terms of range, but to provide a moderate level of constraint in terms of functional form. As none of these models have been fit in a Bayesian paradigm, we had no precedent to rely upon for selecting a prior distribution for each parameter. Prior distributions were specified as follows, and were the same across models that utilized common parameters:
+To compare the relative fit performances of the models, we calculated the Bayesian predictive information criterion (BPIC; 
+Ando, 2007)
+ for each model within-subject. We selected BPIC as our comparison metric for the present investigation because it is calculated in consideration of the full posterior distribution rather than a point estimate of the maximum log likelihood. This metric also accounts for model complexity by favoring models with fewer free parameters. To calculate BPIC values, a vector of deviance values was calculated from the likelihood for each set of parameters in the latter 1,400 sampling iterations of the posterior using the equation:
+.
+We then calculated the mean and minimum deviance as and respectively. The effective number of parameters was calculated as . Finally, the BPIC value was calculated as:
+where lower BPIC values indicated a better fit.
+
+
+Results
+
+
+Behavior
+Responses shorter than 150 ms or longer than 2000 ms were excluded from analyses and modelfitting (<4% of trials across subjects). Neutral trials were excluded from analyses due to an unforeseen pop-out effect in our data, such that participants were slightly faster at responding to neutral stimuli compared to congruent. As such, only congruent and incongruent trials were analyzed further. A summary of behavioral results is shown in 
+Table 2
+. Behavioral results were analyzed using paired-sample t-tests, where the degrees of freedom for within-condition performance comparisons were based on the number of subjects who made at least one error in the condition of interest. We observed the expected flanker task effects, including significantly lower accuracy on incongruent trials compared to congruent (t(25)=-2.919, p<0.01) and significantly slower RTs for incongruent trials compared to congruent (t(25)=7.520, p<0.001).
+Our data also demonstrated significantly faster errors than correct responses in the incongruent condition (t(22)=-3.778, p<0.01), but not in the congruent condition (t(9)=0.910, p=0.386).  
+Figure 6
+. Out of 26 total participants in Experiment 1, the LCA control model was the best performing model for 8 participants, the FFI control model was the best performing model for 5 participants, the LCA time model was the best performing model for 2 participants, the DSTP model was the best performing model for 7 participants, and the FFI time model was the best performing model for  interest. All four models were able to capture typical flanker effects of slower, less accurate responses in the incongruent compared to the congruent condition, and faster errors than correct responses in the incongruent condition. Given that the SSP was specifically designed to capture robust congruency and conditional accuracy effects, it is unsurprising that all models were able to fit the standard pattern of data. Though the control-driven models were better suited for capturing the peaks of the correct response distributions than the time-driven models, acrosssubject results reflect strong model mimicry. To gain more insight into the differences in predictions among the models, we need to delve into the more nuanced patterns of behavior that were not necessarily robust across all subjects. We provide analyses using two measures of response capture: error location indices (ELIs) and conditional accuracy functions (CAFs). An ELI value represents the proportion of incorrect responses that are faster than trials chosen at random 
+(Servant, Gajdos, & Davranche, 2018)
+. For example, a participant who performed less accurately when they made fast responses would likely have a high (close to 1.0) ELI, whereas a participant who performed less accurately when they made slower responses would likely have a low (close to 0.0) ELI. The SSP was developed to capture the general effect of fast errors specific to the incongruent condition of the flanker task, which manifests as higher ELI values in the incongruent compared to the congruent condition. While all four of the main models in the current investigation can capture this basic effect, we observed differences among the models in terms of their abilities to predict individual differences in ELIs in the incongruent condition. After fitting each model to data from each subject, we used best-fitting parameters to generate predicted ELI values. 
+Figure 8
+ shows correlations between observed and predicted ELI values in the incongruent condition for each model. Per the requirements of the calculation, participants were only included if they made at least one error in the incongruent task condition (23 participants). These results suggest that the LCA control model is best able to capture the nuanced subject-level differences that we observed in our dataset. To assess significance, we applied a Fisher's z transformation to each r correlation and calculated an observed z test statistic at an alpha level of 0.05 for each pairwise combination of models. The observed vs. predicted ELI correlation for the FFI control model was significantly lower than that of the LCA control (z=2.284, p=0.011) and LCA time models  While ELIs were developed as a quantitatively interpretable alternative to CAFs, CAFs remain a common tool for illustrating behavioral effects in the flanker task. In the CAF, performance is plotted as a function of RT. 
+Figure 9
+ shows average CAFs across subjects calculated from observed data in the incongruent condition, overlaid by average predicted incongruent CAFs generated from each subject's best-fitting parameters for each model. As mentioned previously, all four models can capture fast errors in the incongruent condition, which is illustrated by lower accuracy in the initial RT bins. The models differ, however, in their abilities to capture slow errors. Neither the LCA time nor the FFI time model appropriately captures the dropoff in accuracy for longer RTs. The control models, however, are able to predict a decrease in cognitive control toward the end of a trial, which allows the models to capture patterns of accuracy that reach a peak before slightly decreasing. This is due to the nature of our conflict signal as illustrated by 
+Figures 1 and 4
+, which allows for the widening of the attentional spotlight toward the end of a trial depending on the parameter values. The FFI control model, however, appears to overpredict the proportion of slow errors due the combination of the control mechanism and the strong correlation between accumulators, resulting in the lowest correlation between observed and predicted ELI values across the models as shown in 
+Figure 8
+. ELIs for the congruent condition were useful for distinguishing these models as well. Similar to 
+Figure 8
+, 
+Figure 10
+ shows ELI values calculated from observed data in the congruent condition in relation to the predicted ELI values generated from best-fitting parameters in each model. Per the requirements of the calculation, participants were only included if they made at least one error in the congruent task condition (10 participants). Predictions using the LCA control model best mapped onto subject-level ELIs in the congruent condition compared to the other models.
+The observed vs. predicted ELI correlation for the LCA control model was significantly higher than that of the FFI time (z=3.088, p=0.001) and FFI control models (z=1.871, p=0.031), and the correlation for the LCA time model was significantly higher than that of the FFI time model as well (z=1.822, p=0.034). No other comparisons were significant (LCA control vs. LCA time:
+z=1.266, p=0.103; LCA time vs. FFI control: z=0.606, p=0.272; FFI control vs. FFI time:
+z=1.217, p=0.112). To observe specific differences in model predictions within the congruent condition, mean CAFs were generated separately for participants with low (0.11-0.31) and high (0.74-1.00) observed
+ELIs as determined by median split. 
+Figure 11
+ shows observed and model-predicted CAFs for low-ELI participants in the congruent condition, in which the observed data demonstrates a higher proportion of errors for longer compared to shorter RTs. While all models miss the mean performance values considerably, the LCA control, LCA time, and FFI control models are able to capture a general pattern of slow errors in the congruent condition. Though the LCA time model lacks the ability to relax attentional processing like the control models, it is presumably able to capture these slow errors via the leak parameter. The FFI time model, however, has no mechanism for capturing slow errors in the congruent condition.  While the cognitive control-driven attentional system allows the FFI control model to predict fast errors, these processes in combination with a strongly-correlated accumulator structure result in an overprediction of slow errors. The LCA control model, however, is able to predict fast errors without inappropriately predicting slow errors as well. were sorted according to RT within 6 equally-spaced percentile bins. Performance and minimum RT for each bin were averaged across participants (blue Xs). After generating 1,000 choice-RT pairs from each subject's best-fitting parameters within each model, the same procedure was used to calculate CAFs for each model (gray lines).
+
+
+Discussion
+The results of Experiment 1 demonstrate strong mimicry between models, but showed overall better fits for models with control-driven attentional mechanisms compared to time-driven alternatives as determined by our BPIC comparison. In interpreting the BPIC results, it is important to remember that these calculations favor less complex models. With 8 free parameters, it is therefore notable that the LCA control model outperformed the more parsimonious alternatives in a substantial number of cases. For the 4 instances in which the more parsimonious FFI time model was the winning model, it appears that the improvements in fit afforded by the more flexible models were not substantial enough to justify the additional complexity. The most complex model was the DSTP with 9 free parameters, and its flexibility resulted in 7 wins. For a majority of subjects, however, the added complexity did not improve the fits over what the other models could provide, and the model barely performed better than FFI time on average. Interestingly, the conflict models provided better fits than the time+noise models in almost all cases, indicating that conflict mechanisms themselves are tapping into an aspect of the data beyond improvements resulting from additional noise. Because each model makes the standard predictions for choice-RT distributions equally well, ELI and CAF analyses allowed us to investigate the predictions of the models at a finer granularity than what choice-RT summarizations could provide. Among the FFI time, LCA time, FFI control, and LCA control models, only LCA control could predict patterns of fast and slow errors in each condition that varied by subject. Although Experiment 1 has provided tentative evidence that cognitive control, rather than time alone, underlies attention processes in the flanker task, the data as a whole did not provide a strong dissociation between FFI and LCA mechanisms for interactions between the accumulators when considering general effects across subjects.
+
+
+Experiment 2
+Because the results of Experiment 1 did not favor strongly-correlated FFI or weakly-correlated LCA evidence accumulation mechanisms, we next fit the models to data from a task that we believed would challenge these alternative hypotheses. In the standard flanker task, the nature of the arrow stimuli results in an equal amount of perceptual strength for each item in an array, and evidence for a left response is equal and opposite to evidence for a right response. As such, it is not surprising that both FFI and LCA accumulation dynamics were able to capture the data equally well. In Experiment 2, we opted to test the models under task conditions in which the perceptual strength of the flanker items was not necessarily equal to that of the target. The task, designed and administered by 
+Servant et al. (2014)
+, required participants to indicate the color of a target circle amid flanker circles of a congruent or incongruent color. As a manipulation of relative perceptual strength, the color saturation of the target circle varied from trial to trial while the saturation of flanker circles was held constant. Due to the strongly-correlated behavior of the accumulators in the FFI models, we predicted that the FFI models would be less capable of capturing the observed patterns of choices and RTs across conditions in this task relative to LCA models. Our hypothesis is in line with recent work showing that models with strongly-correlated accumulators fail to capture observed patterns of data across a range of equal-and unequalevidence task conditions 
+(Kirkpatrick, Turner, & Sederberg, submitted)
+.
+
+
+Method
+
+
+Procedure
+The data set used in the present investigation was collected at Aix-Marseille University by 
+Servant et al. (2014)
+. The paradigm and methods of the study are summarized here, but the reader is directed to the original paper for further details. Participants were shown arrays of circles, and were asked to respond as to whether the color of the center circle was red or blue.
+After providing informed consent, participants received instructions, completed a practice block, then began the task. Each trial began with the appearance of three circles, which remained on the screen until participants responded with a maximum duration of 1500 ms. After the stimulus was removed from the screen, there was an inter-trial interval of 1500 ms. Color-mappings were counterbalanced between participants, such that half of the participants were instructed to respond 'left' to a red target and 'right' to a blue target, and the other half were instructed to respond 'right' to a red target and 'left' to a blue target.
+
+
+Stimuli and apparatus
+Participants completed 24 blocks of the task, each block containing 96 trials (2,304 trials in total). Stimuli were presented using PsychoPy software 
+(Peirce, 2007)
+ 
+
+
+Participants
+Twelve students provided informed consent in accordance with the Declaration of Helsinki, and participated in the study in exchange for 10€/hour. Participants had normal or corrected-tonormal vision and normal color vision.
+
+
+Model-fitting
+Prior to fitting the models, we first needed to make adjustments to the models to accommodate the conditions of the target saturation manipulation. Following the example of Servant et al.
+(2014), we made the assumption that the p parameter, representing perceptual input strength that behaves within the SSP as a scalar on the spotlight, was the logical candidate for tracking the perceptual strength of each item in the stimulus array. We therefore modified all models of interest to include six separate values of p representing the six conditions of target saturation included in the experiment. Drift rates and for each accumulator were calculated via the following modifications to Equations 1 and 2:
+(3)  Priors for parameters , , and were selected to be mildly informative, and were defined as follows:
+Priors for all other parameters as well as all model fitting procedures were otherwise identical to those described for Experiment 1. We modified the DSTP to include a sigmoid function for fitting the target color saturation conditions as well. Details of the modified DSTP models are included in the supplementary materials.
+
+
+Results
+
+
+Behavior
+Responses shorter than 150 ms were excluded from analyses and model-fitting (<0.01% of trials across subjects). Detailed behavioral results of Experiment 2 are presented in 
+Servant et al. (2014)
+. In summary, participants were significantly slower (t(11)=6.491, p<0.001) and less accurate (t(11)=-3.437, p<0.01) on incongruent trials relative to congruent, across target color saturation conditions. Participants were also significantly slower (15% saturation -80% saturation: t(11)=11.583, p<0.001) and less accurate (15% saturation -80% saturation: t(11)=7.425, p<0.001) on lower saturation trials relative to higher saturation trials, and the effect persisted both within incongruent (RT: t(11)=9.109, p<0.001; accuracy: 6.390, p<0.001) and congruent trials (RT: t(11)=11.646, p<0.001; accuracy: t(11)=7.571, p<0.001). 
+Table 3 contains
+ mean RTs and error rates in each condition of Experiment 2. 
+
+
+Model fits
+BPIC values for each model were mean-centered within subject, and are shown as a heat map in 
+Figure 15
+. The LCA control model was the winning model in 8 out of the 12 participants, the FFI control model was the winning model for 3 participants, and the DSTP was the winning MODELING WITHIN-TRIAL CONFLICT 51 model for 1 participant. Accounting for the magnitude of the wins across subjects, the LCA control model outperformed all alternatives, including FFI control, while the FFI time and DSTP models fit the worst overall.   
+Figure 7
+, the two control-based models provided better qualitative fits to the RT distributions for correct responses, compared to the time-based models. This again reflects the ability of the control-driven models to capture the nuanced differences in behavior across subjects, specifically subject-level differences in fast and slow responses across conditions due to the nature of the control signal. More importantly, 
+Figure 16
+ shows that the FFI and LCA models make drastically different predictions about the error RT distributions, particularly in the incongruent condition. While the LCA models are generally able to capture the peak and spread of the incongruent error RTs, the FFI models consistently predict a larger proportion of fast errors across target color saturation conditions than we observe in the data. This overprediction of fast errors is a natural consequence of the strongly-correlated evidence accumulation mechanism in the FFI models. The FFI models are able to predict different drift rates across saturation conditions due to differences in the perceptual input strength scaling parameters , and are therefore able to capture the general pattern of faster correct responses for high target saturation trials. Because of the strongly-correlated evidence accumulation mechanism, however, faster positive drift rates for one accumulator result in correspondingly faster negative drift rates for the other. As such, the FFI models are limited in their ability to concurrently capture observed RTs for correct and error responses across all conditions. In contrast, the flexibility of the weakly-correlated evidence accumulation mechanism in the LCA models allow the models to seamlessly adapt to conditions of unequal perceptual strength between target and flanker stimuli. 
+
+
+Discussion
+We hypothesized that the flanker saturation manipulation in Experiment 2, in which targets and flankers differed in perceptual strength from trial to trial, would cause models with strongly-and weakly-correlated evidence accumulation mechanisms to make contrasting predictions. Because an increase evidence for one choice option results in an equivalent decrease in evidence for the other choice, the FFI models do not predict any mechanistic differences for how a participant processes stimuli across different target saturation conditions. These models, therefore, depend on the values of the perceptual input strength scalars to capture any behavioral differences between high-and low-saturation target conditions. As shown in 
+Figure 16
+, however, the FFI models were only able to approximate RTs for correct responses at the expense of the error distributions--both the FFI time and the FFI control models predicted faster error RTs in the incongruent condition. The LCA models were more successful overall compared to the FFI models at fitting the shapes of all choice-RT distributions across saturation and congruency conditions, suggesting that the flexibility afforded by a weakly-correlated evidence accumulation structure is necessary for fitting these data.
+Consistent with the results of Experiment 1, models with control-based attention mechanisms provided better fits to the data compared to time-based alternatives. Despite being the most complex model in our comparison with 14 free parameters (compared to 7 in FFI time, 8 in FFI time+noise and FFI control, 9 in LCA time, and 10 in LCA time+noise and LCA control), the DSTP provided the worst quantitative fits as determined by BPIC. We included the DSTP in the current project to test our control-based attention mechanism against an alternative decisionbased mechanism. The results of Experiments 1 and 2 indicate that our control-based mechanism strikes a more effective balance between flexibility and parsimony than the DSTP.
+Taken together, the results of Experiment 2 indicate that both LCA evidence accumulation mechanisms and control-driven attention mechanisms are necessary for appropriately predicting behavior under conditions of differing perceptual strength.
+
+
+Experiment 3
+Our main motivation for the current project was to develop a neurally-plausible mechanism for modulation of attention within-trial. Our theory, which we operationalized via our cognitive control-based models, is that modulation of attention is an emergent property of the dynamics of the decision process. While we do find evidence for cognitive control-based processes across Experiments 1 and 2 by fitting our models to behavioral data alone, we wished to determine whether our model-generated signal for cognitive control actually maps onto an observable, within-trial signal in the brain. In Experiment 3, we collected EEG data alongside the same standard flanker task administered in Experiment 1 and designed a latent input joint modeling analysis to gain insight into the within-trial processes that we could not observe from behavior alone. Based on the results of Experiments 1 and 2, we predicted that LCA mechanisms in combination with control-based attentional mechanisms would most effectively track latent EEG measures.
+
+
+Method
+
+
+Procedure and EEG acquisition
+Participants completed a standard flanker task that was identical to the one administered in Experiment 1. After providing written informed consent, participants were fitted with an elastic cap embedded with 64 Ag-AgCl active scalp electrodes arranged in an extended 10-20 array (BrainProducts GmbH, Munich, Germany), and seated in an electrically-shielded, soundattenuated testing room. Participants were asked to turn off all electronic devices and leave them outside of the testing room before the experiment began. The EEG signal was sampled at a rate of Hz via a DC-powered actiCHamp amplifier connected to a desktop PC. The ground electrode was located at Fpz and the reference was set to the average of mastoid electrodes TP9
+and TP10 during recording. Electrode impedances were reduced to less than 25K ohms via application of electrolyte gel as recommended by the equipment manufacturer. Instructions for the task appeared on the computer screen, and were read aloud by the experimenter. Participants were given the opportunity to take breaks from the task in between task blocks, but remained seated in the testing room throughout. During each trial, a fixation cross appeared in the center of the screen for 1000 ms before being removed. The trial stimulus then appeared on the screen after a jittered duration of 100-900 ms. Participants responded by pressing the 'J' key on the keyboard if the arrow in the center of the array pointed left, and the 'K' key if the center arrow pointed right. Participants were asked to respond with their right forefinger and right middle finger respectively. Only responses made 150 ms after the stimulus appeared were recorded, and the stimulus was removed from the screen immediately after the participant made a valid response. Participants were given an unlimited amount of time to respond, but were instructed to respond as quickly and accurately as possible. EEG signal was monitored by the experimenter throughout the session for abnormalities using PyCorder software (BrainProducts GmbH, Munich, Germany) on the acquisition PC.
+
+
+Stimuli and apparatus
+Stimuli were presented and recorded via a desktop PC equipped with Linux OS connected to a Participants completed 20 blocks of the task, each block containing 48 trials that were counterbalanced by condition (congruent, incongruent, neutral) and target direction (left, right).
+In total, each participant completed 960 trials.
+
+
+Participants
+8 right-handed participants who were fluent in English were recruited from The Ohio State University, and were compensated at a rate of $10/hour. All participants provided informed consent in accordance with the requirements of the Institutional Review Board at the university.
+
+
+Model fitting
+Models were fit to behavioral data only, using procedures identical to those described in the methods for Experiment 1.
+
+
+EEG preprocessing
+All EEG preprocessing was completed using custom functions in the software package Python Time Series Analysis (PTSA; https://github.com/compmem/ptsa). Data were filtered at 30 Hz to eliminate low-frequency noise, and were resampled to 100 Hz to match the time step parameter dt used in our model-fitting procedure. We employed wavelet-enhanced independent component analysis (wICA; 
+Castellanos & Makarov, 2006)
+ to remove artifacts from eye-blinks and saccades. Trials were segmented into epochs and time-locked to when the stimulus appeared on the screen. Epochs were 2500 ms long beginning 500 ms before stimulus onset, and were baseline-adjusted according to the mean voltage within a 200 ms pre-stimulus window. Epochs were rejected if kurtosis exceeded 5.0 or if the amplitude range exceeded 100V (17% of all trials).
+
+
+Model-based EEG analysis
+Given that the models in the current investigation make different predictions about the behavior of the spotlight within each trial, our goal was to determine which mechanism best mapped onto observed neural signals. As such, we used within-trial correlation analyses to assess the link between model-generated attention signal and EEG voltage at each channel. Here, the "attention signal" refers to vectors of time or cognitive control that contribute to the calculations of spotlight standard deviation throughout a trial. We first fit each model to behavioral data from each participant, and identified MAP estimates for each parameter. For each model, subject, and task condition, we generated 30,000 trials using best-fitting parameters. Each simulation generated a choice (correct or incorrect), RT, and vector of values representing drive to the attentional mechanism at each timestep during the decision process. For each observed response, we defined a selection window from to and identified the simulated responses that terminated therein for the relevant subject and task condition. Observed trials that matched fewer than 100 out of the 30,000 simulated trials in at least one model were discarded from further analyses (38.5% of trials). Despite excluding a large proportion of trials, 3,914 trials across participants were still included in our final analysis. Across simulated trials that matched a given observed trial, we calculated the mean attention signal value at each timepoint. The result was a single attention signal vector for each observed trial and model. We then identified the decision-relevant neural data on each trial. Once the EEG voltage data at each electrode was preprocessed and segmented into trial-level epochs as described in the methods, we defined a decision-relevant window on each trial in between after the stimulus appeared on the screen and prior to the response being executed, where was the best-fitting non decision time parameter value from the model at hand. The next step was to determine the relationship between model-generated attentional drive and EEG voltage at the within-trial level. For each trial, model, and electrode, we calculated the Pearson's r correlation between EEG voltage and attentional drive through time. We then performed a Fisher's Z-transform on the trial-level r values at each electrode. P-values were calculated via one-sample t-tests at the level of each electrode, where the null hypothesis was that trial-level Z values did not differ from 0.
+Significance was determined via the Benjamini-Hochberg procedure for adjusting for multiple comparisons, which entails a rank-ordering of p-values at each electrode and a sliding significance criterion 
+(Benjamini & Hochberg, 1995)
+. The result was a single EEG topography for each model, indicating the extent to which model-generated attentional drive significantly correlates with trial-level EEG activity. Because the DSTP model does not contain a continuous within-trial mechanism for attention modulation, we fit the DSTP to the behavioral data but did not include it in the EEG analysis.
+
+
+Results
+
+
+Behavior
+Responses shorter than 150 ms or longer than 2000 ms were excluded from analyses and modelfitting (<2% of trials across subjects). As in Experiment 1, neutral trials were excluded as well due to unforeseen perceptual pop-out effects. A summary of behavioral results is shown in 
+Table  4
+. We observed a similar pattern of results as in Experiment 1, specifically lower accuracy on incongruent trials compared to congruent (t(7)=-6.652, p<0.001) and slower RTs for incongruent trials compared to congruent (t(7)=4.935, p<0.05). We observed fast errors in both conditions, but the RT difference between correct and error responses was only significant among incongruent (t(7)=-6.392, p<0.001) and not among congruent trials (t(6)=0.187, p=0.858).  
+(Kopp et al., 1996)
+. In central-posterior electrode locations, an N2 peak occurred 340-400 ms after stimuli appeared in the incongruent but not the congruent condition. We assessed significance by means of a non-parametric permutation test with threshold-free cluster enhancement (TFCE; S. 
+Smith & Nichols, 2009)
+. Each participant's data were randomly shuffled 500 times with replacement, and we performed a 1-sample t-test at the level of each participant, electrode, and time point within-trial, where the null hypothesis was that there was no difference in voltage between congruent and incongruent trials. Using a critical family-wise error threshold of p=0.05, we identified one cluster encompassing electrodes CP1, Cz, CPz, and P1 at time points between 350 and 380 ms post-stimulus at which the voltage difference between the congruent and incongruent conditions was significant. Topographic plots and grand average ERP waveforms at CPz for the condition-level comparison are shown in 
+Figure 17
+. 
+
+
+Model fits to behavior
+Because we used the same task paradigm in Experiment 3 as in Experiment 1, we expected to observe the same patterns in our model fits. Indeed, goodness-of-fit as measured by BPIC values replicated the mixed results we observed in Experiment 1. When we calculate the average meancentered BPIC values across subjects, the LCA control model outperforms the alternatives (average mean-centered BPIC=-51.0) with the FFI control model coming in second place (average mean-centered BPIC=-28.7). A heatmap showing the full goodness-of-fit results is included in the supplementary materials.
+
+
+Model-based EEG results
+Using data generated from each model, we calculated correlations between the signals controlling the width of the attentional spotlight (e.g. time, time+noise, or cognitive control) and EEG voltage during the decision. Because our current investigation was intended to bridge the gap between neurally plausible mechanisms in connectionist models and within-trial mechanisms in SSMs, we were interested in seeing if any of our models generated attention mechanisms that mapped onto an observed within-trial neural signal. 
+Figure 18
+ illustrates the foundation of our model-based EEG analysis. Visually, we observe that the control models generate attention signals that gradually increase through time and begin to stabilize before a decision is made, similar to the EEG signals. The time and time+noise models both predict more linear signals.
+The time+noise models are able to predict variability in the rate of signal increase depending on the duration of the decision, but the time models predict an identical trajectory of the attention signal on every trial. Mean Z values across trial-level correlations between EEG voltage and model-generated attention modulation signals at each electrode are illustrated as topographic plots in 
+Figure 19
+.
+right-posterior electrode locations. Out of all of the models, only the correlations between attentional mechanisms in the LCA control model and EEG activity were statistically significant (critical value = 0.1; electrodes TP8, P2, C6, CP6, CPz, Pz, FC6, C2, CP1, T8, P1, P4, FC4). Data were generated by each model using each participant's best-fitting parameters. For each trial, we calculated an average vector of drive to the attention mechanism through time using each model's simulations. Trial-level correlations between EEG voltage and model-generated attention were calculated. Pearson's r values were Fisher's Z-transformed, and p values were calculated for each model and electrode using a 1-sample t-test. Significance was determined via Benjamini-Hochberg correction for multiple comparisons, and are indicated by yellow points.
+To observe differences in model predictions of attention modulation and how they relate to neural signals, we calculated the pairwise differences in model-EEG correlations at the level of each trial, and then calculated means at each electrode. Three comparisons yielded significant electrode-level differences: LCA control vs. FFI control 
+(C4, C2, C1, C3, CP4, CP2, CPz, CP1,   CP3, P1, Pz, P2, P4), LCA control vs. FFI time (FC2, FCz, FC1, FC3, C4, C2, Cz, C1, C3, C5,   CP4, CP2, CPz, CP1, CP3, CP5, P3, P1, Pz, P2, P4
+, POz, PO3, Oz) and LCA control vs. FFI time+noise 
+(FC4,
+FC2,
+FCz,
+FC1,
+FC3,
+C6,
+C4,
+C2,
+Cz,
+C1,
+C3,
+C5,
+CP6,
+CP4,
+CP2,
+CPz,
+CP1,
+CP3,
+CP5,
+P6,
+P5,
+P3,
+P1,
+Pz,
+P2,
+P4,
+PO4,
+POz,
+PO3,
+Oz)
+. Topographic plots in 
+Figure 20
+ 
+
+
+Discussion
+Because we were interested in developing a neurally plausible model of the flanker task, we wanted to test whether the attention mechanisms in any of our models resembled the fluctuations of within-trial neural signals as measured by EEG. Attention mechanisms in all models were most correlated with EEG activity in right-posterior regions, as shown in 
+Figure 19
+, but only the LCA control model yielded significant correlation results. This is an interesting pattern of findings in light of previous EEG studies designed to probe the spotlight view of spatial attention, which often reported attentional correlates at posterior electrodes as well 
+(Awh, Anllo-Vento, & Hillyard, 2000;
+Busch & VanRullen, 2010;
+Handy, Soltani, & Mangun, 2001
+). These studies, however, tended to observe attention-related activity at central-posterior electrodes, and lateralized effects only occured when stimuli appeared in the edges of the visual field 
+(Hillyard, Teder-Sälejärvi, & Münte, 1998;
+Mangun & Hillyard, 1988;
+M. Müller, Malinowski, Gruber, & Hillyard, 2003)
+. For example, 
+Mangun and Hillyard (1988)
+ investigated the hypothesis that early sensory-evoked peaks would reflect a spotlight-like filtering of information. The authors identified gradual decreases in P1 and N1 amplitudes that varied as a function of distance between attended and evoking stimuli. These effects were specifically observed in posterior electrode locations, contralateral to the screen location of the attended stimuli. Because stimuli were only presented in the center of the screen in our paradigm, we believed our right-lateralized results could reflect contamination by motor effects given that participants made all responses with the right hand. Because this would result in strong motor-related activity in the left hemisphere, it potentially obfuscated the attention-related activation. It is nevertheless notable that only the LCA control model generates a within-trial attention modulation signal that significantly correlated with the gradual ramp-up and relaxation of neural amplitudes at attention-relevant locations on the scalp.
+We calculated the pairwise differences maps shown in 
+Figure 20
+ for two purposes: 1) to cancel out the motor effects that could have affected each individual model-based EEG analysis, and 2)
+to observe how each model compared to the others in terms of generating a neurally plausible attention modulation signal. Specifically for comparisons involving the LCA control model, we identified large differences in correlation means that were widespread across the scalp. This implies that the LCA control model was able to generate within-trial signals that resemble the general time course of EEG voltages better than the alternative models. While we do not make any strong claims here about the LCA control model capturing any specific neural processes, the results of Experiment 3 support the notion that the mechanisms in the LCA control model behave in a way that is in line with observed voltage time courses in the brain.
+
+
+General discussion
+
+
+Summary
+In the current project, we presented a mechanistic theory of cognitive control in which withintrial modulation of attention is a byproduct of interacting decision processes. We tested our  
+Botvinick et al., 2004;
+De Pisapia & Braver, 2006;
+Verguts 2017
+).
+Because the control-based models calculate attention modulation from the noisy accumulators while the time-based models operate in a strictly linear manner, we also included model variants that calculate attention based on time with additional random noise. When specifying the evidence accumulation processes in our models, we developed models with either strongly- In Experiment 1, we fit the models to data from a standard flanker task. While all models fit the data well, the two control-based models provided the best fits as determined by BPIC. Further insights from ELI and CAF analyses revealed that the LCA control model was particularly effective at capturing nuanced differences in performance between subjects, including slow errors in the incongruent condition and fast errors in the congruent condition. To hone in on the mechanistic assumptions of the FFI and LCA mechanisms, Experiment 2 featured a manipulation of target color saturation. Because the FFI models assume that an increase in evidence for one response requires a decrease in evidence for the other, we found that the FFI models overestimated the speed of error distributions across conditions. The LCA models, and particularly the LCA control model, were more flexible and therefore able to capture behavior under conditions where targets and flankers differed in perceptual strength. In Experiment 3, we collected EEG data alongside a standard flanker task in an effort to determine if any of our model-generated attention modulation signals resembled within-trial processes in the brain.
+Using latent input joint modeling analyses, we found that the within-trial control signal generated by the LCA control model uniquely mapped onto the time course of EEG voltages in between stimulus onset and response. In an effort to summarize fit results across experiments, 
+Figure 21
+ illustrates across-subject rank order sums, normed within experiment such that lower values indicate more wins. Considering our results together, the LCA control model was the best-fitting model compared to all other alternatives. and experiment as determined by BPIC was assigned a rank of '1', the second best model was ranked '2,' and so on.
+Rank values were summed within-experiment and normed based on the number of subjects in each experiment.
+Black points indicate mean normed rank order sums across experiments.
+
+
+Interpretation of results
+In the current project, we aimed to address a gap in the literature concerning within-trial mobilization of cognitive control and modulation of attention. Several dominant theories suggest that cognitive control operates on multiple timescales to appropriately focus attention on goal-relevant information while also conserving cognitive resources 
+(Braver et al., 2008;
+e.g. J. Brown et al., 2007;
+Davelaar, 2008)
+. These theories have often been operationalized within connectionist models, which feature biologically-inspired mechanisms for engaging cognitive control as a direct response to mutual activation of multiple choice units. Connectionist models, however, typically include within-trial mechanisms only en route to explaining between-trial effects, such as improved accuracy on flanker trials immediately following errors. Theories specifically designed to explain trial-level effects, such as fast errors in the incongruent flanker task condition, have instead been implemented within the SSM framework as variants of the single-accumulator DDM 
+(Hübner et al., 2010;
+Ulrich et al., 2015;
+White et al., 2011)
+. These Furthermore, the single-accumulator structure of the flanker SSMs make the powerful assumption that an increase in evidence for one choice results in a decrease in evidence for the other. Given the assertion that inhibitory control decisions involve two separate routes of processing, automatic and controlled, it may be overly constraining to assume that evidence accumulation between two choices is perfectly anticorrelated. weakly-correlated mechanisms in the LCA model, rather than the difference between them. Our results seem to stand in contrast to recent findings from a stop-signal study, which found that perfect negative dependence between racing accumulators predicted aspects of observed behavior better than independent accumulators 
+(Colonius & Diederich, 2018)
+. This, perhaps, is indicative of mechanistic differences between 2-alternative choices and go-nogo choices, or indicates that accumulator dependence exists as a gradient and manifests differently from task to task as has been suggested in the past (P. 
+Smith & Ratcliff, 2004)
+. Because it has been shown that the LCA model can mimic a standard DDM under conditions of balanced leak and lateral inhibition 
+(Bogacz, Brown, Moehlis, Holmes, & Cohen, 2006)
+, the most parsimonious assumption favors the model that is flexible enough to capture all observed patterns in the data.
+We hypothesized that within-trial attentional mechanisms were based on some element of the decision process rather than the mere passage of time. As such, we defined sets of models with attention mechanisms driven by time like the original SSP, models driven by time with added variability, and models driven by cognitive control which was calculated from the accumulators at each timestep within the decision process. In Experiment 1 and even more strikingly in Experiment 2, the control models outperformed the time-based models in terms of fits to behavioral data. It is important to note that the control models consistently fit the data better than time models with added variability, indicating that control mechanisms were tapping into a signal present in the data beyond random noise. In Experiment 3, this contention was reinforced by model-based EEG findings, indicating that the LCA conflict model was the only one with a time course of visual attention mechanisms that significantly correlated with within-trial EEG voltage.
+Our findings provide a model-based, mechanistic complement to recent neuroimaging work that has investigated attention processes within-trial. One study recorded EEG data while participants completed a variant of the flanker task with a manipulation of visual probe locations. Probes were presented at different distances from the target on each trial in order to force modulation of the visual field 
+(Nigbur et al., 2015)
+. N1 ERP amplitudes, which have been shown to be an index of spatial attention 
+(Heinze et al., 1994;
+Mangun & Hillyard, 1988)
+, provided evidence that conflict resolution on incongruent trials occurred mainly via target enhancement, not distractor suppression. The critical difference between Nigbur et al.'s findings and our own is that the N1 ERP reflects early perceptual processing 150-200 ms after stimulus onset 
+(Haider, Spong, & Lindsley, 1964)
+, which is distinct from decision-related processes of interest in the current study.
+Considering the two sets of results together, it is possible that initial stimulus-processing in the spotlight framework of attention depends on target enhancement only, but that higher-order decision processes require additional distractor suppression mechanisms. Indeed, previous studies in EEG 
+(Philiastides, Ratcliff, & Sajda, 2006;
+VanRullen & Thorpe, 2001)
+ have shown that visual processing and decision-making reflect distinctly different mechanisms. 
+Philiastides and colleagues (2006)
+, for example, recorded EEG data while participants indicated either the color or category of stimuli with different levels of phase coherence. The researchers showed that a negative ERP at 170 ms post-stimulus onset reflected identification of the goal-relevant feature in a trial (color vs. category), and that later ERPs reflected components of the decision process (red vs. green or face vs. car). Importantly, only the late ERP components reflected triallevel difficulty or conflict between the two competing choice options. Nevertheless, further work is needed to understand the possible dissociation between perceptual processing and decisionrelevant computations in the presence of conflict.
+Despite converging findings across three experiments, the current study is not without limitations. First, we mathematically defined within-trial cognitive control as the cumulative distance between total evidence and a conflict threshold. We defined this function based on the DMC framework of Braver and colleagues 
+(Braver, 2012;
+De Pisapia & Braver, 2006)
+, in which cognitive control increases within-trial until conflict is resolved, and then may decrease toward the end of a trial. Both of these properties were observed in neuronal firing patterns in the conflict-relevant ACC during a recent single-unit recording study 
+(Hunt et al., 2018)
+. Our specific definition of the cognitive control function, however, may not be precisely correct in terms of representing drive to attentional mechanisms. For example, a related mechanism described by 
+Yeung and colleagues (2004)
+ calculated conflict as the product of activations across possible responses. Within the SSM framework, however, the product of activations would result in an unchanging attentional spotlight if one accumulator sporadically reached zero, which would be a frequent occurrence on congruent trials. While it seems possible that the attentional spotlight would not be necessary on congruent trials, Servant and colleagues (2014) compared the original SSP to a variant in which the spotlight only shrank on incongruent trials. The authors found that the alternative model provided worse fits to behavioral data compared to the original model, and was specifically unable to capture the range in performance across subjects in the congruent condition. Future work will investigate the nature of the cognitive control signal as it relates to the amount of evidence in the system at a given time.
+A second limitation of the current investigation is that we investigated competing hypotheses within the SSP model. We made this choice despite results from other studies demonstrating that the SSP cannot capture patterns of data beyond the flanker task (notably, negative-going delta functions in the Simon task; 
+Ulrich et al., 2015)
+, and that a version of the SSP implemented in the LCA framework could not capture pre-motor partial error responses as measured by MEG 
+(Servant et al., 2015)
+. We believe with modifications such as those explored in the current project, the shrinking spotlight framework can indeed extend beyond what it was designed to capture. Preliminary investigations of extensions for the LCA control SSP model presented here are currently underway, specifically for tasks involving gradations of conflict outside of the flanker paradigm.
+
+
+Conclusions
+In the current study, we sought to investigate the possibility of within-trial modulation of attention based on the dynamics of the decision process, within a modeling framework that is amenable to quantifiable comparisons. We systematically developed and compared models that 
+
+
+Supplementary materials S1
+Dual-stage two-process (DSTP) model implementation
+
+
+S1.1 Experiments 1 and 3
+The DSTP model designed by Hübner and colleagues (2010) specifies two discrete stages of visual processing: 1) an early stage for identifying simple stimulus features and perceptual filtering, and 2) a late stage dedicated to processing the target. For reference, a diagram of the DSTP model is provided in 
+Figure 2
+ of the main manuscript. Stage 1 begins with two separate diffusion processes running in parallel, one representing the stimulus selection phase (which will be denoted "SS") and the other representing the response selection phase (which will be denoted "RS1"). Evidence accumulation within each phase was implemented as a stochastic differential equation:
+Here, is evidence and is the drift rate. The degree of noise in the accumulation process is represented by , a driftless Wiener process distributed as . To approximate this continuous differential equation, we used the Euler method to discretize time, choosing a step  
+Table S1
+. The model was able to capture basic effects such as a higher proportion of errors in the incongruent condition compared to congruent, and faster errors than correct responses in the incongruent condition. 
+Figure S1
+ illustrates the performance of the DSTP model via modelgenerated choice-RT distributions for each condition. The model performers similarly to the FFI time model, predicting more variability in RTs for correct responses in the incongruent condition than we observe in the data. As shown by conditional accuracy functions (CAFs) in 
+Figure S2
+, the DSTP model also does not predict slow errors in either the congruent or incongruent condition, similar to the FFI models in our investigation. Interestingly, the DSTP model is able to capture fast errors in the congruent condition, unlike the time-based models in our investigation.
+As discussed in the main text, the poor performance of the DSTP model in comparison to the conflict-based alternatives appears to be due in part to its complexity. 
+Figure S1
+: Observed and DSTP model-generated choice-RT distributions. Observed RT distributions for correct (light gray histograms) and incorrect (dark gray histograms) responses were averaged across participants. Models were simulated 10,000 times for each condition, using each participant's best-fitting parameters. Lines show average model-generated distributions across participants. 
+Figure S2
+: Observed and DSTP-predicted CAFs for congruent and incongruent trials. Data from each subject were sorted according to RT within 6 equally-spaced percentile bins. Performance and minimum RT for each bin were averaged across participants in the congruent (blue Xs) and incongruent (red Xs) conditions. After generating 1,000
+choice-RT pairs from each subject's best-fitting parameters within each model, the same procedure was used to calculate CAFs for each model (gray lines).
+
+
+S1.2 Experiment 2
+Experiment 2, designed and administered by 
+Servant et al. (2014)
+, required participants to indicate the color of a target circle amid flanker circles of a congruent or incongruent color. The color saturation of center target circles varied from trial to trial within six conditions (degrees of suprathreshold saturation levels: 15%, 25%, 35%, 45%, 60% and 80%), while the color saturation of flanker circles was held constant at 80%. An example of the stimuli used in Experiment 2 is provided in 
+Figure 13
+ of the main manuscript. To fit the DSTP model, we needed to make adjustments to accommodate the target color saturation manipulation. When modifying our SSP variants to fit data from Experiment 2, we replaced the perceptual input strength parameter with six points along a monotonically increasing sigmoid function. We took a similar approach to modifying the DSTP. We made the assumption that the target color saturation manipulation would affect both RS1 and SS phases of Stage 1, with RS1 representing automatic feature-driven attentional processes and SS representing a more controlled mode of selecting a stimulus for further processing. Because RS2 in Stage 2 represents decision processes after the target has already been identified in the SS phase, specific perceptual features of the target like color saturation should not have an affect on We therefore implemented sigmoidal functions to calculate drift rates in both RS1 and SS. Because the color saturation of targets varied between trials while the color saturation of flanker stimuli was held constant, we specified a vector such that was calculated via a sigmoidal function where and , , and were free parameters.
+, representing the floor value of the sigmoidal function, was fixed to 0 since values of were constrained to be positive in the original model. was then calculated with the equation for each target color saturation condition , where was negative on incongruent trials.
+Similarly for the SS phase, we specified a vector such that was calculated via a sigmoidal function Where , , , and were free parameters. Here, was free to allow drift rates in the SS phase to take on negative values. Examples of sigmoidal functions calculated from various values of , , and are shown in 
+Figure 14
+ of the main manuscript. Priors for free parameters governing the sigmoidal functions for phases RS1 and SS are provided in 
+Table S2
+. The LCA control model that was described in the main manuscript included free parameters for both leak ( ) and lateral inhibition ( ). To test if either or was independently driving the model's success at fitting the data from Experiment 1, we additionally fit variants with free and fixed ( ), and free and fixed ( ). 
+Figure S3
+ is a modified version of 
+Figure 6
+, which illustrates BPIC values for each model, mean-centered within-subject. Our results show that the full LCA control model with free and outperform the fixed-parameter variants. By calculating differences in BPIC values between the fixed and fixed variants across subjects,
+we found that the model with fixed fit better than the model with fixed on average (15 wins for model with fixed compared to 11 wins for the model with fixed ). Compared to the full LCA-control model with free leak and lateral inhibition terms, however, neither model fit the data as well (14 wins for full model, 6 wins for model with fixed , 6 wins for model with fixed ). Our results indicate that both leak and lateral inhibition are necessary for fitting the data across subjects within our control framework. 
+
+
+S3 Additional results from Experiment 3
+A comparison of model fits to the behavioral data collected in Experiment 3 is shown as a heatmap in 
+Figure S4
+. BPIC values were mean-centered within-subject, and lower values indicate better fits. When considering mean values across subjects, we observed similar results in Experiment 3 as in Experiment 1, such that the two control-based models outperformed the alternatives. In our model-based EEG analysis of data from a standard flanker task administered in Experiment 3, we calculated correlations between the signals controlling the width of the attentional spotlight (e.g. time, time+noise, or cognitive control) and EEG voltage during the decision. Correlation maps for each individual model are shown in 
+Figure 19
+ of the main manuscript. Topographic plots in 
+Figure S5
+ show that increased correlations between EEG voltage and attention modulation in LCA control, relative to the predictions of the other models, are widespread across the scalp. None of the other difference maps reveal significant results. 
+Figure S5
+: Mean Z correlation difference maps for observed EEG data and model-generated attention modulation signals. After calculating Z correlation values for each model and each electrode, we calculated the pairwise difference topographic maps for each possible pair of models. P values were calculated for each model comparison and electrode using a 1-sample t-test. Significant correlation differences were identified using a Bejamini-Hochberg correction for multiple comparisons, indicated by yellow points.
+Figure 1 :
+1
+Flowchart of alternative model mechanisms. Each of the four models in our main investigation contained a different combination of mechanisms for attentional focus (time-based vs. cognitive control-based, Panel 1) and evidence accumulation (strongly-correlated vs. weakly correlated, Panel 4). Across all models, an attentional spotlight represented as a density function for a Gaussian distribution (Panel 2) shrinks throughout a trial. Drift rates are calculated from the area under the spotlight allocated to the target and flankers (Panel 3). Evidence is calculated
+
+
+Figure 2 :
+2
+Diagram of the dual-stage two-phase (DSTP) model. In Stage 1 (left panel), the stimulus selection and response selection phases are represented by racing diffusion processes. If the response selection phase finishes first, a response is made based only on the dominant perceptual features in the stimulus array. If the stimulus selection phase finishes first, no response is made, and either the target or the flankers are selected for controlled attentional processing. In Stage 2 (right panel), the response selection phase drift rate changes to reflect the outcome of the stimulus selection phase.
+
+
+Figure 3 .
+3
+Comparison of FFI and LCA mechanisms. Left column: Graphical models of FFI (A) and LCA (D) processes from stimulus input to response, where dashed lines represent loss of evidence, open circles represent inhibition. Middle column: Simulated paths of evidence accumulation in FFI (B) and LCA (E) for two options in a single trial of a two-alternative choice task. Right column: Phase plane plots of the same decision illustrated in panels B and E for the constrained FFI (C) and the LCA model (F). Black lines show the path of the decision process in a single trial by plotting evidence for each option against one another where 1.0 on each axis represents the decision threshold.
+
+
+during the flanker task, in which attention is directly dependent upon time itself. To test our hypothesis against the assumption of time-dependent attention processes, we developed variants of the SSP with either time-based or control-based attentional spotlights. The time-based models mirror the original SSP so that attention, implemented as a density function for a Gaussian distribution centered on the target of a flanker array, gradually shrinks throughout a trial as a linear function of time. In the control-based models, cognitive control is calculated as the cumulative distance between total evidence and a threshold. The standard deviation of the attentional spotlight is in turn calculated as a function of cognitive control. These mechanisms are illustrated inFigure 1.
+
+
+Figure 4 :
+4
+Control-and time-based signals to attention. Across models in our comparison, attentional spotlights shrink as a function of control (Left panel) or time (Right panel). Mean simulations of control and time signals are shown for a single trial in the congruent and incongruent conditions.
+
+
+Figure 3 ,
+3
+and total evidence only changes if one accumulator is forced to zero while the other continues to increase. Otherwise, an increase in evidence for one accumulator results in a decrease in evidence for the other, and the sum of evidence remains constant. For weaklycorrelated LCA accumulators, however, total evidence fluctuates as rapidly as the accumulator values themselves. While spotlights in both FFI-control and LCA-control models share the general characteristics of narrowing through time at variable rates while maintaining the ability to widen as cognitive control relaxes, LCA-control naturally predicts a spotlight trajectory with higher within-trial variability in comparison to FFI-control. Due to the possibility that noise MODELING WITHIN-TRIAL CONFLICT 25 alone would result in similarly-fitting models compared to the mechanisms of interest, we
+
+
+Figure 5 :
+5
+Model-generated spotlight widths through time. For each model, 50 trials were simulated from one participant's best-fitting parameters. Panels show calculations of spotlight standard deviations through time, with
+
+
+which the spotlight shrinks . Across models, the spotlight is a density function for a Gaussian distribution centered at 0 with standard deviation . The width of the spotlight is calculated continuously as a function of time, discretized as t: and the area of the attended spatial region allocated to target and flanker items is given by where n is the number of flanker items on each side of the target on a horizontal plane. Allocation of spatial attention based on the area under a Gaussian curve is illustrated in Panel 2 of Figure 1. Limits reflect the assumption that each item in the stimulus array occupies one unit of perceptual space (White et al., 2011). Drift rates for the correct and incorrect responses are calculated in each condition depending on the direction of the flanker items relative to the target via(1).
+
+
+Figure 6 :
+6
+Heat map of BPIC values, mean-centered within-subject for Experiment 1. Each column corresponds to a subject. Lower BPIC values (blue hues) indicate better model fits. The winning model for each subject is outlined in black. Average mean-centered values across subjects are shown in the panel to the right.
+
+
+Figure 7
+7
+shows observed choice-RT distributions averaged across participants, as well as mean distributions generated from each subject's best-fitting parameters in our four main models of
+
+
+Figure 7 :
+7
+Observed and model-generated choice-RT distributions. Observed RT distributions for correct (light gray histograms) and incorrect (dark gray histograms) responses were averaged across participants. Models were simulated 10,000 times for each condition, using each participant's best-fitting parameters. Lines show average model-generated distributions across participants. Distributions generated by the FFI time and FFI control models are shown in the top row, whereas distributions generated by the LCA time and LCA control models are shown in the bottom row.
+
+
+(
+z=1.742, p=0.041). No other comparisons were significant (LCA control vs. LCA time: z=0.542, p=0.294; LCA control vs. FFI time: z=0.833, p=0.203; LCA time vs. FFI time: z=0.291, p=0.386; FFI time vs. FFI control: z=1.451, p=0.073).
+
+
+Figure 8 :
+8
+Observed and predicted ELI values for incongruent trials. ELI values calculated from each subject's data in the incongruent condition (x-axis) are plotted against the ELI values generated from each subject's best-fitting parameters (y-axis) in each model (panels). Correlations and lines of best fit are displayed on each panel.
+
+
+Figure 9 :
+9
+Observed and predicted CAFs for incongruent trials. Data from each subject were sorted according to RT within 6 equally-spaced percentile bins. Performance and minimum RT for each bin were averaged across participants (red Xs). After generating 1,000 choice-RT pairs from each subject's best-fitting parameters within each model, the same procedure was used to calculate CAFs for each model (gray lines).
+
+
+Figure 10 :
+10
+Observed and predicted ELI values for congruent trials. ELI values calculated from each subject's data in the congruent condition (x-axis) are plotted against the ELI values generated from each subject's best-fitting parameters (y-axis) in each model (panels). Correlations and lines of best fit are displayed on each panel.
+
+
+Figure 11 :
+11
+Observed and predicted CAFs for congruent trials across low-ELI participants. Data from each subject were sorted according to RT within 6 equally-spaced percentile bins. Performance and minimum RT for each bin were averaged across participants (blue Xs). After generating 1,000 choice-RT pairs from each subject's best-fitting parameters within each model, the same procedure was used to calculate CAFs for each model (gray lines).
+
+
+Figure 12
+12
+shows observed and predicted CAFs for high-ELI participants in the congruent condition. The observed data demonstrates a higher proportion of errors for shorter compared to longer RTs. Neither of the time models are able to predict fast errors in the congruent condition.
+
+
+Figure 12 :
+12
+Observed and predicted CAFs for congruent trials across high-ELI participants. Data from each subject
+
+
+on a CRT color monitor with a refresh rate of 100Hz. Flanker circles could be the same color (congruent) or a different color (incongruent) relative to the target. Importantly, the color saturation of center target circles varied from trial to trial within six conditions (degrees of suprathreshold saturation levels: 15%, 25%, 35%, 45%, 60% and 80%), while the color saturation of flanker circles was held constant at 80%. Task condition (congruent or incongruent), target hue (red or blue), and target color saturation (6 levels) were counterbalanced within block. Stimuli appeared along the horizontal midline of a black field. To respond, participants made left or right button presses with their corresponding thumb. Buttons were set atop plastic hand grips that were 3 cm in diameter and 7 cm in height, with 20 cm in between. Examples of the stimuli are provided inFigure 13, based onFigure 2in
+Servant et al., 2014.
+ 
+
+
+Figure 13 :
+13
+Examples of stimuli used in Experiment 2, based on Figure in Servant et al., 2014. Each stimulus consisted of a target circle (red or blue), flanked by two circles of an incongruent (Left column) or congruent (Right column) color. Targets varied in saturation between 15 and 80% (rows) while the color saturation of the flankers was held constant at 80%. While only stimuli with red targets are shown here, the paradigm was counterbalanced so that 50% of stimuli featured a blue target.
+
+
+) where and was selected depending on the color saturation of the target in each trial. In Equations 3 and 4, was always scaled by since the color saturation of flanker stimuli was held constant at 80% across trials. Values of were constrained so that . In each model, the vector of values such that was calculated via a sigmoidal function where and , , and were free parameters. We decided on this parameterization because we assumed perceptual input strength values of varied monotonically as a function of perceptual strength, but did not have any strong hypotheses about the functional form of the relationship among them. The sigmoidal function provided an appropriate level of constraint while still being able to capture a wide variety of curves as illustrated in Figure 14.
+
+
+Figure 14 :
+14
+Range of sigmoid functions for calculating . Sigmoid functions were implemented to capture the attention allocated to stimuli in the six saturation conditions in Experiment 2. Panel A shows the effect of modifying the a parameter while keeping b and c constant. Panels B and C similarly show the effects of modifying the b and c parameters respectively, while the other parameters are held constant.
+
+
+Figure 15 :
+15
+Heat map of BPIC values, mean-centered within-subject for Experiment 2. Each column corresponds to a subject. Lower BPIC values (blue hues) indicate better model fits. The winning model for each subject is outlined in black. Average mean-centered values across subjects are shown in the panel to the right.
+
+
+Figure 16
+16
+includes observed choice-RT distributions for each task condition (congruent and incongruent) and target color saturation condition (low: 15%, 25%, 35% and high: 45%, 60%, 80%), averaged across participants. Mean distributions generated from each subject's best-fitting parameters in our four main models of interest are shown as well. Similarly to the results of Experiment 1 shown in
+
+
+Figure 16 :
+16
+Observed and model-generated choice-RT distributions. Observed RT distributions for correct (light gray histograms) and incorrect (dark gray histograms) responses were averaged across participants. Models were simulated 10,000 times for each condition, using each participant's best-fitting parameters. Lines show average model-generated distributions across participants. Distributions generated by the FFI time and FFI control models are shown in the left panel, and distributions generated by the LCA time and LCA control models are shown in the right panel. Choice-RT distributions for low target saturation trials are shown in the top row and high saturation trials are shown in the bottom row.
+
+
+24" LCD display with a refresh rate of 120Hz. As in Experiment 1, stimuli were presented via a custom program in SMILE. Stimuli were presented in white text on the horizontal midline of a dark gray field. Arrays on each trial consisted of a central target arrow pointing left or right, accompanied by 3 flanker items to the left and right that could be congruent (same direction), incongruent (opposite direction) or neutral (lowercase 'o' characters) relative to the target.
+
+
+Figure 17 :
+17
+Condition-level EEG results for Experiment 3. Topographic maps show voltage differences between congruent and incongruent conditions at 370 ms post-stimulus, before (Panel A) and after (Panel B) threshold-free cluster enhancement (TFCE). Panel C shows grand average ERP stimulus-locked waveforms for congruent and incongruent trials at electrode CPz. Significant condition-level differences as determined by TFCE are shown as green points.
+
+
+Figure 18 :
+18
+Observed EEG voltages and model-generated attention modulation signals. Data and simulations are shown for one subject. Analyses were completed at the level of every trial and electrode, but for the purposes of this visualization, EEG voltages were averaged across electrodes that demonstrated the highest correlation with modelgenerated attention signals (TP8, P2, C6, CP6, CPz, Pz, FC6, C2, CP1, T8, P1, P4, FC4). Data were divided into three bins based on three equal RT percentiles. Vertical lines represent the boundaries of the decision-relevant interval between stimulus onset and the mean RT within-bin, limited by the mean best-fitting across models.
+
+
+Figure 19 :
+19
+Mean Z correlation maps for observed EEG data and model-generated attention modulation signals.
+
+
+show that increased correlations between EEG voltage and attention modulation in LCA control, relative to the predictions of the other models, are widespread across the scalp. All other pairwise difference maps are shown in the supplementary materials.
+
+
+Figure 20 :
+20
+Mean Z correlation difference maps for observed EEG data and model-generated attention modulation signals. After calculating Z correlation values for each model and each electrode, we calculated the pairwise difference topographic maps for each possible pair of models. P values were calculated for each model comparison and electrode using a 1-sample t-test. Significant correlation differences were identified using a Bejamini-Hochberg correction for multiple comparisons, indicated by yellow points.
+
+
+theory by developing a set of SSMs, each making alternative assumptions about evidence accumulation and attention modulation mechanisms. Models included time-based attention processes like the existing flanker SSMs, or control-based attention mechanisms inspired by the connectionist models (i.e.
+
+
+correlated accumulators defined by FFI mechanisms, or weakly-correlated accumulators defined by LCA mechanisms. These two mechanisms represent different hypotheses about the neural underpinnings of the decision process: the former assumes decisions are based on the difference in firing across populations of neurons, and the latter assumes decisions are based on the competition between the two most active populations of neurons. Though the competing hypotheses concerning attention modulation and evidence accumulation were implemented and compared within the SSP model, we fit the DSTP model as an additional point of comparison as well. The DSTP presents an alternative mechanistic explanation for decision-guided attention, in which response selection processes are conditionally dependent upon the outcome of stimulus selection processes. Across three experiments, we found evidence that weakly-correlated LCA mechanisms in combination with dynamic, control-guided attention modulation mechanisms best-accounted for the data in each task condition.
+
+
+Figure 21 :
+21
+Rank order sums of BPIC values for each model and experiment. The best-fitting model for each subject
+
+
+models make specific predictions about attention processes that vary as a function of time, and mutually-inhibitory evidence accumulation mechanisms. Here, we introduced an SSM in which modulation of attention via cognitive control occurs as an emergent property of the dynamics of the decision process. Our model draws upon neurally-plausible mechanisms from connectionist models such as continuously-updated cognitive control and flexible evidence accumulation mechanisms, but was implemented in an SSM framework to allow for trial-level data-fitting and quantified model comparisons. Despite being designed to fit data from tasks that present conflicting information for two possible options, the existing flanker SSMs do not include mechanisms for tracking or modulating parameters based on mutual activation of two options. Changes to drift rate occur as a function of time, regardless of the state of competition between the two choice alternatives. By considering only the difference in activation of the two choices, these models are potentially missing an important piece of the story concerning how the brain recruits cognitive control.
+
+
+featured time-based or control-based attention mechanisms, and strongly-or weakly-correlated evidence accumulation mechanisms. Across three experiments, we found that a flexible accumulator structure in combination with control-based attention processes provided the best fits to behavioral data. Additionally, we found that the within-trial attention modulation signal in the LCA control model uniquely correlated with neural signals in the brain. While we have focused on within-trial mechanisms in the current study, future work will investigate the possibility that the decision-related signals driving the within-trial effects of interest here can also result in between-trial effects, such that the end-state of cognitive control in one trial contributes to the starting point of the attentional spotlight on the next.
+
+
+drift rate for RS1 is the sum of free parameters representing the strength of target and flanker stimuli, respectively: where is always positive and is negative in the incongruent task condition and positive in the congruent task condition. In SS and RS1, evidence accumulated through time until either process reached a decision threshold. Evidence accumulation processes were bounded between decision thresholds relevant to each phase ( ) and 0. Starting points for each phase were determined from proportions of the relevant threshold, such that . a response was made immediately with an RT equal to the sum of the duration of RS1 and non−decision time . In RS1, crossing the boundary meant the response corresponding to the target stimulus was selected, whereas crossing the 0 boundary meant the response corresponding to the flanker stimuli was selected. If reached or 0 before reached or 0, a stimulus is selected for further processing in Stage 2. In SS, crossing the boundary indicated selection of the target for further processing, whereas crossing the 0 boundary indicated selection of the flankers for further processing. Response selection in Stage 2 (denoted "RS2") is another diffusion process with drift rate and threshold . The starting point of RS2 was the value of at time when reached a decision boundary. was negative when the stimulus was incongruent and crosses 0. As in Stage 1, crossing the boundary in Stage 2 meant the response corresponding to the target stimulus was selected, whereas crossing the 0 boundary meant that the response corresponding to the flanker stimuli was selected. The RT was equal to the sum of the durations of RS1 and RS2, and non decision time parameter . Free parameters and priors in our implementation of the DSTP model are provided in
+
+
+Figure S3 :
+S3
+Heat map of BPIC values, mean-centered within-subject for Experiment 1. Each column corresponds to a subject. Lower BPIC values (blue hues) indicate better model fits. The winning model for each subject is outlined in black. Average mean-centered values across subjects are shown in the panel to the right.
+
+
+Figure S4 :
+S4
+Heat map of BPIC values, mean-centered within-subject for Experiment 3. Each column corresponds to a subject. Lower BPIC values (blue hues) indicate better model fits. The winning model for each subject is outlined in black. Average mean-centered values across subjects are shown in the panel to the right.
+
+
+Table 1
+1
+summarizes the free parameters included in each of these six models. To investigate an alternative method for decision-based mechanisms for attention and cognitive control, we also included the DSTP model. The 9 free parameters in the DSTP model are listed in the supplementary materials.
+
+
+Table 1 :
+1
+Summary of free parameters
+Model
+
+
+Before beginning, participants completed practice trials of the task. The task consisted of 8 blocks of a standard flanker task, each block containing 48 trials. Including practice, participants completed 394 trials in total. Task condition (congruent, incongruent, neutral) and target direction (left, right) were counterbalanced within block. Stimuli
+A custom program using the State Machine Interface Library for Experiments (SMILE; https://github.com/compmem/smile) was written to present stimuli, track timing, and log responses. Stimuli were presented on a desktop computer equipped with Linux OS connected to a 15-inch display with a refresh rate of 60 Hz. Participants were seated in individual cubicles within view of an experimenter.
+
+
+Table 2 :
+2
+Average accuracy and mean RTs (ms) across participants for Experiment 1
+Condition
+Accuracy
+All RT
+Correct RT
+Error RT
+Incongruent
+0.912
+661
+669
+533
+Congruent
+0.969
+537
+540
+620
+3.1.2.2 Model fits
+BPIC values were calculated for each model and subject as a measure of goodness-of-fit. Values
+were mean-centered within subject, and are displayed as a heat map in
+
+
+Table 3 :
+3
+Average mean RTs (ms) and error rates (in parentheses) across participants for Experiment 2
+Target Saturation
+
+
+Table 4
+4
+: Average accuracy and mean RTs (ms) across participants for Experiment 3
+Condition
+Accuracy
+All RT
+Correct RT
+Error RT
+Incongruent
+0.936
+738
+756
+486
+Congruent
+0.990
+552
+553
+520
+3.3.2.2 Condition-level EEG
+Stimulus-locked ERP results for correct responses in Experiment 3 replicated standard flanker
+effects
+
+
+Experiment 2 further dissociated the predictions of the FFI and LCA models. Models with FFI mechanisms failed to appropriately capture error distributions for incongruent trials across target saturation conditions, while the flexibility of the LCA models resulted in more successful fits. Together, these findings may suggest that decisions on inhibitory control tasks may be based on the direct competition between choice options as represented by
+By developing separate groups of
+models with strongly-correlated FFI mechanisms and weakly-correlated LCA mechanisms, we
+aimed to directly test and compare competing hypotheses about how the brain represents
+competing information in inhibitory control tasks. While both FFI and LCA models were able to
+capture general behavior in a standard flanker task as shown by the results of Experiment 1, LCA
+processes were important for capturing subject-level differences in performance. The perceptual
+strength manipulation in
+
+
+Table S1 :
+S1
+Summary of free parameters and priors in the DSTP
+Parameter
+Description
+Prior
+drift rate, RS1, target
+drift rate, RS1, flankers
+drift rate, SS
+drift rate, RS2
+decision threshold, RS1 & RS2
+decision threshold, SS
+starting point, RS1
+starting point, SS
+non decision time
+
+
+Table S2 :
+S2
+Summary of free parameters and priors in the DSTP added for Experiment 2
+S3
+Full BPIC comparison from Experiment 1
+Parameter
+Prior
+
+
+participants. Accounting for the magnitude of the wins across subjects, the two conflict models outperformed their time-based alternatives and DSTP, though results were mixed overall.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Firing rate models for neural populations
+
+
+
+
+L
+Abbot
+
+
+
+
+
+
+
+
+Neural networks: From biology to high energy physics
+
+
+O. Benhar, C. Bosio, P. Giudice, & E. Tabet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Italy: Ets
+Pisa
+
+
+
+
+
+
+Editrice
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Correlations of cortical Hebbian reverberations: theory versus experiment
+
+
+
+
+D
+Amit
+
+
+
+
+
+
+N
+Brunel
+
+
+
+
+
+
+M
+Tsodyks
+
+
+
+
+
+
+
+
+The Journal of Neuroscience: The Official Journal of the Society for Neuroscience
+
+
+
+
+14
+
+
+11
+
+
+
+
+
+
+
+
+
+
+Pt 1
+
+
+
+
+
+
+
+
+Bayesian predictive information criterion for the evaluation of hierarchical Bayesian and empirical Bayes models
+
+
+
+
+T
+Ando
+
+
+
+
+
+
+
+
+Biometrika
+
+
+
+
+94
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The role of spatial selective attention in working memory for locations: evidence from event-related potentials
+
+
+
+
+E
+Awh
+
+
+
+
+
+
+L
+Anllo-Vento
+
+
+
+
+
+
+S
+Hillyard
+
+
+
+
+
+
+
+
+Journal of Cognitive Neuroscience
+
+
+
+
+12
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing
+
+
+
+
+Y
+Benjamini
+
+
+
+
+
+
+Y
+Hochberg
+
+
+
+
+10.1111/j.2517-6161.1995.tb02031.x
+
+
+
+
+
+
+
+
+Journal of the Royal Statistical Society: Series B (Methodological)
+
+
+
+
+57
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+C
+Blais
+
+
+
+
+
+
+S
+Robidoux
+
+
+
+
+
+
+E
+Risko
+
+
+
+
+
+
+D
+Besner
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+114
+
+
+4
+
+
+
+
+
+
+
+
+
+
+Review of Item-specific adaptation and the conflict-monitoring hypothesis: a computational model
+
+
+
+
+
+
+
+
+The physics of optimal decision making: a formal analysis of models of performance in two-alternative forcedchoice tasks
+
+
+
+
+R
+Bogacz
+
+
+
+
+
+
+E
+Brown
+
+
+
+
+
+
+J
+Moehlis
+
+
+
+
+
+
+P
+Holmes
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+113
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conflict monitoring and decision making: reconciling two perspectives on anterior cingulate function
+
+
+
+
+M
+Botvinick
+
+
+
+
+
+
+
+
+Cognitive, Affective & Behavioral Neuroscience
+
+
+
+
+7
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conflict monitoring and cognitive control
+
+
+
+
+M
+Botvinick
+
+
+
+
+
+
+T
+Braver
+
+
+
+
+
+
+D
+Barch
+
+
+
+
+
+
+C
+Carter
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+108
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037//0033-295x.108.3.624
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conflict monitoring and anterior cingulate cortex: an update
+
+
+
+
+M
+Botvinick
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+C
+Carter
+
+
+
+
+
+
+
+
+Trends in Cognitive Sciences
+
+
+
+
+8
+
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conflict monitoring versus selection-for-action in anterior cingulate cortex
+
+
+
+
+M
+Botvinick
+
+
+
+
+
+
+L
+Nystrom
+
+
+
+
+
+
+K
+Fissell
+
+
+
+
+
+
+C
+Carter
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+
+
+Nature
+
+
+
+
+402
+
+
+6758
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The variable nature of cognitive control: a dual mechanisms framework
+
+
+
+
+T
+Braver
+
+
+
+
+
+
+
+
+Trends in Cognitive Sciences
+
+
+
+
+16
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Explaining the Many Varieties of Working Memory Variation: Dual Mechanisms of Cognitive Control. Variation in Working Memory
+
+
+
+
+T
+Braver
+
+
+
+
+
+
+J
+Gray
+
+
+
+
+
+
+G
+Burgess
+
+
+
+
+10.1093/acprof:oso/9780195168648.003.0004
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A physiological correlate of the "spotlight" of visual attention
+
+
+
+
+J
+Brefczynski
+
+
+
+
+
+
+E
+Deyoe
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+2
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A computational model of fractionated conflictcontrol mechanisms in task-switching
+
+
+
+
+J
+Brown
+
+
+
+
+
+
+J
+Reynolds
+
+
+
+
+
+
+T
+Braver
+
+
+
+
+
+
+
+
+Cognitive Psychology
+
+
+
+
+55
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evaluating methods for approximating stochastic differential equations
+
+
+
+
+S
+Brown
+
+
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+P
+Smith
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+50
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Executive control in the Simon effect: an electromyographic and distributional analysis
+
+
+
+
+B
+Burle
+
+
+
+
+
+
+C.-A
+Possamaï
+
+
+
+
+
+
+F
+Vidal
+
+
+
+
+
+
+M
+Bonnet
+
+
+
+
+
+
+T
+Hasbroucq
+
+
+
+
+
+
+
+
+Psychological Research
+
+
+
+
+66
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spontaneous EEG oscillations reveal periodic sampling of visual attention
+
+
+
+
+N
+Busch
+
+
+
+
+
+
+R
+Vanrullen
+
+
+
+
+
+
+
+
+Proceedings of the National Academy of Sciences of the United States of America
+
+
+the National Academy of Sciences of the United States of America
+
+
+
+
+
+
+107
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Recovering EEG brain signals: artifact suppression with wavelet enhanced independent component analysis
+
+
+
+
+N
+Castellanos
+
+
+
+
+
+
+V
+Makarov
+
+
+
+
+
+
+
+
+Journal of Neuroscience Methods
+
+
+
+
+158
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decision-making with multiple alternatives
+
+
+
+
+A
+Churchland
+
+
+
+
+
+
+R
+Kiani
+
+
+
+
+
+
+M
+Shadlen
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+11
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Paradox resolved: Stop signal race model with negative dependence
+
+
+
+
+H
+Colonius
+
+
+
+
+
+
+A
+Diederich
+
+
+
+
+10.1037/rev0000127
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ERPs dissociate proactive and reactive control: evidence from a taskswitching paradigm with informative and uninformative cues
+
+
+
+
+D
+Czernochowski
+
+
+
+
+
+
+
+
+Cognitive, Affective & Behavioral Neuroscience
+
+
+
+
+15
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A computational study of conflict-monitoring at two levels of processing: reaction time distributional analyses and hemodynamic responses
+
+
+
+
+E
+Davelaar
+
+
+
+
+
+
+
+
+Brain Research
+
+
+
+
+1202
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conditional and unconditional automaticity: a dualprocess model of effects of spatial stimulus-response correspondence
+
+
+
+
+De
+Jong
+
+
+
+
+
+
+R
+Liang
+
+
+
+
+
+
+C
+Lauber
+
+
+
+
+
+
+E
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology. Human Perception and Performance
+
+
+
+
+20
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A model of dual control mechanisms through anterior cingulate and prefrontal cortex interactions
+
+
+
+
+N
+De Pisapia
+
+
+
+
+
+
+T
+Braver
+
+
+
+
+
+
+
+
+Neurocomputing
+
+
+
+
+69
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.neucom.2005.12.100
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural mechanisms of selective visual attention
+
+
+
+
+R
+Desimone
+
+
+
+
+
+
+J
+Duncan
+
+
+
+
+
+
+
+
+Annual Review of Neuroscience
+
+
+
+
+18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A Comparison between Mechanisms of Multi-Alternative Perceptual Decision Making: Ability to Explain Human Behavior, Predictions for Neurophysiology, and Relationship with Decision Theory
+
+
+
+
+J
+Ditterich
+
+
+
+
+
+
+
+
+Frontiers in Neuroscience
+
+
+
+
+4
+
+
+184
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Effects of noise letters upon the identification of a target letter in a nonsearch task
+
+
+
+
+B
+Eriksen
+
+
+
+
+
+
+C
+Eriksen
+
+
+
+
+
+
+
+
+Perception & Psychophysics
+
+
+
+
+16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/bf03203267
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hold your horses: a dynamic computational role for the subthalamic nucleus in decision making
+
+
+
+
+M
+Frank
+
+
+
+
+
+
+
+
+Neural Networks: The Official Journal of the International Neural Network Society
+
+
+
+
+19
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conflict-triggered goal shielding: response conflicts attenuate background monitoring for prospective memory cues
+
+
+
+
+T
+Goschke
+
+
+
+
+
+
+G
+Dreisbach
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+19
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimizing the use of information: strategic control of activation of responses
+
+
+
+
+G
+Gratton
+
+
+
+
+
+
+M
+G
+Coles
+
+
+
+
+
+
+E
+Donchin
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology. General
+
+
+
+
+121
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Pre-and poststimulus activation of response channels: a psychophysiological analysis
+
+
+
+
+G
+Gratton
+
+
+
+
+
+
+M
+Coles
+
+
+
+
+
+
+E
+Sirevaag
+
+
+
+
+
+
+C
+Eriksen
+
+
+
+
+
+
+E
+Donchin
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology. Human Perception and Performance
+
+
+
+
+14
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Attention, Vigilance, and Cortical Evoked-Potentials in Humans
+
+
+
+
+M
+Haider
+
+
+
+
+
+
+P
+Spong
+
+
+
+
+
+
+D
+Lindsley
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+145
+
+
+3628
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Perceptual load and visuocortical processing: event-related potentials reveal sensory-level selection
+
+
+
+
+T
+Handy
+
+
+
+
+
+
+M
+Soltani
+
+
+
+
+
+
+G
+Mangun
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+12
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Combined spatial and temporal imaging of brain activity during visual selective attention in humans
+
+
+
+
+H
+Heinze
+
+
+
+
+
+
+G
+Mangun
+
+
+
+
+
+
+W
+Burchert
+
+
+
+
+
+
+H
+Hinrichs
+
+
+
+
+
+
+M
+Scholz
+
+
+
+
+
+
+T
+Münte
+
+
+
+
+
+
+H
+Hundeshagen
+
+
+
+
+
+
+
+
+Nature
+
+
+
+
+372
+
+
+6506
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Temporal dynamics of early perceptual processing
+
+
+
+
+S
+Hillyard
+
+
+
+
+
+
+W
+Teder-Sälejärvi
+
+
+
+
+
+
+T
+Münte
+
+
+
+
+
+
+
+
+Current Opinion in Neurobiology
+
+
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/s0959-4388(98
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A practical guide to the Probability Density Approximation (PDA) with improved implementation and error characterization
+
+
+
+
+W
+Holmes
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A dual-stage two-phase model of selective attention
+
+
+
+
+R
+Hübner
+
+
+
+
+
+
+M
+Steinhauser
+
+
+
+
+
+
+C
+Lehle
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+117
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Triple dissociation of attention and decision computations across prefrontal cortex
+
+
+
+
+L
+Hunt
+
+
+
+
+
+
+W
+Malalasekera
+
+
+
+
+
+
+A
+De Berker
+
+
+
+
+
+
+B
+Miranda
+
+
+
+
+
+
+S
+Farmer
+
+
+
+
+
+
+T
+Behrens
+
+
+
+
+
+
+S
+Kennerley
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+21
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bayesian modeling of flexible cognitive control
+
+
+
+
+J
+Jiang
+
+
+
+
+
+
+K
+Heller
+
+
+
+
+
+
+T
+Egner
+
+
+
+
+
+
+
+
+Neuroscience and Biobehavioral Reviews
+
+
+
+
+46
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Anterior cingulate conflict monitoring and adjustments in control
+
+
+
+
+J
+Kerns
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+A
+Macdonald
+
+
+
+
+
+
+R
+Cho
+
+
+
+
+
+
+V
+Stenger
+
+
+
+
+
+
+C
+Carter
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+5660
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Equal evidence perceptual tasks suggest key role for interactive competition in decision-making
+
+
+
+
+R
+Kirkpatrick
+
+
+
+
+
+
+B
+Turner
+
+
+
+
+
+
+P
+Sederberg
+
+
+
+
+
+
+
+
+submitted
+
+
+
+
+
+
+
+
+N200 in the flanker task as a neurobehavioral tool for investigating executive control
+
+
+
+
+B
+Kopp
+
+
+
+
+
+
+F
+Rist
+
+
+
+
+
+
+U
+Mattler
+
+
+
+
+
+
+
+
+Psychophysiology
+
+
+
+
+33
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dimensional overlap: cognitive basis for stimulus-response compatibility--a model and taxonomy
+
+
+
+
+S
+Kornblum
+
+
+
+
+
+
+T
+Hasbroucq
+
+
+
+
+
+
+A
+Osman
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+97
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Information theory of choice-reaction times
+
+
+
+
+D
+Laming
+
+
+
+
+
+
+
+
+Academic Press Inc
+
+
+
+
+
+
+
+
+
+
+
+
+Making sense of all the conflict: a theoretical review and critique of conflict-related ERPs
+
+
+
+
+M
+Larson
+
+
+
+
+
+
+P
+Clayson
+
+
+
+
+
+
+A
+Clawson
+
+
+
+
+
+
+
+
+International Journal of Psychophysiology: Official Journal of the International Organization of Psychophysiology
+
+
+
+
+93
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A neural network model of the Eriksen task: reduction, analysis, and data fitting
+
+
+
+
+Y
+Liu
+
+
+
+
+
+
+P
+Holmes
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+
+
+Neural Computation
+
+
+
+
+20
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dissociating the role of the dorsolateral prefrontal and anterior cingulate cortex in cognitive control
+
+
+
+
+A
+Macdonald
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+V
+Stenger
+
+
+
+
+
+
+C
+Carter
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+288
+
+
+5472
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decoding the Brain's Algorithm for Categorization from Its Neural Implementation
+
+
+
+
+M
+Mack
+
+
+
+
+
+
+A
+Preston
+
+
+
+
+
+
+B
+Love
+
+
+
+
+
+
+
+
+Current Biology
+
+
+
+
+23
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.cub.2013.08.035
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spatial gradients of visual attention: behavioral and electrophysiological evidence
+
+
+
+
+G
+Mangun
+
+
+
+
+
+
+S
+Hillyard
+
+
+
+
+
+
+
+
+Electroencephalography and Clinical Neurophysiology
+
+
+
+
+70
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The elusive link between conflict and conflict adaptation
+
+
+
+
+U
+Mayr
+
+
+
+
+
+
+E
+Awh
+
+
+
+
+
+
+
+
+Psychological Research Psychologische Forschung
+
+
+
+
+73
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1007/s00426-008-0191-1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Consciousness and connectionist models
+
+
+
+
+J
+Mcclelland
+
+
+
+
+
+
+A
+Cleeremans
+
+
+
+
+
+
+
+
+The Oxford companion to consciousness
+
+
+T. Bayne, A. Cleeremans, & P. Wilken
+
+
+
+
+Oxford University Press
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Large-scale neurocognitive networks and distributed processing for attention, language, and memory
+
+
+
+
+M
+Mesulam
+
+
+
+
+
+
+
+
+Annals of Neurology
+
+
+
+
+28
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spatial attention and neglect: parietal, frontal and cingulate contributions to the mental representation and attentional targeting of salient extrapersonal events
+
+
+
+
+M
+Mesulam
+
+
+
+
+
+
+
+
+Philosophical Transactions of the Royal Society of London. Series B, Biological Sciences
+
+
+
+
+354
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An Integrative Theory of Prefrontal Cortex Function
+
+
+
+
+E
+Miller
+
+
+
+
+
+
+J
+Cohen
+
+
+
+
+
+
+
+
+Annual Review of Neuroscience
+
+
+
+
+24
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1146/annurev.neuro.24.1.167
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sustained division of the attentional spotlight
+
+
+
+
+M
+Müller
+
+
+
+
+
+
+P
+Malinowski
+
+
+
+
+
+
+T
+Gruber
+
+
+
+
+
+
+S
+Hillyard
+
+
+
+
+
+
+
+
+Nature
+
+
+
+
+424
+
+
+6946
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A Physiological Correlate of the "Zoom Lens" of Visual Attention
+
+
+
+
+N
+Müller
+
+
+
+
+
+
+O
+Bartelt
+
+
+
+
+
+
+T
+Donner
+
+
+
+
+
+
+A
+Villringer
+
+
+
+
+
+
+S
+Brandt
+
+
+
+
+
+
+
+
+The Journal of Neuroscience: The Official Journal of the Society for Neuroscience
+
+
+
+
+23
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ad-hoc and contextdependent adjustments of selective attention in conflict control: an ERP study with visual probes
+
+
+
+
+R
+Nigbur
+
+
+
+
+
+
+J
+Schneider
+
+
+
+
+
+
+W
+Sommer
+
+
+
+
+
+
+O
+Dimigen
+
+
+
+
+
+
+B
+Stürmer
+
+
+
+
+
+
+
+
+NeuroImage
+
+
+
+
+107
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Attention to Action. Consciousness and Self-Regulation
+
+
+
+
+D
+Norman
+
+
+
+
+
+
+T
+Shallice
+
+
+
+
+10.1007/978-1-4757-0629-1_1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Likelihood-Free Methods for Cognitive Science. Computational Approaches to Cognition and Perception
+
+
+
+
+J
+Palestro
+
+
+
+
+
+
+P
+Sederberg
+
+
+
+
+
+
+A
+Osth
+
+
+
+
+
+
+T
+Van Zandt
+
+
+
+
+
+
+B
+Turner
+
+
+
+
+10.1007/978-3-319-72425-6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PsychoPy-Psychophysics software in Python
+
+
+
+
+J
+Peirce
+
+
+
+
+
+
+
+
+Journal of Neuroscience Methods
+
+
+
+
+162
+
+
+1-2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural representation of task difficulty and decision making during perceptual categorization: a timing diagram
+
+
+
+
+M
+Philiastides
+
+
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+P
+Sajda
+
+
+
+
+
+
+
+
+The Journal of Neuroscience: The Official Journal of the Society for Neuroscience
+
+
+
+
+26
+
+
+35
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A theory of memory retrieval
+
+
+
+
+R
+Ratcliff
+
+
+
+
+10.1037//0033-295x.85.2.59
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+85
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Connectionist and diffusion models of reaction time
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+T
+Van Zandt
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+106
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Micro-and macro-adjustments of task set: activation and suppression in conflict tasks
+
+
+
+
+K
+Ridderinkhof
+
+
+
+
+
+
+
+
+Psychological Research
+
+
+
+
+66
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The role of the medial frontal cortex in cognitive control
+
+
+
+
+K
+Ridderinkhof
+
+
+
+
+
+
+M
+Ullsperger
+
+
+
+
+
+
+E
+Crone
+
+
+
+
+
+
+S
+Nieuwenhuis
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+306
+
+
+5695
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dynamic goal states: adjusting cognitive control without conflict monitoring
+
+
+
+
+S
+Scherbaum
+
+
+
+
+
+
+M
+Dshemuchadse
+
+
+
+
+
+
+H
+Ruge
+
+
+
+
+
+
+T
+Goschke
+
+
+
+
+
+
+
+
+NeuroImage
+
+
+
+
+63
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The dynamics of cognitive control: evidence for within-trial conflict adaptation from frequency-tagged EEG
+
+
+
+
+S
+Scherbaum
+
+
+
+
+
+
+R
+Fischer
+
+
+
+
+
+
+M
+Dshemuchadse
+
+
+
+
+
+
+T
+Goschke
+
+
+
+
+
+
+
+
+Psychophysiology
+
+
+
+
+48
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELF: A new measure of response capture
+
+
+
+
+M
+Servant
+
+
+
+
+
+
+T
+Gajdos
+
+
+
+
+
+
+K
+Davranche
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+25
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conflict tasks and the diffusion framework: Insight in model constraints based on psychological laws
+
+
+
+
+M
+Servant
+
+
+
+
+
+
+A
+Montagnini
+
+
+
+
+
+
+B
+Burle
+
+
+
+
+
+
+
+
+Cognitive Psychology
+
+
+
+
+72
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Using Covert Response Activation to Test Latent Assumptions of Formal Decision-Making Models in Humans
+
+
+
+
+M
+Servant
+
+
+
+
+
+
+C
+White
+
+
+
+
+
+
+A
+Montagnini
+
+
+
+
+
+
+B
+Burle
+
+
+
+
+
+
+
+
+The Journal of Neuroscience: The Official Journal of the Society for Neuroscience
+
+
+
+
+35
+
+
+28
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural basis of a perceptual decision in the parietal cortex (area LIP) of the rhesus monkey
+
+
+
+
+M
+Shadlen
+
+
+
+
+
+
+W
+Newsome
+
+
+
+
+
+
+
+
+Journal of Neurophysiology
+
+
+
+
+86
+
+
+4
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

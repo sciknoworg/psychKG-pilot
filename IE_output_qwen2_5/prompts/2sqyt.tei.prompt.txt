@@ -1,0 +1,4391 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+There you are, at the overrun ice cream parlor. It is finally your turn, but despite having glared at the options for the last 10 minutes while waiting in line, you have not decided. The Stracciatella caught your eye early on, and you kept looking at it, imagining its creamy texture on your tongue occasionally interrupted by crispy chocolate chips. But as you moved down the line and caught glimpses of new flavors, you came to find it much less exciting than the pistachio blackberry swirl you just came to discover. You have never had that. Should you change your mind now? The Stracciatella would be good for sure, but the pistachio blackberry swirl might be amazing! Or, it could be a huge disappointment and make you sob for that Stracciatella.
+This example illustrates two ways in which decisionmaking is challenged by uncertainty. On one hand, information about our options becomes available asynchronously, for instance when we sequentially attend to our options. On the other hand, the quality of available information varies be-tween options, for instance because we are more confident in the value of one compared to the other. How do decisionmakers overcome these challenges?
+Previous research has characterized the downstream consequences of limited and imbalanced information on choice, and formalized the mechanisms underlying these consequences in computational models. In particular, previous work has shown that people are less likely to choose options that they look at less 
+(Shimojo et al., 2003;
+Armel et al., 2008;
+Glickman et al., 2018;
+Usher et al., 2019)
+ as well as items whose value they are less confident about 
+(Lee & Coricelli, 2020;
+Polanía et al., 2019;
+Quandt et al., 2021)
+. To explain these findings, attention and value confidence have each been proposed to affect the rate at which evidence in favor of an option is accumulated 
+(Krajbich et al., 2010;
+Lee & Usher, 2021)
+. However, these models assume that people passively accumulate distorted evidence. Therefore, it remains unclear what adaptive mechanisms people may use to actively com- 
+Figure 1
+: Decision-making as sequential Bayesian updating predicts reference-dependent effects of attention and value confidence on choice. A Prior expectations about the distribution of values in a given context (teal curve) influence how true item values (blue arrow) are inferred. Increasing amounts of information (increasingly blue curves) refine value estimates from the initial prior estimate towards the true value (blue arrow). With an unbiased prior, sampling typically increases the estimated value of better-than-average items (top), but decreases the estimate value for worse-than-average items (bottom). If, instead, the prior mean is zero (the minimum item value), sampling uniformly increases the momentary value estimate for all options. Alternatively, without expectations (flat prior), the estimated value will, on average, be exactly the true value, regardless of how much information is available. B Value confidence reflects the precision of the value representation underlying sampling. It thus determines the balance between samples and prior. When value confidence is high, samples are given greater weight and momentary value estimates are updated more. Similar to increasing the number of samples (e.g. through attention to an item), higher confidence leads to greater updating of the momentary value estimate away from the prior. Thus, like attention, value confidence has opposite effects for values above (top) and below (bottom) the mean. C Attention-guided sampling and value confidence similarly affect biases in momentary value estimates. Left panels show how momentary estimates systematically deviate from true values as a function of sampling and value confidence. Both decrease biases induced by the prior, hence for the representative (unbiased) prior highlighted in A and B, biases towards the average decrease with increased sampling and higher value confidence. During value comparison, asymmetries in sampling and value confidence induce systematic differences in momentary value estimates that translate into value-dependent choice biases. Increased sampling and higher confidence for one option over the other increase its choice probability when values are above the mean, but decrease it when values are below the mean.
+pensate for limited and imbalanced information about their choice options.
+Here, we address this gap, asking how people could flexibly and dynamically adapt to the challenges limited and imbalanced information pose for decision-making. We propose that people compensate for missing or imprecise information by drawing on expectations or contextual knowledge about likely option values (cf. 
+Polanía et al., 2019;
+Khaw et al., 2017)
+. Formally, we propose a Bayesian extension of classic sequential sampling models 
+(Moreno-Bote, 2010;
+Drugowitsch et al., 2012;
+Tajima et al., 2016;
+Jang et al., 2021;
+Callaway et al., 2021)
+ in which attention and value confidence affect the quantity and quality of information about each item's value, which is integrated with a prior distribution to form posterior value estimates for each item.
+As illustrated in 
+Figure 1
+, our model makes the striking prediction that both confidence and attention should have opposite effects on choice probability for items that are better vs. worse than average. Items that are attended longer or for which value confidence is higher should be more likely to be chosen if their value is above the mean value, but less likely to be chosen if it is below the mean. We test and confirm this prediction in two experiments using a paradigm that allows us to manipulate attention independently of value. Taken together our results support the idea that decision-makers dynamically cope with uncertainty by considering both what they know and what they don't know.
+
+
+Results
+
+
+Bayesian evidence accumulation model
+Following previous work 
+(Tajima et al., 2016
+(Tajima et al., , 2019
+Fudenberg et al., 2018;
+Callaway et al., 2021;
+Jang et al., 2021)
+, we model value-based decision-making as an iterative process in which an agent forms posterior estimates of the value of each choice option based on a sequence of noisy value samples. Like most sequential sampling models of valuebased choice, this class of models assumes that the decision is based on a sequence of Gaussian samples whose mean depends on the value of each option in the choice set. However, unlike dominant sequential sampling models of value based choice (e.g. drift diffusion models and variants, 
+Krajbich et al., 2010;
+Lee & Usher, 2021;
+Pisauro et al., 2017;
+Polania et al., 2014;
+Sepulveda et al., 2020a)
+, which assume that the value samples are accumulated by simple addition, this newer class of models instead assumes that the samples are accumulated optimally, by Bayesian inference. Concretely, the agent estimates the true value of each item by inferring a posterior over the mean of the distribution from which the samples are drawn. Here, we present a simplified form of the model; see the Methods for the full specification.
+On a given trial, the agent is presented with n items, each of which is associated with some utility, u
+(i)
+true . The agent's goal is to select the item with maximal utility, but the agent does not have direct access to these values. Instead, they must estimate the utility by sampling. At each time step, the agent attends to one of the available options, i, and receives a noisy signal of its subjective value,
+x t ∼ Normal(u (i) true , 1 /τ (i) ).
+(1)
+Here, τ (i) is the precision (inverse variance) of the samples, capturing differences in underlying confidence about the value of each option. Given a sequence of samples and a prior Normal(µ prior , 1 /λ prior ), the agent forms a posterior distribution over each item's value, Normal(µ
+(i) t , 1 /λ (i) t ). Here, µ (i)
+t is the posterior mean (the estimated value) and λ (i) t is the posterior precision (the certainty in that estimate). The posterior can be expressed in terms of the total number of samples taken for the item so far, N (i) t , and the mean of those samples,x
+(i) t : µ (i) t = µ prior + N (i) t τ (i) t λ (i) t x (i) t − µ prior λ (i) t = λ prior + N (i) t τ (i) (2)
+We have written the posterior in this way to emphasize two key properties of Bayesian updating. First, the impact of the samples on estimated value does not depend on their values per se, but rather on their values relative to one's expectations. In particular, the posterior mean begins at the prior mean and is shifted up or down depending on whether the sample mean is greater or less than the prior mean. This property, expectation-dependent updating, is illustrated in 
+Figure 1A
+. Second, the degree to which the estimated value is shifted towards the sample mean (and, in expectation, the true value) depends on the precision of available information, where the total precision, N
+(i) t τ (i) , is composed of the quantity (number of samples, N (i)
+t ) and quality (value confidence, τ 
+(i)
+ ). This property, precision-weighted updating is illustrated in 
+Figure
+ 1B.
+The most striking prediction of this model results from the interaction of these two properties, expectation dependence and precision weighting: the effect of both attention and confidence should have opposite effects on options whose value are above vs below the reference ( 
+Figure 1C
+). In the following sections, we confirm this and other predictions of the model in two preferential choice experiments.
+
+
+Considering what we know
+We tested the proposal that people leverage knowledge about the distribution of values in the current choice context to dynamically compensate for uncertainty in two behavioral experiments in which participants made binary choices between consumer items. Most research on attention and choice has used gaze as a proxy for attention, allowing participants to freely fixate between the items in the choice set 
+(Orquin & Mueller Loose, 2013)
+. However, recent research has suggested that this fixation behavior is itself driven by estimated value and uncertainty 
+(Song et al., 2019;
+Callaway et al., 2021;
+Jang et al., 2021;
+Li & Ma, 2021)
+. Thus, to directly measure the causal influence of attention on choice, we instead manipulated fixation time to each item (cf. 
+Armel et al., 2008;
+Tavares et al., 2017)
+. Specifically, we controlled the order and duration that each item was displayed on the screen 
+(Figure 2A
+). In both studies, we constructed choice sets to vary in the relative and overall (i.e., average) value of options based on participants' prior single item ratings that serve as estimates of the true values of the options. In Study 2 participants additionally provided confidence judgments for the initial value ratings (as in 
+Lebreton et al., 2015)
+, which we will examine below.
+Our model makes predictions for how choices should deviate from utility maximization based on the true values if participants leveraged expectations about the values of options. As shown in 
+Figure 1C
+, the momentary value of an item systematically deviates from its true value, depending on the number of samples taken for it and whether its true value is lower or higher than the reference (prior mean). When choosing among high-value options, more samples should lead to an advantage for that option, whereas when choosing among low-value options, more samples should lead to a disadvantage for that option. We would thus expect that, controlling for the relative value of options, choices would vary as a function of the interaction between the overall value of ones' options and the relative time spent sampling each of them 
+(Figure 3A)
+. In both studies, the variable of interest is therefore variability in behavior that is not explained by the value ratings. To test whether this residual variability followed the predictions made by our model, we regressed choices onto the relative presentation duration, overall value and their interaction, while controlling for relative value. We will first examine across both studies the predictions for attention effects on behavior and subsequently return to Study 2 to test the predictions for value confidence effects. A In separate phases of the experiment, participants viewed consumer items (twice in Study 1, only), rated them, and (in Study 2, only) indicated the confidence in their ratings, and then chose among sets of two items, each. In the choice phase, items alternated on the screen until a choice was made or 5s elapsed. Frames around the options color-coded the corresponding response (e.g. left index for blue and right index for red). Presentation durations were manipulated between items, independently of presentation order, response hand, and value, and sampled from long (mean 500ms) and short (mean 200 ms) duration distributions, respectively. B Participants choices in both studies were sensitive to the relative value of options. Participants were faster when value difference was greater (black) and options were more valuable overall (grey). Lines show predictions of fitted linear mixed effects models, error bars show standard errors Participants' choices in both studies were sensitive to the values they had assigned in the earlier phase (SI 
+Table 1
+-2, 
+Figure 2B
+). Participants were increasingly likely to choose either item as its value increased relative to the other item, b S1 = 3.76, p < .001, b S2 = 3.39, p < .001. Participants also made decisions faster when the value difference between items was larger, b S1 = −0.22, p < .001, b S2 = −0.23, p < .001 and, consistent with previous work 
+Hunt et al., 2012;
+Smith & Krajbich, 2019)
+, when the overall value of items was higher, b S1 = −0.14, p < .001, b S2 = −0.17, p < .001. Participants were also sensitive to the presentation order manipulation. In line with previous findings 
+(Krajbich et al., 2010)
+, all else being equal, participants were more likely to choose the first item they had seen, b S1 = 0.10, p < .001, b S2 = 0.19, p < .001, but this bias decreased for longer response times, b S1 = −0.10, p < .001, b S2 = −0.23, p < .001.
+Controlling for all of these standard effects, we then tested our model's prediction about the three-way relationship between overall value, relative presentation duration, and choice: People should be more likely to choose items that are presented/seen longer when overall value is high, but less likely to choose them when overall value is low. Confirming this prediction, we found that presentation duration interacted with the overall value of the items b S1 = 1.75, p < .001, b S2 = 1.08, p = .016, such that items that were presented longer were more likely chosen when overall value was high, but less likely chosen when overall value was low ( 
+Figure 3B
+).
+We can further probe the degree to which participants calibrated their expectations to the distribution of values in their environment by testing the symmetry and strength of the interaction effect. How attention shapes value (and by extension, choice) depends on the mean of the prior (see 
+Figure 1A)
+. When people have calibrated their expectations to the value distribution, i.e., when the prior is unbiased, there should be no net effect of attention on choice. This is because attention has opposite effects on items below vs above the prior mean, and these effects cancel out when the prior mean is the true mean item value. We implement two key alternative models with different priors: The ZERO PRIOR model assumes a prior of zero (i.e., that each presented item has minimal value), which results in a strictly positive effect of presentation duration on momentary value (for positive valance options, as in our experiment). Such a model has been previously proposed 
+(Jang et al., 2021)
+ and is roughly consistent with the benchmark sequential sampling model of attention effects on choice (attention drift diffusion model, aDDM, 
+Krajbich et al., 2010
+, see Callaway et al., 2021
+. The second alternative, FLAT PRIOR model, assumes a highly uninformative prior, so that value estimates do not rely on expectations at all. As shown in 
+Figure 3C
+ and D, both models fail to capture the behavioral pattern: the ZERO PRIOR model fails to capture the opposite effects of presentation duration for high and low value items, and the FLAT PRIOR model fails to capture any interaction between overall 
+Figure 3
+: People rely on contextual information about the expected distribution of values. A According to our Bayesian model, a (relatively) unbiased prior should lead to value-dependent effects of relative presentation on choice, where choice probability increases with relative presentation when the overall (average) value of the options is above the mean, but decreases when overall value is below the mean (top). The model predicts a minimal main effect of relative presentation on choice (bottom). B Empirical results in both studies are consistent with the predicted interaction (top, main panel Study 1, inset Study 2) and the corresponding lack of a main effect (solid line Study 1, dashed line, Study 2). Dots and thin lines show binned raw data residualized for value effects.C The FLAT PRIOR model, with (near) uniform expectations of values does not produce the observed interaction. D The ZERO PRIOR model that overestimates the expected values also does not produce the observed interaction (top) and instead predicts a strong main effect of presentation duration on choice. Model predictions were generated with manually selected parameters. In all plots, lines show predictions of fitted linear mixed effects models, error bars show standard errors. value and presentation duration.
+Comparing 
+Figure 3A
+ and B reveals a clear behavioral signature of how well-calibrated our participants' expectations were. The cross-over point, at which the effect of relative presentation duration on choice is zero, corresponds to the prior mean. In the regression, this cross-over point is captured in the main effect of relative presentation duration on choice (a positive main effect if the cross-over point is below the true mean, and negative if above). Visually, we see that our participants' cross-over point was just slightly below zero, indicating a mean just slightly below the true empirical mean. Consistent with relatively unbiased prior means in both studies, we found no reliable main effects of presentation duration on choice b S1 = 0.08, p = .634, b S2 = 0.22, p = .087 
+(Figure 3B bottom)
+. With that said, the prior in Study 2 appeared more biased than in Study 1 as evinced by the larger estimate for the main effect of presentation duration (and the leftshifted cross-over point in 
+Figure 3B
+, top). Additionally, unlike in Study 1, where the crossover point of the presentation-duration by overall value interaction is quite close to the empirical mean value, in Study 2 the crossover point occurred well below the empirical mean. As shown in Supplementary 
+Figure 1
+, the model can capture this difference by assuming that participants in study 2 had a more biased prior, specifically one that systematically underestimates the value of items (c.f. 
+Callaway et al., 2021;
+Jang et al., 2021)
+.
+One plausible explanation for this descriptive difference is that participants in Study 1 had seen all items a second time before rating them and were given the opportunity to exclude unfamiliar items. We omitted this second round in Study 2 to increase the variance in confidence ratings and reduce the overall testing time. These design choices may have also prevented participants from fully updating a global default prior to the experimental context. However, our overall pattern of results shows that in both studies, participants clearly took information about the contextual distribution of values into account to some extent, and treated very low value items like aversive items 
+(Shenhav et al., 2018;
+cf. Armel et al., 2008)
+.
+Taken together, our results are consistent with a Bayesian updating mechanism that relies on knowledge about the distribution of values in the task. As outlined earlier, this mechanism predicts the same effects for attention and confidence. We tested this prediction using the value confidence ratings in Study 2.
+
+
+Considering what we don't know
+In Study 2, we tested how confidence in value ratings of the items in isolation affected subsequent choices among pairs of items (see 
+Supplementary Figure 2
+ for distributions of value confidence in choice sets, and a replication of the U-shaped relationship with value ratings). Previous work has shown that subjective confidence ratings provide a measure of the precision of one's value representation and the samples drawn from it 
+(Lebreton et al., 2015;
+Quandt et al., 2021)
+. Just like attention, confidence-or the lack thereof-should influence the extent to which momentary value estimates are biased towards the prior. Consequently confidence in item values should systematically bias choices between them.
+A basic prediction of our model is that choices should be more consistent and faster when confidence in both items' values (overall confidence) is higher ( 
+Figure 4A
+). We can compare these predictions to an alternative EQUAL-WEIGHT UPDATING model, in which confidence determines the sample noise but not how the samples are integrated. This alternative model also predicts higher accuracy for higher overall confidence, but at the cost of slower reaction times (see 
+Figure 4C )
+. Consistent with our model's prediction, 
+Figure 4B
+ shows that when their confidence in both items was higher, participants' choices were more consistent with their initial ratings (interaction of overall confidence with relative value on choice b = 0.48, p = .019) and they responded faster (main effect of overall confidence on RT b = −0.02, p = .002, SI 
+Table 2
+).
+The key model predictions for relative confidence (confidence in the first item value minus confidence in the second item value) mirror those for relative presentation duration 
+(Figure 4A, bottom;
+ compare 
+Figure 3A
+) and are not shared by the equal-weight updating model ( 
+Figure 4C, bottom)
+, demonstrating that precision-weighted updating is a crucial component for this prediction. Specifically, we expect that relative confidence should interact with the overall value of options, such that high-confidence items are more likely to be chosen when their values are high and less likely to be chosen when their values are low. Our empirical data confirm this prediction ( 
+Figure 4B
+; interaction between relative confidence and overall value, b = 0.63, p < .001). Consistent with the biased prior mean mentioned earlier, this effect was not fully symmetric, so that we additionally observed a positive main effect of relative confidence on choice, b = 0.11, p < .001.
+Our model and task also allow us to explore more subtle de-viations from optimal Bayesian metacognition. Specifically, participants may be systematically over-or under-confident, treating samples as if they are more or less precise than they truly are. This would lead over-confident participants to make decisions that are faster and less consistent with their initial ratings, and under-confident participants to make decisions that are slower and more consistent with their initial ratings. As a proxy for overconfidence, we computed the average confidence across all items for each participant. When we include average confidence as a between-subject regressor in our analyses above (SI 
+Table 3
+), we observed the anticipated pattern ( 
+Figure 5
+). Participants with higher confidence tended to be faster b = −0.12, p = .060, but less consistent b = −1.13, p = .082. We can capture this effect with a BIASED CONFIDENCE model that has separate precision parameters for the updating and sampling steps. Although the results do not reach the conventional statistical significance threshold of .05, given that our sample is small and our measure of confidence bias is noisy, these results nevertheless encourage future work better suited to test this mechanism.
+
+
+Discussion
+When making decisions, we often need to overcome uncertainty due to attention-related delays in information or confidence-related imprecision of that information. In the present study we propose and test a Bayesian-updating account of value-based decision-making as a solution to these challenges. Under this theory, the value one assigns to one's options depends on two things: 1) one's expectations about the distribution of values in a given context, and 2) information acquired while considering those options. The relative weight of each component depends on the precision of that information. Crucially, the effect of acquiring more precise information about an option depends on how its true value compares to the expected value. If the true value is higher than expected, more information will tend to increase estimated value; but if the true value is lower than expected, more information will decrease estimated value. This theory thus makes the unique prediction that both increased attention to an option and greater confidence in its value will have opposite effects on choice probability for items that are below vs above the average value of options in the current context. This is exactly what we found.
+Our results help shed new light on the role attention plays in decision-making. Previous work has proposed a multiplicative effect of attention and value on choice 
+(Armel et al., 2008;
+Krajbich et al., 2010;
+Smith & Krajbich, 2019)
+, such that when attended more, appetitive options would be more likely chosen, whereas aversive items would be less likely chosen. Indeed, only when appetitive and aversive items were included, has a full cross-over been previously demonstrated 
+(Armel et al., 2008)
+. Here we find the same effect, except that 
+Figure 4
+: People update proportional to their confidence in the values of their options. A Our Bayesian updating model predicts more consistent and faster choices when choosing among options with higher value confidence. It also predicts an interaction of relative confidence with value, such that items with higher value confidence than the alternative should be more likely to be chosen when values are above the mean, but less likely when they are below the mean (note: RT is in units of log milliseconds). B Empirical data in Study 2 are consistent with all these predictions. Dots and thin lines show binned raw data residualized for value effects.C A model in which the precision of the samples varies with value confidence, but all samples are weighted the same (EQUAL-WEIGHT UPDATING) can only capture the increased choice consistency for higher value confidence, but neither of the other effects. It incorrectly predicts slower response times for higher overall confidence and no effect of relative confidence. Lines show predictions of fitted linear mixed effects models, error bars show standard errors. in our studies, the "bad" options were not truly aversive, but merely mundane-undesirable only when compared to the alternatives 
+(Shenhav et al., 2018)
+. Our finding that the effect of attention on choice reverses for mundane options therefore suggest that people can adapt their reference point, consistent with our Bayesian-updating account, as well as contextdependent range normalization 
+(Khaw et al., 2017)
+ and efficient coding 
+(Polanía et al., 2019)
+ accounts of valuation.
+Our task allowed us to disentangle two effects that are typ-ically conflated in studies of the influence of attention on value-based decision-making: the influence of attention on choice and the reverse influence of (beliefs about) choice on attention allocation. One finding that emerged as a result is that, unlike several past studies 
+(Cavanagh et al., 2014;
+Krajbich et al., 2010;
+Westbrook et al., 2020)
+, we did not find that attention exerted an independent (additive) influence on the likelihood of choosing one option or another, over and above its role in enhancing the influence of value on choice. There are at least two potential reasons for this discrepancy. First, participants' expectations may have been biased in previous studies 
+(Callaway et al., 2021;
+Jang et al., 2021)
+. With few exceptions, in past studies only options that were positively evaluated during the initial rating or bidding phase were included in the subsequent choice sets. These excluded items may have nevertheless exerted an influence on subsequent expectations about the distribution of option values (cf. 
+Shenhav et al., 2018)
+. This may have produced a prior closer to the mean-zero prior we introduced above, which predicts a main effect of attention on choice. However, this explanation may not be sufficient to explain the additive effect of attention on choice observed in previous studies, given that studies which include stimuli that were associated with negative feedback or mental effort (and were thus clearly aversive) still observed such an additive effect 
+(Cavanagh et al., 2014;
+Westbrook et al., 2020)
+.
+The second potential explanation is that the relationship between attention and choice is not strictly unidirectional 
+(Gluth et al., , 2020
+Callaway et al., 2021)
+. In particular, participants in previous studies may have chosen to sample more information about the option they thought was best, producing a correlation between attention and choice through an entirely different causal mechanism 
+(Shimojo et al., 2003;
+Kaanders et al., 2022)
+. In our study, we intentionally broke the feedback-loop between the decision-process and gaze by experimentally manipulating presentation duration. Along these lines, it is notable that the only study that has shown a full crossover effect of attention and value on choice 
+(Armel et al., 2008)
+ also experimentally manipulated relative attention. In both our study and theirs, disabling active information-search may have eliminated the positive main-effect of gaze on choice. Future work will need to explicitly test this interpretation by comparing free-viewing and experimenter determined gaze in the same task.
+Our value confidence results suggest that even when people can't actively seek information about specific options, they integrate novel information in a controlled way rather than simply uniformly accumulating information. In particular, lowconfidence information appears to be down-weighted in the evidence integration. This echoes a model recently proposed by 
+Lee & Usher (2021)
+ in which confidence scales the drift rate of a DDM-a mechanism that they motivate by appeal to Bayesian principles. We build on this work by providing a fully Bayesian model that simultaneously accounts for both value confidence and attention. This allowed us to characterize implications of Bayesian updating beyond simply downweighting imprecise information, including modulating the influence of expectations 
+(Figure 4
+) and the possibility of a dissociation between subjective confidence in and objective informativeness of one's sampled information ( 
+Figure 5
+).
+Like attention, value confidence has been proposed to confer a choice benefit at least as long as options are appetitive 
+(Lee & Coricelli, 2020;
+Li & Ma, 2021)
+. On its face, this proposal resonates with ubiquitous uncertainty aversion, as well as the idea that confidence itself may be a value signal 
+(Lebreton et al., 2015
+). Here we show that, as with attention, the influence of value confidence on choice critically depends on a decision-maker's expectations. This finding speaks against uncertainty aversion (or its converse, confidence bonus) as the main driver of choice variability associated with value confidence 
+(Li & Ma, 2021)
+. Rather it suggests a more nuanced role for value confidence in decision-making.
+Our choice paradigm isolated one specific role for value confidence: weighing information in belief-updating. To the extent that the decision-maker thinks that the sampled information is precise (i.e., their confidence is high), they will adaptively reduce uncertainty by relying on samples versus expectations. This role parallels similar mechanisms in learning, where learners rely on response-based versus expectation-based predictions when they believe their eval-uations are precise 
+(Frömer et al., 2021)
+. Like this previous work, in our model, adaptive updating is driven by subjective confidence rather than the true precision of one's representations. This important aspect allows us to generate predictions for individual differences and sets our model apart from alternatives in which confidence merely reflects the signal-tonoise ratio 
+(Lee & Usher, 2021)
+. Our simulations and empirical results suggests that the extent to which one updates their beliefs is determined by their subjective beliefs about the precision of their samples, rather than merely the objective precision per se (see also 
+Schiffer et al., 2017)
+. When simulating mismatches between properties of the sampling distribution and subjective value confidence in our model, we produced impulsive, inconsistent behavior. We observed the same overall pattern in participants who were more confident overall. These findings add to a growing literature highlighting the importance of (well-calibrated) metacognition for adaptively regulating information-processing 
+(Yeung & Summerfield, 2012;
+Frömer et al., 2021)
+.
+Value confidence likely plays a broader set of roles in decision-making beyond only regulating dynamic belief updating. For instance, previous work has shown that value confidence is used to regulate explore-exploit trade-offs in learning contexts 
+(Boldt et al., 2019)
+. When attention is not experimentally manipulated, but can be freely allocated, we would expect that value confidence similarly provides inputs to (gaze-linked) information search. Importantly, the relationship between value confidence and gaze should then depend on the context (e.g. whether exploration is worthwhile; 
+Wilson et al., 2014)
+. It should also depend on the absolute level of confidence: if confidence is so low that no amount of sampling can increase certainty in the momentary value estimate to a reasonable level, participants should refrain from sampling an option, as the low expected information gain will not justify paying the cost of sampling. Unpacking this complementary role for value confidence in regulating informationprocessing in decision-making is an important future direction.
+By controlling when and for how long items could be sampled through gaze, we eliminated the feedback-loop that has made it difficult to interpret correlations between value, attention, and choice (discussed above). The flipside of this is that we still need to test predictions of models that both allow for free gaze allocation and incorporate confidencedependent updating. Indeed, confidence could have complex, time-varying effects on attention allocation. Early in the decision, attending to a high-confidence item produces stronger and thus more valuable information. Later in the decision, however, the value of the high-confidence item will have a very precise estimate, making additional attention to it superfluous. By isolating the downstream effects of confidence on choice, we have provided the foundation for understanding the full cyclic process.
+Another open question is whether goal-directed informa-tion search is limited to simply which option is considered, or in fact extends to what type of information is considered about a given option. Most sequential sampling models assume that samples are drawn independently from an underlying distribution, but this need not be so. In the context of memory retrieval, during free recall, people are more likely to sequentially sample items that share features (e.g. category) than dissimilar items 
+(Bousfield & Cohen, 1955)
+, perhaps due to spreading of activation that facilitates the retrieval of related items. These findings are consistent with a sequential sampling model in which successive samples are drawn from a Markov chain, and are hence autocorrelated 
+(Zhu et al., 2018)
+. Based on this work, we would expect autocorrelation in value-based sampling as well. For example, when sampling one positive feature about the tea pot in 
+Figure 1
+ (nice color), one would be more likely to sample other related positive features about it (great shape), rather than a less related feature or a negative one (might drip). Importantly, this autocorrelation might be biased by goals and momentary beliefs, just like gaze 
+(Gluth et al., 2020;
+Callaway et al., 2021;
+Jang et al., 2021)
+ and explicit information gathering 
+(Hunt et al., 2016)
+. Reports of confirmation bias abound 
+(Kaanders et al., 2022;
+Sharot & Garrett, 2016;
+Talluri et al., 2018)
+, and classic work on framing 
+(Morewedge & Kahneman, 2010)
+, as well as recent work on choice goals' influence on decision making 
+Sepulveda et al., 2020b)
+, show that people's prior beliefs and the type of question they are trying to answer shape the degree to which they integrate information and seek it to begin with. How these mechanisms shape value-based choices remains to be understood.
+One canonical finding that might be explained by biased memory sampling is the speeding of choices among options that are more rather than less congruent with one's choice goal 
+Hunt et al., 2012;
+Sepulveda et al., 2020b;
+Smith & Krajbich, 2019)
+. Different proposals have been put forward to explain the overall value effect on choice. One account explains the effect through attentional biases 
+(Sepulveda et al., 2020b;
+Smith & Krajbich, 2019)
+, whereas in other accounts these effects emerge from the dynamics of the decision-process without considering gaze variability 
+Hunt et al., 2012)
+. In a referencedependent value coding scheme as demonstrated here, none of the current models are able to account for the overall value effect on decision time. In fact, our model can only produce it when given a slightly biased prior as observed in the empirical data and then the simulated effects are still much weaker than those found in the data. This tension between predicted and observed findings might suggest that caution is warranted in assuming a role for reference-dependence in this process. However, given the convergent evidence of referencedependence from our remaining results and other lines of work 
+(Shenhav et al., 2018;
+Khaw et al., 2017;
+Polanía et al., 2019)
+, a more plausible alternative is that goal-congruent in-formation is sampled with greater ease, at a faster rate than goal-incongruent information, in line with confirmation and positive evidence biases in information sampling 
+(Hunt et al., 2016;
+Kaanders et al., 2022;
+Talluri et al., 2018;
+Sharot & Garrett, 2016)
+. Future work will need to explicitly manipulate prior expectations and choice goals to arbitrate between different accounts.
+Our findings have implications for interpretations of neural correlates of value in value-based choice. Traditionally, neuroeconomics has focused on valuation and evidence accumulation when interpreting neural correlates of value, for instance in dorsal anterior cingulate cortex 
+(Hare et al., 2011;
+Pisauro et al., 2017)
+. However, these regions have also been associated with goal-directed regulation of information gain 
+(McGuire et al., 2014;
+O'Reilly et al., 2013)
+, and cognitive control more generally 
+(Shenhav et al., 2013)
+. Our results contribute to a growing consensus that value-based choice draws on those regulatory mechanisms, suggesting that the observed activity in dACC could reflect information regulation rather than accumulated evidence per se 
+(Hunt et al., 2018;
+Hunt, 2021;
+Hunt et al., 2021;
+Kaanders et al., 2020;
+Monosov, 2017)
+.
+By characterizing the specific quantities associated with information regulation in the service of decision making (e.g. value confidence, estimate precision, changes in choice certainty), our model can inform specific predictions for neural activity and crucially how it unfolds over time (c.f. 
+Frömer et al., 2021;
+McGuire et al., 2014;
+O'Reilly et al., 2013)
+. Testing these predictions will allow us to re-evaluate and extend beyond previously identified correlates of evidence accumulation in value-based choice (e.g., 
+Pisauro et al., 2017;
+Polania et al., 2014)
+.
+A central motivation for the decision sciences is to understand the ways in which decision-making deviates from classical rationality and to use that knowledge to improve decision-making. Viewing decision-making as an active process, involving information search and regulation of information-processing shaped by goals and metacognition, provides us with a whole new set of levers to achieve this goal. Perhaps if we understand how these control mechanisms work, we can help decision-makers and learners alike by teaching them to consider and control what they know and what they don't know.
+
+
+Experiment Participants
+Participants were recruited from Brown University and the general community. Thirty participants (19 female) with an average age of 19.6 (SD = 1.8) took part in Study 1. Thirty one participants (23 female) with an average age of 21.1 (SD = 3.5) took part in Study 2. Participants gave informed consent and were remunerated with 10 USD per hour or course credits. The studies were approved by Brown University's institutional review board. Sample sizes were determined based on previous studies 
+(Krajbich & Rangel, 2011;
+.
+
+
+Task and Procedure
+In Study 1, the experiment consisted of three phases: 1) item familiarization, 2) item rating, and 3) choice. During item familiarization, participants viewed consumer items on the screen individually in a self-paced manner. Items were presented in grey scale and short labels were displayed below the items. Following a first round of viewing all items, participants were presented with each item a second time without labels and asked to indicate items that they could not identify without a label present. These items were removed from subsequent phases of the experiment. In the subsequent rating phase participants were asked to rate how much they liked the remaining items individually on a scale from 0 (not at all) to 10 (a great deal). They were encouraged to use the entire range of values rather than just the extremes. Based on the individual ratings, we constructed personalized choice sets that varied in the relative and overall values of options. Choice sets were created by sorting pairs of products into four conditions based on their rank-ordered subjective rating values: high (target 40 trials), medium (target 40 trials), and low (target 40 trials) value pairs with zero or close to zero value difference, and mixed pairs with value difference covering the entire range (target 120 trials) 
+(Shenhav & Buckner, 2014;
+Shenhav & Karmarkar, 2019;
+Shenhav et al., 2018)
+. Depending on the range of values participants provided and the number of items they excluded during familiarization, the number of choice sets we could generate varied between 128 and 240 (Median = 228, M = 222, SD = 24).
+In the choice phase, participants viewed pairs of options alternating centrally on the screen inside frames that color coded the corresponding response hands (index fingers placed on A and J keys on a standard keyboard). We manipulated the relative presentation duration of items so that one item was always presented longer than the other. While items alternated on the screen, specific durations on each turn were drawn from different distributions for long (M = 500 ms, SD = 100 ms) and short presentations (M = 200, SD = 50); these distributions were informed by previous work . Presentation duration, response hand, and order of presentation varied independently. Items alternated until participants made a choice or 5s had elapsed. After making their choice, participants were presented with the item they chose for one second and allowed to reverse their choice within 750 ms of feedback presentation (5.6% of all trials). Participants performed multiple rounds of practice with empty frames only, letters, and with practice items, to learn the button mapping and get comfortable with the task.
+Study 2 differed from Study 1 in three ways: 1) partici-pants performed only the first round of familiarization and no items were excluded, 2) in the rating phase individual item ratings were immediately followed by a prompt to indicate the confidence in that rating, and 3) item ratings were repeated after the choice phase. We removed the second round of familiarization to reduce overall testing time and to include items with very low value confidence. Participants rated their confidence in the value ratings on a scale from 1 (not at all) to 5 (very) by pressing the corresponding number key on a keyboard. The second round of value ratings following the choice phase did not include confidence ratings. Participants performed 240 choice trials unless their rating distributions afforded less (Median = 240, Mean = 236, SD = 7). On average they indicated they had made an error on 5.9% of all trials.
+
+
+Analyses
+Our primary interest was participants' behavior during the choice phase. We analyzed the probability of choosing the first item using generalized mixed effects models with a binomial link function, and RTs using linear mixed effects models using lme4 
+(Bates, Maechler, et al., 2015)
+ in R (Version 3.6.1). We modeled random intercepts for participants and included random slopes for predictors if supported by the data 
+(Bates, Kliegl, et al., 2015;
+Matuschek et al., 2017)
+. We performed model selection using the buildmer package. We analyzed choices and RTs of initial choices, including choices that were subsequently reversed after the chosen option was shown. However, choices that were made before the second item was seen were excluded from all analyses (0.7% in Study 1, 0.3% in Study 2). The remaining choices were analyzed with relative value (first item value minus second item value), overall value (average value of both items in a set), relative presentation duration (proportion of time the first item was on the screen), and RT as an index of total decision time. To test how relative presentation duration influences values' relationship with choice behavior, we modeled interactions between relative presentation duration and value regressors. We analyzed response times with value difference (absolute difference between item values) and overall value. In Study 2, we further included three variables to assess the impact of value confidence on choice: relative confidence (confidence in the first item value minus confidence in the second item value), overall confidence (mean confidence in both items, centered within participants), and confidence bias as a between subject regressor (average confidence of a participant across all items). To test how value confidence impacts values' relationship with choice behavior, we modeled interactions between confidence and value regressors.
+
+
+Model
+Here we give further details on the implementation of the model. We focus on the main model based on optimal Bayesian updating, but also highlight the key dimensions that we modify in the alternative models: ZERO PRIOR, FLAT PRIOR, EQUAL-WEIGHT UPDATING, and BIASED CONFI-DENCE.
+
+
+Prior
+Following previous work 
+(Callaway et al., 2021)
+, we assume that the prior takes the form of a Gaussian distribution fit to the actual empirical distribution of values, that is:
+µ prior = mean(ratings) λ prior = std(ratings) −2 .
+(3)
+Here, std(ratings) denotes the standard deviation of the value ratings for all items used in the choice phase. Note that, in contrast to Callaway et al. 
+2021
+, we assume a perfectly calibrated, or "unbiased" prior, in order to best illustrate the predictions of optimal Bayesian updating.
+In the ZERO PRIOR model, we set µ prior to 0. In the FLAT PRIOR model, we set λ prior to 10 −6 , effectively removing all prior information.
+
+
+Attention
+In the simplified model presented in the main text, we assumed that attention controls which item is sampled at each time step. The full model, however, allows for partial attention to the non-presented item. Following previous work 
+(Jang et al., 2021)
+, we implement partial attention as reduced precision. Thus, at each time step, the agent receives one signal for each item, ples) to a continuous quantity capturing the amount of attention paid to the item so far,
+N (i) t = t ∑ j=1 θ (i) t .
+(6)
+Similarly,x
+t becomes an attention-weighted mean of the samples,x
+(i) t = 1 N (i) t t ∑ j=1 θ (i) t x (i) t (7)
+All models employ the same attention mechanism, with θ = 0.8.
+
+
+Confidence
+Value confidence is captured in the τ 
+(i)
+ term. More precisely, τ (i) is the precision of samples for an item when it is attended. Here, we refer to this parameter as "baseline precision" to distinguish it from confidence ratings (which are only indirectly related to precision, see below). In the first study, we did not collect confidence measures, so we assume that all items have the same baseline precision, a free parameter. In the second study, we assume that baseline precision varies by item, and that this variance is related to the rating confidence judgements. For simplicity, we assume that an item's baseline precision is an affine function of its confidence rating,
+τ (i) = β 0 + β 1 • conf (i) ,
+(8)
+where β 0 and β 1 are free parameters. In Experiment 1, where we do not have confidence ratings, we instead use a fixed τ for all items. In the main model, we assume that both the samples themselves and the posterior estimate (given the samples) are constructed using a single τ (i) parameter, as in optimal Bayesian inference. However, we also consider the possibility that the posterior is formed assuming an incorrect precision, replacing τ (i) withτ 
+(i)
+ in Equation 2. We consider two forms of incorrect precision. In the EQUAL-WEIGHT UPDATING model, the agent treats all items as though they have the same sampling precision:τ (i) = β 0 + β 1 • mean(conf).
+In the BIASED CONFIDENCE model, the agent assumes that sampling precision is systematically higher or lower than it really is:
+τ (i) = β bias + β 0 + β 1 • conf (i) ,
+(10)
+where β bias > 0 corresponds to overconfidence and β bias < 0 corresponds to underconfidence. Critically, in both of these models, the true noisiness of the samples (Equation 4) remains unchanged. It is only the posterior (Equation 2) that uses the biasedτ 
+(i)
+ term.
+
+
+Response times
+The model's response time for a given trial is proportional to the number of samples taken before a choice is made. This number is determined by the model's "stopping rule". Intuitively, one should stop sampling (and make a decision) when the cost of additional samples exceeds the expected increase in decision quality from collecting those samples. Previous work has used dynamic programming to identify the optimal stopping rule 
+(Drugowitsch et al., 2012;
+Tajima et al., 2016)
+. However, the exogenous attention manipulation complicates this approach, and the exact shape of the stopping rule is not of critical interest for the current study. Thus, we instead employ a simple approximation to the optimal stopping rule. The approximation has two parts: First, rather than predicting the specific sequence of future presentation durations, we assume that all future samples will be split between the items according to the ratio of their average presentation durations. Second, we estimate the value of additional sampling using an adaptation of the Directed Cognition model proposed by 
+Gabaix and Labison (Gabaix & Laibson, 2005)
+. Concretely, we compute the expected increase in decision quality (the value of the chosen option) for different amounts of additional sampling, and substract the cost of that additional sampling. If there is any amount of sampling for which this value is positive, the model continues sampling. See the Appendix for further details.
+Figure 2 :
+2
+Paradigm and behavioral results.
+
+
+Figure 5 :
+5
+Overconfidence leads to impulsive choice pattern. A When making the model over-or underconfident, by varying the mapping between value confidence and the precision of the samples, it predicts that increasing overconfidence is associated with decreasing choice consistency and response times. B Our empirical results in Study 2 show the same pattern, where people with higher levels of confidence in all value ratings tend to respond less consistently and faster. These results, while consistent with our model are not significant at a conventional threshold. Dots and thin lines show binned raw data residualized for value effects. Lines show predictions of fitted linear mixed effects models, error bars show standard errors.
+
+
+t (previously the number of sam-
+
+
+
+
+
+
+
+
+Acknowledgements
+This work was funded by a Center of Biomedical Research Excellence grant P20GM103645 from the National Institute of General Medical Sciences (A.S.), grant R01MH124849 from the National Institute of Mental Health (A.S.). We are grateful to Akari Izumi, Maisy Tarlow, Gloria Feng, and Selin Baydar for assistance in data collection.
+
+
+
+
+
+
+Appendix
+
+
+Stopping rule
+As briefly described in the main text, we use a two-part approximation to the optimal stopping rule. Our method approximates the information content of future samples by assuming that both items will be presented in proportion to their average presentation times; it then estimates the value of additional sampling by hypothetically committing to different amounts of sampling. We provide further details on each component below.
+Approximating future sample precisions A truly optimal stopping policy would take into account the specific sequence of future presentations, in particular, using the elapsed time in the current presentation to predict the switch and therefore the precision of upcoming samples. Rather than model this complex (and perhaps psychologically implausible) process, we instead use the proportion of presentation time on each item. That is, we use a mean-field approximation with respect to time. Concretely, we approximate the attentional downweighting for each item as
+wheret 1 andt 2 are the means of the presentation duration distributions for the two items (200ms and 500ms).θ (1) is defined analogously.
+Value of additional sampling Given these precisions, how should one decide whether to make a decision or keep sampling? We approximate the optimal stopping rule using an adaptation of the Directed Cognition model proposed by 
+Gabaix and Laibson (Gabaix & Laibson, 2005)
+. The intuition for the approximation comes in three steps. First, we can quantify the value of information (VOI) for taking one additional sample as the expected increase in the utility of the item that would be chosen with additional information vs. immediately:
+We derive a closed-form expression for the VOI below. Second, if the expected increase in decision quality for taking one more sample is greater than the sample cost, then clearly one should take (at least) one more sample. That is, one should take another sample if
+where c is the cost per sample, a free parameter of the model. Third, note that VOI t (1) underestimates the true value of sampling. This is because it assumes that one has to make a decision after taking one additional sample when one could in fact take more samples. In some cases, it may require multiple samples to change one's mind; in these cases, sampling once has minimal value, while sampling several times could have substantial value. To mitigate this problem, we can hypothetically commit to taking N samples. If the VOI for N more samples is greater than the cost of those samples (for any N), then it would be better to commit to taking N more samples than to make a decision now. However, actually committing to taking every sample would be unwise, as the next sample could make the correct decision obvious, rendering the following N − 1 superfluous. Thus, we recompute this value at each time step, stopping as soon as
+Derivation of the VOI Finally, we derive a closed-form expression for Equation 12 for arbitrary N. First, note that
+because one chooses the item with higher expected value, µ
+t , and the expected value of that item is simply µ (i) t . Thus we can rewrite Equation 12 as
+. 
+16
+Here, µ
+(1) t+1 and µ
+(2) t+1 are random variables describing the posterior means of each item after one more sample is collected. µ 
+where the fraction captures the weight of the sample in the posterior update and the square root term is the standard deviation of the sample given the current posterior mean, taking into account uncertainty in the true value as well as the sampling noise. Finally, using a standard formula for the expectation of the maximum of two Gaussians 
+(Nadarajah & Kotz, 2008)
+, we have
+where
+ 
+
+
+
+
+
+
+
+
+
+
+Biasing simple choices by manipulating relative visual attention
+
+
+
+
+K
+C
+Armel
+
+
+
+
+
+
+A
+Beaumel
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+
+
+Judgment and Decision Making
+
+
+
+
+3
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D
+Bates
+
+
+
+
+
+
+R
+Kliegl
+
+
+
+
+
+
+S
+Vasishth
+
+
+
+
+
+
+H
+Baayen
+
+
+
+
+arXiv:1506.04967
+
+
+Parsimonious mixed models
+
+
+
+
+
+
+
+
+
+
+arXiv preprint
+
+
+
+
+
+
+
+
+Fitting linear mixed-effects models using lme4
+
+
+
+
+D
+Bates
+
+
+
+
+
+
+M
+Maechler
+
+
+
+
+
+
+B
+M
+Bolker
+
+
+
+
+
+
+S
+C
+Walker
+
+
+
+
+
+
+
+
+Journal of Statistical Software
+
+
+
+
+67
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confidence modulates exploration and exploitation in valuebased learning
+
+
+
+
+A
+Boldt
+
+
+
+
+
+
+C
+Blundell
+
+
+
+
+
+
+B
+Martino
+
+
+
+
+
+
+
+
+Neurosci Conscious
+
+
+2019
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+The occurrence of clustering in the recall of randomly arranged words of different frequencies-of-usage
+
+
+
+
+W
+A
+Bousfield
+
+
+
+
+
+
+B
+H
+Cohen
+
+
+
+
+
+
+
+
+Journal of General Psychology
+
+
+
+
+52
+
+
+83
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fixation patterns in simple choice reflect optimal information sampling
+
+
+
+
+F
+Callaway
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+T
+L
+Griffiths
+
+
+
+
+
+
+
+
+PLOS Computational Biology
+
+
+
+
+17
+
+
+3
+
+
+1008863
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Eye tracking and pupillometry are indicators of dissociable latent decision processes
+
+
+
+
+J
+F
+Cavanagh
+
+
+
+
+
+
+T
+V
+Wiecki
+
+
+
+
+
+
+A
+Kochar
+
+
+
+
+
+
+M
+J
+Frank
+
+
+
+
+
+
+
+
+J Exp Psychol Gen
+
+
+
+
+143
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The cost of accumulating evidence in perceptual decision making
+
+
+
+
+J
+Drugowitsch
+
+
+
+
+
+
+R
+Moreno-Bote
+
+
+
+
+
+
+A
+K
+Churchland
+
+
+
+
+
+
+M
+N
+Shadlen
+
+
+
+
+
+
+A
+Pouget
+
+
+
+
+
+
+
+
+Journal of Neuroscience
+
+
+
+
+32
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Goal congruency dominates reward value in accounting for behavioral and neural correlates of value-based decisionmaking
+
+
+
+
+R
+Frömer
+
+
+
+
+
+
+C
+K
+Dean Wolf
+
+
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+
+
+Nature Communications
+
+
+
+
+10
+
+
+1
+
+
+4926
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Spatiotemporally distinct neural mechanisms underlie our reactions to and comparison between value-based options. bioRxiv
+
+
+
+
+R
+Frömer
+
+
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+
+
+609198
+
+
+
+
+
+
+
+
+
+
+
+
+Response-based outcome predictions and confidence regulate feedback processing and learning
+
+
+
+
+R
+Frömer
+
+
+
+
+
+
+M
+R
+Nassar
+
+
+
+
+
+
+R
+Bruckner
+
+
+
+
+
+
+B
+Stürmer
+
+
+
+
+
+
+W
+Sommer
+
+
+
+
+
+
+N
+Yeung
+
+
+
+
+
+
+
+
+Journal Article]. eLife
+
+
+
+
+10
+
+
+62825
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Speed, accuracy, and the optimal timing of choices
+
+
+
+
+D
+Fudenberg
+
+
+
+
+
+
+P
+Strack
+
+
+
+
+
+
+T
+Strzalecki
+
+
+
+
+
+
+
+
+American Economic Review
+
+
+
+
+108
+
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bounded Rationality and Directed Cognition
+
+
+
+
+X
+Gabaix
+
+
+
+
+
+
+D
+Laibson
+
+
+
+
+
+
+
+
+
+
+
+
+Working Paper
+
+
+
+
+
+
+
+
+Attentional selection mediates framing and risk-bias effects
+
+
+
+
+M
+Glickman
+
+
+
+
+
+
+K
+Tsetsos
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+29
+
+
+12
+
+
+956797618803643
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Value-based attention but not divisive normalization influences decisions with multiple alternatives
+
+
+
+
+S
+Gluth
+
+
+
+
+
+
+N
+Kern
+
+
+
+
+
+
+M
+Kortmann
+
+
+
+
+
+
+C
+L
+Vitali
+
+
+
+
+
+
+
+
+Nature Human Behaviour
+
+
+
+
+4
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Value-based attentional capture affects multi-alternative decision making
+
+
+
+
+S
+Gluth
+
+
+
+
+
+
+M
+S
+Spektor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Valuebased attentional capture affects multi-alternative decision making
+
+
+
+
+S
+Gluth
+
+
+
+
+
+
+M
+S
+Spektor
+
+
+
+
+
+
+J
+Rieskamp
+
+
+
+
+
+
+
+
+Elife
+
+
+
+
+7
+
+
+39659
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Transformation of stimulus value signals into motor commands during simple choice
+
+
+
+
+T
+A
+Hare
+
+
+
+
+
+
+W
+Schultz
+
+
+
+
+
+
+C
+F
+Camerer
+
+
+
+
+
+
+J
+P
+O'doherty
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+
+
+Proc Natl Acad Sci U S A
+
+
+
+
+108
+
+
+44
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Frontal circuit specialisations for decision making
+
+
+
+
+L
+T
+Hunt
+
+
+
+
+
+
+
+
+Journal Article
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Eur J Neurosci
+
+
+
+
+53
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Formalizing planning and information search in naturalistic decisionmaking
+
+
+
+
+L
+T
+Hunt
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+P
+Kaanders
+
+
+
+
+
+
+M
+A
+Maciver
+
+
+
+
+
+
+U
+Mugan
+
+
+
+
+
+
+E
+Procyk
+
+
+
+
+
+
+.
+.
+Kolling
+
+
+
+
+
+
+N
+
+
+
+
+
+
+
+
+
+
+
+
+Journal Article
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+
+
+
+
+
+
+
+
+Mechanisms underlying cortical activity during value-guided choice
+
+
+
+
+L
+T
+Hunt
+
+
+
+
+
+
+N
+Kolling
+
+
+
+
+
+
+A
+Soltani
+
+
+
+
+
+
+M
+W
+Woolrich
+
+
+
+
+
+
+M
+F
+Rushworth
+
+
+
+
+
+
+T
+E
+Behrens
+
+
+
+
+
+
+
+
+Nat Neurosci
+
+
+
+
+15
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Triple dissociation of attention and decision computations across prefrontal cortex
+
+
+
+
+L
+T
+Hunt
+
+
+
+
+
+
+W
+M N
+Malalasekera
+
+
+
+
+
+
+A
+O
+De Berker
+
+
+
+
+
+
+B
+Miranda
+
+
+
+
+
+
+S
+F
+Farmer
+
+
+
+
+
+
+T
+E J
+Behrens
+
+
+
+
+
+
+S
+W
+Kennerley
+
+
+
+
+
+
+
+
+Nat Neurosci
+
+
+
+
+21
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Approach-induced biases in human information sampling
+
+
+
+
+L
+T
+Hunt
+
+
+
+
+
+
+R
+B
+Rutledge
+
+
+
+
+
+
+W
+M
+Malalasekera
+
+
+
+
+
+
+S
+W
+Kennerley
+
+
+
+
+
+
+R
+J
+Dolan
+
+
+
+
+
+
+
+
+PLoS Biol
+
+
+
+
+14
+
+
+11
+
+
+2000638
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimal policy for attention-modulated decisions explains human fixation behavior. eLife
+
+
+
+
+A
+I
+Jang
+
+
+
+
+
+
+R
+Sharma
+
+
+
+
+
+
+J
+Drugowitsch
+
+
+
+
+
+
+
+
+10
+
+
+63436
+
+
+
+
+
+
+
+
+
+
+
+
+Medial frontal cortex activity predicts information sampling in economic choice
+
+
+
+
+P
+Kaanders
+
+
+
+
+
+
+H
+Nili
+
+
+
+
+
+
+J
+X
+O'reilly
+
+
+
+
+
+
+L
+T
+Hunt
+
+
+
+
+
+
+
+
+
+
+
+
+bioRxiv, 2020.11.24.395814
+
+
+
+
+
+
+
+
+Humans actively sample evidence to support prior beliefs
+
+
+
+
+P
+Kaanders
+
+
+
+
+
+
+P
+Sepulveda
+
+
+
+
+
+
+T
+Folke
+
+
+
+
+
+
+P
+Ortoleva
+
+
+
+
+
+
+B
+Martino
+
+
+
+
+
+
+
+
+
+
+
+
+Journal Article
+
+
+
+
+
+
+
+
+
+
+
+
+Elife
+
+
+
+
+10.7554/eLife.71768
+
+
+
+
+11
+
+
+71768
+
+
+
+
+
+
+
+
+
+
+
+
+Normalized value coding explains dynamic adaptation in the human valuation process
+
+
+
+
+M
+W
+Khaw
+
+
+
+
+
+
+P
+W
+Glimcher
+
+
+
+
+
+
+K
+Louie
+
+
+
+
+
+
+
+
+Proceedings of the National Academy of Sciences
+
+
+
+
+114
+
+
+48
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Visual fixations and the computation and comparison of value in simple choice
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+C
+Armel
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+
+
+Nat Neurosci
+
+
+
+
+13
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Multialternative driftdiffusion model predicts the relationship between visual fixations and choice in value-based decisions
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+
+
+Proc Natl Acad Sci
+
+
+
+
+108
+
+
+33
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Automatic integration of confidence in the brain valuation signal
+
+
+
+
+M
+Lebreton
+
+
+
+
+
+
+R
+Abitbol
+
+
+
+
+
+
+J
+Daunizeau
+
+
+
+
+
+
+M
+Pessiglione
+
+
+
+
+
+
+
+
+Nat Neurosci
+
+
+
+
+18
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An empirical test of the role of value certainty in decision making
+
+
+
+
+D
+G
+Lee
+
+
+
+
+
+
+G
+Coricelli
+
+
+
+
+
+
+
+
+Frontiers in Psychology
+
+
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Value certainty in driftdiffusion models of preferential choice. Psychological Review
+
+
+
+
+D
+G
+Lee
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+10.1037/rev0000329
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An uncertainty-based model of the effects of fixation on choice
+
+
+
+
+Z
+W
+Li
+
+
+
+
+
+
+W
+J
+Ma
+
+
+
+
+10.1371/journal.pcbi.1009190
+
+
+
+
+
+
+PLoS Comput Biol
+
+
+
+
+17
+
+
+8
+
+
+1009190
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balancing type i error and power in linear mixed models
+
+
+
+
+H
+Matuschek
+
+
+
+
+
+
+R
+Kliegl
+
+
+
+
+
+
+S
+Vasishth
+
+
+
+
+
+
+H
+Baayen
+
+
+
+
+
+
+D
+Bates
+
+
+
+
+
+
+
+
+Journal of Memory and Language
+
+
+
+
+94
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Functionally dissociable influences on learning rate in a dynamic environment
+
+
+
+
+J
+T
+Mcguire
+
+
+
+
+
+
+M
+R
+Nassar
+
+
+
+
+
+
+J
+I
+Gold
+
+
+
+
+
+
+J
+W
+Kable
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+84
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Anterior cingulate is a source of valence-specific information about value and uncertainty
+
+
+
+
+I
+E
+Monosov
+
+
+
+
+
+
+
+
+Nature Communications
+
+
+
+
+8
+
+
+1
+
+
+134
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decision Confidence and Uncertainty in Diffusion Models with Partially Correlated Neuronal Integrators
+
+
+
+
+R
+Moreno-Bote
+
+
+
+
+
+
+
+
+Neural Computation
+
+
+
+
+22
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Associative processes in intuitive judgment
+
+
+
+
+C
+K
+Morewedge
+
+
+
+
+
+
+D
+Kahneman
+
+
+
+
+10.1016/j.tics.2010.07.004
+
+
+
+
+
+
+Trends Cogn Sci
+
+
+
+
+14
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Exact distribution of the max/min of two gaussian random variables
+
+
+
+
+S
+Nadarajah
+
+
+
+
+
+
+S
+Kotz
+
+
+
+
+
+
+
+
+IEEE Transactions on very large scale integration (VLSI) systems
+
+
+
+
+
+
+16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dissociable effects of surprise and model update in parietal and anterior cingulate cortex
+
+
+
+
+J
+X
+O'reilly
+
+
+
+
+
+
+U
+Schuffelgen
+
+
+
+
+
+
+S
+F
+Cuell
+
+
+
+
+
+
+T
+E
+Behrens
+
+
+
+
+
+
+R
+B
+Mars
+
+
+
+
+
+
+M
+F
+Rushworth
+
+
+
+
+
+
+
+
+Proc Natl Acad Sci U S A
+
+
+
+
+110
+
+
+38
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Attention and choice: A review on eye movements in decision making
+
+
+
+
+J
+L
+Orquin
+
+
+
+
+
+
+S
+Mueller Loose
+
+
+
+
+
+
+
+
+Acta Psychologica
+
+
+
+
+144
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural correlates of evidence accumulation during value-based decisions revealed via simultaneous eeg-fmri
+
+
+
+
+M
+A
+Pisauro
+
+
+
+
+
+
+E
+Fouragnan
+
+
+
+
+
+
+C
+Retzler
+
+
+
+
+
+
+M
+G
+Philiastides
+
+
+
+
+
+
+
+
+Nat Commun
+
+
+
+
+8
+
+
+15808
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural oscillations and synchronization differentially support evidence accumulation in perceptual and value-based decision making
+
+
+
+
+R
+Polania
+
+
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+M
+Grueschow
+
+
+
+
+
+
+C
+C
+Ruff
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+82
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Efficient coding of subjective value
+
+
+
+
+R
+Polanía
+
+
+
+
+
+
+M
+Woodford
+
+
+
+
+
+
+C
+C
+Ruff
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+22
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confidence in evaluations and value-based decisions reflects variation in experienced values
+
+
+
+
+J
+Quandt
+
+
+
+
+
+
+B
+Figner
+
+
+
+
+
+
+R
+W
+Holland
+
+
+
+
+
+
+H
+Veling
+
+
+
+
+10.1037/xge0001102
+
+
+
+
+
+
+J Exp Psychol Gen
+
+
+
+
+
+
+
+
+
+
+Journal Article
+
+
+
+
+
+
+
+
+Adaptive behaviour and feedback processing integrate experience and instruction in reinforcement learning
+
+
+
+
+A
+M
+Schiffer
+
+
+
+
+
+
+K
+Siletti
+
+
+
+
+
+
+F
+Waszak
+
+
+
+
+
+
+N
+Yeung
+
+
+
+
+
+
+
+
+Neuroimage
+
+
+
+
+146
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Visual attention modulates the integration of goal-relevant evidence and not value
+
+
+
+
+P
+Sepulveda
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+N
+Davies
+
+
+
+
+
+
+A
+Benson
+
+
+
+
+
+
+P
+Ortoleva
+
+
+
+
+
+
+B
+Martino
+
+
+
+
+
+
+
+
+
+
+
+
+bioRxiv, 2020.04.14.031971
+
+
+
+
+
+
+
+
+Visual attention modulates the integration of goal-relevant evidence and not value
+
+
+
+
+P
+Sepulveda
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+N
+Davies
+
+
+
+
+
+
+A
+A
+Benson
+
+
+
+
+
+
+P
+Ortoleva
+
+
+
+
+
+
+B
+Martino
+
+
+
+
+
+
+
+
+60705
+
+
+Elife, 9
+
+
+
+
+
+
+
+
+
+
+
+
+Forming beliefs: Why valence matters
+
+
+
+
+T
+Sharot
+
+
+
+
+
+
+N
+Garrett
+
+
+
+
+
+
+
+
+Journal Article]. Trends Cogn Sci
+
+
+
+
+20
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The expected value of control: an integrative theory of anterior cingulate cortex function
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+79
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+R
+L
+Buckner
+
+
+
+
+Neural correlates of dueling affective reactions to win-win choices. Proceedings of the National Academy of Sciences
+
+
+
+
+
+
+111
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The evil of banality: When choosing between the mundane feels like choosing between the worst
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+C
+K
+Dean Wolf
+
+
+
+
+
+
+U
+R
+Karmarkar
+
+
+
+
+
+
+
+
+J Exp Psychol Gen
+
+
+
+
+147
+
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dissociable components of the reward circuit are involved in appraisal versus choice
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+U
+R
+Karmarkar
+
+
+
+
+
+
+
+
+Sci Rep
+
+
+
+
+9
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gaze bias both reflects and influences preference
+
+
+
+
+S
+Shimojo
+
+
+
+
+
+
+C
+Simion
+
+
+
+
+
+
+E
+Shimojo
+
+
+
+
+
+
+C
+Scheier
+
+
+
+
+
+
+
+
+Nat Neurosci
+
+
+
+
+6
+
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gaze amplifies value in decision making
+
+
+
+
+S
+M
+Smith
+
+
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+30
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Proactive information sampling in value-based decision-making: Deciding when and where to saccade
+
+
+
+
+M
+Song
+
+
+
+
+
+
+X
+Wang
+
+
+
+
+
+
+H
+Zhang
+
+
+
+
+
+
+J
+Li
+
+
+
+
+
+
+
+
+Frontiers in Human Neuroscience
+
+
+
+
+13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimal policy for multi-alternative decisions
+
+
+
+
+S
+Tajima
+
+
+
+
+
+
+J
+Drugowitsch
+
+
+
+
+
+
+N
+Patel
+
+
+
+
+
+
+A
+Pouget
+
+
+
+
+
+
+
+
+Nat Neurosci
+
+
+
+
+22
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimal policy for value-based decision-making
+
+
+
+
+S
+Tajima
+
+
+
+
+
+
+J
+Drugowitsch
+
+
+
+
+
+
+A
+Pouget
+
+
+
+
+
+
+
+
+Nat Commun
+
+
+
+
+7
+
+
+12400
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confirmation bias through selective overweighting of choice-consistent evidence
+
+
+
+
+B
+C
+Talluri
+
+
+
+
+
+
+A
+E
+Urai
+
+
+
+
+
+
+K
+Tsetsos
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+T
+H
+Donner
+
+
+
+
+
+
+
+
+Curr Biol
+
+
+
+
+28
+
+
+19
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The attentional Drift Diffusion Model of simple perceptual decisionmaking
+
+
+
+
+G
+Tavares
+
+
+
+
+
+
+P
+Perona
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+
+
+Frontiers in Neuroscience
+
+
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Selective integration: An attentional theory of choice biases and adaptive choice. Current Directions in Psychological
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+K
+Tsetsos
+
+
+
+
+
+
+M
+Glickman
+
+
+
+
+
+
+N
+Chater
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+28
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A
+Westbrook
+
+
+
+
+
+
+R
+Van Den Bosch
+
+
+
+
+
+
+J
+I
+Maatta
+
+
+
+
+
+
+L
+Hofmans
+
+
+
+
+
+
+D
+Papadopetraki
+
+
+
+
+
+
+R
+Cools
+
+
+
+
+
+
+M
+J
+Frank
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dopamine promotes cognitive effort by biasing the benefits versus costs of cognitive work
+
+
+
+
+
+
+Science
+
+
+
+
+367
+
+
+6484
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Humans Use Directed and Random Exploration to Solve the Explore -Exploit Dilemma
+
+
+
+
+R
+C
+Wilson
+
+
+
+
+
+
+A
+Geana
+
+
+
+
+
+
+J
+M
+White
+
+
+
+
+
+
+E
+Ludvig
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+
+
+Journal of experimental psychology: General
+
+
+
+
+143
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Metacognition in human decision-making: confidence and error monitoring
+
+
+
+
+N
+Yeung
+
+
+
+
+
+
+C
+Summerfield
+
+
+
+
+
+
+
+
+Philos Trans R Soc Lond B Biol Sci
+
+
+
+
+367
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mental Sampling in Multimodal Representations
+
+
+
+
+J
+Zhu
+
+
+
+
+
+
+A
+Sanborn
+
+
+
+
+
+
+N
+Chater
+
+
+
+
+
+
+
+
+Advances in Neural Information Processing Systems
+
+
+
+
+Curran Associates, Inc
+
+
+
+
+31
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

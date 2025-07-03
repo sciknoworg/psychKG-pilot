@@ -1,13 +1,15 @@
 import os
 import json
+import re
 from pathlib import Path
 from typing import List
 from bs4 import BeautifulSoup
+from getpass import getpass
+
 from pydantic import BaseModel, ValidationError
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from instructor import Instructor
 from tqdm import tqdm
-import torch
+from openai import OpenAI
 
 # --------- Schema ---------
 class PsychTriple(BaseModel):
@@ -64,15 +66,23 @@ def process_file(file_path: str, prompt_dir: str, json_dir: str, llm: Instructor
         print(f"⚠️ Skipping empty or malformed text in {file_path}")
         return False
 
-    prompt = build_prompt(text[:100000])  # Truncate for context limits
+    prompt = build_prompt(text[:130000])
     prompt_path = Path(prompt_dir) / (Path(file_path).stem + ".prompt.txt")
     output_path = Path(json_dir) / (Path(file_path).stem + ".json")
 
     with open(prompt_path, "w", encoding="utf-8") as f:
         f.write(prompt)
 
+    print(f"🔍 Sending prompt for {file_path} to the LLM...")
+
     try:
-        results = llm(prompt, output_type=List[PsychTriple])
+        results = llm.create(
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            response_model=List[PsychTriple]
+        )
 
         if not results:
             print(f"✅ {file_path} | Extracted 0 triples")
@@ -82,14 +92,40 @@ def process_file(file_path: str, prompt_dir: str, json_dir: str, llm: Instructor
             json.dump([r.model_dump() for r in results], f, indent=2)
         print(f"✅ {file_path} | Extracted {len(results)} triples")
         return True
+
     except ValidationError as ve:
         print(f"❌ Validation failed for {file_path}:\n{ve}")
     except Exception as e:
         print(f"❌ Failed to process {file_path}: {e}")
     return False
 
+# --------- ChatAI Wrapper ---------
+class ChatAIWrapper:
+    def __init__(self, client, model_name: str):
+        self.client = client
+        self.model = model_name
+
+    def create(self, messages, response_model, **kwargs):
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            **{k: v for k, v in kwargs.items() if k in {"temperature", "top_p", "n", "stop", "max_tokens"}}
+        )
+        response_text = completion.choices[0].message.content
+        #print(f"📥 Raw LLM response: {response_text[:300]}...")
+
+        # Strip ```json or ``` wrapper
+        cleaned = re.sub(r"^```(?:json)?\n|\n```$", "", response_text.strip(), flags=re.IGNORECASE)
+        try:
+            parsed = json.loads(cleaned)
+            return [response_model.__args__[0](**item) for item in parsed]
+        except Exception as e:
+            raise ValueError(f"❌ Failed to decode JSON: {e}\n\nRaw response:\n{response_text}")
+
 # --------- Main ---------
 def main():
+    api_key = getpass("Enter your ChatAI API key: ")
+    model = input("Enter model name (e.g., meta-llama-3.1-8b-instruct): ").strip()
     input_dir = input("Enter input directory containing .xml files: ").strip()
     prompt_dir = input("Enter directory to save prompts: ").strip()
     json_dir = input("Enter directory to save JSON outputs: ").strip()
@@ -97,23 +133,10 @@ def main():
     for d in [input_dir, prompt_dir, json_dir]:
         os.makedirs(d, exist_ok=True)
 
-    model_name = "Qwen/Qwen2.5-72B-Instruct"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map="auto",
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
-    )
-
-    text_gen_pipeline = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        max_new_tokens=8000,
-        return_full_text=False
-    )
-
-    llm = Instructor(text_gen_pipeline)
+    base_url = "https://chat-ai.academiccloud.de/v1"
+    client = OpenAI(api_key=api_key, base_url=base_url, timeout=60)
+    chat = ChatAIWrapper(client, model)
+    llm = Instructor(client=client, create=chat.create)
 
     files = list(Path(input_dir).glob("*.xml"))
     if not files:

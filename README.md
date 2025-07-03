@@ -46,4 +46,11 @@ Replace myenv_11 with your preferred environment name.
 source myenv3_11/bin/activate
 ```
 
+pip install --upgrade pip
+pip install beautifulsoup4
+pip install instructor
+pip install transformers
+pip install torch
+pip install accelerate
+
 
