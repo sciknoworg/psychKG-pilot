@@ -15,7 +15,7 @@ class PsychTriple(BaseModel):
     measured_by: str
     justification: str
 
-# --------- TEI XML Extraction ---------
+# --------- TEI Text Extraction ---------
 def extract_text_from_tei_xml(tei_path: str) -> str:
     try:
         with open(tei_path, 'r', encoding='utf-8') as file:
@@ -58,22 +58,21 @@ Output: Provide your response as a JSON list in the following format:
 """.strip()
 
 # --------- Process One File ---------
-def process_file(file_path: str, prompt_dir: str, json_dir: str, llm: Instructor) -> bool:
+def process_file(file_path: str, prompt_dir: str, output_dir: str, llm: Instructor) -> bool:
     text = extract_text_from_tei_xml(file_path)
     if not text:
         print(f"⚠️ Skipping empty or malformed text in {file_path}")
         return False
 
-    prompt = build_prompt(text[:100000])  # Truncate for context limits
+    prompt = build_prompt(text[:100000])
     prompt_path = Path(prompt_dir) / (Path(file_path).stem + ".prompt.txt")
-    output_path = Path(json_dir) / (Path(file_path).stem + ".json")
+    output_path = Path(output_dir) / (Path(file_path).stem + ".json")
 
     with open(prompt_path, "w", encoding="utf-8") as f:
         f.write(prompt)
 
     try:
         results = llm(prompt, output_type=List[PsychTriple])
-
         if not results:
             print(f"✅ {file_path} | Extracted 0 triples")
             return False
@@ -90,14 +89,14 @@ def process_file(file_path: str, prompt_dir: str, json_dir: str, llm: Instructor
 
 # --------- Main ---------
 def main():
-    input_dir = input("Enter input directory containing .xml files: ").strip()
+    input_dir = input("Enter input directory with .xml files: ").strip()
     prompt_dir = input("Enter directory to save prompts: ").strip()
-    json_dir = input("Enter directory to save JSON outputs: ").strip()
+    output_dir = input("Enter directory to save JSON outputs: ").strip()
+    model_name = input("Enter Hugging Face model name (e.g., Qwen/Qwen2.5-72B-Instruct): ").strip()
 
-    for d in [input_dir, prompt_dir, json_dir]:
+    for d in [input_dir, prompt_dir, output_dir]:
         os.makedirs(d, exist_ok=True)
 
-    model_name = "Qwen/Qwen2.5-72B-Instruct"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
@@ -125,11 +124,10 @@ def main():
 
     for xml_file in tqdm(files, desc="Processing TEI XML files"):
         total_articles += 1
-        success = process_file(str(xml_file), prompt_dir, json_dir, llm)
+        success = process_file(str(xml_file), prompt_dir, output_dir, llm)
         if success:
             satisfied_articles += 1
 
-    # ✅ Summary
     print("\n=== Extraction Summary ===")
     print(f"Total articles processed: {total_articles}")
     print(f"Articles with extracted constructs and measures: {satisfied_articles}")
