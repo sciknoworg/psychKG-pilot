@@ -1,0 +1,944 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction: the functions of the brain in the body
+Imagine that you are learning to play dodgeball as a beginner. You stand with the other players, divided into two teams, and when the game begins you need to pick up a large inflated ball from a pile in the middle and hit a member of the other team with it. As you run, throw, dodge, catch, and reach, your muscle cells require metabolic fuel in the form of molecules such as oxygen and glucose, which must be conveyed to those muscle cells via the blood. Your vascular system must deliver and distribute blood with speed, bringing nutrients and removing metabolites. Despite rapid muscle movements generating waste heat, your body temperature must remain within a narrow, viable range. As blood circulates more quickly throughout your body, your lungs must also increase the rate with which they breathe oxygen in and carbon dioxide out.
+Playing a simple game of dodgeball, then, requires your brain to continually coordinate the systems of your body. At the same time, your body sends sensory information about internal events up the spinal cord and vagus nerve to the brain. It is standard practice in neuroscience to distinguish the brain's "physiological sense of the condition of the body" (interoception 
+[1,
+2,
+3]
+) from the collection of sensory modalities that inform the brain about the world outside the body (exteroception).
+Interoception includes, but is not limited to, the brain's modeling of the sensory signals from innervated visceral organs. Nociception, temperature, and C-tactile afferent-mediated (affective) touch on the skin are also considered interoceptive modalities, by virtue of their conveyance of sensory inputs to the brain via unmyelinated or lightly myelinated ascending fibers in the lamina 1 spinothalamic tract 
+[1,
+4,
+2]
+. A broad view of interoception also includes modeling chemosensation from within the body's interior, such as changes in the endocrine system 
+[5]
+, changes in the immune system 
+[6]
+, and changes in the digestive system and gut 
+[7,
+8]
+. For simplicity's sake, however, this paper will treat all these systems as "visceral".
+Viscerosensory signaling (i.e., the ascending signals from the sensory surfaces inside the body and the skin) informs the brain of the state of the body in an ever-changing and only partly predictable world. Since sensory signals themselves are ambiguous and noisy, this poses an inverse problem for the brain, one of inferring causes (the state of the body) from effects (the ascending viscerosensory signals). The brain solves this problem by means of an internal model 
+[9]
+. Psychologists refer to the internal model, including interoception, by many terms, including memory 
+[10]
+, belief 
+[11]
+, perceptual inference 
+[12]
+, unconscious inference 
+[13]
+, embodied simulation 
+[14]
+, concepts and categories 
+[15]
+, controlled hallucination 
+[16]
+, and prediction 
+[17,
+18]
+. Regardless of what it is called, the brain is hypothesized to construct a dynamic model of its body in the world 
+[19,
+20]
+. In this paper we will use the terms prediction, simulation, and concept.
+The process of building and refining an internal model based on viscerosensory signals does not, in and of itself, accomplish the brain's most basic task. This task is to maximize the energy efficiency of bodily functions, to "anticipate changing needs, evaluate priorities, and prepare the organism to satisfy them before they lead to errors" (page 4, Sterling 
+[21]
+), a process called allostasis (for further discussion on allostasis, see Sterling
+and Laughlin 
+[22]
+, Schulkin and Sterling 
+[23]
+). Concurrent evolutionary 
+[24]
+ and neuroanatomical 
+[19,
+25,
+15]
+ evidence suggests that exteroceptive sensory signals, and the internal models anticipating them, contextualize and support motor control 
+[9]
+. In a similar way, viscerosensory signals provide online feedback for allostasis, and interoceptive internal modeling subserves allostatic visceromotor control 
+[19,
+25,
+26,
+15]
+. Many lines of evidence suggest the same conclusion: the brain is predictively regulating the body, which is a problem of motor control rather than of perceiving the world. It is a problem of regulating the body along a desired trajectory to achieve efficiency.
+Existing formal models of interoception and body regulation (such as those reviewed by Hulme et al. 
+[27]
+ and Petzschner et al. 
+[28]
+, as well as recent recent works such as Unal et al. 
+[29]
+) have either formulated allostasis as a prospective decision-making problem (without considering how those decisions are enacted) or as a motor control problem (without considering where motor commands come from). Additionally, rather than treat metabolic efficiency as the objective, they discuss homeostasis, the regulation of bodily variables to fixed set points with fixed tolerances for error. While many interpretations allow for regulation to take place preemptively (see Carpenter 
+[30]
+), homeostasis is still assumed to correct deviations from a fixed set-point 
+[31]
+. In addition, homeostasis is not well suited to deal with variation in demand on bodily systems across contexts and time, variation that has now been well-documented (e.g. 
+[32,
+33,
+34,
+35]
+). This paper aims to fill this gap by proposing an initial formal model of allostatic regulation. In the process, it will connect existing accounts of motor control based on internal models 
+[36,
+37,
+9]
+ and accounts of brain function based on feedback control 
+[38,
+39,
+40]
+ to the brain's regulation of the body's internal environment.
+This paper's formal model of allostasis draws from control theory, a discipline widely employed in both systems biology and engineering. Control theory deals with driving dynamical systems to move (approximately) along a certain desired trajectory, despite physical disturbances to those systems that might drive it off that trajectory. Control theory also makes explicit the question of what the desired trajectory is, how the trajectory might be physically realized, and how one system can drive another to follow a more desired trajectory rather than a less desired one. This paper describes an approach to formally modeling regulation of the body that retains compatibility with previous empirical (e.g. Kleckner et al. 
+[26]
+, Young et al. 
+[41]
+) and theoretical (e.g. Pezzulo et al. 
+[42]
+, Corcoran and Hohwy 
+[43]
+, Petzschner et al. 
+[28]
+)
+investigations, while building upon control theory from first principles. is that the brain, as part of allostasis, estimates how efficiently physiological processes can enable or support needed changes in resource levels 
+[23]
+.
+Towards that end, Section 2.1 differentiates two types of viscerosensory variables: those that represent quantities of resources (called regulated resources)
+and those that represent rates 1 at which processes act (called controlled processes) 2 . Section 2.2 applies these concepts to the well-studied controlled process of the carotid baroreflex, which the brain must modulate by central command to meet oncoming demand for the oxygen, glucose, etc. in the blood. This subsection suggests that the brain predicts ongoing fluctuations in physiological efficiency. Section 2.3 considers a more complex regulatory setting, in which several physiological processes act on a common metabolic resource in different ways, and generalizes the proposed notion of physiological efficiency estimation to this more common case. Finally, Section 2.4
+discusses how efficiency estimation in interoception could enable the brain to constructively evaluate a rich variety of predicted bodily conditions without requiring a modular, purpose-specific "reward" system.
+The discussion of control theory in Section 3 then will use the concepts described here. In Section 4 these concepts will undergird a mathematical formalism for allostatic decision making.
+
+
+Regulated resources and controlled processes in physiology
+Regulated resources are kept relatively stable over time. Examples include blood glucose and core body temperature. By contrast, a non-regulated resource such as blood alcohol (ethanol) does not have its level stabilized by the body in most contexts. Insofar as a regulated resource like blood glucose represents a physical quantity 
+3
+ or a substance (like glucose), its quantity can- 
+1
+ Quantities of change per period of time 
+2
+ The terminology of regulated resources and controlled processes comes from Kotas and Medzhitov 
+[35]
+ and Cabanac 
+[33]
+. 
+3
+ which has physical units independent of time not change instantaneously. Regulation of resources does not have to move levels towards a specific set point 
+4
+ , and in fact, many can freely vary over a range of possible values without regulatory response. Such a range is called a settling range, since the level of a resource might settle anywhere in the range without provoking a regulatory response.
+A regulated resource remains (relatively) stable over time thanks to the adaptive change of one or more controlled processes. Controlled process rates are the rates at which physiological processes operate. These regulatory processes contribute to the relative stability or change in regulated resources over time. Examples of controlled processes include sweating and shivering,
+while an example of a physiological change that is not a controlled process is when body temperature increases as a result of the body being in direct sunlight. The rates of controlled processes can speed up or slow down within a broad range by altering energy expenditure. Where a controlled process falls within its operating range will determine its effect upon the regulated resource to which it is coupled. Controlled processes do not have to affect the underlying regulated resource directly by a single causal mechanism; they can have their effect via other controlled processes.
+
+
+Illustration by example
+Returning to the dodgeball example, the full range of physiological processes maintaining a person's ability to play would include the metabolic necessities and byproducts carried in the blood itself: oxygen, glucose, and carbon dioxide chief among them. These can be viewed in terms of the functional categories delineated above. The levels of oxygen, glucose, and carbon dioxide in the blood, at any given moment, are called regulated resources. The demand for metabolic inputs by the muscles then can be considered a controlled process. In the specific case of the muscles, their metabolic uptake changes the circulating levels of oxygen, glucose, and carbon dioxide. In addition, blood pressure is a controlled process which subserves the maintenance or replenishment of the regulated resources. The heart rate and levels of autonomic activation (in both branches of the autonomic nervous system) then also function as controlled processes, modulated to indirectly keep the regulated resources in the desired range.
+In evolutionary terms, controlled processes contribute to the fitness of the organism by responding to changes in the relevant underlying regulated resource to keep that variable within a viable range. In mathematical terms, changes in controlled process rates can be modeled as functions of regulated resource levels. However, those controlled processes also themselves have limited ranges of possible action. The limited ranges of both regulated resources and controlled processes can be predicted and modeled in terms of capacity curves, which are the topic of the next section.
+
+
+Predicting and modeling the ranges of regulated and controlled processes
+Both the heart rate and blood pressure must increase during aerobic exercise, as noted in the dodgeball example. If you were to try to play dodgeball at a resting level of blood flow, your muscles quickly would become fatigued and you would be unable to move (for a more detailed discussion, see Sterling and Laughlin 
+[22]
+). Your brain must therefore direct the sympathetic branch of your autonomic nervous system to increase its outflow, including increasing blood pressure via vasoconstriction 
+5
+ . Under resting conditions, the baroreceptor-heart rate reflex would normally counter any rise in blood pressure by slowing the heartbeat. However, with exertion, your blood pressure and heart rate both must increase to support the needed increase in blood flow required by your exercising muscles. To accomplish this specific change, your brain modulates the response of your baroreceptor-heart rate reflex 
+[47,
+48]
+, shifting the entire function relating a change in your blood pressure to a change in your heart rate 
+[49]
+. The alterations enable redistribution of blood to meet the new demand so that you can run to avoid the ball or throw the ball at someone else.
+However, blood pressure is a controlled process, not a regulated resource.
+It must shift in order to stabilize the regulated resources of oxygen, glucose, and carbon dioxide concentrations in the blood. It therefore lacks a set point to which the brain will regulate the baroreceptor-heart rate reflex, the heartbeat, or other variables affecting the blood pressure. Although the controlled process regulating the blood pressure can and does shift its rate with time, that rate can only rise or fall so far before reaching physical limits, after which further modulation of the baroreceptor or the heartbeat will have no additional significant effect. The baroreflex's responsive range can be defined as the range between where the controlled process (the blood pressure) effectively cannot decrease further (the threshold value point) and
+where it cannot increase further (the saturation value point 
+6
+ .
+Threshold and saturation points partly define curves that are derived from functions which physiologists commonly use to model the connection between perturbations and regulatory responses, usually naming them response curves (e.g., Ogoh et al. 
+[51]
+) or transfer functions. The term capacity curves will be used to emphasize the fact that while such curves can shift over time, in any one instant they represent the current range of limited regulatory resources available to an organism. The terms threshold and saturation will also be used for the levels of the regulatory responses (plotted on the vertical axis) of a capacity curve, rather than the levels of the perturbing stimulus (plotted on the horizontal axis).  : Capacity curve for baroreceptor afferent firing, taken as a pedagogical example from Heesch 
+[52]
+. As the curve flattens in either direction, the baroreflex can no longer respond proportionally to changes in blood pressure. The tick markers show the threshold value (the fifth percentile of response) and the saturation value (the 95th percentile of response) on the horizontal axis.
+(horizontal axis) is a controlled process, and so the baroreflex activation (vertical axis) is also a controlled process, one which only affects the underlying regulated resources (e.g., blood glucose, blood oxygen, etc.) indirectly.
+Mathematically, an ideal small change in the blood pressure will lead to a certain ideal small change in baroreflex activation 
+7
+ . The operating point is where this potential response is greatest. For a symmetrical capacity curve such as that of the baroreceptor-heart rate reflex above, the operating point will lie in the center of the curve.  around the operating point (blue diamond marker). The diamond marker denotes the point of optimal responsiveness, or operating point. Responsiveness is optimal when the tangent line has maximal slope around the current blood pressure. Regulating to optimal responsiveness requires either keeping current blood pressure near the operating point, or relaxing the baroreflex's gain to widen the curve. The latter sacrifices performance (slope) at the operating point but provides greater resilience against uncertainty and perturbations. Note that the operating point refers to the point on the horizontal axis.
+The capacity curve in 
+Figure 1
+ has mathematical form
+y(x; µ, k, R, B) = R 1 + exp (−k(x − µ)) + B,
+(1)
+and its parameters will take values according to the figure. These values include the response range R (from lower to upper asymptote), the lower boundary B on the response, the operating point x = µ, and the gain k. 
+u(x; µ, k) = 1 1 + exp (−k(x − µ)) ,
+(2)
+y(u; R, B) = Ru + B,
+(3)
+x(u; µ, k) = µ + 1
+k log u 1 − u .
+(4)
+These equations outline the form of a generative model: a procedure for probabilistically predicting observed variables in terms of unobserved variables. µ, k, R, B, u serve as unobserved variables, which are sampled from a prior probability distribution not dependent on data. These variables are plugged into the equations to generate predictions for the observed variables: mean blood pressure x and baroreflex afferent activation y. Together, the prior and the likelihood can form a posterior probability distribution, which defines the probabilities of different values for the unobserved variables given the observed ones. In the brain, any internal generative model with similar structure to the above would likely obtain its probability densities for the unobserved variables from its general knowledge of the body in the world, rather than starting with an uninformed prior.
+The proposal here has an unusual feature: the equations for x (the mean arterial blood pressure) and y (the baroreflex activation as a percent of baseline) are in terms of the quantile variable u. The quantile variable uniformly represents the relationship between the blood pressure and the baroreflex activation, irrespective of changes in the capacity curve's operating point µ and gain k. The quantile depends only on the functional form of the capacity curve, not on the parameters. The distance u(x) − u(µ) (i.e., the relative distance between the current value of x and the operating point) therefore provides a time-independent performance metric for the regulatory task of the baroreceptor-heart reflex. Capacity curves change all the time due to variation in their underlying physiological systems (see plot of arterial pressure over time in Bevan et al. 
+[54]
+, reprinted in Sterling 
+[21]
+), but quantiles will retain the same meaning no matter the current parameter values. This supports high regulatory flexibility, a concept often proposed by physiologists as an adjustable set point 
+[33]
+.
+Any point on any capacity curve can be written in terms of quantiles, because capacity curves represent physical responses with finite ranges. Insofar as controlled process responses have the bounded form described above, they can potentially be described in terms of capacity curves, with mathematical description similar to that given above (although usually more complex in the details). Insofar as this remains empirically true, interoceptive internal modeling 
+[19]
+ could be described, mathematically, as estimating capacity The process of correcting and/or confirming predictions will usually entail spending a sizable amount of energy just on neural firing to update the various predictions 
+[55]
+. On top of that, the brain also will have to spend energy to reconsider and re-plan current behavior. Imagine an internal chest pain during a game of dodgeball, when you know you haven't been hit: it could be heartburn, or it could be a heart attack. Whatever the cause, the brain will have a metric of physiological efficiency with which to determine how to spend resources on updating predictions and behavior, so as to optimally keep regulated resources within the responsive ranges of their corresponding controlled processes. is plausibly a function of glucose availability in the blood.
+Settling-point dynamics require either that a controlled process be regulated to decline proportionally to the current level of the regulated resource, or that outputs be regulated to increase proportionally to the current level of the regulated resource. Speakman et al. 
+[60]
+ give the example of a water reservoir, with water as the resource and outflow from the reservoir as the controlled process. If the depth of the reservoir grows higher due to rain, so will the volume of outflow. The depth of the reservoir stabilizes when the incoming rain and the outgoing outflow over a period of time equal each-other.
+In the body, both of these forms of regulation can and do happen: they are the job of the brain 
+[61]
+. The brain may operate as an additional hierarchical level of control, actively balancing and minimizing the necessary metabolic control effort by preemptively regulating intake and uptake of glucose through behavior. Thus, uptake of glucose by the muscles during a game of dodgeball results in a fall in blood glucose and a corresponding increase in secretion of glucagon 
+[62]
+. Glucagon acts to cause the release of glucose
+into the blood (from liver cells). In the event of glucose overshoot (i.e., excess levels in blood), insulin will be secreted to restore blood glucose into its settling range. The brain also registers a "cost" of the glucagon release because it required energy expenditure (both in synthesis and secretion), an expenditure that could instead have been spent on the dodgeball game, had the glucose level been more actively maintained. The reverse can occur when the blood contains a surfeit of glucose stock, which then must be taken up into other tissues for storage or usage.
+Mathematical modeling studies suggest that the inflection (operating) points on the generalized sigmoidal curves (generalized capacity curves) for glucagon and insulin can be found at 3.01 millimolar (mM) and 8.6 millimolar (mM) respectively, quite close to the lower and upper limits of normal human blood glucose 
+[63]
+. 
+Figure 3
+ shows plots of the resulting functions, which can be interpreted as capacity curves.  
+Figure 3
+: Capacity curves for glucagon (blue) and insulin (orange) responses to glucose levels in the blood, measured in millimolars. The diamond markers show the respective operating points (3.01 mM for glucagon, 8.6 mM for insulin) of the curves, and the space between those two markers denotes the potential settling range for blood glucose content. Derived from König et al. 
+[63]
+.
+and other similar signals could be well-described as motivating consumption behaviors (e.g., a shift in autonomic activity towards greater relative sympathetic nervous system activation, exploration of the environment, etc.), while a predictable mixture of insulin, leptin, etc. could be well-described as motivating satiety behaviors (e.g., a shift towards relatively greater parasympathetic activity, reduced motor activity, etc.).
+Similar paired controlled processes seem to appear in a variety of regulatory "modalities" throughout the body, ranging from autonomic activity on the heart 
+[45]
+ to blood glucose 
+[61]
+ (as above) to adiposity 
+[60]
+ (in the form of leptin and ghrelin). Evidence also suggests that the brain can combine these signals when they operate in tandem to regulate common behaviors 
+[67]
+.
+Allostasis may employ a generalized control motif of having paired peripheral controlled processes, which sometimes work together to drive regulatory behavior in one direction (e.g., a reciprocal mode of sympathetic increase and parasympathetic decrease which both drive the heart rate to increase), but can also "antagonize" each other's effects (such as when both the sympathetic and parasympathetic branches coactivate, producing a heart rate that is the sum of these two countervailing forces, each driving the heart rate in a different direction). Interoceptive modeling in the brain also may employ these motifs. Such general motifs in interoceptive processing could provide a domain-general mechanism for quantifying regulatory imperatives in interoceptive internal models. This may provide greater flexibility in both physiological regulation and behavior than a centrally enforced set point can provide, as well as suffering less error against challenges in each direction (see 
+[56,
+57]
+). The picture of "rewards" painted here suggests a modular "reward center" or "reward system" in the ventral midbrain, one whose specialized role is to perform apples-to-oranges comparisons in service to allostasis. However, insofar as the ventral midbrain would function as a "reward center", the "reward" signals sent to the rest of the brain would not carry contextual information about the bodily needs to which they refer. More recent evidence
+shows that there is no unique, localized "reward center" or "reward system" in the brain: broad cortical and subcortical brain networks play various roles in reward as a construct 
+[68]
+ or an abstract concept in experiments.
+Since there is no single brain site that specifically encodes appetitive or aversive reinforcement value, it is useful to reframe discrete "reward" and "decision" systems as a domain-general allostatic control system. Abundant empirical evidence supports such a reframing 
+[69,
+70]
+, particularly analyses of the default-mode network and the salience network and their subcortical connections 
+[19,
+26]
+. Computationally, these networks could implement a formal model similar to what we introduce later in this paper, or they could translate interoceptive information into a teaching signal for a reinforcement learning system, as in Keramati and Gutkin 
+[71]
+. The domain-generality of interoception provides further theoretical support for the idea that we do not need "mental modules" or "faculty psychology concepts" to understand how a brain works 
+[72,
+73]
+.
+If interoceptive processes operate to estimate parameters analogous to operating points and tolerances, then those processes should be able to convey sufficient information to the brain for purposes of regulating the body. Our formal model later will make this idea more precise, providing a way to put numbers to such "distances" and "movements".  
+
+
+Control theory for physiology: A reliable body built from unreliable parts
+Broadly, control theory deals with driving a physical system towards a desired trajectory, even when the system is built from unreliable or unpredictable parts. Control theorists call the driven system the plant, and its desired trajectory the reference trajectory 
+8
+ . Generally a plant must be made to conform to its reference trajectory by a driving system called the controller.
+In controls engineering, these systems are typically thought to be separate 
+8
+ Generally there is assumed to be a collection of possible desirable trajectories, so that a system can compensate for severe disturbances to its original trajectory by picking another acceptable trajectory from the collection. Theorists have labeled this quality "meta-stability".  
+Figure 4
+: Functional block diagram of a model-based control system. The "plant" (orange) is the object or system whose motion or other behavior is controlled. The "controller" (purple) sends signals ("controls", solid black arrows) that change how the plant moves, and signals the expected outcome ("predictions", solid yellow arrow) to the "state estimator" (yellow). The task behavior of the plant is prescribed to the controller by an engineer or machine operator (transparent box), in the form of the reference signal (solid purple arrow). Measurements of the plant output (dashed yellow arrow) feed back to the state estimator to yield updated estimates (dashed purple arrow), which the controller compares to the reference signal to adjust the controls.
+physical entities with connections between them, and along these connections the systems transmit signals to each other. The "reference signal" that specifies the reference trajectory goes into the controller, and signals that leave the controller and enter the plant are called controls. Controls affect the state of the plant over time. The reference signal is thought to derive from a source that is external to the system, such as an engineer or a machine operator. 
+Figure 4
+ shows an example "block diagram" for an engineered control system.
+A controller functions to steer the plant along its reference trajectory, adapting to external disturbances that would push the plant away from the reference trajectory. From the standpoint of a brain controlling a body, "disturbances" might be thought of as uncontrolled changes in the workings of the body's internal systems. There is an important distinction between an unpredictable event and a disturbance: unpredictable events can either push a system away from its reference trajectory or towards it, but a disturbance, which may or may not be surprising, is always an event that pushes the system away from its reference trajectory. Thus, a disturbance is always relative to the reference trajectory.
+
+
+Illustration by example
+The dodgeball example illustrates the distinction between an unpredicted event and a disturbance. If a player looks across the field and sees a ball heading straight for her, her brain knows and predicts (by means of past experience) when and where the ball is likely to arrive. If she sees another player throw the ball, it will not be surprising (i.e., unpredicted) when the ball heads her way and hits her body. It will, nonetheless, be a disturbance; insofar as her brain estimated the movement of the ball and prepared her body to dodge, if she was unable to move fast enough, she deviated from her reference trajectory. By the same token, if a ball hits her from behind as she is standing still, her brain has made no estimate of its trajectory, nor has it prepared her body to dodge, but the hit remains a disturbance. For the same reason, if she positions herself in a way that enables her to catch, by luck or accident, a ball thrown at her, she has followed her reference trajectory, even though her brain will only register this after processing the ensuing prediction errors.
+The whole point of a control system is to adapt to disturbances, and a system can attain much greater robustness and adaptability by using sensors to measure the plant's actual behavior over time. Control theorists call these measurements the feedback for the controller, and the use of feedback to adjust control outputs is called feedback control. Physiologists recognize feedback control as a ubiquitous feature of bodily function 
+[30,
+79]
+, with endocrine control of blood glucose being a well-studied example 
+[56,
+57]
+.
+Feedback control is essential because no controller is ever perfect: neither all forms of noise nor all external disturbances can ever be fully accounted for. Together, internal models predict the future and infer the past in the plant even when plant behavior is subject to process noise and measurements are subject to measurement noise.
+Internal models play an important and specific role in control theory 
+[84,
+85]
+. State estimation of future measurements based on present control signals allows the difference between predicted and actual measurements, which is called the prediction error, to be used to measure the accuracy and precision of online control. The state estimator (yellow) can use prediction errors to send updated state estimates (dashed purple arrow) back to the controller. 
+9
+ As an inverse model 10 As a forward model Controllers also can couple to each other hierarchically: a higher-level controller can send a control signal to a lower-level controller, which functions as the reference signal for that lower-level controller. In turn, the lower-level controller may send a control error signal up to the higher-level controller.
+The higher-level and lower-level controller also each may have their own state estimators based on their own internal models. The next subsection will address hierarchical control in human motor control.
+
+
+Moving the body: The referent control hypothesis
+The referent control hypothesis 
+[86,
+87]
+ describes the skeletomotor system in terms of a hierarchy of controllers, with higher-level controllers in the brain prescribing reference trajectories to the lower-level reflexes in the spinal cord.
+These reflexes then compare the actual length of the muscle, as signaled by afferent proprioceptor neurons, to the reference length sent down by the brain, and contracts the muscle to bring the two into agreement 
+[88,
+89]
+.
+Effectively, higher level controllers tell lower ones what trajectory to visit, and the lower ones figure out how to track it successfully, a phenomenon beginning to be considered in engineered (i.e., non-biological) control systems 
+[90]
+.
+Cortical regions involved in skeletomotor control (e.g., primary motor cortex, premotor cortices, etc.) also send a copy of the downward-flowing reference signals to somatosensory cortices (called an efferent copy), thereby providing prior predictions to somatosensory regions. These "prior" signals literally change the firing of neurons in somatosensory cortices, preparing them to receive incoming signals from the world based on upcoming skeletomotor movements. This dynamic takes place across all levels of the neural hierarchy, allowing the nervous system to use somatosensory prediction errors as feedback to confirm or correct movement performance; it also allows the nervous system to distinguish reafferent (self-caused) from exafferent (externally caused) sensory signals 
+13
+ . Through this lens, the brain is considered to act as both a controller (in its visceromotor and skeletomotor functions) and a corresponding state estimator (in its perceptual and simulation functions).
+Since under the referent control hypothesis, skeletomotor "commands" take the form of descending signals specifying desired lengths and tensions for proprioceptive measurements, the brain's state estimation machinery in sensory areas therefore can simulate the somatosensory consequences of those descending control signals.
+The brain is hypothesized to exploit its internal model of both the body and the local external environment to predictively construct populations of reference trajectories as embodied simulations 
+[14]
+. These simulated populations of referent trajectories can also be thought of as action concepts 
+[92,
+93]
+ (for similar ideas see also Wolpert et al. 
+[94]
+ and Hickok 
+[95]
+). In the brain, motor areas are hypothesized to implement feedforward control with action concepts by decompressing low-dimensional referent trajectories from higher in the neural hierarchy into higher-dimensional referent trajectories lower in the neural hierarchy 
+14
+ . Decompressive prediction by the brain eventually produces referent coordinates in the highest-dimensional, most redundant system of coordinates: references for individual peripheral stretch reflexes 
+[86]
+. Each such stretch reflex circuit compares the ascending stimulus from its proprioceptor neuron to its centrally commanded reference, and activates its motoneuron to suppress the difference between the two. The motor system thus can be imagined as a hierarchy of controllers, with higher-level controllers specifying the reference signals for lower-level controllers as their output control signals. In addition to converting signals from the conceptual reference frame of the behavioral task to the concrete reference frames of individual limbs and muscles, this hierarchical structure finesses neural signaling delays to provide fast, accurate control 
+[98]
+. 
+Figure 5
+ shows an elegant "outside-in" view 15 of the motor control problem, imagined along these lines. Here, an experimenter directs a participant to perform a task, who constructs an action concept from the instructions.
+13 See Straka et al. 
+[91]
+ for a thorough review. 14 A finding discussed commonly in the predictive processing 
+[96]
+ and neuro-robotics 
+[97]
+ literatures. 
+15
+ Language taken from Buzsáki 
+[99]
+.   
+Figure 5
+: Functional block diagram for an experimental psychologist's task-oriented view of motor control. The diagram shows a formal logical structure here, at a conceptual level; the boxes and arrows do not map onto the anatomy of the brain or nervous system. In contrast to 
+Figure 4
+, this diagram differentiates between skeletomotor (brain) and peripheral (stretch reflex) controllers and between sensory state estimators (brain) and peripheral sense organs (sensory surfaces). The diagram shows an engineering perspective on a psychology experiment, in which the experimenter prescribes a task or behavior to participants, and a participant's brain then acts as control system to achieve the prescribed behavior. Systems that maintain the body therefore serve systems that move the body, which in turn serve a prescribed behavior. 
+
+
+Terminology
+Predictive homeostasis is the hypothesized mode of regulation in which anticipatory decision-making mechanisms maintain regulated resources at fixed set-points with fixed tolerances. Neurally, a homeostatic regulator would consist of a comparator circuit without an incoming signal modulating its reference. Since most existing computational models of visceromotor control and interoception (e.g., 
+[28,
+100]
+) fall into this camp, we consider them to model allostasis as predictive homeostasis, designed for settings in which long-run set-points and tolerances define the chief control mechanism. This family of models includes certain active inference approaches 
+[42,
+101,
+102]
+ and homeostatic reinforcement learning 
+[71]
+. Sometimes in stochastic optimal control, the objective function is not known a priori, and must be learned from samples. This special case is called reinforcement learning (abbreviated as RL). Neuroscientists have studied reinforcement learning 
+[103]
+ as a model of how the brain might make decisions over time. Modeling midbrain phasic dopamine signaling with RL has led to a popular approach in computational neuroscience (the reward prediction error hypothesis 
+[104,
+105]
+), and continues to yield novel findings today 
+[106]
+. Notably, these successes rely on a specific way to approximate the value function for behavior over time by comparing predictions generated in the brain to the actual sensory effects of behavior. In a typical control problem, the control engineer "trusts" that she can provide an exact reference signal, while building the controller to be robust to noise and disturbances in the plant. In SOC and RL, the control engineer may not be able to specify the reference signal exactly, but she can provide the controller with encouragement (rewards) or discouragement (costs) for following observed trajectories. "Rewards" thus count as evidence in favor of the plant's recent behavior following the reference trajectory, while "costs" count as evidence for behavior deviating from the reference trajectory 
+[108]
+. This implies that an optimal controller, viewed from the perspective of 
+Figure 4
+ or 
+Figure 5
+, has two sources of uncertainty that require two separate state-estimation processes: one for the state of the plant, and another for the reference signal. The next subsection will describe how interoception works alongside somatosensory perception to reduce both of these uncertainties.  
+Figure 6
+: Functional block diagram for a control-theoretic view of allostasis. In contrast to 
+Figure 5
+, this diagram shows a closed-loop control system design for autonomous regulation of the body. An experimenter's desired "task behavior" is replaced by the allostatic capacity estimator, which sends predictions of capacity curves to the interoceptive state estimator and receives prediction errors with which to update its estimates. The updated estimates are issued as a reference signal to the visceromotor controller. This diagram shows a formal logical structure, at a conceptual level; the hypothesis depicted is constrained by the inferred anatomical structures in 
+Barrett [15]
+ but the boxes and arrows do not map one-to-one onto the anatomy of the brain or nervous system 
+[109]
+.
+
+
+Allostatic control: Motivating movements with an interoceptive model
+capacities (i.e., operating points and tolerances) in the future, a "circular causation" of self-organization and autonomy would emerge. 
+
+
+Illustration by example
+A return to the dodgeball example will ground these ideas. During a game of dodgeball, muscles will demand greater amounts of oxygen and glucose than they had needed during rest. Successfully throwing the ball at an opposing player will require mobilizing both the skeletomotor musculature ("soma", plant) as well as the internal bodily systems such as the cardiovascular system ("viscera", plant) across a timescale of tens of seconds to minutes via the visceromotor and somatomotor controllers (purple). We hypothesize that a functional equivalent to an allostatic capacity estimator (yellow) anticipates the need, altering the reference trajectory conveyed as a prediction to the visceromotor controller (purple). The visceromotor controller must then mobilize the cardiovascular system to supply those metabolic necessities via the blood. In this instance, among other adjustments, the visceromotor controller shifts and flattens the baroreflex's capacity curve 
+[110]
+, allowing both vasoconstriction and an increased heart rate to work in tandem to supply more blood flow to the muscles.
+Translating the example into the language of 
+Figure 6
+, the allostatic ca- and somatosensory exteroceptive state estimators (yellow) to generate sensory predictions (e.g., predict that the heart rate will be close to the reference). The skeletomotor controller decompresses its own reference trajectory into even higher-dimensional reference trajectories (solid purple arrow)
+for peripheral reflex controllers (purple); these convey motor signals about
+where your hands and feet should be, how bent your knees should be, etc.
+The skeletomotor controller also emits efferent copies to the somatosensory model, which generates sensory predictions regarding the sense data coming from sensory surfaces: the strain of bending the knees, the thump of the heart against the chest, and so on. 
+
+
+Summary
+This section discussed three applications of control theory to studying the body and brain. Section Before diving into formal modeling details below, it might be helpful to compare and contrast the approach here with a prominent modeling framework: active inference 
+[111,
+112]
+. Like many active inference models, the formal model below takes the form of information-theoretic model-predictive control (similar to work such as Williams et al. 
+[113]
+ and Nasiriany et al. 
+[114]
+ in engineering) with a hierarchically-defined objective (similar to Smith et al.
+[115], Pezzulo et al. 
+[101]
+). Insofar as such efforts can be considered "active inference", the formal model outlined in the next section is also an active inference model. Unlike most active inference models in the literature, however (with the exception of Millidge 
+[116]
+), the material below considers an indefinite-time or "infinite horizon" control setting. Insofar as the research community prefers for the term "active inference" to refer specifically to formal models derived from the free energy principle (see B.2 and Kirchhoff et al. 
+[117]
+), with its ergodic assumptions and its unique expected free energy objective, the formal model below is distinct from these traditional active inference models.
+
+
+Allostasis as trajectory-tracking stochastic optimal control
+The previous section overviewed and applied control theory to study phys- We will call such a distribution a reference distribution. hierarchy. We will later define a specific graphical model that suits these notations.
+We define the PDF corresponding to a physiological capacity curve as the reference distribution for the value on the horizontal axis of the PDF.
+These reference distributions have parameters, which we name ρ
+(0:L−1) t
+, and
+p(x t ; ρ (0:L−1) t ) denotes their PDF's. log p(x t ; ρ (0:L−1) t
+) will denote the corresponding log-density objectives.
+Our allostatic decision-making model focuses on optimizing a construct called the instantaneous capture rate (given informally in Equation 5), which we write as J(x t , x t−1 ). Since the model here works with discrete time steps, the instantaneous capture rate is defined as a function of the transition between one time-step and another. The instantaneous capture rate consists of a rate of resource intake minus a rate of effort expenditure. We suggest that we can identify the instantaneous capture rate with a rate of movement along capacity curves, which we will write mathematically below in Equation 6.
+J(x t , x t−1 ) = Intake(x t , x t−1 ) − Effort(x t , x t−1 ).
+(5)
+The single-step capture rate is formalized as
+J(x t , x t−1 ) = log p(x t ; ρ (0:L−1) t ) − log p(x t−1 ; ρ (0:L−1) t−1
+).
+Equation 6 shows the difference between the log-density objective across two consecutive time steps. Since the reference distributions defining the logdensity terms (at the lowest level, ρ  metabolic inflow (such as glucagon) can be interpreted as "intake", while decreases in responsiveness of controlled process that handle metabolic outflow (such as insulin) can be interpreted as "effort". This formalism assumes a given behavior has a finite length in time of T , and that all intakes and efforts are zero at time t = 0. The global capture rate is then writtenJ (x 1:
+T ) = T t=1 J(x t , x t−1 ) T .
+(7)
+The global capture rate is thus the average over time of the individual "intake minus effort" instantaneous capture rates of Equation 6 
+[124]
+. Since the global capture rate is defined by dividing by time, it exists for any length of time, long or short. In the real world, intakes or rewards often only accrue at the conclusion of a behavioral episode, while efforts or costs necessarily accrue throughout the behavior as energy is spent. Averaging over time treats rewards and costs equally whenever they occur during a behavioral episode. The global capture rate helps make behaviors commensurable, even when they take different lengths of time or accumulate rewards at different points in time.
+Defining the global capture rate with respect to an internal model p(x 1:T | T ) entails generating trajectories of length T , conditioned upon an initial state x 0 as context,
+1007J (x 0 ) = lim T →∞ E p(x 1:T |x 0 ) 1 T T t=1 J(x t , x t−1 ) .
+(8)
+This is an indefinite-time form of the global capture rate that generalizes Equation 7 from settings with a known beginning and end to arbitrarily long time scales.
+
+
+Feedforward control with generative action concepts
+This subsection will consider a formal model in discrete time, with arbitrary state-spaces and sensory observations. Specifically, we write sensory observations as indexed by discrete timesteps, t in o t , and do similarly for other variables. The formal model here incorporates the hypothesis that the brain's internal model stretches across a hierarchy of time-scales 
+[125]
+. However, we restrict our description to L = 4 hierarchical "levels" (matching the sensory surfaces, somatosensory and exteroceptive state estimators, interoceptive state estimators, and allostatic capacity estimators in 
+Figure 6
+). We do not hypothesize a one-to-one mapping between functional structure and neuroanatomy, and so the structure we have given here may not match neuroanatomy -but, the graphical model is formulated with an eye to keeping it consistent with the biological details of allostasis. We consider it a first attempt to build a functionally coherent model that can then be critiqued and refined to match anatomical and empirical evidence.
+The complete state of the generative model at a specific timestep t is written symbolically as
+x t = (o t , s (1:L) t , a t , ρ (0:L−1) t ),
+(9)
+under the assumption that outcomes o t are observed, latent states s A behavioral trajectory is written as contextualized by (conditioned upon)
+an initial state x 0 . This initial state corresponds to the beginning of a behavioral episode, within which interoceptive outcomes will be considered commensurable. The following states from time 1 until time T , sampled from a generative model p θ with parameters θ, are then written as
+x 1:T ∼ p θ (x 1:T | x 0 ),
+(10)
+J ≈ 1 T T t=1 J(x t , x t−1 ),
+(11)
+along with the corresponding approximate global capture rate. The internal model simulates a population of potential behavioral trajectories x 1:T , and uses them to estimate the global capture rateJ for the simulated behavior.
+This quantity will play a role in the feedback control formalism described later. 
+Figure 10
+ summarizes the proposed model structure as a probabilistic graphical model 17 , with L = 4 for purposes of exposition.  
+[125]
+. There can be no one-to-one mapping between computational theories and neuroanatomical findings 
+[127,
+128]
+. We instead account here for what we already know about the brain that goes into our model, without assuming any one-to-one mapping of brain structure and function. In the actual brain, the hierarchy of timescales is also a hierarchy of dimensionalities: information is more concrete and higher-dimensional at the bottom of the hierarchy, more abstract and lower-dimensional at the top 
+[129]
+. Dimen-
+t = 1, …, ∞ Increasing Timescale Passage of Time o t ρ (0) t a t
+s 
+(1)
+ t ρ 
+(1)
+ t s 
+(2)
+ t ρ 
+(2)
+ t s 
+(3)
+ t s 
+(3)
+ t + 3
+s 
+(2)
+ t + s 
+(1)
+ t + 1 
+Figure 10
+: A hierarchical generative model capturing multiple timescales and reference distributions at each level. Without addressing empirical questions about neural hierarchies, here we employ a model with L = 4 levels to match 
+Figure 6
+.
+For l ∈ [1..L − 1] each s (l)
+t node denotes an unobserved latent state, and each ρ . o t represents observed sensory outcomes, and a t represents the closed-loop control actions generated by motor reflexes. Arrows between random variables denote conditional dependencies. Arrows stretch further to the right when they denote change over longer time scales. sionality reduction up the hierarchy entails compression up the hierarchy, so that state estimates in the higher-level variables have greater precision. Evidence from machine learning shows that learning to control a system in terms of a low-dimensional compressed representation (also called a "latent space") provides greater performance with fewer episodes of experience compared to controlling the same system in terms of its raw measurements 
+[130,
+131,
+132]
+.
+Since the visceromotor, premotor, and motor cortical areas that implement action concepts employ low-dimensional, compressed multimodal summaries t Discrete time-step index o t Sensory observations (external and visceral) s Feedback generative model with parameters φ rather than raw measurements 
+[133]
+, we conjecture that they may benefit from the sample efficiency of latent-space control approaches. Finally, computational modeling has been directly applied in experiments that supported the presence of hierarchical Bayesian models in interoception 
+[134,
+135,
+136]
+.
+
+
+Terminology
+The language of generative models in the brain is typically used in the context of predictive processing approaches to brain function. These approaches typically label as a "generative" model the processes producing efferent signals in sensory areas of the cortex, while suggesting that the processing of reafferent signaling in those same areas encodes a "recognition" model 
+[137]
+. The efferent and reafferent signals themselves are typically then labeled "predictions" and "prediction errors". We will continue to use "feedforward" for efferent signals (or computations) and "feedback" for reafferent signals (or computations). 
+1079Ṽ * (x t , x t−1 ) = J(x t , x t−1 ) −J(x 0 )+ max p θ E x t+1 ∼p θ (x t+1 |xt) Ṽ * (x t+1 , x t ) . (12)
+However, this formalism only describes how to plan optimal behavior or learn an optimal policy (a mapping from states to actions) through forward simulation. This equation does not describe how to integrate afferent sensory information as control feedback; it also imposes the great computational difficulty of finding exact solutions to a recursive optimization problem. The following subsection will discuss a way to tackle both of these limitations, yielding a more neurally plausible form of stochastic optimal control.
+
+
+Feedback control with generative action concepts
+Standard theories of optimal decision-making ignore the variability of choice outcomes, while evidence shows that human behavior takes the level of risk into account 
+[138,
+139]
+. This makes normative sense from the perspective of embodied action: the brain has to transform even seemingly clear and simple decisions ("reach to the left") into noisy, high-dimensional motor  
+x 1:T ∼ q φ (s (1:L) 1:T , ρ (0:L−1) 1:T | o 1:T , x 0 ).
+(13)
+The updated state estimates, being based upon the observations o t , may significantly differ from the state estimates emitted by the feedforward action concept. This deviation imposes a penalty term in the objective function, called an information divergence (specifically, the Kullback-Leibler or KL divergence). The resulting function
+J (x t , x t−1 ) = J(x t , x t−1 ) − D KL (q φ (x t+1 | x t ) p θ (x t+1 | x t )) ,
+(14)
+trades off between the allostatic responsiveness objective of Equation 6 and adherance to the "planned" population of predictions given by the feedforward action concept. The first term measures success at physiological regulation, while the second term penalizes the feedback controller q φ for deviating from the action concept p θ or suffering sensory prediction errors.
+When movements result in sensory outcomes very close to those predicted under the feedforward action concept p θ , a low information divergence, that action concept can be considered robust in the face of sensory feedback.
+Readers familiar with predictive processing 
+[18,
+145,
+146]
+ and active inference 
+[111,
+137]
+ will recognize the form of the above equation as a negative free-energy or a variational lower bound (see Millidge et al. 
+[147]
+ for discussion on the variety of such bounds). Such objectives can typically be written out and interpreted in several equivalent ways, each of which can come with its own intuitions. There are arguments for the computational 
+[148]
+ and thermodynamic 
+[149]
+ efficiency of minimizing this specific divergence in the course of neural processing, but to date the available evidence does not rule out other, more complex information divergences for penalizing feedback correction of movements.
+The long-run value function (Equation 12) for a control problem can be used to derive an equation for the optimal feedback controller. By treating the pre-planned action concept as a kind of probabilistic "prior belief" about the behavioral trajectory and the decision-value of the behavior as a "likelihood function" linking the action concept to the objective function in Equation 14, Bayes' rule (see Appendix C for details) will yield the optimal feedback controller: 
+q * φ (x t+1 | x t ) = exp Ṽ * (x t+1 , x t ) p θ (x t+1 | x t ) E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) .
+(15)
+V * (x t , x t−1 ) = J (x t , x t−1 ) −J(x 0 ) + E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) .
+(16)
+Now the intractable recursive term in the equation is E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) . Finding a way to replace this term will yield a more (computationally) tractable problem. The information divergence term in J provides just such a way, since it can be written as precisely the difference between the intractable "hard" maximum under q * φ and the more tractable "smooth maximum" under the preplanned action concept. In symbols 
+(17)
+ and so the penalty's first term, when substituted into Equation 16, will cancel the intractable recursion. Only the second term of the penalty will remain, yielding a smooth maximization problem across whole action trajectories. The equation can then be solved (once again, see Appendix C for details) to write the value function without recursion as
+− D KL q * φ (x t+1 | x t ) p θ (x t+1 | x t ) = −E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) + log E p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) ,
+V * (x 0 ) = log E q * φ (x 1:T |x 0 ) exp T t=1 J (x t , x t−1 ) −J(x 0 ) ,
+(18)
+= log E p θ (x 1:
+T |x 0 ) exp T t=1 J(x t , x t−1 ) −J(x 0 ) .
+(19)
+This function contains an exponentiated sum over timesteps, where each timestep's addend has the form of an advantage function,
+A(x t , x t−1 ; x 0 ) = J (x t , x t−1 ) −J(x 0 ).
+(20)
+This measures the relative decision value of transitioning into state x t relative to an estimated global capture rateJ(x 0 ) for the initial context x 0 . Viewed another way, it measures how well the ongoing feedback-controlled behavior has performed, relative to the predicted average for the prior action concept.
+
+
+Terminology
+A sum of a function across timesteps, under a probabilistic expectation, is often called a "path integral". Since the value function in APIC can be expressed in terms of a path integral, APIC falls within the class of SOC methods known as path-integral control 
+[150]
+.
+Jensen's inequality, commonly employed in predictive processing, allows moving the logarithm inside the expectation, at the cost of yielding a lower bound to the optimal value function rather than an expression for it. Doing so cancels the exponential function inside the expectation. The lower bound is written in terms of an arbitrary feedback controller q φ and the sum of advantage values obtained over the course of the behavior,
+V * θ,φ = E q φ (x 1:T |x 0 ) T t=1 A(x t , x t−1 ; x 0 ) ≤Ṽ * (x 0 ).
+(21)
+It may seem obvious that any behavioral returns are less than or equal to the The next section will conclude the paper by discussing the implications of applying stochastic optimal control theory to allostatic physiological regulation in general, and the specific hypotheses for the brain implied by APIC.
+
+
+Discussion: Interoception stabilizes action and constructs allostatic references
+If the brain is an allostatic regulator, then its most basic task is to anticipate the body's physiological needs and prepare to meet them before they arise. This paper provided a unified interpretation of allostasis in terms of brain-body interaction and neural computations. This unified interpretation is built around stable circular interactions between the brain and body, and control theory has provided language with which to describe the mechanisms stabilizing those interactions.
+Each section of this paper addressed a particular circular interaction, and below we connect each with its implications for psychological investigation. 
+
+
+Viewing the brain as an allostatic optimal controller
+The Allostatic Path-Integral Control (APIC) model in Section 4 implies a number of specific hypotheses, beyond those generic to stochastic optimal control. This subsection will situate those commitments within the broader literature on formal modeling of motor and decision functions. We will first describe commitments shared with other modeling approaches, then describe less common commitments, and finally we will describe several commitments that are unique to the APIC model.
+On the theoretical side, the APIC model shares a number of modeling choices with active inference models, perhaps enough for APIC to be considered an active inference model of sorts. APIC employs (normalized) probability densities as its objective function to provide a "common currency" for different "rewards" and "costs" 
+[155,
+64,
+156,
+157,
+147,
+158]
+. As in active inference models based on the free-energy principle (such as Stephan et al. 
+[159]
+), the objective in our APIC model is a function of (among other things)
+precision terms, which specify the relative worth of a change in one variable versus another. APIC and active inference both optimize motor behaviors via a variational lower bound on a long-run objective, and APIC is likely compatible with the neural process theories 
+[160]
+ that have been forwarded to ground active inference in the brain. These commitments place APIC alongside active inference, in contrast to most reinforcement learning models of decision-making (e.g., Niv 
+[104]
+).
+APIC also shares a number of features common to other predictive processing paradigms, beyond active inference. Most importantly, it uses a probabilistic, generative internal model. There is a broad family of predictive processing approaches to neural function, and a proposal for a neural implementation for APIC could depend on the neurocomputational details of any of them (e.g. Boerlin et al. 
+[161]
+, Spratling 
+[162]
+, Kadmon et al. 
+[163]
+).
+These details are beyond the present scope, but, some important features can be highlighted. Predictive processing models must construct potential bodily movements from some distribution of possibilities, and neural evidence 
+[164,
+165]
+ suggests that neural representations may not summarize proba- whereas the brain can imagine many possible actions. The study of embodied decision-making in neuroscience begins from these assumptions 
+[38]
+ and an emerging body of evidence suggests that the brain controls the body by keeping many possible actions "in the running" until sensory feedback forces an irreversible decision 
+[167,
+168,
+99,
+24]
+. The APIC model works this way by default, thanks to its roots in path-integral control 
+[150]
+.
+Finally, the APIC model implies some hypotheses that are (to our knowledge) unique. These derive largely from the APIC model's combination of the neuroanatomy of 
+Barrett [15]
+ and the feedback control formalism of Thijssen and Kappen 
+[169]
+. Active inference modeling typically interprets q φ as an approximate posterior belief. APIC re-conceptualizes q φ as a feedback controller. This interpretation comes from the path-integral control (PIC)
+literature 
+[169,
+170,
+171]
+, whereby the same mechanism can both stabilize How would an implementation of APIC map onto the brain? We did not map functional descriptions in control theory terms to specific anatomic or functional assemblies in the brain, but nevertheless, research does suggest that brain systems can be described as enacting internal modeling, feedback control, and decision making. For example, the hippocampal-entorhinal complex is often considered to construct a predictive "cognitive map" 
+[172]
+ out of sequential episodes 
+[10]
+, which helps evaluate a value function for a control problem 
+[173]
+. The cerebellum may help exploit reafferent and exafferent sensory prediction errors as online corrective feedback for movements 
+[174,
+175]
+, although the role of the cerebellum in visceromotor control requires more study to understand the mechanisms involved. Regions in the brain's default mode network are thought to help construct state estimates (e.g., Buckner 
+[176]
+, Barrett 
+[15]
+) and implement allostatic control 
+[26]
+. Evidence for common functional gradients across the cerebral cortex, cerebellum, and hippocampus suggests that future empirical studies should apply common computational paradigms to different brain regions 
+[177]
+. 
+
+
+The body and brain through the lens of control theory
+Section 3 introduced the concepts of control theory by describing their applications in peripheral physiology, motor control, and decision-making.
+This subsection first summarizes the theoretical "point of view" obtained from control theory, and then reviews several of the key ways in which control theory can be used to clarify brain-body interactions.
+Control theory provides a way to conceptualize how physiological systems can function reliably as a whole, despite being built from unreliable parts.
+The dominant mechanism used by control theorists to ensure such stability is feedback, in which measurements flow from the underlying system being regulated (the plant) to the system doing the regulating (the controller). This constant flow of information from the plant to the controller helps the controller move the plant according to a desired trajectory, expressed physically as a reference signal. 
+Figure 6
+ shows the process of allostatic control in the body using the language of control theory. an entirely stimulus-driven way, without any modulation by descending predictions; this is because, to date, the large majority of research studying peripheral predictive coding has focused on the retina in certain model organisms (e.g., Srinivasan et al. 
+[118]
+, Hosoya et al. 
+[180]
+, Liu et al. 
+[181]
+).
+However, some theories and at least one experiment take the other side of the issue. Theories of peripheral predictive coding 
+[22,
+182]
+ reason that a neuron's most metabolically "cheap" responses should represent the predictable stimuli, while "expensive" responses are reserved for the most surprising stimuli. 
+Barrett [15]
+ has suggested that descending visceromotor prediction signals modulate viscerosensory data as it ascends through the brainstem and midbrain. Dworkin 
+[183]
+ demonstrated that certain peripheral interoceptors in humans reduced their afferent firing rate to zero under a constant stimulus; since the stimulus remained the same while neural firing changed, the interoceptors in that experiment could not be entirely stimulus driven.
+We hope that interoception researchers will invest future experimental effort Of course, within an allostatic view of the brain, the desire to play dodgeball does not arise ex nihilo, any more than a "desire" exists to maintain blood glucose within certain ranges. These desires (or "motivations") are thought to begin as abstract conceptualizations 
+[15]
+  disturbance An outside factor that can disrupt the state of a physical sys- The concept of ergodicity formalizes the equivalence between present and future uncertainty or noise. In an ergodic system, averaging together a series of measurements taken over time is equivalent to averaging together the same number of measurements taken simultaneously with separate instruments. If we were to assume an objective function f (x) under an ergodic probability model p(x t ), we would write that lim Conceptually, if we would like to know the average speed at which a particular kind of car travels on a highway, we could either track a single such vehicle over an extended period of time, or measure the speed of multiple vehicles (of the same kind) at the same time. In either case, as long as we took sufficiently many measurements, we would obtain the same result, whether we calculate by dividing by time or by the number of vehicles. However, the very obscurity of this thought experiment should hint to us that many real-world measurements are not ergodic.
+T →∞ E p 1 T T t=1 f (x t ) = E p(xt) [f (x t )] .
+Situations that are not ergodic include those with periodic structure, or with irreversible changes. Our real lives are, therefore, filled with non-ergodic decisions to make: the cycles of day and night are non-ergodic; our development and aging processes are non-ergodic; injury and death are non-ergodic.
+Insofar as our internal environment has its own cycles (breathing, heartbeat, eating and drinking, etc.) it too is non-ergodic. The earliest brains contained body-clocks that synchronized bodily cycles to environmental cycles 
+[23]
+; they were non-ergodic as well. This is why we invested the extra ef- These hypotheses can be integrated into an emerging theoretical consensus, dubbed predictive processing 
+[17,
+188,
+145,
+189,
+20]
+. "Top down" sensory predictions continuously anticipate events within the body and outside it that are sensed via its sensory surfaces. Sensory prediction signals cascade across multiple gradients within the brain, including across the cerebral cortex 
+[190,
+191]
+, cerebellum 
+[174,
+175]
+, and hippocampus 
+[10]
+, as well as across all levels of the neuraxis, involving hypothalamus, basal ganglia, superior colliculus and various midbrain and brainstem structures 
+[26]
+. In fact, it is possible that every sensory neuron, in effect, receives some form of prediction signalling from some of the neurons projecting to it, and sends prediction errors 
+23
+ to other neurons via its own projections 
+[189]
+. "Bottomup" information coming from the sensory surfaces (such as the retina, the olfactory bulb, and the lamina I spinothalamic tract) acts as sensory prediction error signals and is visualized as the dashed arrows in 
+Figure 6
+. In this way, the brain continuously maintains a simulation of the sensory environment inside the body, as well as the relevant aspects of the sensory environment outside the body, and updates that running simulation according to computed error. The updated simulations constitute approximately optimal posterior inferences about the likely causes of sensory events.
+Among predictive processing hypotheses of brain function, the free-energy principle (FEP) has enjoyed a particular popularity 
+[188,
+111,
+192]
+. Under the ergodic assumptions of the Free-Energy Principle as formulated by Friston et al. 
+[111]
+, organisms are hypothesized to minimize the entropy of their Of course, this is what the brain's internal model is for: refining information contained in past sensory signals into the optimal estimate of the future. The optimal estimate of the future will probably still be off by some amount, but it nonetheless represents the best possible estimate that can be made given the information available. The actual brain never makes a truly optimal estimate, of course: it approximates the optimal estimate, effectively approximating an approximation of the unavailable future information. Even so, this approximately optimal estimation enables feedforward, prospective control that performs drastically better than waiting to react until the body is actually challenged or harmed 
+[193]
+. If you are walking on a dark road, and you see something that looks vaguely like a car careening towards you, you don't wish for a more optimal estimate, you get out of the way. It is only in this sense of "prediction", prediction without real-time correction, that predictive processing can be suitable for modeling sequential decision problems.
+This has implications for the low-level motor control strategy employed in regulating the viscera. Previous motor active inference accounts of visceromotor action have noted that visceromotor cortical areas mostly lack integration of ascending prediction errors, and hypothesized that they "function more like deterministic models of actions that are to be executed" 
+[19]
+. They then extend the analysis of Adams et al. 
+[194]
+ to the visceromotor domain: they conceptualize visceromotor efferent signaling as specifying visceral reference coordinates rather than "predictions" to be revised in a Bayesian sense 
+[25,
+115]
+. Continuing the analogy, they suggest that the uncertainty of visceromotor predictions specifies physiological tolerances 
+[195,
+159]
+. However, this account of visceromotor active inference implicitly relied on the ergodicity assumption embedded in motor active inference as a theory. Our model will relax this ergodicity assumption, while providing an alternative explanation for the anatomical observations motor active inference can explain. In short, we could consider our model a probabilistic way of encoding hierarchical referent control 
+[89]
+ and the ideomotor principle 
+[196]
+. We gratefully
+
+
+C.2. Full derivation of optimal value function and transition dynamics
+The differential Bellman equation is the defining principle of stochastic optimal control, an equation for the long-run value function. In the infinitetime, average-reward setting, assuming a global capture rate ofJ(x 0 ) for a whole behavior, it can be writteñ
+V * (x t , x t−1 ) = J (x t , x t−1 ) −J(x 0 ) + max p θ (x t+1 |xt) E p θ (x t+1 |xt) Ṽ * (x t+1 , x t )
+with the maximization taking place with respect to achievable (by varying the actions) transition distributions.Ṽ * (x t , x t−1 ) then denotes the best achievable value for any transition between individual states. Combining that expression with the transition dynamics as a Boltzmann or "softly maximizing" distribution will yield a generative model of the optimal transition dynamics, as seen in Equation 15:
+q * φ (x t+1 | x t ) = exp Ṽ * (x t+1 , x t ) p θ (x t+1 | x t ) E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t )
+.
+This transition distribution optimally trades off between probable transitions and valuable transitions. The optimal transition distribution's mode, when it can be calculated or approximated, corresponds to the most likely trajectory for an optimal agent (with the assumed goals) to follow 
+[197]
+. Writing it with a q φ rather than a p θ denotes that it will be used as an observation-driven feedback controller, or more formally an importance sampling proposal. Just as the optimal transition distribution provides a generative model of an optimally controlled system, when used as an observation-driven proposal it also provides the optimal feedback controller.
+Substituting the optimal feedback controller back into the differential Bellman equation will yield
+V * (x t , x t−1 ) = J (x t , x t−1 ) −J(x 0 ) + E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) ,
+which can be further expanded by substituting Equation 14 for J :
+V * (x t , x t−1 ) = J(x t , x t−1 ) − D KL q * φ (x t+1 | x t ) p θ (x t+1 | x t ) − J(x 0 ) + E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) .
+First, however, the information divergence penalty must be expanded in order to justify Equation 17. First the divergence is written out in terms of its definition
+D KL q * φ (x t+1 | x t ) p θ (x t+1 | x t ) = E q * φ (x t+1 |xt) log q * φ (x t+1 | x t ) p θ (x t+1 | x t ) = E q * φ (x t+1 |xt) log q * φ (x t+1 | x t ) − E q * φ (x t+1 |xt) [log p θ (x t+1 | x t )]
+, and then the definition of q * φ is substituted into the expectation of the logarithm,
+E q * φ (x t+1 |xt) log q * φ (x t+1 | x t ) = E q * φ (x t+1 |xt)   log exp Ṽ * (x t+1 , x t ) p θ (x t+1 | x t ) E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t )   = E q * φ (x t+1 |xt)   log exp Ṽ * (x t+1 , x t ) p θ (x t+1 | x t ) E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t )   = E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) + log p θ (x t+1 | x t ) − log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) E q * φ (x t+1 |xt) log q * φ (x t+1 | x t ) = E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) + E q * φ (x t+1 |xt) [log p θ (x t+1 | x t )] − log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) .
+This substitutes into the equation for the divergence to imply that
+D KL q * φ (x t+1 | x t ) p θ (x t+1 | x t ) = E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) + E q * φ (x t+1 |xt) [log p θ (x t+1 | x t )] − log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) − E q * φ (x t+1 |xt) [log p θ (x t+1 | x t )]
+.
+The second and last terms of this equation are identical, and so cancel. This leaves a divergence of
+D KL q * φ (x t+1 | x t ) p θ (x t+1 | x t ) = E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) − log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) ,
+and therefore a (subtractive) divergence penalty as seen in Equation 17:
+− D KL q * φ (x t+1 | x t ) p θ (x t+1 | x t ) = −E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) + log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) .
+Substituting the above for the penalty in the differential Bellman equation will yield
+V * (x t , x t−1 ) = J(x t , x t−1 ) −J(x 0 ) + ( ( ( ( ( ( ( ( ( ( ( ( ( E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) − ( ( ( ( ( ( ( ( ( ( ( ( ( E q * φ (x t+1 |xt) Ṽ * (x t+1 , x t ) + log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) , V * (x t , x t−1 ) = J(x t , x t−1 ) −J(x 0 ) + log E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) , (C.2)
+the smooth differential Bellman equation. This equation is smoothly maximizing instead of exactly maximizing, and thus more likely to be compatible with neural stochasticity. Its recursive term makes the weak assumption about the future that the trajectory will continue as planned according to the generative action concept.
+This equation can be shortened by applying the exponential function to both its sides, obtaining
+exp Ṽ * (x t , x t−1 ) = exp J(x t , x t−1 ) −J(x 0 ) • E x t+1 ∼p θ (x t+1 |xt) exp Ṽ * (x t+1 , x t ) ,
+and further shortened by defining the exponential of the value function as the desirability function,
+Z * (x t , x t−1 ) = exp Ṽ * (x t , x t−1 ) , to finally obtaiñ Z * (x t , x t−1 ) = exp J(x t , x t−1 ) −J(x 0 ) E x t+1 ∼p θ (x t+1 |xt) Z * (x t+1 , x t ) .
+In this form, the differential Bellman equation is linear, allowing its terms to be expanded recursively. For example, at time step t = 1 
+Z * (x 1 , x 0 ) = exp J(x 1 , x 0 ) −J(x 0 ) E x 2 ∼p θ (x 2 |x 1 ) Z * (x 2 , x 1 ) Z * (x 2 , x 1 ) = exp J(x 2 , x 1 ) −J(x 0 ) E x 3 ∼p θ (x 3 |x 2 ) Z * (x 3 , x 2 ) Z * (x
+Four
+sections in this paper connect interoception to allostasis. Section 2 establishes how interoception enables the brain to estimate the physiological efficiency of the body in the present moment, which is precisely what it needs to know to evaluate and refine actions. Section 3 then introduces control theory and explains its applications in physiology, motor control, and decision making; these provide the conceptual tools for modeling how interoception informs allostasis. Section 4 applies the principles of control theory to derive a novel formal model of how the brain might estimate the desirability of physiological trajectories and make prospective regulatory decisions. Finally, Section 5 synthesizes the previous three sections to explore the direct implications of the proposed formalism. Appendix A provides a glossary of terms; Appendix B provides mathematical details related to Section 3; and Appendix C provides mathematical details related to Section 4.2. Interoception: modeling the body, estimating its efficiency This section takes up the question of how interoception offers performance metrics for visceromotor regulation. Many interoceptive modalities consist of viscerosensory signals whose values must remain within specific ranges conducive to efficient bodily function and survival (making these signals different from exteroceptive sensory signals in this regard). A core assumption
+
+
+Figure 1
+1
+shows an example capacity curve for afferent activity in human baroreceptors. The left tick marker shows the threshold value, and the right tick marker shows the saturation value. A parameter called the gain specifies the relative slope of the curve throughout its range, determining where the threshold and saturation values will fall. The mean arterial blood pressure
+
+
+Figure 1
+1
+Figure 1: Capacity curve for baroreceptor afferent firing, taken as a pedagogical example from Heesch [52]. As the curve flattens in either direction, the baroreflex can no longer respond proportionally to changes in blood pressure. The tick markers show the threshold value (the fifth percentile of response) and the saturation value (the 95th percentile of response) on the horizontal axis.
+
+
+Figure 2
+2
+depicts the operating point with a diamond marker and the potential response around that point as a yellow dotted line. Physiologists often employ the sigmoidal form displayed here for a capacity curve because it provides a good empirical fit to data (see
+
+
+Figure 2 :
+2
+Capacity curve from Figure 1 above (blue), with the linearized response (orange)
+
+
+The variable x on the figure's horizontal axis represents the mean arterial blood pressure, while the variable y on the figure's vertical axis represents the baroreflex activation as a percentage of the resting mean. For the figure, the parameters have the values R = 200, B = 0, µ = 100, k = 15. Equation 1 defined y, the baroreflex activation, as a function of x, the mean arterial blood pressure. Elementary algebra allows the equation to be solved for x or y as a function of an intermediate quantity u ∈ (0, 1) called the quantile,
+
+
+curves over time. The brain could potentially model those capacity curves in terms of quantiles without loss of generality, and those quantiles would have a clear regulatory interpretation. Overall, if the brain's internal model were to infer capacity curves as a part of interoception, then a variety of sites in the brain would have to generate predictions, and integrate prediction errors, regarding both regulated resources and controlled processes. These sites would have to receive afferent viscerosensory signals to which to compare efferent predictions. The brain would have to generate efferent predictions for each capacity curve's key parameters (e.g., operating point, gain, boundary, and range), and combine those parameters with an efferent prediction of the present state's quantile representation. These would generate interoceptive predictions of viscerosensory stimuli: the regulated resources and controlled processes related by capacity curves. Afferent viscerosensory signals would confirm or correct these predictions, and thus correct or confirm the estimated performance metric u(x) − u(µ).
+
+
+2. 4 .
+4
+Viable ranges and capacities could obviate a modular "reward system" Standard accounts of allostatic regulation describe it chiefly on the physiological level of analysis, attributing allostatic control in the central nervous system to reinforcement learning. As Sterling [21] writes, The central representation of "reward" is a brief burst of spikes in neurons of the ventral midbrain that release a pulse of dopamine to the nucleus accumbens and prefrontal cortex. The precise correspondence between a "feeling" and a specific neuro-transmitter is difficult to establish and is probably oversimplified, since many chemicals change in concert. Yet, one imagines that the dopamine pulse evokes momentary relief from flagellating anxiety and a brief sense of satisfaction/pleasure -at last, the carrot.
+
+
+2. 5 .
+5
+Summary This section outlined a proposal for how the nervous system could potentially function to coordinate and control organ systems across timescales to provide allostatic regulation of the body. Section 2.2 considered the movement of physiological systems' response curves (such as the example shown in Figure 1) as signifying their capacity to adapt to challenge; the idea of matching actual system loads to operating points (along the lines of Figure 2) provides a foundation for allostatic regulation. Section 2.3 extended the idea of capacity curves to systems based on more behavioral, settlingpoint regulation; in such systems the brain functions as the top level of a hierarchical control scheme, regulating the lower-level controllers. In Section 2.
+4
+ we then reasoned that movement toward or away from the responsive range of a capacity curve can be treated as "reward" or "cost", respectively, and suggested that this could potentially obviate the need for a dedicated neural circuit or module that specifically calculates the behavioral constructs of "reward" and "cost". Evidence from cognitive neuroscience supports the view that the brain lacks such modules, suggesting that we may gain empirical and theoretical traction by investigating decision-making constructs from an allostatic point of view. Section 3 will build on these ideas by introducing control theory, and consider the use of control theory in physiological regulation, motor control, and decision-making, as well as discuss the potential for control theory to unify previously disparate views on bodily regulation. Section 4 will build upon these foundations to propose a formalism for allostatic decision making. Embodied decision making includes all three of the forms of uncertainty to which allostatic regulation is subject: uncertainty about what is physiologically efficient, uncertainty about the consequences of movements, and uncertainty about the external world.
+
+
+3 .
+3
+Control theory: A unifying lens for physiology, motor control, and decision making Section 2 hypothesized that allostatic regulation can be understood in terms of controlled processes' responsiveness to perturbation. It introduced capacity curves, responsive ranges, regulated resources, and controlled processes as ways to describe aspects of physiological regulation; it also sketched the functional form of a generative model that could infer capacity curves as latent properties of related interoceptive variables. It then suggested that moving actual physiological states towards the operating points of maximum adaptability, with each movement weighted by the relative gain (inversetolerance) of the response capacity, can formalize the functional dynamic of allostatic regulation. However, interoception is perception of the innervated body: it can include sensing allostatic responsiveness of present states of the body, as achieved by past actions, but it cannot produce present and future actions in and of itself. The latter is the role of visceromotor control processes. To investigate how the brain accomplishes visceromotor control, some additional theoretical tools are required. This section introduces concepts from engineering control theory, and then reviews its applications in the life sciences. These include physiology (Section 3.1), skeletomotor movement (Section 3.2), and decision making (Section 3.3). Section 3.4 will connect future interoceptive states to present movements, illuminating what makes allostatic regulation more energy efficient than homeostatic regulation. The next section will build off the account of control used in physiology to suggest how interoception supports allostasis.
+
+
+If the feedback loop (seen inFigure 4as the arrows flowing from controller to plant, plant to state estimator, and state estimator to controller) is cut, the controller can no longer receive any information from the plant. The control signals calculated under such circumstances are called open-loop or feedforward controls, or even (somewhat idealistically) plans. The concepts of control theory can illuminate the anatomy of the baroreflex, the example physiological system described above. For simplicity's sake, the baroreflex and its components are considered the system in question. Its plant is the organs of the cardiovascular system as innervated by the autonomic nervous system (ANS). Its controller is a comparator circuit in the midbrain, specifically in the nucleus tractus solitarius (NTS) [80]. Its reference signal comes from two sources: over the short term, top-down signaling from the cerebral cortex (which is outside the controller itself), and over the long term, midbrain structures rostral to the NTS, based upon (as yet not fully understood) endocrine signals [81]. These are compared to the actual blood pressure measured by the carotid and aortic baroreceptors (feedback state estimator). The baroreflex (the controller) adjusts cardiovascular variables to align the measured blood pressure (as sensed by the baroreceptors) with the reference trajectory of operating points (as specified by short-term signaling from the forebrain or longer-term endocrine signaling), by means of the sympathetic and parasympathetic branches of the autonomic nervous system (as control signals). For a controller to perform well, it must contain some sort of copy or mirror of the plant's expected behavior, which is referred to as an internal model [82, 83]. However, inaccuracies in the internal model limit controller performance (as does an absence of feedback in open-loop control). Internal models serve a dual purpose: to infer past trajectories 9 (including their control signals) on the basis of present or even counterfactual measurements (such as the reference signal) and to estimate future states and measurements 10 in the plant on the basis of control signals. Figure 4 divides these two functions into the components of a control system that they inform: the controller (purple) infers controls from state estimates to track the reference signal 11 , and the state estimator (yellow) predicts future measurements on the basis of present control signals, refining those state estimates using measurements 12 .
+
+
+11
+11
+Inverse modeling 12 Forward modelingComparing the updated state estimates to the reference signal then yields a quantity called the control error, on the basis of which the controller can refine the control signals. The process of calculating prediction errors and control errors online, and using them to improve control signals, is called feedback control. Model-based feedback control is widely used and wellknown for driving control error to zero over time (a property called stability), particularly when prediction errors are also driven to zero by refining the internal model. This is a property that open-loop planning cannot enjoy, since an open-loop control system does not measure the control error, which amounts to (falsely) assuming it to be zero. An internal model alone only suffices for open-loop, feedforward planning, while control requires feedback.
+
+
+This action concept seeds the construction of sensorimotor prediction populations in the skeletomotor decision controller. The skeletomotor controller further unpacks the action concept into an actual body posture and its attendant reference coordinates for muscles, as well as predictions for the somatosensory state estimator. The movements created by the reference coordinates are themselves are stabilized by fast proprioceptive feedback at the level of the individual stretch reflexes in the spinal cord. The hypothesis expressed by the figure assumes that all systems in the body, both somatomotor and visceromotor pathways, serve an externally driven behavioral task. However, the structure of a motor-control experiment has only limited overlap with the actual structure of motor control as it unfolds in the natural world. An experiment on reaching behaviors involves an experimenter prescribing the reaching task to their participants. A participant's brain does not function specifically to follow instructions from an experimenter, but rather to regulate their own body. The actual organization of the central nervous system accords better with an "inside-out" view 16 of motor function: movement of the body (the somatomotor pathways) serves regulation of the body. For example, in a game of dodgeball, if you unexpectedly step hard on a sharp rock, you (usually) do not purposely impale yourself to stabilize your posture. Rather, you recoil in pain, and the unplanned disturbance of any tissue damage requires you to make a decision about what to do next: excuse yourself to nurse your foot, or play through the pain.
+
+
+3. 3 .
+3
+Making decisions: constructing future reference trajectories So far control theory has been presented as it applies to physiology and motor neuroscience. These control mechanisms have largely been local, in the sense that they only drive neural outputs to impact a small, narrow domain: blood vessels and baroreceptors modulating autonomic outflow to reduce the heart rate; proprioceptors in individual muscle spindles driving the stretch reflex. In the stretch reflex, the reference is set by top-down signaling from the brain as part of voluntary movement, and therefore varies widely. The baroreflex displays a similar structure, receiving parameters for its capacity curve via central command. Reactive control requires reference signals before physiological needs are fully known. In contrast, the brain controls the body predictively, both viscerally and through overt somatomotor behavior. Predictive neural control of the viscera must take into account biological processes that change the body (such as those occurring with development) and cyclical routines such as the wake-sleep cycle. The brain also must coordinate across a variety of physiological demands in the moment, each with its own capacity curve that may change over time. At the same time, the brain is subject to uncertainty from both sensory/measurement noise and process noise in the innervated tissues. Decision making in the brain must therefore operate according to control principles that take into account competing demands over time. A control theory formulation meeting these criteria is stochastic optimal control (SOC). Stochastic optimal control uses probability distributions over states x to model the effects of both process noise and measurement noise. The goal then is to optimize the probabilistic expectation of an objective function J summed over the indefinite future. This expectation of a sum, accounting for both uncertainty and time, is called the value function, and is defined recursively by the Bellman equation. A control strategy is optimal when it maximizes the value function. Since objective functions include terms that quantify the relative tolerance for regulatory error, it supports a wide variety of approximate solution methods to find "good enough" controls, which drive the plant close to its reference trajectory even when noise and disturbances prevent exact reference tracking. Objective functions generalize the simple comparators often used in classical control; they compare a reference state with an actual state to generate a real number as output. Generally the output value should be monotonically related to the degree of agreement or disagreement between the reference and the actual state. Objective functions with a fixed notional reference state and a fixed tolerance for deviation from that state can model fixed physiological set-points and tolerances, like those found in homeostatic theories of regulation.
+
+
+Figure 6
+6
+diagrams allostatic regulation using the language of control theory. This figure employs the same visual vocabulary of plants (orange), controllers (purple), internal models (yellow), feedforward signals (solid arrows), and feedback signals (dashed arrows) as the earlier Figures 4 and 5. Systems that move the body are hypothesized to be in the service of systems that maintain the body (i.e., movement is in service of allostasis). Allostatic regulation contains homeostatic regulation as a special case. Allostasis consists of regulating a system's state to track a reference trajectory, one which fully allows for system states to change over time. Homeostasis consists of regulating a system's state towards reference points, independent of time. Thus, an allostatic controller can implement homeostatic control by prescribing a reference trajectory as a single, unchanging point, while a homeostatic controller cannot implement allostatic control. This is because homeostasis does not really deal with context. The allostatic trajec-tory approach allows for the possibility that past behaviors affect the present state and reference. It allows the effect of past perturbations or interoceptive conditions to influence what happens next.
+
+
+pacity estimator (yellow) signals the anticipated demand as a reference trajectory (solid purple arrow) to the visceromotor decision controller. The visceromotor controller decompresses this low-dimensional reference trajectory into higher-dimensional reference trajectories (solid purple arrows) for the skeletomotor decision controller (purple) and peripheral reflex controllers (purple). Simultaneously, the visceromotor decision controller sends efferent copies (downward solid yellow arrows) to the viscerosensory ("interoceptive")
+
+
+Finally, the local reflex controllers enact motor controls (solid black arrow) that move the body. Basing sensory predictions on the efference copies enables the resultant measurements at the sensory surfaces (dotted yellow arrow) to generate sensory prediction errors (dotted yellow arrows), which serve as feedback on the timescale of tens or hundreds of milliseconds. This feedback flows through the state estimators to update their state estimates, and these estimates are then signalled to controllers as control feedback. At the far end, updates to interoceptive state estimates generate prediction errors that update the estimated allostatic capacities, thus closing the loop.
+
+
+3 . 1
+31
+described control theory as a whole and discussed its applications in physiology, providing an example of a control system in Figure 4. Section 3.2 then discussed the study of voluntary motor control in the nervous system. The construct of reference trajectories in control theory finds a close analogue in the referent control hypothesis of somatomotor control, and its application in Figure 5 shows an engineer's view of motor control. Section 3.3 discussed the necessity for allostatic decisionmaking in the brain to take account of changing bodily conditions over time, constructing references based on physiological capacity curves. The next section will apply the concepts from this section to describe a formal model of allostatic regulation.
+
+
+4 . 1 .Figure 7 :
+417
+iological reflexes, voluntary motor movements, and decision making in the brain. The previous section described stochastic optimal control (SOC) theory as a mathematical formalism capable of flexibly modeling decision making under uncertainty. This section will describe our formal model of allostatic decision making: the Allostatic Path-Integral Control (APIC) model. APIC has a simple idea at its core: just as perceptual concepts serve as internal models of the body's sensory surfaces
+[15,
+92,
+14]
+, action concepts also serve as internal models of potential behaviors and their predicted outcomes. The brain refines and selects sensory predictions derived from a concept based on their fit to past and present sensory evidence; we suggest that it likewise refines and selects the motoric reference configurations derived from an action concept based on their present and future allostatic value.Section 4.1 derives an SOC objective function from the mathematical form by which Section 2.2 represented capacity curves. Section 4.2 marshals behavioral and ecological evidence of how animals balance and meet their needs over time into a long-run mathematical form. Section 4.3 then sketches a formal model of how action concepts fit into SOC. Section 4.4 describes how to exploit action concepts optimally in feedback control. These last two subsections include the motivations for particular modeling choices. Transforming capacity curves into objective functions Section 3 pointed out that allostatic control poses a decision-making problem: the brain must predict the body's future needs in the form of a reference trajectory or value function, and move to satisfy those needs before they become acute. This subsection presents a mathematical treatment of capacity curves as objective functions. The resulting objective functions have maxima at the operating points, and have slopes away from the maxima corresponding to tolerances for error. Since this derivation of objective functions applies to arbitrary capacity curves, it can be applied to model a variety of interoceptive modalities.Since any given capacity curve (such as the one inFigure 1above) reaches a maximum value on the vertical axis, it can be divided by its maximum Yvalue to "normalize" it to range between zero and one. Once normalized in this way, it can be interpreted as a cumulative distribution function (CDF) from probability theory. This is in fact precisely what Srinivasan et al.
+[118]
+ The probability density function (PDF) corresponding to the capacity curve shown inFigure 1, with the tick-marks delineating threshold (left) and saturation (right) values. Probability density here corresponds to responsiveness to perturbation, not to an empirical frequency of events. did to interpret the firing of retinal neurons in flies as a form of predictive coding (for an excellent example, see theirFigure 1). The derivative (instantaneous slope) of a CDF yields a probability density function (PDF). This is the more familiar way of representing a probability distribution, where height on the vertical axis corresponds to likelihood, but for a PDF derived from a capacity curve, it represents relative responsiveness to perturbation.
+
+
+Figure 7 Figure 8 :
+78
+therefore shows the result of normalizing and differentiating the capacity curve inFigure 2to obtain its corresponding PDF. The density function's graph clearly shows that the baroreflex's capacity to adapt to changes in mean arterial pressure (MAP) degrades the further MAP moves from the peak at 100 mmHg. The rate at which it degrades, and the response elicited, is governed by the baroreflex gain. The gain of a capacity curve thereby defines the relative importance of deviations from the operating point, and Logarithm of the probability density shown inFigure 7, with the operating point shown as a diamond marker and tick-marks delineating threshold (left) and saturation (right) values. Probability density here corresponds to responsiveness to perturbation.thus corresponds neatly to precision in predictive coding. The greater the baroreflex gain, the more sharply curved the PDF around its operating point, and the greater the response mobilized by any deviation from the operating point. Section 2.3 described how the capacity curves in settling-point physiological controllers will often have inflection points that lie somewhere other than the center, thus being horizontally asymmetrical. This property translates neatly to probability densities: PDF's need not be horizontally symmetrical either. Bodily responses such as inflammation or nociception could have highly asymmetrical capacity curves, with the operating point even potentially being located near a zero value of the PDF.For analytical convenience, we take the practice from Todorov
+[119]
+ of using a log-density (the logarithm of a PDF) as an objective function, rather than the PDF itself. The operating point then continues to appear as a local maximum, while the gain determines the cost of movement away from the operating point, or the value of movement towards it.Figure 8shows the objective function (log-density) corresponding to the original baroreflex capacity curve, and the formal model below will use such log-densities as objective functions for optimal control.Figure 9 further clarifies the relationship between the various forms of capacity curve by showing all three alongside each-other. Assuming that the brain's internal model takes the form of a generative model (here with discrete time), the internal states of this generative model can be numbered as x t for natural numbers (that is, discrete counting numbers) t ∈ N, with some number L of levels of model
+
+
+t
+) correspond to physiological capacity curves, movement towards an operating point will contribute positively to this equation, while movement away from an operating point will contribute negatively. Increases in responsiveness of controlled processes that handle Logarithm of the probability density implied by the baroreflex capacity curve
+
+
+Figure 9 :
+9
+The complete set of functions employed to model the baroreflex response. The second comes from taking the derivative of the first and normalizing it, and the third comes from taking the logarithm of the second.
+
+
+Section 4 . 4 . 2 .
+442
+2 below will present evidence for how the instantaneous capture rate is aggregated over time in foraging behaviors, particularly in feeding behaviors and the energetic efforts undertaken to enact them. Optimal foraging theory suggests a functional form for allostatic controlMathematically, combining momentary reference signals into a value function requires first writing those reference signals as objective functions, and then combining them into a long-run functional form. The subsection above derived a form of objective function that expresses movement towards and away from the operating point of a capacity curve. This subsection will identify a long-run functional form for allostatic decision-making that is based upon experimental findings.Neural and ecological evidence supports the hypothesis that animals' intake and outflow optimize a long-run functional form called the global capture rate
+[120,
+121]
+. Ecologists such as Stephens and Krebs
+[120]
+ define the global capture rateJ as the sum of all metabolic intake minus all effort expended, over the total time devoted to a behavior. Meanwhile, neuroscientists have used the global capture rate to help relate dopaminergic neuronal signaling
+[122]
+ and animal behavior
+[123]
+ to the discounting of rewards in decisionmaking tasks.
+
+
+( 1 t
+1
+) parameterizes a reference distribution for o t , and a t models the closed-loop control action of motor reflexes; ρ , as the highest level latent state, has no reference distribution. The factorization of control into hierarchical levels ρ (0:L−1) t is based upon the referent-configuration control scheme from Section 3.2, so as to match as closely as possible what is known about somatomotor control.
+
+
+Unobserved states constructed by the internal model ρ(0:L−1) tParameters to a reference distribution a tControl actions emitted by peripheral reflexes x t A complete model state for time t p θFeedforward generative model with parameters θ q φ
+
+
+Stochastic optimal control with a generative model requires (by definition) solving or approximating the recursive optimization problem called the Bellman equation. For a time-averaged problem, the Bellman equation will contain a term for the objective function J(x xt , x x t−1 ) at a particular state, a termJ(x 0 ) for the (estimated) global capture rate of a behavior as a whole, and a recursive term. It is written as a definition of the optimal value function
+
+
+movements ("change these and those muscle spindles' referent lengths and sensitivities"). Risk and uncertainty remain part of a movement even once the body has actually enacted it, since the distal body and world remain only partially observable via the sensory surfaces. This subsection will consider what these facts imply for the combined problem of decision-making and motor control faced by the brain. After these considerations, this subsection will give a combined formulation of risk-sensitive decision making and feedback-stabilized motor control.
+
+
+Equation 15 links pre-planned action concepts (the "priors" p θ (x t+1 | x t )) to online feedback (the "likelihood" exp Ṽ * (x t+1 , x t ) ) in a probabilistically optimal way (by treating them both as densities, multiplying, and normalizing the result). A system that can represent and simulate from this equation can (approximately) predict the way that an "optimal agent" (with the as-sumed objective function) ought to move. Taking a generative modeling perspective, the controller defined in Equation 15 treats the original action concept p θ as a prior, and conditions on the long-run value of the potential future state x t+1 as a selection criterion. It is therefore risk-sensitive and information-seeking. The term that would typically correspond to model evidence now corresponds to the expected exponentiated decision value of the present state x t . Substituting the augmented objective (J , Equation 14) and the analytical expression for the optimal feedback controller (above, Equation 15) into the Bellman equation (Equation 12) will yield
+
+
+Figure 1 )
+1
+best possible returns. The implication of having a proper lower bound, however, is that any process for maximizing the value lower boundṼ * θ,φ does in fact maximize the optimal value functionṼ * (x 0 ) by proxy. This includes the kind of computations
+19
+ which predictive processing theorists posit the brain can in fact perform
+[151,
+146]
+ to incrementally improve its action concepts p θ and its feedback controllers q φ .This concludes the description of the Allostatic Path-Integral Control (APIC) model. Since APIC employs action concepts and context statesx 0 , it only requires planning and adjusting behavior in context (e.g. from timesteps 1 to T ), despite optimizing a "global" (indefinite) capture rate (Equation 8). Since it employs "smooth" maximization rather than a "hard" recursive maximization, it can accommodate the sensitivity of behavior to risk. APIC follows in the tradition of modelers such as Belousov et al.
+[152]
+,Mitchell et al.
+[153]
+, and Piray and Daw
+[154]
+, who consider the specific problem of making embodied decisions when sensory feedback contains noise and a ground-truth model of task dynamics is not available.Summary. This subsection has detailed a formal model, called the Allo-static Path-Integral Control (APIC) model, for how the brain can realistically achieve allostatic regulation of the body in an online setting. APIC assumes that the brain starts with an action concept describing a potential behavior, and tries to maximize the allostatic returns on that behavior while keeping the online (feedback-stabilized) behavior close to the original plan. Incorporating an action concept, and penalizing deviation from it, provides an explicit expression for the optimal feedback controller. The infinite-horizon, average-objective setting for this stochastic optimal control model captures the time-averaging behind the global capture rate (i.e. Equation 7). This model can take advantage of neural stochasticity to optimize an objective function defined over a hierarchy of scales of space and time, allowing for both high-level and low-level behavioral control. 4.5. Summary This section derived an objective function, formal problem setting, and formalism for allostatic control based upon the paradigm of path-integral control. Section 4.1 connected physiology's ever-shifting capacity curves (such as to probability density functions (shown in Figure 7), and used that connection to define an objective function. Section 4.2 described a problem setting for decision making that accounts for much available evidence about how animals make allostatic decisions in ecological settings. Section 4.3 then sketched the formal definitions needed to apply path-integral control to a generative model; gave a generative model (Figure 10) with the hierarchical structure that the literature suggests is found in the brain; and derived a stochastic optimal control formalism based on simulations of potential futures by an internal model. Section 4.4 then shifted the perspective to feedback control, obtaining a risk-sensitive and tractable formalism.
+
+
+Section 5 .
+5
+1 will discuss what the Allostatic Path-Integral Control (APIC) model in Section 4 implies about brain function. Section 5.2 will discuss what control theory brought to the study of physiology, motor control, and allostatic decision-making (with reference to Section 3). Section 5.3 will discuss interoception and capacity curves in light of Section 2's overview of interoception. Each subsection will end with a paragraph giving specific predictions made by our view of allostasis in the brain and body.
+
+
+bility distributions in a small, fixed number of parameters. Therefore, to understand how movements are constructed, we must understand the entire distribution, and not just its summary statistics. APIC can accommodate this, and is therefore compatible with neural process theories of predictive processing not based on sufficient statistics 20 . Unlike most work in predictive processing, APIC is designed from first principles to solve a combined problem of both decision making and motor control, rather than to address perceptual or cognitive problems 21 . Unlike other predictive processing models, in APIC the objective is optimized by making capacity curve precisions small (implying greater resilience to challenge) rather than large (implying reduced resilience to challenge). The most elementary of the APIC model's first principles are: the body, when considered as a set of coordinated systems, can only perform one action at a time,
+
+
+movements (keeping q φ close to the original action concept p θ ) and maximize decision value. APIC's unification of inference with feedback control handles uncertainty about the consequences of movements (optimal feedback control); uncertainty about the state of the body and the world (predictive processing); and uncertainty about the reference or objective of action (reinforcement learning) in a single framework. The first term of APIC's objective function is physiological: it represents the responsiveness of controlled processes in the body, as inferred through interoception. The second term of APIC's objective function separately quantifies the difference between planned and actual movements (including visceromotor movements).
+
+
+Predictions.
+The APIC objective function proposes a theory of how behavioral reinforcement and allostatic control interact. This theory has implications for how a primary (unlearned) reinforcer would arise. According to APIC, a primary reinforcer arises when the dynamics of a controlled physiological process align with those of its capacity curve (as a function of an underlying regulated resource). If a primary reinforcer arose directly from a regulated resource, then the specific objective-function formulation we have suggested would be falsified; however, this would not necessarily falsify APIC as a computational unification of decision making and motor control for action concepts. Likewise, only the objective-function would be falsified if future work identified a modular"reward" or reinforcement systems in the brain-i.e. a reward system that operates separately from decision making and motor control. Alternatively, empirical tests for controlled variables
+[178,
+179]
+ could determine which physiological parameters (if any) elicit global, behavioral responses to disturbance.
+
+
+5 . 3 .
+53
+Voluntary skeletomotor movements are controlled by central commands from the brain. The brain signals movements and bodily postures in terms of proprioceptive referent configurations, which then constrain the motor reflexes to minimize the difference between the reference and the actual prioprioceptive signal. This form of referent control extends all the way up through the brain, and in the form of posterior state estimates (seeFigure 6) provides an explanation for reafferent connections from sensory to motor areas of the cerebral cortex. We have hypothesized in this paper that referent control is shared between skeletomotor and visceromotor modalities
+22
+ . Visceromotor reflexes, such as the carotid baroreflex, are responsible for controlling blood pressure in response to central commands from the brain. These visceromotor reflexes may use feedback control mechanisms that are similar to those used by skeletomotor movemements. This means that visceromotor reflex circuits, like the baroreflex, may only provide a single kind of feedback: the stabilization of movements, i.e., via the short loop between distal physiology, sensory surfaces, and peripheral reflex controllers (as in stretch reflex proprioceptors). Figure 6 shows how visceral sense data ascend, in effect, to become exafferent interoceptive prediction errors, which combine with efferent interoceptive predictions to generate posterior state estimates. From the posterior interoceptive state estimates, the brain can estimate the allostatic capacities of the many controlled processes in the body. Optimizing the responsiveness of these allostatic capacities then finally "closes the loop" and provides a reference signal, constraining the central command signals from the brain to the motor reflexes. Predictions. Above we have hypothesized that the visceral nervous system (including visceromotor efferents, interoceptive afferents, and the autonomic nervous system) operates, in its motor operations, via referent control. This would imply that interoception can be anatomically segregated into motoneuroninterneuron-interoceptor reflexes that stabilize visceral "movements" (as in somatosensory modalities), and non-motor interoceptive endpoints, which serve another functional role. Rather than stabilizing a (visceral) "movement" that is constrained from the top down by central command, we suggest these visceral sense data may instead constrain the central commands themselves. Alternatively, empirical tests for controlled variables [178, 179] could determine which physiological parameters elicit local, reflexive responses to disturbance. Interoception and capacity curves Section 2 introduced much of the physiology fundamental to this paper. It provided the distinction between regulated resources and controlled processes, and then described interoception as the predictive internal modeling of such variables. The section then described how capacity curves can quantify both the relations between variables and the objective of allostatic regulation. This subsection first clarifies the distinction between the actual state their autonomic nervous systems, as they do in skeletomotor control. of the body and the interoceptive predictions constructed by the brain, and then elaborates on how that distinction affects the behavioral construct of "reward" in psychology. This paper maintained a careful distinction between visceral sense data, interoceptive predictions, and (re)afferent viscerosensory signals. The distinction must be carefully navigated, because it is not yet known where, neurophysiologically, the distinction between raw viscerosensory data and prediction errors can be made. Most previous work on interoceptive predictive processing has assumed that peripheral interoceptive neurons fire in
+
+
+in interoceptive modalities to differentiate the effect of repetition suppression from the function of predictive coding. The question of where sense data are converted to prediction errors remains open, but it remains very likely that the brain issues interoceptive predictions, which are constrained and corrected by viscerosensory sense data. The predictive processes taking place in the brain form a model of the innervated viscera, but they can only directly affect the viscera through visceromotor signals. The basic relation between the brain and the world outside itself applies in the interoceptive realm as it does in exteroceptive modalities. The brain can constrain (or influence) the body using motor signals, and actual bodily sense data constrain (or influence) the interoceptive contents of the brain's internal model. Assuming that neither noise nor nervous dysfunction prevent the brain from accurately predicting the visceral sense data, we have hypothesized that the brain's interoceptive representations contain both state estimates of the viscera and a functional analogue of allostatic capacity curves. The movement of estimated states along capacity curves, and the movement of the capacity curves themselves, then determines the brain's estimate of allostatic responsiveness. We have hypothesized that increases in such responsiveness could function as "rewards", positively reinforcing behavioral trajectories, while decreases in responsiveness could function as "costs", negatively reinforcing behavioral trajectories. Such a hypothesis may account for alliesthesia [184] in decision making and behavior, in which the relation between an exogenous stimulus and the body's internal state determines whether that stimulus positively or negatively reinforces skeletomotor and visceromotor action [185, 15]. This can include actions which alter the capacity curves themselves, such as relaxing the baroreflex gain during exercise to accommodate rising heart rate and blood pressure. Note that rewards are not always experienced as pleasant (e.g., the removal of something unpleasant to strengthen a behavior, called negative reinforcement) and not all stressors are experienced as unpleasant (e.g., exercise), consistent with the suggestion that approach/avoid features of behavior and pleasant/unpleasant affective features of experience are not always aligned. The degree to which behavioral and experiential "valences" align with each other in a given situation, and even the choice of which specific variables within behavioral and experiential processes to compare, remain largely open questions. Finally, this paper has taken a physiologist's view of the innervated body, delineating regulated resources from controlled processes. The "ideal type" capacity curve treats the action of a controlled process as a function of an underlying regulated resource, and both variables receive peripheral interoceptive innervation. For example, glucose, glucagon, and insulin levels in the circulating blood are sensed separately. However, in many cases, the body employs hierarchies of regulatory mechanisms, making some controlled processes act as functions of other controlled processes. The baroreflex falls into this category. Thus, despite being a canonical interoceptive modality for experimentalists, the carotid baroreflex may actually be functionally atypical. The physiological differences between the baroreflex and chemosensing may provide some functional hints. The baroreflex forms an entire reflex circuit, whose visceromotor function under central command may resemble that of a somatomotor reflex (as suggested in Section 5.2 above). Predictions. Physiological questions about regulated resources versus controlled processes may be amenable to anatomical investigation: where a reflexive control circuit is found, it may reflect the monitoring of a controlled process. Where peripheral interoceptors report "raw" visceral sensations, without an intervening motor reflex circuit, that may reflect the sensing of a regulated resource. The open question then would be how the central nervous system determines which controlled processes act as functions of which regulated resources. Speculating somewhat further, if an anatomical difference existed between viscerosensing of regulated resources and controlled processes, it would also enable inferences about the constraints provided for the brain by those respective viscerosensory endpoints. Interoception of regulated resources in relation to controlled processes would then constrain the brain's representations of the allostatic responsiveness of behavior, its reference signal for movements. Interoception of controlled processes in relation to signaled top-down references would provide feedback to the brain that is analogous to what happens in somatosensory modalities: feedback stabilization of (visceral) movements. 5.4. Conclusions Let's return to our amateur dodgeball player. Under the hypothesis laid out in this paper, afferent sensory signaling (including viscerosensory afferents) conveys prediction errors, which update a predictive internal model in the brain of the body on the dodgeball field. Motor processes exploit the updated model contents to improve the player's performance. Playing dodgeball, and improving one's performance, requires anticipating the physiological and metabolic demands of the game (which capacity curves can capture) and mobilizing the body's internal visceromotor systems to meet those demands before they arise.
+
+
+tem. 21 ergodicity 30 exafferent 25 exteroception 23 interoception 42 reafferent 3 B
+21302523423
+A condition of a stochastic system, or a probabilistic model of a system, in which averaging together a series of measurements taken over time is equivalent to averaging together the same number of measurements taken independently at the same time. Afferent sensory signals arising from causes external to the body or outside the physiological control of the nervous system. The set of processes by which the nervous system takes in, integrates, and infers the causes of signals from outside the body. 3 feedback control The adjustment of controls in real time based on measurements of plant state fed back into the controller. 4, 22, 24, 46 flow A variable in a (physiological) dynamical system that represents the rate of a process, counted in the ratio of physical units to temporal units. controlled process A particular flow variable that is manipulated by homeostatic or allostatic mechanisms to maintain the value of a regulated variable within a desired range. 7, 8, 14 generative model A probability model of the joint distribution over unobserved decision variables, and observed variables given the unobserved decision variables, from which novel instances can be sampled. 12, 38 internal model A physical system that partially and approximately encodes the dynamical structure of the plant to be controlled, or potentially a probability distribution over such structures. 3, 4, 23 forward model An internal model that makes predictions forwards in time, on the basis of a present state. 23, 46 inverse model An internal model that makes predictions backwards in time, on the basis of an estimated or desired future state. The set of processes by which the nervous system takes in, integrates, and makes meaning of sensory signals originating within the body. 3 measurement A signal fed back from the plant to inform the controller of the plant state. 22 noise Randomness or uncertainty intrinsic to physical systems which cannot be measured or controlled at an infinitely fine scale.. measurement noise Randomness or uncertainty intrinsic to the instruments or sensors that take measurements and transmit them to the controller. 23 process noise Randomness or uncertainty intrinsic to the plant as a physical system. 23 objective function A function from actual or estimated plant states to real numbers, in which higher numbers denote better agreement with the reference trajectory. 28 operating point The point on a response curve at which the response available to a local perturbation is greatest, often but not necessarily found at the center parent. 10 plant A physical system to be controlled. 20 prediction error The difference between a measurement or actual state, and the predictive estimate of that state. 23 probabilistic graphical model A probability model in which the nodes and arrows of a graph express the conditional independence structure between random variables see. Afferent sensory signals arising from the consequences of movements or self-caused physiological changes. 25 reference distribution A probability distribution whose probability mass or density at each point corresponds to the relative robustness of a physiological controller to perturbations from that point. 36 reference trajectory The desired trajectory of evolution through a statespace for plant behavior over time. 20 response curve The plotted curve, usually S-shaped, showing a response to a stimulus as a function of the stimulus quantity or intensity. 9 capacity curve The response curve of a centrally regulated physiological variable or reflex, which compels a central regulatory response when dysregulated. 9 generalized capacity curve The capacity curve of a controlled physiological flow, with an inflection point not identical to its center. 15 gain The parameter to a response curve determining its slope around the central point. Greater gain implies a smaller distance to an asymptote and a narrower adaptive range. 9 saturation value The value of an input variable (such as a regulated variable) for which a process (such as a controlled variable's underlying process) can yield no further increase in response. 9 set point Fixed, specific points in the quantitative state-space of physiological variable to which regulatory systems work to return that variable. 4, 7 settling point The point at which a stock-and-flow system's stock reservoir settles for any given level of the passively unregulated inflow or outflow variables. 14 settling range A range throughout which a regulated variable can settle freely under physiologically unregulated (but perhaps behaviorally regulated) inflow and outflow, without triggering an active physiological response. see settling point, 7 stability A property of the coupled dynamics of a controller and a plant, under which control error will eventually shrink arbitrarily close to zero after a disturbance.. 24 state A vector of real numbers that determine how plant behavior will evolve over time. 21 state estimate Estimates of plant state based on measurements, including measurements accumulated over time. 23 stochastic optimal control A variety of control theory in which we model all forms of noise and uncertainty using probability distributions, and write the reference trajectory in terms of finding the maximum of a function of the estimated plant state. 28 stock A variable in a (physiological) dynamical system that represents a quantity, counted in physical units. regulated resource A particular stock variable that is maintained at or near a stable level by homeostatic or allostatic mechanisms in the body. 6, 8, 14 threshold value The value of an input variable (such as a regulated variable) for which a process (such as a controlled variable's underlying process) can yield no further reduction in response. 9 transfer function The ratio of a system output to its input, written in the time-independent frequency domain via a mathematical transformation. 9 value function The probabilistic average, over estimated plant states, of the sum of objective function values into the indefinite future. 28, 35, 53 Bellman equation Equation that defines the optimal value function recursively over timesteps. 28, 44 viscerosensory signaling Afferent sensory signaling from the innervated viscera. . How ergodicity interacts with control B.1. Ergodicity: whether uncertainty and noise make a difference over time
+
+
+(B. 1 )
+1
+This equation says that taking individual measurements f (x t ) over any hypothetical period of time T and averaging them together (the left side of the equation) will yield the same result as just calculating the average measurement immediately (the right side of the equation).
+
+
+B. 2 .
+2
+fort above of detailing a variety of control theory able to model non-ergodic decision-making. In contrast, many typical behavioral experiments involve their participants in ergodic decision-making problems: we choose as experimenters to treat averaging within-participant measurements across time as equivalent to averaging between-participant measurements. In fact, an exp"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

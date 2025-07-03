@@ -1,0 +1,2584 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+The challenge of aligning tasks between fields
+Research on artificial intelligence and research on human intelligence rely on similar conceptual foundations and have long inspired each other 
+[Turing, 1950
+, Lake et al., 2017
+. However, achieving concrete synergy has been difficult, with one obstacle being a lack of alignment of the tasks used in both fields. Artificial intelligence research has traditionally focused on tasks that are challenging to solve, often using human performance as a benchmark to surpass 
+[Tesauro, 1995
+, Campbell et al., 2002
+, Mnih et al., 2013
+, Silver et al., 2016
+, Silver et al., 2017
+. By contrast, cognitive science and psychology have moved towards tasks that are simple enough to allow for detailed computational modeling of people's choices. These divergent objectives have led to a divide in the complexity of tasks studied, both in perception and cognition. The purpose of this paper is to explore the middle ground: are there tasks that are reasonably attractive to both fields and could provide fertile ground for synergy?
+In perception, object recognition has emerged as a central task for aligning the studies of biological and machine vision. For biological vision, object recognition is a core task used to understand representations of visual stimuli in the ventral stream and specifically the infero-temporal cortex 
+[Riesenhuber and
+Poggio, 2000, DiCarlo et al., 2012]
+. In machine vision, object recognition has proven to be an equally fruitful test bed 
+[Krizhevsky et al., 2012
+, LeCun et al., 2015
+. This alignment of tasks has led to great synergy, for example in the form of comparisons between cortical activity and the activity of units in trained neural networks 
+[Yamins and
+DiCarlo, 2016, Kriegeskorte, 2015]
+.
+In this paper, we focus on planning, which we roughly define as any cognitive process in which the decision-maker mentally simulates future states, actions or outcomes in a decision tree. These decision trees can often become exponentially large, and strategies for efficiently searching decision trees and making fast and accurate decisions are of interest for artificial intelligence and cognitive psychology. In the artificial intelligence of planning, the game of chess has long taken center stage, from Shannon 
+[Shannon, 1950]
+ to DeepBlue 
+[Campbell et al., 2002]
+ to AlphaZero 
+[Silver et al., 2017]
+. The cognitive psychology of chess has lagged behind. Chase and Simon advocated for chess as a "standard task environment" similar to Drosophila in genetics 
+[Chase and Simon, 1973]
+. Researchers have attempted to measure depth of thought in chess through clever experimental methods such as board reconstruction 
+[de Groot, 1946]
+, "thinking aloud" 
+[Chase and
+Simon, 1973, Campitelli and
+Gobet, 2004]
+, playing under cognitive load 
+[Holding, 1989]
+ or time pressure 
+[Chabris and Hearst, 2003
+, Burns, 2004
+, Van Harreveld et al., 2007
+. Overall, however, the prominence of chess as an experimental paradigm in cognitive science has declined. One potential reason for this decline is the difficulty of developing a computational model for human chess play, and a simpler game is needed.
+In the following sections, we will reflect on the notion of task complexity and review sequential decisionmaking tasks that have been used in computational cognitive science to test hypotheses about planning. We will then examine candidate tasks for aligning human and machine planning, and set an agenda for how such alignment could be achieved.
+
+
+Defining task complexity
+The complexity of a decision-making task can be defined in multiple ways. We focus on state space complexity, the number of different states that a decision-maker can reach in any sequence of actions starting from the initial state 1 . We choose this metric since it is often easy to compute or approximate, and in practice closely matches with intuitive notions of task difficulty. In two-player games, state space complexity is often correlated with game tree complexity 
+[Allis et al., 1994]
+. Using state space complexity, however, ignores important elements of difficulty, such as how easily people can learn the task rules, or whether the task requires managing uncertainty, learning models of one's opponent, and potential symmetries in the state or action space. A more principled complexity metric measures the size of a compressed state space, with abstracted states and actions, which preserve as much as possible the task structure 
+[Botvinick, 2012
+, Sanborn et al., 2018
+. Therefore, the exact numbers should be taken as only a rough quantification of the intuitive notion of complexity.
+
+
+Task
+
+
+State space complexity
+Human cognition studies AI studies  
+and Simon, 1973]
+ [ 
+Campbell et al., 2002
+] 
+[Holding, 1985]
+ [Silver et al., 2017] Go 2.1 • 10 170 
+[Silver et al., 2016]
+ Table 1: Tasks and their complexities. Artificial intelligence studies tend to focus on complex tasks, whereas cognitive scientists favor simplicity. State space complexity for chess and go are taken from 
+[Chinchalkar, 1996]
+ and 
+[Tromp, 2016]
+ 3 Tasks used to study human planning
+The study of human planning is rich and has used many experimental tasks. A core challenge across tasks is that researchers can only observe people's decisions, and not the cognitive processes (planning algorithms) that generated them. A principled method to infer planning algorithms is by fitting a computational model to individual player's choices. Here, we review a selection of tasks that have been used to study human planning within a computational framework. The tasks are roughly sorted by increasing state space complexity. Solway and Botvinick task ( 
+Fig. 1A)
+. 
+[Solway and Botvinick, 2015
+] This paper used a task in which participants choose between up to 4 consumer items that they previously ranked by desirability. Crucially, they presented items in two groups on either side of a computer screen, and participants reported their choice sequentially, by first selecting a group and afterwards an item within that group. This task is equivalent to navigating a decision tree with up to 3 internal nodes, and Solway and Botvinick found that people's behavior can be captured by noisy evidence integration, which treats each path through the decision tree as a competitor in a bounded accumulation process. 
+Daw et al. task (Fig. 1B)
+   In the two-step task, participants make a sequence of two binary choices. In the first decision stage, the participant might choose between stimuli A1 and A2. Stimulus A1 usually (on 70% of trials, labelled "common" transitions) leads to the state B, and stimulus A2 to state C. However, occasionally (on 30% of trials, "rare" transitions), A1 leads to C, or A2 to B. In the second stage, participants make another choice between two stimuli, which yields a monetary reward with some probability. The reward probabilities fluctuate slowly, so participants have to constantly adapt the values they associate with the stimuli and adjust their policy accordingly. The two-step task has state space complexity 3 (1 first-level state and 2 second-level states). This simplicity is intentional, as the two-step task is the simplest task that distinguishes model-free and modelbased learning. (However, it has been argued that sophisticated model-free learning can masquerade as model-based learning in this task 
+[Akam et al., 2015]
+.) Specifically, when an agent receives a reward at a second-level state, a model-based learner takes into account whether it arrived there through a "common" or "rare" transition, whereas a model-free learner does not. This task has been used to demonstrate that people use a mixture of model-based and model-free learning 
+[Daw et al., 2005
+, that the relative usage of each system depends on the reliability of their respective predictions 
+[Lee et al., 2014]
+ in an on-line cost-benefit analysis 
+[Kool et al., 2016]
+, and that people's arbitration between these systems changes under cognitive load 
+[Otto et al., 2013]
+ or when they receive a dopamine precursor 
+[Wunderlich et al., 2012b]
+. 
+Gläscher et al. task (Fig. 1C
+) 
+[Gläscher et al., 2010]
+. Their task preceded the two-step task and differed from it in two ways: first, there are 4 second-level states, and each combination of a first-level choice and a "common" or "rare" transition leads to a different state. Second, instead of a second-level state leading to a reward with some probability, the choice leads probabilistically to a third state, and then deterministically to a reward. These modifications allowed Gläscher et al. to dissociate neural correlates of reward prediction errors and state prediction errors. Wunderlich et al. task 
+(Fig. 1D
+) 
+[Wunderlich et al., 2012a]
+ In this variant of the two-step task, the transitions from the first to second level were made by an adversarial computer agent, creating a two-player game. This allowed them to study the computational processes underlying forward planning by searching for neural correlates of values of individual branching steps in a minimax decision tree. Callaway et al. task 
+(Fig. 1E
+) 
+[Callaway et al., 2017
+, Callaway et al., 2018
+ To more directly measure the planning process, they employed a process tracing method inspired by the "Mouselab" paradigm 
+[Payne et al., 1988]
+. Participants navigate a directed graph, in which each node is associated with a reward. Although all nodes and edges of the graph are always visible to the participant, rewards are only revealed when the participant clicks or hovers over the corresponding node. The sequence in which participants choose to reveal rewards provides insight in the cognitive process by which participants plan their actions. Although the paradigm scales in principle to arbitrary graphs, Callaway et al. study graphs with up to 20 nodes. Snider et al. task 
+(Fig. 1F)
+. 
+[Snider et al., 2015]
+ Participants watch a triangular grid of 12 rows of variable-sized disks scroll down a touchscreen, and at each downward step, participants control whether the grid moves right or left by pointing with a stylus. Thus, the participant traces out a trajectory through the grid of disks, and they receive reward proportional to the size of all disks on that trajectory. To plan optimally, participants have to navigate a decision tree with 66 internal nodes, making this one of the most complex tasks in which human planning has been quantitatively modeled. Huys et al. task 
+(Fig. 1E
+) 
+[Huys et al., 2012]
+ Participants make a sequence of up to 8 binary decisions, through which they traverse a graph of 6 states. Each transition incurs a reward that can be either positive or negative, and the task is designed such that the optimal policy requires taking large negative rewards to obtain later positive rewards. This task has been used to study how people prune decision trees following a large loss 
+[Huys et al., 2012]
+, how they decompose a task into a hierarchy of subtasks 
+[Huys et al., 2015]
+, and to develop planning algorithms that optimally trade off speed and accuracy 
+[Sezener et al., 2019]
+.
+
+
+Candidate tasks for aligning human and machine planning
+Most cognitive science studies use tasks with single-digit state space complexity, and studies with more complex tasks are relatively rare. By contrast, AI researchers study games many orders of magnitude more complex. To connect these fields, we argue for tasks with an intermediate level of complexity. In particular, we propose a task that we have studied ourselves, namely four-in-a-row.
+Even apart from the objective of aligning fields, cognitive scientists might have a good reason to study tasks of intermediate complexity: there likely is a categorical difference in algorithms people use for simple and complex tasks. When the number of states in a task exceeds 10-20, it becomes implausible that people are able to represent all states in working memory and exhaustively search the tree 
+[Miller, 1956]
+. Instead, working memory constraints may force people to use tree search algorithms with constant memory and computational time requirements, such as Monte Carlo Tree Search 
+[Kocsis and Szepesvári, 2006]
+ or heuristic search 
+[Pearl, 1984]
+. This possibility should make such tasks interesting to cognitive science.
+Four-in-a-row. To study human planning with exponentially large decision trees, we studied human decision-making and learning in two-player deterministic game. In this game, two players compete to create four-in-a-row on a 4-by-9 board ( 
+Fig. 2A)
+. This game, part of the family of (m, n, k) games 
+[Beck, 2008]
+ is considerably more complex than most cognitive science tasks, as it contains 1.1812 • 10 18 non-terminal states.
+We were able to predict individual participants' choices on individual moves with a computational model that combines a feature-based heuristic for state evaluation, a best-first search algorithm for planning, and feature dropout as a mechanisms for lapses of attention 
+(Fig. 2B)
+. Moreover, this model could generalize from predicting people's in-game decisions to predicting their choices on a two-alternative forced-choice task, board evaluations, response times and eye movements. Finally, by fitting the model parameters to data from participants in consecutive sessions, or when with limited allotted thinking time, we found large and robust effects of expertise and thinking time on people's policy, and in particular the estimated size of their mental decision trees 
+(Fig. 2C-D)
+.
+Mazes and grid worlds. Mazes and grid worlds are an important collection of tasks used to study human and machine planning. These tasks have been used to study human 
+[Simon and Daw, 2011]
+ and animal reinforcement learning 
+[Pfeiffer and Foster, 2013]
+, or to develop and benchmark novel reinforcement learning algorithms 
+[Sutton and
+Barto, 1998, Mattar and
+Daw, 2018]
+. Planning has been studied in the motor domain using a space similar to a grid world 
+[Diamond et al., 2017]
+.
+However, grid worlds are far from a representative sequential decision-making task, as the decision tree contains many transpositions (different action sequences leading to the same state) and cycles. Therefore, these tasks often have relatively low state space complexity and lend themselves uniquely to be solved by dynamic programming algorithms 
+[Sutton and Barto, 1998
+] that use memory proportional to the number of states. Since we focus on tasks for which forward planning at decision time is necessary to curtail the complexity, mazes and grid worlds may not be an ideal unifying task.
+Atari games. Another recent proposal for a task to study deep neural networks and their relation to human intelligence are Atari games and in particular the game Frostbite 
+[Lake et al., 2017]
+. Deep Qlearning networks can learn these games 
+[Mnih et al., 2013]
+ and outperform human players, but training them requires an exceedingly large amount of simulated games. One reason for this slow learning is that these networks are often initialized randomly, whereas people approach Atari games with strong inductive biases 
+[Dubey et al., 2018]
+. Although we are excited to see a convergence of cognitive and AI research on Atari games, as a paradigm to study forward planning they might prove too difficult.
+
+
+What it means to align human and machine intelligence
+Similarities and differences between human and machine intelligence have been much discussed 
+[Kriegeskorte, 2015
+, Hassabis et al., 2017
+, Marblestone et al., 2016
+, Lake et al., 2017
+. Here, we focus on what we believe to be necessary conditions for alignment between studies of human and machine planning in a given task, in particular what requirements an AI algorithm needs to satisfy to be a successful cognitive model. We believe that understanding human cognition requires a computational model which makes predictions for individual participants' choices on single trials, in multiple experimental conditions. A computational model may take the form of an explicit algorithm that people mentally execute, or a neural network. In either case, the model should include a description of how its policy changes after each experienced episode.
+The main requirement for a computational model to be successful is that, when presented with the same stimuli that a participant experienced in a given condition in a task, its trajectory through policy space should match that participant's trajectory. This requirement encompasses several conditions that are difficult for AI algorithms to satisfy: 1. The model's trajectory should start from a policy that matches people's inductive biases in people's decision-making 
+[Lake et al., 2017
+, Dubey et al., 2018
+, Colunga and Smith, 2005
+, Feinman and Lake, 2018
+, and converge to one that matches people's behavior including their task performance.
+2. The model should improve on the task at the same rate as human participants.
+3. Finally, the model needs to satisfy these requirements for each individual participant in different experimental conditions, forcing it to match not just one trajectory but also capture individual differences in participant's trajectories.
+One method to constrain individual variability is to construct models with a small number of parameters, which limits the set of policies the model can express to a low-dimensional manifold. This is the strategy employed by traditional computational cognitive science: the model is carefully chosen so that all participant's policies lie on its manifold, and policy trajectories can be translated to trajectories in a small space of parameters.
+Another method would be to use infinitely expressible models such as deep neural networks, but include hyper-parameters in their dynamics or initial policy, to match different people's trajectories with minimal adjustments.
+Although developing an AI algorithm that satisfies these conditions on even a single task will be challenging, doing so would enable a "cognitive psychology of artificial intelligence" 
+[Ritter et al., 2017]
+, in which researchers subject AI algorithms to new psychological experiments. For example, one can characterize changes in the AI's policy trajectory in response to manipulations of the input data or constraints on its use of memory or computational time. These changes can then be compared to the changes in humans doing the same experiments. We believe that this approach will deepen understanding of the correspondence between human and machine intelligence.
+
+
+Conclusion
+We have argued that to align studies of artificial intelligence with studies of human intelligence, there needs to be a focus on finding tasks that are of interest to both fields. In doing so, both fields might have to compromise a little. Cognitive scientists might have to go out of their comfort zone in terms of experimental control and theoretical tractability: suitable tasks are likely orders of magnitude higher in complexity than common in cognitive science, and human behavior is likely far from optimal. AI researchers might have to settle for tasks that might not be the most challenging in terms of achieving high task performance but that offer more opportunities for systematic analysis of learned policies and linking those to human cognition. While chess might be too complex from both an experimental and modeling point of view, simpler tasks such as four-in-a-row might fit the bill. Once a suitable task has been chosen, we have laid out an agenda for using experimental manipulations in that task to reach a deeper understanding of the correspondence between human and machine intelligence.
+
+
+Acknowledgments
+This work was supported by grants IIS-1344256 from the National Science Foundation and R01MH118925-01 from the National Institutes of Health.
+
+
+Annotations
+Two stars:
+• 
+[van Opheusden et al., 2017]
+: This paper introduced a sequential decision task of a level of complexity that is unusually high for cognitive science (10 16 ), and showed that people's choices matched those of a best-first search algorithm with attentional oversights and pruning. We used this model to show that tree size decreased with time pressure and increased with expertise.
+• 
+[Snider et al., 2015]
+ By comparing human behavior with optimal models in a complex sequential decisionmaking task, the authors were able to identify people's planning strategies and in particular estimate their depth of computation. They found that people's behavior was consistent with a complete, bruteforce exploration of all possible paths in decision tree up to a resource-limited finite depth.
+• 
+[Callaway et al., 2018]
+ This paper employs a process tracing paradigm that forces participants to reveal which states they consider in a sequential decision-making task with an information-gathering component. Based on this data, they propose a resource-rational model for human planning, in which people make rational meta-decisions about which nodes in a decision tree to explore, and when to stop planning.
+• 
+[Solway and Botvinick, 2015]
+ This paper studies the dynamics of reward-based, goal-directed decisionmaking in a multi-step choice task, and find that human behavior can be understood in terms of evidence integration. Their model poses that people accrue noisy evidence for different trajectories through a decision tree, and make decisions when that evidence clearly favor one choice.
+One star:
+• 
+[Lake et al., 2017]
+ This paper outlines challenges to building artificial systems that mimic human intelligence. They emphasize causal models of the world, learning from few examples, and rapid generalization.
+• 
+[Ritter et al., 2017]
+ This paper proposed an agenda of interrogating deep neural networks as if they are human subjects. Specifically, as humans learn, they exhibit inductive biases; for example, they prefer to categorize objects according to shape rather than color. The authors find that deep neural networks trained on ImageNet vary widely in their ability to reproduce this bias.
+Figure 1 :
+1
+Decision trees in some tasks used to study human planning. Each node represents a task state. Solid arrows indicate transitions that are under the subject's control, dashed arrows transitions that are not.
+
+
+Figure 2 :
+2
+Four-in-a-row. (A) Example board position. Black moves first, and the goal is to get four in a row. (B) Board position with overlaid in false color a map of the probabilities that a heuristic search model fitted to one individual's play predicts for that individual's next move. (C-D) The heuristic search model allows us to estimate the size of the tree built by human players as they learn across sessions (C) or have different time limits (D). Panels (B-D) adapted from
+[van Opheusden et al., 2017]
+.
+
+
+Traditionally, state space complexity refers to the number of all possible game states, we count only non-terminal states.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Simple plans or sophisticated habits? state, transition and learning interactions in the two-step task
+
+
+
+
+[
+References
+
+
+
+
+
+
+Akam
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+11
+
+
+12
+
+
+1004648
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Searching for solutions in games and artificial intelligence
+
+
+
+
+Allis
+
+
+
+
+
+
+
+
+
+
+
+
+Rijksuniversiteit Limburg
+
+
+
+
+
+
+
+
+Combinatorial games: tic-tac-toe theory
+
+
+
+
+J
+Beck ; Beck
+
+
+
+
+
+
+
+
+Cambridge University Press
+
+
+114
+
+
+
+
+
+
+
+
+
+
+
+
+Hierarchical reinforcement learning and decision making
+
+
+
+
+
+
+Current opinion in neurobiology
+
+
+
+
+22
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The effects of speed on skilled chess performance
+
+
+
+
+B
+D
+Burns
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+15
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A resource-rational analysis of human planning
+
+
+
+
+[
+Callaway
+
+
+
+
+
+
+
+
+Proceedings of the 40th Annual Conference of the Cognitive Science Society
+
+
+the 40th Annual Conference of the Cognitive Science Society
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mouselab-mdp: A new paradigm for tracing how people plan
+
+
+
+
+[
+Callaway
+
+
+
+
+
+
+
+
+The 3rd multidisciplinary conference on reinforcement learning and decision making
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deep blue. Artificial intelligence
+
+
+
+
+[
+Campbell
+
+
+
+
+
+
+
+
+134
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Adaptive expert decision making: Skilled chess players search more and deeper
+
+
+
+
+[
+Campitelli
+
+
+
+
+
+
+G
+Gobet ; Campitelli
+
+
+
+
+
+
+F
+Gobet
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Visualization, pattern recognition, and forward search: Effects of playing speed and sight of the position on grandmaster chess errors
+
+
+
+
+Hearst ;
+Chabris
+
+
+
+
+
+
+C
+F
+Chabris
+
+
+
+
+
+
+E
+S
+Hearst
+
+
+
+
+
+
+
+
+Cognitive Science
+
+
+
+
+27
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Perception in chess
+
+
+
+
+W
+G
+Chase
+
+
+
+
+
+
+H
+A
+Simon
+
+
+
+
+
+
+
+
+Cognitive psychology
+
+
+
+
+4
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An upper bound for the number of reachable positions
+
+
+
+
+S
+Chinchalkar
+
+
+
+
+
+
+
+
+ICGA Journal
+
+
+
+
+19
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+From the lexicon to expectations about kinds: A role for associative learning
+
+
+
+
+Smith
+;
+Colunga
+
+
+
+
+
+
+E
+Colunga
+
+
+
+
+
+
+L
+B
+Smith
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+112
+
+
+2
+
+
+347
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modelbased influences on humans' choices and striatal prediction errors
+
+
+
+
+[
+Daw
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+69
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control
+
+
+
+
+[
+Daw
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+8
+
+
+12
+
+
+1704
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Rapid target foraging with reach or gaze: The hand looks further ahead than the eye
+
+
+
+
+A
+D
+Groot ; De Groot
+
+
+
+
+
+
+Noord-Holland
+
+
+
+
+
+
+Uitgev
+
+
+
+
+
+
+Maatschappij
+
+
+
+
+
+
+Diamond
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+13
+
+
+7
+
+
+1005504
+
+
+
+
+
+
+
+
+Het Denken van den sckaken
+
+
+
+
+
+
+
+
+How does the brain solve visual object recognition?
+
+
+
+
+[
+Dicarlo
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+73
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[
+Dubey
+
+
+
+
+arXiv:1802.10217
+
+
+Investigating human priors for playing video games
+
+
+
+
+
+
+
+
+
+
+arXiv preprint
+
+
+
+
+
+
+
+
+
+
+Feinman
+
+
+
+
+
+
+R
+Lake ; Feinman
+
+
+
+
+
+
+B
+M
+Lake
+
+
+
+
+arXiv:1802.02745
+
+
+Learning inductive biases with simple neural networks
+
+
+
+
+
+
+
+
+
+
+arXiv preprint
+
+
+
+
+
+
+
+
+States versus rewards: dissociable neural prediction error signals underlying model-based and model-free reinforcement learning
+
+
+
+
+[
+Gläscher
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+66
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neuroscienceinspired artificial intelligence
+
+
+
+
+Hassabis
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+95
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The psychology of chess skill. Lawrence Erlbaum
+
+
+
+
+D
+H
+Holding
+
+
+
+
+
+
+
+
+Bulletin of the Psychonomic Society
+
+
+
+
+27
+
+
+5
+
+
+
+
+
+
+
+
+
+
+Counting backward during chess move choice
+
+
+
+
+
+
+
+
+Bonsai trees in your head: how the pavlovian system sculpts goal-directed choices by pruning decision trees
+
+
+
+
+Huys
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+8
+
+
+3
+
+
+1002410
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Interplay of approximate planning strategies
+
+
+
+
+Huys
+
+
+
+
+
+
+
+
+Proceedings of the National Academy of Sciences
+
+
+
+
+112
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bandit based monte-carlo planning
+
+
+
+
+L
+Kocsis
+
+
+
+
+
+
+C
+Szepesvári
+
+
+
+
+
+
+
+
+European conference on machine learning
+
+
+
+
+Springer
+
+
+
+
+
+
+
+
+
+
+Kocsis and Szepesvári
+
+
+
+
+
+
+
+
+When does model-based control pay off?
+
+
+
+
+[
+Kool
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+12
+
+
+8
+
+
+1005090
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deep neural networks: a new framework for modeling biological vision and brain information processing
+
+
+
+
+N
+Kriegeskorte ; Kriegeskorte
+
+
+
+
+
+
+
+
+Annual review of vision science
+
+
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Imagenet classification with deep convolutional neural networks
+
+
+
+
+[
+Krizhevsky
+
+
+
+
+
+
+
+
+Advances in neural information processing systems
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Building machines that learn and think like people
+
+
+
+
+[
+Lake
+
+
+
+
+
+
+
+
+Behavioral and brain sciences
+
+
+
+
+40
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural computations underlying arbitration between model-based and model-free learning
+
+
+
+
+[
+Lecun
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+521
+
+
+7553
+
+
+
+
+
+
+
+
+
+
+Deep learning. nature
+
+
+
+
+
+
+
+
+Toward an integration of deep learning and neuroscience
+
+
+
+
+[
+Marblestone
+
+
+
+
+
+
+
+
+Frontiers in computational neuroscience
+
+
+
+
+10
+
+
+94
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Prioritized memory access explains planning and hippocampal replay
+
+
+
+
+M
+G
+Mattar
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+21
+
+
+11
+
+
+1609
+
+
+
+
+
+
+
+
+Mattar and Daw
+
+
+
+
+
+
+
+
+The magical number seven, plus or minus two: Some limits on our capacity for processing information
+
+
+
+
+G
+A
+Miller
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+63
+
+
+2
+
+
+81
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[
+Mnih
+
+
+
+
+arXiv:1312.5602
+
+
+Playing atari with deep reinforcement learning
+
+
+
+
+
+
+
+
+
+
+arXiv preprint
+
+
+
+
+
+
+
+
+The curse of planning: dissecting multiple reinforcement-learning systems by taxing the central executive
+
+
+
+
+[
+Otto
+
+
+
+
+
+
+
+
+Psychological science
+
+
+
+
+24
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Adaptive strategy selection in decision making
+
+
+
+
+[
+Payne
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology: Learning, Memory, and Cognition
+
+
+
+
+14
+
+
+3
+
+
+534
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hippocampal place-cell sequences depict future paths to remembered goals
+
+
+
+
+J
+Pearl
+
+
+
+
+
+
+B
+E
+Pfeiffer
+
+
+
+
+
+
+D
+J
+Foster
+
+
+
+
+
+
+
+
+Nature
+
+
+
+
+497
+
+
+7447
+
+
+74
+
+
+
+
+Pfeiffer and Foster
+
+
+
+
+
+
+Heuristics: intelligent search strategies for computer problem solving
+
+
+
+
+
+
+
+
+Models of object recognition
+
+
+
+
+M
+Riesenhuber
+
+
+
+
+
+
+T
+Poggio
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+3
+
+
+11s
+
+
+1199
+
+
+
+
+
+
+
+
+Riesenhuber and Poggio
+
+
+
+
+
+
+
+
+Cognitive psychology for deep neural networks: A shape bias case study
+
+
+
+
+[
+Ritter
+
+
+
+
+
+
+
+
+
+
+Proceedings of the 34th International Conference on Machine Learning
+
+
+the 34th International Conference on Machine Learning
+
+
+
+
+
+
+70
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Representational efficiency outweighs action efficiency in human program induction
+
+
+
+
+[
+Sanborn
+
+
+
+
+arXiv:1807.07134
+
+
+
+
+
+
+
+
+
+
+arXiv preprint
+
+
+
+
+
+
+
+
+Optimizing the depth and the direction of prospective planning using information values
+
+
+
+
+[
+Sezener
+
+
+
+
+
+
+
+
+The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science
+
+
+
+
+15
+
+
+3
+
+
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+
+
+
+
+Mastering the game of go with deep neural networks and tree search
+
+
+
+
+[
+Silver
+
+
+
+
+
+
+
+
+Nature
+
+
+
+
+529
+
+
+7587
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mastering chess and shogi by self-play with a general reinforcement learning algorithm
+
+
+
+
+[
+Silver
+
+
+
+
+arXiv:1712.01815
+
+
+
+
+
+
+
+
+
+
+arXiv preprint
+
+
+
+
+
+
+
+
+Neural correlates of forward planning in a spatial decision task in humans
+
+
+
+
+D
+A
+Simon
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+Journal of Neuroscience
+
+
+
+
+31
+
+
+14
+
+
+
+
+
+
+
+
+
+
+Simon and Daw
+
+
+
+
+
+
+
+
+Prospective optimization with limited resources
+
+
+
+
+[
+Snider
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+11
+
+
+9
+
+
+1004501
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evidence integration in model-based tree search
+
+
+
+
+Botvinick ;
+Solway
+
+
+
+
+
+
+A
+Solway
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+
+
+
+
+Proceedings of the National Academy of Sciences
+
+
+
+
+112
+
+
+37
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Reinforcement learning: An introduction
+
+
+
+
+Barto ;
+Sutton
+
+
+
+
+
+
+R
+S
+Sutton
+
+
+
+
+
+
+A
+G
+Barto
+
+
+
+
+
+
+
+
+MIT press Cambridge
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+Temporal difference learning and td-gammon
+
+
+
+
+G
+Tesauro ; Tesauro
+
+
+
+
+
+
+
+
+Communications of the ACM
+
+
+
+
+38
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The number of legal go positions
+
+
+
+
+J
+Tromp
+
+
+
+
+
+
+
+
+International Conference on Computers and Games
+
+
+
+
+Springer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Computing machinery and intelligence. Mind
+
+
+
+
+A
+M
+Turing
+
+
+
+
+
+
+
+
+49
+
+
+
+
+
+
+
+
+Turing, 1950
+
+
+
+
+
+
+
+
+The effects of time pressure on chess skill: an investigation into fast and slow processes underlying expert performance
+
+
+
+
+Van Harreveld
+
+
+
+
+
+
+
+
+Psychological Research
+
+
+
+
+71
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A computational model for decision tree search
+
+
+
+
+Van Opheusden
+
+
+
+
+
+
+
+
+Proceedings of the 39th Annual Meeting of the Cognitive Science Society
+
+
+the 39th Annual Meeting of the Cognitive Science Society
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mapping value based planning and extensively trained choice in the human brain
+
+
+
+
+[
+Wunderlich
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+15
+
+
+5
+
+
+786
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dopamine enhances model-based over model-free choice behavior
+
+
+
+
+[
+Wunderlich
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+75
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Using goal-driven deep learning models to understand sensory cortex
+
+
+
+
+Dicarlo ;
+Yamins
+
+
+
+
+
+
+D
+L
+Yamins
+
+
+
+
+
+
+J
+J
+Dicarlo
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+19
+
+
+3
+
+
+356
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

@@ -1,0 +1,3366 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction
+Every day, people decide repeatedly between holding information in short-term memory (e.g. remember to remove pizza from the oven in 10 minutes) or offloading it to the external environment (e.g. set an alarm for 10 minutes' time). Research into cognitive offloading has investigated factors that influence these decisions 
+Risko & Gilbert, 2016)
+. A second question addressed by studies of cognitive offloading relates to the downstream effects of cognitive offloading on memory, including situations where an external reminder is unexpectedly removed 
+(Kelly & Risko, 2019a
+, 2019b
+Sparrow et al., 2011;
+Storm & Stone, 2015)
+. Research in this field addresses theoretical questions about memory, strategy selection, and the extended mind. It also has practical relevance to questions about how to optimise individuals' use of external memory tools, and to understand the influence of technology on memory.
+Studies of cognitive offloading reveal a set of empirical phenomena, some of which have been replicated repeatedly (described in detail below). However, the processes underlying these phenomena are not well understood at a mechanistic level. The aim of this article is to contribute towards a mechanistic understanding of these cognitive processes, by presenting an explicit model of cognitive offloading, along with the code to reproduce all simulations, which can be downloaded at https://osf.io/4uxm6/. Based on this, it is argued that value-based decision making plays a central role in cognitive offloading and can potentially explain many empirical phenomena in this domain.
+The basic principles of this modelling work are straightforward. First, it is assumed that individuals choose to store information in short-term memory insofar as this eventually brings some reward. Second, it is assumed that retaining information, either by storing in short-term memory or by creating an external record, generates some cost. These costs differ according to the strategy chosen. Phenomena related to cognitive offloading then follow as a simple consequence of cost/benefit comparisons.
+Many of the phenomena considered here are illustrated by a study by 
+Dupont et al. (2022)
+. This serves as the basic paradigm to be simulated. 
+Dupont et al. administered
+ a task where participants used a touchscreen tablet or their computer mouse to drag numbered circles in sequence to the bottom of a square 
+(Figure 1
+). This removed them from the screen. Each time a circle was removed, it was replaced by a new one continuing the sequence. For example, on a trial starting with six circles labelled 1-6 on screen, the participant would begin by dragging the first circle to the bottom, leading to a new one labelled 7 appearing in its place. They would then drag number 2 to the bottom, which would be replaced by a new one labelled 8 and so on. The default colour for the circles was yellow but sometimes one of the new circles would briefly be coloured blue or pink when it first appeared on the screen, before fading to yellow after two seconds. These colours instructed participants that the highlighted circle should be dragged to the left (blue) or right (pink) when it was eventually reached in the sequence, instead of the bottom. One of these sides was associated with a higher reward for correct responses than the other. In some conditions participants were able to set external reminders, to help them remember the special circles. They did this by dragging to-be-remembered circles immediately to the left or right when the colour instruction was presented, so that the circle's location acted as an external reminder for where it should eventually be placed. In other conditions participants had to rely on internal memory alone in order to remember the delayed intentions, e.g. simply remembering that number 7 should be dragged to the left without any external cue or reminder of this.  
+Dupont et al. (2022)
+. Participants dragged numbered circles in sequential order to the bottom of the box, while additional circles appeared on the screen to continue to the sequence. Some circles initially appeared in blue or pink, instructing participants to remember these circles and eventually drag them to the left or right to obtain an additional high-or low-value reward. In some conditions, participants were able to set external reminders to help remember these special circles.
+The main findings reported by 
+Dupont et al. (2022)
+ were as follows: 1) When forced to rely on internal memory, accuracy for high-value items was higher than low-value items (Experiments 1-3). This replicates a basic principle of value-based remembering: people typically have better memory for items associated with higher reward (reviewed by 
+Knowlton & Castel, 2022)
+.
+2) When allowed to set reminders, participants did this more often for high-than low-value items (Experiment 1).
+3) When reminders were allowed, accuracy was improved for both high-and lowvalue items (Experiment 1). 4) Even when only high-value items were offloaded, accuracy for low-value items was nevertheless improved (Experiments 2-3). This suggests a 'cognitive spillover' effect whereby memory is reallocated to low-value items once it is no-longer occupied by high-value items. Related to this, other research into cognitive offloading has demonstrated a 'saving-enhanced memory' effect 
+(Storm & Stone, 2015)
+, where participants' memory for some items is improved when they can rely on external reminders for another set of items. 5) When reminders were removed and participants were tested on a surprise memory test, their memory for high-value items was reduced, compared with a condition where they never set reminders. This corresponds to the so-called 'Google effect'. When a trusted reminder is removed and participants are unexpectedly forced to remember an item with internal memory, performance is poorer than a condition where participants rely on internal memory all along 
+(Eskritt & Ma, 2014;
+Henkel, 2014;
+Kelly & Risko, 2019a
+, 2019b
+Soares & Storm, 2018
+Sparrow et al., 2011)
+.
+6) The surprise memory test showed the opposite pattern for low-value items.
+Participants' memory for low-value items in the surprise memory test was improved in a condition where high-value items were offloaded. This led to an inverse value effect. When participants relied on their own memory, surprise memory test performance was better for high-than low-value items. But when they set reminders for high-value items, the surprise tests showed better performance for low-than high-value items. This suggests that participants used 'spare' memory capacity preferentially to remember low-value items, once high-value items had been offloaded to an external reminder.
+
+
+A value-based decision making approach
+To simulate these findings, a simple model was implemented, balancing the reward associated with remembering against the costs. This follows the approach taken in other domains of cognition, such as the expected value of control model 
+(Shenhav et al., 2013)
+, according to which individuals balance the benefits against the costs of cognitive control. In the paradigm used by 
+Dupont et al. (2022)
+, the rewards associated with remembering are explicitly defined in terms of financial payments (e.g. 7 cents for remembering high-value items; 3 cents for remembering low-value items). But what are the costs of remembering? The key principle of the model presented here is that these costs differ between storing an item in internal memory or an external store.
+According to this approach, the cost of storing an item in an external store is simply that this requires additional action (e.g. the actions required to program a smartphone reminder). As well as the costs related to the physical effort of creating a reminder, the time spent could also be considered as a cost 
+(Gray et al., 2006)
+, as could the effort of subsequently retrieving information from an external store when needed. The reward associated with offloading therefore needs to outweigh this small cost in order for an offloading strategy to be selected. The present model assumes that the cost of offloading is constant (i.e. it does not matter how many other items have already been offloaded) and that the benefit of offloading is also unaffected by the number of other items that have already been placed in an external store. These assumptions may not be strictly true, especially if a high number of items have been offloaded or the store is very limited in capacity (e.g. a small piece of paper), but it is used here as a simplifying approximation.
+As for storing an item in internal memory, there is no immediate cost for this in terms of the requirement for an additional motor action. However, there is an opportunity cost. Storing one item in internal memory may reduce one's ability to store additional items. This could be detected via declining accuracy when a larger number of items need to be stored, as has been demonstrated with a version of the paradigm investigated here 
+(Gilbert, 2015a)
+. However, the concept of an opportunity cost does not necessarily entail a drop in performance. Opportunity costs may be generated simply by the act of allocating working memory resources to a task, so that those resources are not available for other opportunities, or by the maintenance of internal representations that might cause interference with the representations required for other activities 
+(Musslick & Cohen, 2021;
+Oberauer et al., 2016)
+.
+According to this approach, while the reward associated with remembering is the same regardless of strategy, the costs associated with internal memory or external offloading differ. As a result of these differences, each of the empirical phenomena described above (and some additional ones described below) follow as a simple consequence. 
+Dupont et al.'s (2022, Experiment 3)
+ task is simulated as follows. There are 16 possible memory strategies for this task, operationalised as four orthogonal binary yes/no decisions: A) store high-value items in internal memory? B) store low-value items in internal memory? C) create reminders for high-value items (if allowed)? D) create reminders for low-value items (if allowed)? Thus, the model can choose to remember a particular item by storing it in internal memory or creating an external reminder. It could also choose both of these strategies together (store in internal memory and also create an external reminder; see 
+Murphy, 2023
+, for empirical evidence suggesting such a dual-storage strategy), or neither (do not store the item at all). The model operates by randomly selecting one of these 16 strategies and monitoring the reward obtained. This is repeated over a number of episodes, then the strategy associated with the highest reward is selected. This is a simple form of Monte Carlo reinforcement learning 
+(Sutton & Barto, 2018)
+.
+
+
+The model
+Each trial consists of 3 high-value items and 3 low-value items. This is based on the procedure of 
+Dupont et al. (2022, Experiment 3)
+, in which 12 items were presented on screen at once, of which 25% were high-value targets and 25% were low-value targets. 
+Dupont et al. (2022)
+ conducted two experiments where high-and low-value targets were worth 10 points and 1 point respectively, and a third experiment where they were worth 7 points and 3 points. An intermediate pair of values, 8 points versus 2 points, are used here so that the same parameters are used for all simulations. On each trial, all six items are presented, and each item is stored in internal memory and/or offloaded to an external reminder according to the strategy randomly selected on that trial. Every time an item is offloaded, the total reward for that trial is decreased by a small constant amount (see 'Parameter Settings' section below). This simulates the small cost of physically creating a reminder.
+Following the encoding phase, a memory test is simulated. For each item that was offloaded, it is remembered with a probability of 98%. This is the accuracy that participants achieved when forced to use an offloading strategy in empirical data collected by 
+Kirk et al. (2021)
+. For each item that was stored in internal memory, it is remembered with a probability that depends on the total number of items that were stored in memory. The model simulates a scenario where either 3 items are stored in memory (if only low-or high-value items are encoded) or 6 items (if all items are encoded). Therefore only two parameter settings are required here. Accuracy with 6 items is set to 75%, based on empirical data from 
+Chiu & Gilbert (2023)
+, which tested a similar task and obtained an accuracy of 74% with a memory load of items. The same study obtained accuracies of 96% and 86% with 2 and 4 items (mean: 91%), which is comparable to the accuracy of 89% found by Gilbert with a memory load of 3 items (2015a, Experiment 1b, no-interruption condition). Therefore, accuracy with 3 items is set to 90%. If an item is remembered (by either strategy, or both), its associated reward is collected.
+Simulations are performed by running 50 trials, selecting a random strategy each time. The strategy associated with the highest average reward across these 50 episodes is then selected, and the behavioural performance of the model associated with that strategy is recorded. Therefore, this a reward-maximising model rather than an accuracy-maximising model; it will sometimes accept a strategy with lower mean accuracy if this generates a higher reward. The relatively low number of episodes sampled, along with the probabilistic nature of memory retrieval, leads to some variability in the model's performance rather than always selecting the optimal strategy. It also allows evaluation of which other strategies are likely to be chosen if not the optimal one. This procedure is averaged 1,000,000 times to obtain a precise estimate of the likelihood of selecting each strategy, and the model's accuracy at remembering high-and low-value items.
+In this form of Monte Carlo reinforcement learning, the only way to learn the optimal strategy is by sampling the policies randomly and monitoring the reward obtained for each one. Of course, human strategy selection is not only based on trialand-error learning but also on verbal instructions and foresight. Nevertheless, results of Monte Carlo simulations can be informative about which strategies are optimal or near-optimal, even if human strategy selection is based on more sophisticated processes.
+
+
+Parameter settings
+A full list of parameters is shown in 
+Table 1
+ Lower numbers lead to more variable performance; higher numbers lead to less variability (with a limiting case where the single optimal strategy is chosen every time), however this does not change the qualitative pattern of results, only the variability. The aim of this work is not to produce a precise quantitative fit to the results of 
+Dupont et al. (2022)
+. Rather, it is to replicate a set of qualitative phenomena, many of which have also been reported in other studies of cognitive offloading, in order to demonstrate that a simple process of value-based decision making can potentially explain them.
+The one parameter that does affect the qualitative pattern of results, and cannot be directly observed from experimental procedures or empirical data, is the cost of offloading: the constant penalty that is applied each time an item is offloaded. The influence of this parameter is explored below. Full code to run the simulations can be found at https://osf.io/4uxm6/. In addition, the parameters listed in 
+Table 1
+ can be used to calculate the expected reward associated with each strategy (see below for examples).
+
+
+Simulations
+
+
+If offloading is not allowed, memory is better for high-than low-value items
+First the model was run without allowing it to offload items, so only four strategies were possible: store high-value items in internal memory, store low-value items in internal memory, store both types of item in internal memory, store neither. Results are shown in 
+Figure 2
+. The model is more likely to encode high-value items into memory than low-value items, and accuracy reflects this. This is a consequence of the opportunity cost for storing additional items in internal memory. Consider two possible strategies for remembering the 3 high-value and 3 low-value items on each trial: A) encode high-value items only; B) encode both high-and low-value items. If the model encodes high-value items only, it has a 90% chance of remembering those items (3 items to remember), whereas if it encodes both high-and low-value items its memory accuracy is reduced to 75% (6 items to remember). Therefore, compared with a strategy of encoding high-value items only, the additional reward from encoding low-value items needs to be balanced against the opportunity cost that this incurs due to the reduction of memory accuracy from 90% to 75% for all items.
+With the model's standard parameter settings, a strategy of only encoding highvalue items yields 90% x 8 = 7.2 points per item. A strategy of encoding both highand low-value items yields 75% x 8 = 6 points for each high-value item and 75% x 2 = 1.5 points for each low-value item, yielding 7.5 points for each pair of high-and low-value items. Therefore the optimal strategy is to encode both high-and lowvalue items, but a strategy of encoding high-value items alone yields a comparable reward. Given that the model operates probabilistically, random fluctuations in memory performance mean that on some runs the strategy of encoding both highand low-value items (mean reward: 7.5) will generate the greatest reward, on other runs the strategy of encoding high-value items only (mean reward: 7.2) will generate the greatest reward. In both cases the model encodes high-value items, the only difference is whether low-value items are also encoded. The strategy of only encoding low-value items yields a much lower average of 1.8 points so this strategy is almost certain to generate a lower reward than the other two. Therefore, averaged across all runs, the model is more likely to encode high-value items (which it always does, regardless of whether it only encodes high-value or it encode both high-and low-value) than it is to encode low-value items. Note that in a situation where the difference in value is more extreme (e.g. 10 points versus 1 point, as used by Dupont et al., 2022, Experiments 1-2), the optimal strategy is to encode high-value items only and to disregard low-value items, because the additional reward from encoding lowvalue items does not outweigh the reduced likelihood of remembering high-value
+items. This demonstrates the principle that the model is reward-maximising rather than accuracy-maximising. 
+
+
+When offloading is allowed, participants preferentially offload high-value items
+Next, the model was run with all memory strategies allowed ( 
+Figure 3
+). The offloading rate is higher for high-than low-value items (as found by 
+Dupont et al., 2022, Experiment 1)
+. This is because the benefit of offloading high-value items (worth 8 points) outweighs the cost of offloading (1 point). Once the high-value
+items have been offloaded, there is no need to offload the low-value items (at a cost of 1 point for item) when they can be stored in internal memory for free. Therefore the optimal strategy is to offload high-value items and remember the remaining lowvalue items with internal memory. This earns a higher expected reward than offloading low-value items and storing high-value items in internal memory, because offloading has higher accuracy (98%) than internal memory (90% or 75%, Low−value High−value depending on load). Therefore, the higher-value items should be prioritised for the more accurate strategy. 
+Figure 3
+. The model's strategy and performance when offloading is allowed. Left panel indicates the proportion of simulations where the highest-rewarded strategy encoded low-and high-value items respectively into internal memory and/or offloaded them to external reminders. Right panel indicates the mean accuracy for low-and high-value items produced by the winning strategies.
+
+
+Accuracy improves when offloading is allowed
+Comparing 
+Figures 2 and 3
+ shows that accuracy is higher in the simulations where offloading is allowed. This is a straightforward consequence of the availability of an additional memory strategy which can boost the chances of remembering each item.
+3.4 Even if only high-value items are offloaded, accuracy is still improved for low-value items 
+Dupont et al. (2022)
+ hypothesised that accuracy for low-value items might be increased not only due to the reminders set for those items, but also because memory experiment where participants were only allowed to offload high-value items. This led to increased accuracy for low-value items, supporting the 'spillover' account. To simulate this experiment, a simulation was run where the option of offloading highvalue items was allowed, but not low-value items 
+(Figure 4
+). Comparing this with 
+Figure 1
+ shows that the model's accuracy for low-value items was improved, as found by Dupont et al., even though no reminders were set for those items. The strategy selection data also shows that when offloading high-value items is allowed, the model is more likely to encode low-value items in internal memory. This can explain the observed results. Once a high-value item has been offloaded, additionally storing it in internal memory carries little additional benefit: the reminder would have almost certainly been effective anyway, so duplicating it in internal memory brings little additional reward. But there is a clear opportunity cost as a result of unnecessarily storing high-value items in internal memory. Therefore the optimal strategy is to offload high-value items, and use internal memory for lowvalue items. The low-value items would otherwise have been forgotten, so using internal memory in this way brings some additional reward. 
+
+
+When offloading is allowed, surprise memory accuracy is increased for low-value items
+To further examine the possibility of a spillover of internal memory from high-to low-value items when high-value items were offloaded, 
+Dupont et al. (2022,
+ Experiment 3) conducted an additional experiment where reminders were unexpectedly removed from the screen and participants had to rely on internal memory alone. On these surprise memory tests, participants had better memory for low-value items in the condition where they had set reminders for high-value items.
+This was simulated by training the model as usual, but evaluating its accuracy only in reference to the items stored in internal memory, ignoring whether or not they had been offloaded ( low-value items is improved when high-value items are offloaded. This finding, that offloading one set of items can improve memory for a separate set of items that were not offloaded, corresponds to the 'saving-enhanced memory' effect 
+(Runge et al., 2019;
+Storm & Stone, 2015)
+. Note that it is only optimal to reallocate internal memory to low-value items and rely on the external store for high-value items if that external store is reliable. Otherwise it is a risky strategy. This can be demonstrated simply by reducing the model's accuracy for offloaded items from 98% to 50% to simulate an unreliable store. In this case, the saving-enhanced memory effect shown in 
+Figure 5
+ is substantially reduced.
+Whereas 
+Figure 5
+ shows a saving-enhanced memory effect of 38% (an improvement of low-value accuracy from 50% to 88% when high-value offloading is allowed), the effect is reduced to just 12% (an improvement of low-value accuracy from 50% to 62%) when the external store is unreliable. Consistent with this, Storm and Stone itself, the present model simulates the reduction of this effect when the external store is unreliable.
+
+
+When offloading is allowed, surprise-test accuracy is reduced for high-value items
+Figure 5 also shows that surprise-test accuracy for high-value items is reduced once they have been offloaded. Once an item has been offloaded to a highly-reliable reminder, there is little benefit from additionally duplicating it in internal memory, and greater reward can be obtained by encoding alternative information instead.
+This corresponds to the 'Google effect': storing information in an external store can harm internal memory for the offloaded information 
+(Eskritt & Ma, 2014;
+Henkel, 2014;
+Kelly & Risko, 2019a
+, 2019b
+Sparrow et al., 2011)
+. As a result of this effect, along with the previous one, the model's surprise-test accuracy is greater for lowthan high-value items when offloading is permitted. In other words, the standard enhancement of internal memory for high-value information 
+(Knowlton & Castel, 2022)
+, which is observed when offloading is not permitted, may be reversed when offloading is allowed.
+
+
+People are more likely to offload when there are more items to remember
+Along with the phenomena reported by 
+Dupont et al. (2022)
+, the model reproduces the additional finding that the offloading rate is increased at higher memory load.
+For example, 
+Gilbert (2015a)
+ found that the offloading rate was much higher when participants had three items to remember compared with one (see 
+Risko & Dunn, 2015
+ for a similar finding). To simulate this effect, the model's performance in the standard simulation (3 items per condition) was compared against a new simulation with just one item per condition ( 
+Figure 6
+). Memory accuracy with 1 item was set to 95% (based on Gilbert, 2015a, Experiment 1b) and accuracy with 2 items was set to 92.5%, based on the midpoint between accuracies with 1 item and 3 items. The offloading rates with the reduced memory load (high value: 14%; low-value: 14%) were much lower than the simulations with the standard memory load (high-value:
+54%; low-value: 31%). The explanation for this is that encoding a large number of items into internal memory leads to substantially decreased accuracy. Rather than accept this drop in accuracy, it is rational to engage in the highly-reliable offloading strategy, despite the small cost of this strategy. By contrast, a small number of items can be remembered with little drop in accuracy. Therefore, when the memory load is low the cost of offloading does not outweigh the benefit.  
+
+
+Cost of offloading
+As discussed above, there is one free parameter in the model which cannot be set in a principled way based on the experimental design or relevant empirical data. This is the constant cost that is applied every time an item is offloaded, due to the additional physical action required. To investigate the impact of this parameter, simulations were run across the full range from 0 (in which case there is no cost of offloading at all) to 2 (in which case the cost of offloading fully offsets the reward delivered by a low-value item). Results are shown in 
+Figure 7
+. This shows that the offloading rate is decreased when the cost increases. This pattern was also observed empirically by 
+Chiu and Gilbert (2023)
+ in a study that manipulated the physical effort of reminder setting.
+The key phenomena simulated above are consistently found across almost all parameter settings: the model preferentially offloads high-rather than low-value items, and encodes low-rather than high-value items in internal memory. This pattern is seen across approximately 90% of the parameter range. The only exception to this is when the cost of offloading (about 1.8 or higher) comes close to fully offsetting the value of low value items (2). In this case, the model no longer corresponds to the situation it is supposed to be simulating because the offloading rate is extremely low. 
+Dupont et al. (2023, Experiment 3)
+ showed that while participants had superior internal memory for low-value than high-value items when offloading was allowed (mean offloading rate of 0.61), this pattern reverses when offloading is not permitted (i.e. offloading rate of zero). Therefore, the model   One potentially surprising feature of 
+Figure 7
+ is that once the cost of offloading reaches about 2, the model rarely offloads either low-or high-value items. Why does the model not offload high-value items (worth 8 points) when the cost of offloading is substantially lower than this? The reason is that the benefit of offloading (an accuracy of 98%, compared with 90% or 75% for internal memory, depending on how many items are encoded) can be outweighed even by a relatively modest cost of offloading. This probably reflects the simplified nature of the model, which has no disincentive against maximally filing short-term memory if this brings a marginally improved reward compared with an offloading strategy. Human participants do have a disincentive against this: short-term memory abilities can be used for many purposes at any one time, not only for remembering the stimuli presented as part of an experiment but also for off-task thoughts. This means that an offloading strategy may be preferable due to the additional mental activities it allows, even if it brings modest costs in the experimental task (see Sachdeva 
+& Gilbert, 2020)
+. Therefore, human participants might of course deviate from the optimal strategy shown in 
+Figure 7
+ if they engage in cognitive processes beyond those strictly required by the experimental task. In particular, it may be beneficial to offload more than is strictly optimal in one task if this confers a benefit in the ability to perform an additional distinct task (see 
+Runge et al., 2019
+ for evidence of such cross-domain impact of offloading).
+
+
+Effort sensitivity and the cost of offloading
+Chiu and Gilbert (2023, Experiment 2) investigated how the physical cost of reminder-setting influences the rate of offloading. Participants in this study performed a memory task at three levels of load: 2 items, 4 items, and 6 items. When participants were forced to use internal memory, mean accuracies were 95%, 89%, and 73% respectively. In separate conditions, participants either had the option to set low-effort reminders (requiring a minimum of physical effort) or high-effort reminders (requiring an additional 15 mouse-clicks). In line with the present modelling results, participants set more reminders at higher memory loads (cf 
+Figure 6
+). They also set more reminders in the low-effort condition, where the cost of offloading was low (cf 
+Figure 7)
+. This experiment also produced a counter-intuitive result. As set out in the original study pre-registration, we predicted not only that high-effort reminders would suppress offloading, but also that this suppression effect would be strongest when the memory load is low, especially the 2-item condition. This was because reminders are least necessary at the lowest memory load, so we reasoned that participants should be most averse to the additional physical effort at this load. Contrary to this prediction, the effort manipulation had the strongest effect at the intermediate 4-item memory load, rather than the 2-item or 6-item condition.
+To test whether the model reproduces the nonmonotonic relationship between task difficulty and sensitivity to offloading effort, the following simulation compares the model's performance with the standard offloading cost (1 point) with a high-cost condition (2 points). 
+Chiu and Gilbert (2023)
+ did not manipulate item value, so this simulation presented the model with items at only a single value (8 points, i.e. high-value, seeing as the reward from the low-value items would be entirely offset by the cost of offloading in the high-cost condition). Rather than present the model with 2, 4, and 6 items as in the study by 
+Chiu and Gilbert (2023)
+, the model was presented with a single item while varying the internal memory accuracy across a range from 0.55, representing a very difficult task with low accuracy (e.g. a high memory load), to 0.95, representing a very easy task with high accuracy (e.g. a low memory load).
+This allows its performance to be monitored over a wide range of task difficulty levels, rather than just three points corresponding to the memory loads tested by 
+Chiu and Gilbert (2023)
+. The absolute number of items presented does not influence the model's performance except via the influence that this has on accuracy levels, which can be manipulated directly. This is the reason why the number of items, which does not directly influence model performance, was not manipulated, but instead simulations compared model performance across a wide range of accuracy levels that could correspond with performance at different memory loads.
+As shown in 
+Figure 8
+, the model shows the expected effects of internal accuracy (more offloading for the harder task) and offloading cost (more offloading when the cost is low). In addition, cost-sensitivity (the difference in offloading rate between low-and high-effort reminders) shows an inverted-U pattern, with the maximum effect at an intermediate level of task difficulty. Therefore, the model captures the counterintuitive and unexpected finding of 
+Chiu and Gilbert (2023)
+, with greater cost-sensitivity at an accuracy level corresponding to the 4-item condition than the accuracy levels corresponding to the 2-or 6-item conditions. The reason for this is that the optimal strategy at the highest level of difficulty is to offload, regardless of the cost. Likewise, the optimal strategy at the lowest level of difficulty is to use internal memory, again regardless of the cost. Therefore, at these levels of difficulty, the cost of offloading has little impact on the optimal strategy, although there will still be some variation due to the stochastic nature of the model. At intermediate levels of difficulty the decision is more finely balanced and therefore the cost of offloading has a greater influence on determining the optimal strategy. 
+
+
+Individual differences
+Several studies have reported a negative correlation between internal memory ability and offloading rate, due to an increased likelihood of offloading in people with poorer memory ability 
+(Gilbert, 2015b)
+. Similarly, studies measuring the optimality of reminder-setting strategies find that the objective need for reminders (largely determined by low memory ability, which leads to a greater enhancement of performance when reminders are used) is correlated with the likelihood of offloading 
+(Gilbert et al., 2020)
+. The left panel of 
+Figure 8
+ could be seen as simulating this finding, seeing as lower accuracy was associated with higher offloading, in both effort conditions. Therefore, the negative relationship between objective memory accuracy and offloading rates can be seen as capturing both within-individual variation associated with experimental manipulations such as memory load, and also between-individual variation in memory ability.
+
+
+Discussion
+This article presents a simple reinforcement learning model that characterises cognitive offloading as a form of value-based decision making. The model implements two key principles: first, storing an item in short-term memory generates an opportunity cost, due to its limited capacity. This means that storing one item can harm a person's ability to store additional items. By contrast, offloading an item to an external store incurs a small cost, due to the time and physical effort involved in creating a reminder, but it does not generate an opportunity cost. This is because offloading one item into an external store typically has negligible impact on the capacity of that store to hold additional items. A person deciding whether to store an item in short-term memory or an external reminder (or both) can be seen as weighing the value of remembering that item against these two forms of cost. As shown above, multiple empirical phenomena that have been reported in this field emerge as a straightforward consequence of this form of value-based decisionmaking. In particular, the model simulates 1) greater unaided memory for high-than low-value items; 2) greater offloading rate for high-than low-value items; 3) higher accuracy when offloading is allowed; 4) benefit of offloading one set of items on memory for another set of items ('cognitive spillover' / 'saving-enhanced memory'); 5) reduced saving-enhanced memory effect when reminders are unreliable; 6) reduced surprise-test accuracy for offloaded items ('Google effect'); 7) possibility of reversed value effect in surprise memory test (superior memory for low-value items); 8) increased offloading rate with higher memory load; 9) reduced offloading rate with greater cost of offloading; 10) greatest sensitivity to the cost of offloading at intermediate rather than highest/lowest levels of task difficulty; 11) greater offloading in individuals with poorer memory ability.
+
+
+Expected value of memory
+Describing cognitive offloading as a form of value-based decision making can help to link this area of research and others that have been amenable to a similar approach. Phenomena related to cognitive offloading can then be seen as resulting from general principles that apply across multiple domains of cognition, rather than being offloading-specific. For example, 
+Sharot et al. (2022)
+ present an analysis of people's likelihood of holding onto particular beliefs or changing them as a form of value-based decision making, based on the utility of that belief (which need not necessarily correspond to its truthfulness). Another well-known model similarly conceptualizes the engagement of cognitive control processes as a form of valuebased decision making based on the 'expected value of control' (EVC; 
+Shenhav et al., 2013
+Shenhav et al., , 2016
+. According to this model, cognitive control can yield rewards as a result of goal attainment, but it also imposes costs (including opportunity costs). Therefore, a person will tend to engage in cognitive control if the reward outweighs the cost.
+The present model can be seen as an extension of the EVC model. The EVC model focuses on the decision process underlying the engagement of cognitively-effortful controlled processing, with particular emphasis on the costs and benefits of mental effort 
+(Shenhav et al., 2013
+(Shenhav et al., , 2017
+. The present work extends this by explicitly simulating the unique costs and benefits that an individual needs to weigh when deciding not only whether to invest mental effort but also physical effort as an alternative means of achieving the same cognitive goal (see 
+Holroyd & McClure, 2015
+ for related work).
+This view of cognitive offloading can sharpen the debate about the possible benefits and harms of cognitive technology. A well-replicated finding from studies of cognitive offloading is that when people expect that they will be able to rely on an external reminder, their internal memory for the offloaded information is reduced 
+(Eskritt & Ma, 2014;
+Henkel, 2014;
+Kelly & Risko, 2019a
+, 2019b
+Soares & Storm, 2018
+Sparrow et al., 2011)
+. This 'Google effect' has been interpreted by some as evidence that cognitive offloading harms memory 
+(Baron, 2021)
+. However, this evidence does not show that offloading harms people's ability to remember. It can be more parsimoniously explained as showing that the value of storing an item in internal memory is reduced once that item has been offloaded to an external store 
+(Cecutti et al., 2021)
+. As a result, the value of storing that item in internal memory does not outweigh the (opportunity) cost. Therefore, offloading does not so much reduce the ability to remember as the value of remembering.
+A view of cognitive offloading as a form of value-based decision making can also help to clarify its underlying cognitive mechanisms. Recent work has cast light on the processes underlying the Google effect, showing that people no longer engage in encoding strategies to maintain items in internal memory once they are stored externally 
+(Kelly & Risko, 2019a
+. This provides evidence for a 'negative effect',
+i.e. the absence of strategic processes applied to items once they have been offloaded.
+One might also speculate whether there is a 'positive effect', i.e. an active process to 'dismiss the object from memory' 
+(Henkel, 2014)
+. However, it is not clear to what extent people actively inhibit or remove items from memory once they have been stored externally, if at all. An alternative view, consistent with the modelling results presented above, is that individuals continually select the highest-value information for internal memory 
+(Grünbaum et al., 2021)
+. As a result of this, the Google effect could be explained simply as the reduced value of duplicating in internal memory an item that has also been stored externally. There would be no need in this case to posit an additional process of active removal from internal memory.
+
+
+Effort and metacognition
+As well as offering an account of people's decisions whether to offload items and/or store them in internal memory, the account of cognitive offloading sketched in this article can also potentially account for the phenomenology of the two strategies.
+According to some theoretical accounts, the phenomenology of mental effort is associated with cognitive processes such as working memory maintenance, which are limited in capacity and can potentially be used for multiple distinct purposes 
+(Kurzban, 2016;
+Kurzban et al., 2013)
+. These processes therefore generate an opportunity cost: to the extent that they are used for one activity, this limits their use for other opportunities. This account can explain why people tend to avoid cognitively effortful activities 
+(Kool et al., 2010;
+Kool & Botvinick, 2018)
+: the reward associated with these activities needs to be balanced against the opportunity cost. By contrast, relatively domain-specific processes such as those involved in visual processing may have great computational complexity, but they do not generate an opportunity cost because these processes cannot be redeployed for any other purpose. As a result, visual processing does not feel cognitively effortful but working memory maintenance does.
+The opportunity cost model of cognitive effort fits with the modelling approach presented here, which implements an opportunity cost associated with internal memory but not an external offloading strategy. Storing one item in internal memory may preclude storing another, whereas creating one external reminder is unlikely to impact one's ability to create additional reminders. This can explain why storing an item in internal memory feels more effortful than offloading it to an external reminder. This, in turn, can explain why people tend to avoid internal memory where a perceptual strategy can be used instead 
+(Ballard et al., 1997)
+, as an example of the general tendency to avoid cognitive effort. Within the domain of cognitive offloading, 
+Gilbert et al. (2020)
+ showed that participants tend to prefer an offloading strategy, even when they would have performed better and earned greater financial reward using internal memory (see also 
+Westbrook et al., 2013)
+. Furthermore, Sachdeva and 
+Gilbert (2020)
+ showed that this preference towards offloading is reduced by an intervention (additional financial reward) designed to increase the investment of cognitive effort. As a result of this, Sachdeva and 
+Gilbert (2020)
+ concluded that one factor that drives the preference towards offloading over internal memory is a tendency to avoid cognitive effort. This is consistent with the present model, where internal memory is associated with an opportunity cost but external reminders are not.
+Another factor that influences cognitive offloading is metacognition 
+(Gilbert, 2015b;
+Hu et al., 2019;
+Risko & Dunn, 2015;
+reviewed by Gilbert et al., 2023;
+Risko & Gilbert, 2016)
+. For example, people's decisions whether to rely on internal memory versus external reminders are predicted by their confidence in their memory ability, even after controlling for objective memory ability or in a situation where confidence is unrelated to ability 
+(Gilbert 2015b)
+. Confidence also predicts individuals' bias towards external reminders versus internal memory, relative to their optimal strategy 
+(Gilbert et al., 2020;
+Kirk et al., 2021)
+. The model presented here does not capture this influence, for the simple reason that it does not simulate any metacognitive processes. It chooses a strategy simply based on trial-and-error policy exploration rather than forming any internal representation of its own abilities; it has no internal representation of itself or the task structure. In other words, it implements a form of model-free rather than model-based reinforcement learning 
+(Sutton & Barto, 2018)
+. Future work could use a model-based approach to incorporate metacognitive representations into the model presented here (cf 
+Hu et al., 2019)
+. This could potentially account for metacognitive influences on cognitive offloading.
+
+
+Future directions
+Along with the possibility of modelling metacognitive processes, future work could also potentially simulate the dynamics of working memory maintenance rather than the simplifying approach of a limited number of slots, each corresponding to a mean level of accuracy. The modelling approach presented here could be used to simulate individual differences (e.g. in the values and opportunity costs), the dynamic learning of these values and costs, and other factors such as decision noise. It may also be useful to test the relationship between these parameters and factors such as age, personality, or transdiagnostic symptom dimensions 
+(Wise et al., 2023)
+. For example, older adults -especially those volunteering for psychology experimentsmight be me more inclined to test their internal memory abilities even if an offloading strategy is more optimal according to the reward structure of the task (see 
+Scarampi & Gilbert, 2021;
+Tsai et al., 2023)
+. Data from computational simulations might also be linked to neural correlates of cognitive offloading derived from neuroimaging (e.g. 
+Boldt & Gilbert, 2022;
+Geissler et al., 2023;
+Landsiedel & Gilbert, 2015
+).
+The present model could also address questions about the temporal dynamics of the expected value of memory. How flexible are people in updating the value of information currently represented in working memory and relevant opportunity costs, what mechanisms underlie this updating process, and how does this in turn relate to the ongoing selection of information for continued maintenance (see 
+Atkinson et al., 2021
+ for related work in the field of working memory)? Further, how do people bridge the temporal gap between the decision to maintain information in working memory and the subsequent delivery of reward, so as to select the best strategy in the future? Empirical work to address each of these questions can potentially be guided by explicit modelling.
+Finally, the full variety of internal cognitive demands required by different tasks and the offloading strategies that alleviate them remains to be explored. The intention offloading task simulated in the present work corresponds more closely to a recall than a recognition paradigm. The optimal offloading strategy for a recognition and/or long-term memory task would likely differ, due to different levels of memory accuracy and the impact of factors such as the size of the memory set or the retention interval. Different retrieval tasks may additionally vary in the opportunity they offer individuals to learn their own retrieval limitations. It should also be noted that the influence of value on memory is mediated via distinct automatic versus strategic processes, and the influence of these processes depends on the retrieval task (reviewed by 
+Knowlton & Castel, 2022)
+. This may influence the relationship between value and cognitive offloading when tested using different experimental paradigms.
+It also remains to be seen whether the principles that govern cognitive offloading in the domain of memory also apply to other forms of offloading, such as the use of GPS rather than internal navigation abilities, or even novel technologies that support diverse cognitive demands including generative AI tools such as large language models.
+
+
+Conclusion
+In conclusion, the present work suggests that simple mechanisms of value-based decision making could potentially account for many of the phenomena reported in the field of cognitive offloading. Of course, this does not necessarily imply that those mechanisms actually reflect the ones underlying human performance. Undoubtedly, complex additional mechanisms will be involved in real-world cognitive offloading.
+By specifying some minimal mechanisms to simulate basic phenomena here, the present model can potentially help to clarify what additional mechanisms are required to account for human performance. The present model can also potentially guide future empirical work to test the utility of a value-based decision making approach for understanding cognitive offloading. For example, one prediction that might be derived from the present model is that people should decide whether or not to offload currently-represented information not only based on the value of that information, but also the expected value of forthcoming information. To the extent that remembering forthcoming information will be more rewarding, the opportunity cost of storing current information in internal memory will be increased. Hence, people should be more likely to offload current information.
+Based on the simple model presented in this article, it is possible to sketch a minimal model of cognitive offloading as follows. Selection of a memory strategy (offloading or internal memory) may be based on standard reinforcement learning mechanisms, balancing the reward associated with a stored item against the strategy-specific costs. If an item is offloaded, the downstream consequences of this on memory would arise as a result of the reduced marginal value of maintaining at item in internal memory once it has already been stored externally. There is no need to posit offloading-specific mechanisms for either of these phenomena: they can be seen as arising from domain-general reinforcement learning mechanisms (for strategy selection) and a process of selecting items for short-term memory based on their value (for downstream consequences). The process of 'dismissing' an offloaded item from internal memory could simply be the process of downgrading the value of its continued rehearsal or maintenance. Future work could investigate the adequacy of these domain-general mechanisms for understanding cognitive offloading, and evaluate which additional domain-specific mechanisms -if any -are required to capture the relevant empirical phenomena.
+Figure 1 .
+1
+Schematic illustration of the task used by
+
+
+. With one exception, these parameters are either based on A) directly observable elements of the experimental procedure from Dupont et al. (2022, Experiment 3), B) empirical data from participants performing comparable tasks, or C) do not influence the qualitative pattern of results. As noted above, the number of items to remember and the associated values are based on Dupont et al.'s experimental procedure. The internal memoryaccuracies with 3 and 6 items are based on data from Gilbert (2015a) and
+Chiu & Gilbert (2023)
+; the accuracy with reminders is based on
+Kirk et al. (2021)
+. The total number of episodes sampled before choosing the best strategy (50) is arbitrary.
+
+
+Figure 2 .
+2
+The model's strategy and performance when offloading is not allowed. Left panel indicates the proportion of simulations where the highest-rewarded strategy encoded low-and high-value items respectively into internal memory. Right panel indicates the mean accuracy for low-and high-value items produced by the winning strategies.
+
+
+capacity is reallocated to low-value items once high-value items have been offloaded to reminders. To test this,Dupont et al. (2022, Experiment 2)  carried out an
+
+
+Figure 4 .
+4
+The model's strategy and performance when only high-value offloading is allowed. Left panel indicates the proportion of simulations where the highest-rewarded strategy encoded low-and high-value items respectively into internal memory and/or offloaded them to external reminders. Right panel indicates the mean accuracy for low-and high-value items produced by the winning strategies.
+
+
+Figure 5). Results reproduced the pattern observed by Dupont et al. Due to the optimal strategy of reallocating internal memory to low-value items once high-value items have been offloaded, this means that surprise-test accuracy for
+
+
+Figure 5 .
+5
+The model's performance on surprise tests, when reminders are removed.
+
+
+did not detect a saving-enhanced memory effect when the external store was unreliable. Therefore, as well as simulating the saving-enhanced memory effect
+
+
+Figure 6 .
+6
+Effect of memory load on offloading rate.
+
+
+.
+
+
+reproduces the pattern observed in the offloading condition of Dupont et al. (2023, Experiment 3) across 90% of possible parameter settings. The pattern then flips in an extreme 10% of parameter settings where the model's offloading rate more closely approximates the no-offloading condition of Dupont et al., which also showed a corresponding flip in the relevant measures.
+
+
+Figure 7 .
+7
+Effect of the offloading cost on model strategy.
+
+
+Figure 8 .
+8
+Left: offloading rate for low-cost and high-cost offloading strategies, across a range of internal memory accuracies. Right: cost sensitivity (i.e. difference between low-and high-cost offloading rates) across a range of internal memory accuracies.
+
+
+Table 1
+1
+Number of model runs
+1,000,000
+Number of simulated trials per run
+50
+Value of high-value items
+8
+Value of low-value items
+2
+Cost of offloading
+1
+Memory accuracy with 3 items
+90%
+Memory accuracy with 6 items
+75%
+Accuracy for offloaded items
+98%
+. Model parameters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Can valuable information be prioritized in verbal working memory
+
+
+
+
+A
+L
+Atkinson
+
+
+
+
+
+
+R
+J
+Allen
+
+
+
+
+
+
+A
+D
+Baddeley
+
+
+
+
+
+
+G
+J
+Hitch
+
+
+
+
+
+
+A
+H
+Waterman
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology: Learning, Memory, and Cognition
+
+
+
+
+47
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/xlm0000979
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Deictic codes for the embodiment of cognition
+
+
+
+
+D
+H
+Ballard
+
+
+
+
+
+
+M
+M
+Hayhoe
+
+
+
+
+
+
+P
+K
+Pook
+
+
+
+
+
+
+R
+P
+Rao
+
+
+
+
+
+
+
+
+The Behavioral and Brain Sciences
+
+
+
+
+20
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1017/S0140525X97001611
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Know what? How digital technologies undermine learning and remembering
+
+
+
+
+N
+S
+Baron
+
+
+
+
+
+
+
+
+Journal of Pragmatics
+
+
+
+
+175
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.pragma.2021.01.011
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Partially Overlapping Neural Correlates of Metacognitive Monitoring and Metacognitive Control
+
+
+
+
+A
+Boldt
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+10.1523/JNEUROSCI.1326-21.2022
+
+
+
+
+
+
+
+
+The Journal of Neuroscience
+
+
+
+
+42
+
+
+17
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Technology may change cognition without necessarily harming it
+
+
+
+
+L
+Cecutti
+
+
+
+
+
+
+A
+Chemero
+
+
+
+
+
+
+S
+W S
+Lee
+
+
+
+
+
+
+
+
+Nature Human Behaviour
+
+
+
+
+5
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1038/s41562-021-01162-0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Influence of the physical effort of reminder-setting on strategic offloading of delayed intentions
+
+
+
+
+G
+Chiu
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+10.1177/17470218231199977
+
+
+
+
+
+
+
+
+Quarterly Journal of Experimental Psychology
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Value-based routing of delayed intentions into brain-based versus external memory stores
+
+
+
+
+D
+Dupont
+
+
+
+
+
+
+Q
+Zhu
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+10.1037/xge0001261
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology: General
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Intentional forgetting: Note-taking as a naturalistic example
+
+
+
+
+M
+Eskritt
+
+
+
+
+
+
+S
+Ma
+
+
+
+
+10.3758/s13421-013-0362-1
+
+
+
+
+
+
+
+
+Memory & Cognition
+
+
+
+
+42
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A functional near-infrared spectroscopy study on the prefrontal correlates of cognitive offloading via a personal knowledge assistant
+
+
+
+
+C
+Geissler
+
+
+
+
+
+
+P
+Gauselmann
+
+
+
+
+
+
+C
+Jilek
+
+
+
+
+
+
+H
+Maus
+
+
+
+
+
+
+C
+Frings
+
+
+
+
+
+
+T
+Tempel
+
+
+
+
+10.1038/s41598-023-39540-5
+
+
+
+
+
+
+
+
+Scientific Reports
+
+
+
+
+13
+
+
+1
+
+
+13938
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Strategic offloading of delayed intentions into the external environment
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+
+
+
+
+The Quarterly Journal of Experimental Psychology
+
+
+
+
+68
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1080/17470218.2014.972963
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Strategic use of reminders: Influence of both domain-general and taskspecific metacognitive confidence , independent of objective memory ability
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+
+
+
+
+CONSCIOUSNESS AND COGNITION
+
+
+
+
+33
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.concog.2015.01.006
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+
+
+A
+Bird
+
+
+
+
+
+
+J
+M
+Carpenter
+
+
+
+
+
+
+S
+M
+Fleming
+
+
+
+
+
+
+C
+Sachdeva
+
+
+
+
+
+
+P.-C
+Tsai
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimal use of reminders: Metacognition, effort, and cognitive offloading
+
+
+
+
+
+
+Journal of Experimental Psychology: General
+
+
+
+
+149
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/xge0000652
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Outsourcing Memory to External Tools: A Review of 'Intention Offloading
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+
+
+A
+Boldt
+
+
+
+
+
+
+C
+Sachdeva
+
+
+
+
+
+
+C
+Scarampi
+
+
+
+
+
+
+P.-C
+Tsai
+
+
+
+
+10.3758/s13423-022-02139-4
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+30
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The soft constraints hypothesis: A rational analysis approach to resource allocation for interactive behavior
+
+
+
+
+W
+D
+Gray
+
+
+
+
+
+
+C
+R
+Sims
+
+
+
+
+
+
+W.-T
+Fu
+
+
+
+
+
+
+M
+J
+Schoelles
+
+
+
+
+10.1037/0033-295X.113.3.461
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+113
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A new cognitive model of long-term memory for intentions
+
+
+
+
+B
+T
+Grünbaum
+
+
+
+
+
+
+F
+Oren
+
+
+
+
+
+
+S
+Kyllingsbaek
+
+
+
+
+10.1016/j.cognition.2021.104817
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+215
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Point-and-Shoot Memories: The Influence of Taking Photos on Memory for a Museum Tour
+
+
+
+
+L
+A
+Henkel
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+25
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1177/0956797613504438
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hierarchical control over effortful behavior by rodent medial frontal cortex: A computational model
+
+
+
+
+C
+B
+Holroyd
+
+
+
+
+
+
+S
+M
+Mcclure
+
+
+
+
+10.1037/a0038339
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+122
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A role for metamemory in cognitive offloading
+
+
+
+
+X
+Hu
+
+
+
+
+
+
+L
+Luo
+
+
+
+
+
+
+S
+M
+Fleming
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.cognition.2019.104012
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+193
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Offloading memory: Serial position effects
+
+
+
+
+M
+O
+Kelly
+
+
+
+
+
+
+E
+F
+Risko
+
+
+
+
+10.3758/s13423-019-01615-8
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+26
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Isolation Effect When Offloading Memory
+
+
+
+
+M
+O
+Kelly
+
+
+
+
+
+
+E
+F
+Risko
+
+
+
+
+10.1016/j.jarmac.2019.10.001
+
+
+
+
+
+
+
+
+Journal of Applied Research in Memory and Cognition
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Study effort and the memory cost of external store availability
+
+
+
+
+M
+O
+Kelly
+
+
+
+
+
+
+E
+F
+Risko
+
+
+
+
+10.1016/j.cognition.2022.105228
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+228
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Trait anxiety does not correlate with metacognitive confidence or reminder usage in a delayed intentions task
+
+
+
+
+P
+A
+Kirk
+
+
+
+
+
+
+O
+J
+Robinson
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+
+
+
+
+Quarterly Journal of Experimental Psychology
+
+
+
+
+74
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1177/1747021820970156
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Memory and Reward-Based Learning: A Value-Directed Remembering Perspective
+
+
+
+
+B
+J
+Knowlton
+
+
+
+
+
+
+A
+D
+Castel
+
+
+
+
+
+
+
+
+Annual Review of Psychology
+
+
+
+
+73
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1146/annurev-psych-032921-050951
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mental labour
+
+
+
+
+W
+Kool
+
+
+
+
+
+
+M
+Botvinick
+
+
+
+
+10.1038/s41562-018-0401-9
+
+
+
+
+
+
+
+
+Nature Human Behaviour
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decision making and the avoidance of cognitive demand
+
+
+
+
+W
+Kool
+
+
+
+
+
+
+J
+T
+Mcguire
+
+
+
+
+
+
+Z
+B
+Rosen
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+10.1037/a0020198
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology: General
+
+
+
+
+139
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The sense of effort
+
+
+
+
+R
+Kurzban
+
+
+
+
+10.1016/j.copsyc.2015.08.003
+
+
+
+
+
+
+
+
+Current Opinion in Psychology
+
+
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An opportunity cost model of subjective effort and task performance. The Behavioral and Brain Sciences
+
+
+
+
+R
+Kurzban
+
+
+
+
+
+
+A
+Duckworth
+
+
+
+
+
+
+J
+W
+Kable
+
+
+
+
+
+
+J
+Myers
+
+
+
+
+10.1017/S0140525X12003196
+
+
+
+
+
+
+
+
+36
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+J
+Landsiedel
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+Creating external reminders for delayed intentions: Dissociable influence on "task-positive" and "task-negative" brain networks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.neuroimage.2014.10.021
+
+
+
+
+
+
+
+
+NeuroImage
+
+
+
+
+104
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Strategic offloading: How the value of to-be-remembered information influences offloading decision-making
+
+
+
+
+D
+H
+Murphy
+
+
+
+
+10.1002/acp.4051
+
+
+
+
+
+
+
+
+Applied Cognitive Psychology
+
+
+
+
+37
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Rationalizing constraints on the capacity for cognitive control
+
+
+
+
+S
+Musslick
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+
+
+Trends in Cognitive Sciences
+
+
+
+
+25
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.tics.2021.06.001
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+What limits working memory capacity?
+
+
+
+
+K
+Oberauer
+
+
+
+
+
+
+S
+Farrell
+
+
+
+
+
+
+C
+Jarrold
+
+
+
+
+
+
+S
+Lewandowsky
+
+
+
+
+
+
+
+
+Psychological Bulletin
+
+
+
+
+142
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/bul0000046
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Storing information in-the-world: Metacognition and cognitive offloading in a short-term memory task
+
+
+
+
+E
+F
+Risko
+
+
+
+
+
+
+T
+L
+Dunn
+
+
+
+
+10.1016/j.concog.2015.05.014
+
+
+
+
+
+
+
+
+Consciousness and Cognition
+
+
+
+
+36
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cognitive Offloading
+
+
+
+
+E
+F
+Risko
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+10.1016/j.tics.2016.07.002
+
+
+
+
+
+
+
+
+Trends in Cognitive Sciences
+
+
+
+
+20
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Saving-enhanced performance: Saving items after study boosts performance in subsequent cognitively demanding tasks
+
+
+
+
+Y
+Runge
+
+
+
+
+
+
+C
+Frings
+
+
+
+
+
+
+T
+Tempel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1080/09658211.2019.1654520
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Age differences in strategic reminder setting and the compensatory role of metacognition
+
+
+
+
+C
+Scarampi
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+
+
+
+
+Psychology and Aging
+
+
+
+
+36
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/pag0000590
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Why and When Beliefs Change
+
+
+
+
+T
+Sharot
+
+
+
+
+
+
+M
+Rollwage
+
+
+
+
+
+
+C
+R
+Sunstein
+
+
+
+
+
+
+S
+M
+Fleming
+
+
+
+
+10.1177/17456916221082967
+
+
+
+
+
+
+
+
+Perspectives on Psychological Science
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Expected Value of Control: An Integrative Theory of Anterior Cingulate Cortex Function
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+79
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.neuron.2013.07.007
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dorsal anterior cingulate cortex and the value of control
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+19
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1038/nn.4384
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Toward a Rational and Mechanistic Account of Mental Effort
+
+
+
+
+A
+Shenhav
+
+
+
+
+
+
+S
+Musslick
+
+
+
+
+
+
+F
+Lieder
+
+
+
+
+
+
+W
+Kool
+
+
+
+
+
+
+T
+L
+Griffiths
+
+
+
+
+
+
+J
+D
+Cohen
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+10.1146/annurev-neuro-072116-031526
+
+
+
+
+
+
+
+
+Annual Review of Neuroscience
+
+
+
+
+40
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Forget in a Flash: A Further Investigation of the Photo-Taking-Impairment Effect
+
+
+
+
+J
+S
+Soares
+
+
+
+
+
+
+B
+C
+Storm
+
+
+
+
+10.1016/j.jarmac.2017.10.004
+
+
+
+
+
+
+
+
+Journal of Applied Research in Memory and Cognition
+
+
+
+
+7
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Does taking multiple photos lead to a photo-takingimpairment effect?
+
+
+
+
+J
+S
+Soares
+
+
+
+
+
+
+B
+C
+Storm
+
+
+
+
+10.3758/s13423-022-02149-2
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Google effects on memory: Cognitive consequences of having information at our fingertips
+
+
+
+
+B
+Sparrow
+
+
+
+
+
+
+J
+Liu
+
+
+
+
+
+
+D
+M
+Wegner
+
+
+
+
+10.1126/science.1207745
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+6043
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Saving-Enhanced Memory: The Benefits of Saving on the Learning and Remembering of New Information
+
+
+
+
+B
+C
+Storm
+
+
+
+
+
+
+S
+M
+Stone
+
+
+
+
+10.1177/0956797614559285
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+26
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Reinforcement learning: An introduction
+
+
+
+
+R
+S
+Sutton
+
+
+
+
+
+
+A
+G
+Barto
+
+
+
+
+
+
+
+
+The MIT Press
+
+
+
+
+
+
+Second edition
+
+
+
+
+
+
+
+
+Optimal cognitive offloading: Increased reminder usage but reduced proreminder bias in older adults
+
+
+
+
+P.-C
+Tsai
+
+
+
+
+
+
+C
+Scarampi
+
+
+
+
+
+
+M
+Kliegel
+
+
+
+
+
+
+S
+J
+Gilbert
+
+
+
+
+10.1037/pag0000751
+
+
+
+
+
+
+
+
+Psychology and Aging
+
+
+
+
+38
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+What Is the Subjective Cost of Cognitive Effort? Load, Trait, and Aging Effects Revealed by Economic Preference
+
+
+
+
+A
+Westbrook
+
+
+
+
+
+
+D
+Kester
+
+
+
+
+
+
+T
+S
+Braver
+
+
+
+
+10.1371/journal.pone.0068210
+
+
+
+
+
+
+
+
+PLoS ONE
+
+
+
+
+8
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

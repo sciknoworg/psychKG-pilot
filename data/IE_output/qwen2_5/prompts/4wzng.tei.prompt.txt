@@ -1,0 +1,5516 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+ParAcT-DDM: A diffusion-based framework for modelling systematic, time-varying cognitive processes
+As people engage in tasks over extended periods, their psychological states change.
+These changes can be attributed to various factors, such as learning, practice, habituation, or boredom, and can significantly impact task performance. For example, as one becomes more familiar with a task, they may gradually become more efficient as they practice and become familiar with the task demands. They might also become less cautious as they gain confidence and feel that their performance is improving. In psychological research, particularly cognitive psychology, researchers often seek to capture these kinds of psychological constructs by having participants perform repetitive tasks, often consisting of several hundreds, if not thousands, of experimental trials. This approach serves an important purpose, as multiple observations from a single participant enhances the measurement properties of a construct 
+(Smith & Little, 2018)
+. However, traditional models and frameworks attempting to capture these constructs typically assume the constancy of constructs throughout an experiment, which is unlikely to hold true (J. R. 
+Anderson, 1981;
+Dutilh et al., 2009;
+Evans & Brown, 2017;
+Evans & Hawkins, 2019;
+Evans et al., 2020b;
+Howard et al., 2023;
+Jones et al., 2013;
+Ratcliff, 1978;
+Ratcliff & Rouder, 1998;
+Ratcliff et al., 2018)
+.
+A prominent example of such a framework is evidence accumulation models 
+(Evans & Wagenmakers, 2019;
+Ratcliff, 1978;
+Ratcliff et al., 2016)
+, which use response time and accuracy data to infer a range of cognitive constructs including bias, task efficiency, caution, sensory encoding, and motor responding (see 
+Figure 1
+). These models have emerged as the leading theoretical framework for understanding decision-making in cognitive psychology and have gained popularity as measurement tools 1 across various 1 While evidence accumulation models can serve as useful measurement tools, we wish to make it clear that we do not believe that these "model application" contexts are their sole purpose, with these models regularly serving as important theoretical models for comparison and evaluation (see 
+Crüwell et al., 2019;
+Evans & Wagenmakers, 2019, for discussions)
+. psychological disciplines such as memory (e.g., 
+Ratcliff et al., 2004;
+Zhou et al., 2021)
+, attention (e.g., 
+Hawkins et al., 2019)
+, perception (e.g., 
+Usher & McClelland, 2001;
+van Ravenzwaaij et al., 2012)
+, decision making (e.g., 
+Brown & Heathcote, 2008;
+Ratcliff & McKoon, 2007)
+, intelligence (e.g., 
+Lerche et al., 2020;
+van Ravenzwaaij et al., 2011)
+, performance optimality (e.g., 
+Starns & Ratcliff, 2012)
+, emotion processing (e.g., 
+Lerche et al., 2021)
+, and alcohol consumption 
+(e.g., van Ravenzwaaij et al., 2012)
+. Nonetheless, despite requiring a substantial number of trials for reliable fitting 
+(Lerche et al., 2017)
+, conventional evidence accumulation models offer only a single estimate of a given construct for the entire duration of an experiment, failing to account for potential changes in these constructs over time. For example, a researcher might have a hypothesis that a particular manipulation will decrease task efficiency, so they compare the model's single estimate of efficiency in that condition, with the model's single estimate of efficiency in the control condition (e.g., 
+Alister et al., 2023;
+Lerche et al., 2020;
+Ratcliff et al., 2004;
+van Ravenzwaaij et al., 2012)
+.
+Here, we propose and evaluate a modelling framework for estimating the temporal dynamics of constructs measured in evidence accumulation models: ParAcT-DDM, the parameters across time diffusion decision model. We begin by providing an overview of the relevant previous literature that provided the motivation and basis for the ParAcT-DDM, as well as the research questions that we aim to answer with the framework.
+We then detail the specifics of the ParAcT-DDM, including the specific temporal dynamics that each sub-variant is constrained to follow and the theoretical motivation for these constraints. Finally determine the extent to which ParAcT-DDM can describe temporal dynamics in several empirical data sets and assess how much true time-varying processes can bias the standard DDM.
+
+
+Previous Approaches to Modelling Time Varying Constructs
+Several approaches have been proposed to investigate time-varying cognitive processes. A popular approach has focused on identifying a "law of practice" by uncovering
+
+
+Figure 1
+Schematic of a popular evidence accumulation model, the Diffusion Decision Model (sometimed referred to as the Drift Diffusion Model or DDM; 
+Ratcliff & McKoon, 2007)
+ for a single decision. Specifically, it shows noisy evidence accumulation (v) from some starting point (z), until the decision threshold (a) for one of two choices is reached. It should also be noted that z reflects the bias towards a specific response 
+(e.g., left or right)
+, rather than towards the correct/incorrect response. t0 refers to the components unrelated to accumulation over the decision such as perceptual encoding and motor response. Repeated over many trials, these processes give rise to responses time distributions for accurate and inaccurate responses, which can then be fit to empirical data. mathematical functions, such as power, exponential, or transition functions, that describe the reduction in response times with practice (J. R. 
+Anderson, 1981;
+Heathcote et al., 2000)
+. These functions are useful for capturing general performance trends, but it is difficult to interpret precisely what is causing these changes in response times without a theoretically motivated process model, such as evidence accumulation models.
+Other methods, such as estimating parameters of evidence accumulation models at each block 
+(Dutilh et al., 2009;
+Evans & Brown, 2017)
+, provide insights into gradual changes over time but overlook trial-by-trial dynamics critical for capturing rapid, systematic changes in performance that are present in many time-varying contexts such as learning. More fine-grained approaches, such as deep learning neural superstatistics methods 
+(Schumacher et al., 2023)
+, estimate trial-specific parameters but are prone to high measurement error, particularly in early trials. Similarly, the conjugate priors method 
+(Howard et al., 2023)
+ achieves high precision and computational efficiency, but is limited to models that have conjugate likelihood functions 2 , such as the shifted Wald model, therefore restricting its applicability to tasks with a single decision alternative (e.g., "respond using button X when you see a light") A somewhat different approach, as explored by 
+Gunawan et al. (2022)
+, involves examining how individuals transition between different psychological states during an experiment using Hidden Markov Models. Specifically, 
+Gunawan et al. (2022)
+ showed that participants switched between a cautious state and an urgent state, mapping onto different levels of the threshold parameter in evidence accumulation models. While this approach provides a fine-grained, identifiable, and psychologically interpretable method of estimating changes in parameters in an experiment, the two state hidden Markov process provides strong constraint on how parameters can change, which means there are many kinds of dynamic processes it cannot describe. Specifically, it stipulates an all-or-nothing process where people must jump from distinct, discrete states over the space of a single trial, which is unrealistic for many dynamic cognitive processes such as learning.
+A more theoretically-driven approach to investigating systematic changes over time has been integrating reinforcement learning (RL) models with the parameters of the diffusion model 
+(Fontanesi et al., 2019;
+Miletić et al., 2021;
+Pedersen & Frank, 2020;
+Pedersen et al., 2017)
+. Specifically, these "RL-DDM" approaches involve constraining one or multiple parameters of the diffusion model (most commonly the drift rate) to follow systematic change functions (e.g. power functions) over trials according to the updating rule of an RL model. Importantly, RL-DDM approaches are able to provide fine-grained, theoretically informed estimates of how learning influences cognitive constructs in the DDM, while also being sufficiently constrained by the reinforcement-learning updating rule to allow for robust estimation of changes in these parameters over a short sequence of trials. However, the key strength of the RL-DDM approach also serves as a key limitation to its broad applicability, as the RL-DDM approach is only applicable to reinforcement learning paradigms, or at the very least, paradigms that share enough common features with reinforcement learning paradigms to adequately constrain the updating rule through specific stimulus and feedback properties. Furthermore, while learning is one of the key reasons for time-varying processes to occur, many time-varying processes exist other than learning, such as those associated with boredom or habituation, which cannot as clearly be captured in the RL-DDM framework.
+One final approach, which our ParAcT-DDM framework primarily builds upon, is to constrain the changes in parameters of the standard diffusion model using mathematical functions . Specifically, rather the allowing high flexibility in how the parameters can change, as in the neural superstatistics approach, or directly constraining the changes according to stimulus and feedback information, as in the RL-DDM approach, this final approach leverages the mathematical functions commonly used in previous "law of practice" research, and forces one or more parameters of the diffusion model to follow one of these functions across trials.  demonstrated the potential utility of using mathematical functions to constrain diffusion model parameters, where they constrained the parameters of the diffusion model to follow an exponential function over trials, as part of an assessment of how the parameters changed across trials and different days of the experiment. Interestingly, their findings indicated that drift rate appeared to increase exponentially at the trial level, though threshold was more likely to vary over days rather than trials.
+While the work of  provides an important initial step for the approach of constraining the parameters of cognitive models with mathematical functions, our goal is to extend upon and address the limitations of this initial work through the development and assessment of our ParAcT-DDM framework. For example, while  showcases the utility of allowing the parameters to follow an exponential function, exponential functions are only one of the learning functions considered in previous research, with other notable examples being power functions (J. R. 
+Anderson, 1981;
+R. B. Anderson & Tweney, 1997;
+Compton & Logan, 1991;
+Logan, 1992;
+Logan, 1988)
+, transition functions 
+Rickard, 1997
+Rickard, , 2004
+, and even the more coarse block-level changes 
+(Dutilh et al., 2009;
+Evans & Brown, 2017)
+, meaning learning may possibly be better described by one of these alternate functions. Furthermore, while these learning functions provide greater constraint than the neural superstatistics approach of 
+Schumacher et al. (2023)
+, the constraint still may not be sufficient to ensure robust parameter identification, particularly in more common experimental settings where experiments often last less than an hour and have a more limited number of trials, rather than occurring over several days and having thousands of trials worth of data. Finally, and perhaps most importantly, we believe that it is crucial to assess whether ignoring changes in parameters over time can negatively impact their estimation with non-varying models; that is, if the fixed estimates of the standard diffusion model will be systematically biased when the parameters change over time, or whether the estimates of the standard diffusion model will merely reflect the point where the changes have reached an asymptote.
+
+
+Current Study
+In the current study, we investigated the utility and efficacy of constraining diffusion model parameters with mathematical functions to identify and describe time-varying processes. We aimed to assess various functions that account for trial-level changes, block-level changes, and a combination of both trial and block-level changes. Our focus was primarily on two psychological constructs that we expected to vary in most multi-trial tasks: task efficiency (drift rate) and caution (threshold). However, the framework we discuss can be applied to any diffusion model parameter. Our study addressed four core research questions:
+1. Is a model that predicts systematic changes in parameters better at explaining the data compared to the standard diffusion model in typical experimental psychology experiments?
+2. If systematic changes exist, are they mainly driven by threshold, drift rate, or both?
+3. Do these changes occur on a trial-by-trial basis or a block-by-block basis?
+4. How much is the standard diffusion model biased by time-varying processes?
+We addressed points 1 -3 by applying our modelling framework to four pre-existing data sets that represent typical tasks in experimental psychology. These data sets included both experiments where time-varying processes were not explicitly assumed in their original studies as well as a study where they were (i.e., standard decision-making task without feedback versus a similar task with feedback). We addressed point 4 by comparing the estimated asymptote parameter from the most common time-varying function 
+(exponential)
+ with the standard diffusion model estimates. If the standard diffusion model was not biased by time-varying processes, and the parameter estimate fixed across time merely reflected the parameter value after learning, then there should be no differences between the asymptote of the exponential function and the standard diffusion model estimate.
+Finally, we wish to clearly note that the framework we discuss here does not provide a mechanistic explanation as to why cognitive constructs vary across time. In other words, it does not provide any mechanism to explain why particular changes might occur, such as how reinforcement models describe learning in response to feedback. Rather, this modelling framework is descriptive, in that it allows a researcher to describe and predict particular changes in specific cognitive constructs across time. A particular advantage over other previously established methods is that our framework can be used to make a-priori predictions about the specific trajectory of time-varying changes, therefore making it a useful theoretical tool because different theoretical candidates that map onto specific descriptive functions can be compared against each other. While not explicitly describing why constructs might vary in a particular way across time, the descriptive nature of this modelling framework means that it can be applied to a wide variety of contexts and paradigms. In the current study, we look at these changes in the context of learning effects, but these models could also be applied to different kinds of time-varying changes in cognition, such as mind wandering or fatigue. This framework also allows for researchers to simulate time-varying processes and assess the extent to which their standard analysis methods that do not consider these changes could be being misled.
+
+
+The ParAcT-DDM Framework
+Here, we detail our proposed ParAcT-DDM framework, which allows for the estimation of how diffusion model parameters change across time by assuming that the parameters follow their own time-varying functions. Our framework unifies previous modelling efforts from "law of practice" research (e.g., 
+Heathcote et al., 2000)
+, as well as previous block-level decision-making modelling (e.g., 
+Dutilh et al., 2009;
+Evans & Brown, 2017)
+, in order to create a single framework that estimates constrained changes in parameters over time according to a variety of different possible functions.
+Within our framework researchers could constrain any diffusion model parameters of interest to change according to any time-varying function that they wish, though in the current study we will demonstrate and evaluate this framework using the two parameters that we believe to most commonly be of interest in learning and practice (drift rate and threshold), and with a set of time-varying functions that we believe provide a reasonable coverage of the different theories that researchers might have for how those parameters vary in typical cognitive psychology experiments.
+
+
+Trial-varying functions
+One way that people may vary across time is at the trial level. That is, on each new trial, participant behaviour could be systematically different to the previous one, without considering the influence of any other experiment factors, such as blocks. In this section we describe several functions that make this assumption. In the standard diffusion model, v and a are free parameters where a single value is estimated to be the same across the duration of the whole experiment. In our proposed framework, we instead assume that v increases over time, as people improve at the task, whereas a decreases over time, as people adjust to the task requirements and become less cautious. In the Supplementary Materials, we report a simulation study that assesses the measurement properties of the different trial-varying functions that we report here.
+
+
+Linear change
+A simple way to formalise changes in v and a over time could be to treat them as linear functions:
+v = β • t + α (1) a = −β • t + α (2)
+where t is the trial within the experiment, β is the beta coefficient of the linear function, and α is the intercept of that linear function. Therefore, this function can describe how v might increase across trials over the duration of an experiment and/or a might decrease 3 , with β always constrained to take positive values. However, we should note that our inclusion of the linear function is mostly for completeness -that is, to include the most simple trial-varying model, which likely also contains the best measurement propertieseven though a linear function is unlikely to be the most realistic function for describing actual changes in psychological processes across time, as it implies that the rate of change will be constant forever.
+
+
+Power change
+A more psychologically plausible function should contain a rate of change that decreases over time -either gradually or abruptly -to an eventual plateau (J. R. 
+Anderson, 1981)
+. Indeed, there is a rich literature that has tried to find a "law of practice": a function that best describes changes in response time based on practice and learning across a range of tasks (J. R. 
+Anderson, 1981;
+Heathcote et al., 2000;
+Logan, 1992;
+Logan, 1988;
+Seibel, 1963)
+. Given that response time directly informs the parameters of evidence accumulation models, we believe that the law of practice literature provides an ideal starting point to determine which functions we should use to describe changes in parameters across time. One historically popular function for describing learning-related decreases in response time -as well as other famous decreases over time, such as the forgetting curve 
+(Averell & Heathcote, 2011;
+Ebbinghaus, 1885)
+ -is a power function (J. R. 
+Anderson, 1981;
+Logan, 1992;
+Logan, 1988;
+Seibel, 1963)
+. A power function could be used to capture increases in v over time, and/or decreases in a, by the following:
+v = α − β • t −η (3) a = α + β • t −η (4)
+where α is the value at which the parameter plateaus (i.e., the asymptote), β is the difference between α and the initial value of that parameter (i.e., the parameter value at the beginning of the task), and η is the rate of increase/decrease in the parameter.
+
+
+Exponential change
+Although power functions were the most popular function in earlier studies for describing how response times change with practice, subsequent improvements in computational methods have called the success of the power function into question.
+Importantly, most studies finding evidence for a power function aggregated data across participants, which is problematic 
+(Estes, 1956)
+ as curves based on aggregated data can be fundamentally different from the functions of individuals, even if all individual share the same underlying function. Based on this logic, the seminal study of 
+Heathcote et al. (2000)
+ investigated practice curves at the individual level in a range of tasks, finding that at the individual level participants were generally better fit by an exponential function (see also 
+Dosher & Lu, 2007)
+. Furthermore, we believe that exponential functions are also an important addition as they are the only functions that have been used in the previous literature as time-varying functions for diffusion model parameters .
+Therefore, we also consider the possibility that diffusion model parameters might follow an exponential function across time:
+v = α − β • exp(−η • t)
+(5)
+a = α + β • exp(−η • t)
+(6)
+The parameters retain the same psychological meaning as in the power function; however, the exponential function implies a constant proportional rate of change (i.e., a fixed hazard rate), whereas the power function implies a decelerating proportional rate of change. This distinction means that, empirically, the power function often appears to suggest more rapid initial learning, while the exponential function suggests a more sustained rate of change over time.
+
+
+Delayed exponential/power change
+In a more recent study,  proposed another class of functions to describe practice related changes in response times: delay (also called transition) functions.
+These functions build upon the typical power and exponential functions, though can account for periods of initial slow learning before an optimal learning strategy is found (e.g., 
+Newell et al., 2001;
+Rickard, 1997
+Rickard, , 2004
+ through an additional parameter τ .
+Specifically, when τ = 0, the functions are equivalent to typical power/exponential functions. However, as τ increases, the initial period of slow learning increases, resulting in increasing delays in learning, and increasingly rapid transitions from a state of little-to-no learning to a state of near-asymptote levels. In their study,  found that these delay functions outperformed the standard power and exponential functions for most of the data sets that they assessed. Therefore, we also consider delayed power (Equations 7, 8) and delayed exponential (Equations 9, 10) functions for both v and a:
+v = α − β • τ + 1 τ + t η (7) a = α + β • τ + 1 τ + t η (8) v = α − β • τ + 1 τ + exp(η • t)
+(9)
+a = α + β • τ + 1 τ + exp(η • t)
+(10)
+Block-varying functions
+Another important factor to consider is the influence of blocks within an experiment. Typically, participants are offered the opportunity to take a short break between blocks, which could mean that responses in one block are systematically different from responses in another block. For example, the break between blocks might give participants time to consolidate their learning and/or reassess their strategies, meaning that their drift rate might increase -and/or their threshold might decrease -in a more coarse fashion after each block, rather than after each trial. Furthermore, some studies provide block-level feedback (e.g., 
+Evans & Brown, 2017)
+, which could result in people making greater adjustments to their performance at the block level rather than the trial level. As discussed earlier, examining changes in constructs at the block level is an established method for assessing changes in cognitive constructs across time (e.g., 
+Dutilh et al., 2009;
+Evans & Brown, 2017)
+, but previous studies mostly rely on using extremely flexible parameterisations of evidence accumulation models that allow for the parameter(s) of interest to take a different value in every block, rather than systematically constraining how these changes can evolve over time. Here, we implemented block-level equivalents of the functions in the trial-varying functions section, where these functions varied by block instead of by trial. For example, for the trial-varying a linear function in Equation 2, which is defined as a = α + β • trial −η , the equivalent block-varying a linear function would be
+a = α + β • block −η .
+
+
+Combining Trial-Varying Changes and Block-Varying Changes
+While most previous research has focused on whether changes over time are cases of either block-varying changes or trial-varying changes (e.g., 
+Dutilh et al., 2009;
+Evans & Brown, 2017;
+Kattner et al., 2017;
+Schumacher et al., 2023)
+, one important possibility is that both of these kinds of changes may be occurring and combining throughout an experiment. For example, while participants generally decrease their threshold over an experiment, the break between might temporarily increase their thresholds (i.e., a slight "bump" after the block), as they may revert to a slightly more cautious state after their break, meaning that they start the next block with a higher caution than they ended the previous block. Below, we propose one such model which captures this intuition.
+
+
+Exponential/Power Trial change with Block Bump
+The combined trial-varying and block-varying model that we propose and implement in the current study assumes a trial-varying exponential/power change in a construct within a given block, but a partial "reset" or "start bump" at the start of each block, where some of the change reached at the end of the previous block regresses 
+(Newell et al., 2009;
+Yang et al., 2022
+). Here we describe both within-block power changes (equations 11 and 12) and exponential changes (equations 13 and 14) , where d is a free parameter which represents the extent to which that parameter regresses at the beginning of a block:
+v b = α − (d • (block − 1) + β) • t −η (11) a b = α + (d • (block − 1) + β) • t −η (12) v b = α − (d • (block − 1) + β) • exp(−η • t)
+(13)
+a b = α + (d • (block − 1) + β) • exp(−η • t)
+(14)
+However, it should be noted that we only assess the exponential versions of these models, based on our simulation results suggesting an inability to properly identify power models and recover their parameters, which we describe in the next section.
+Empirical study: What time-varying processes exist in a typical decision-making paradigm?
+In this section, we provide an empirical assessment of our ParAcT-DDM framework, in order to assess whether time-varying processes appear to be present in empirical data, and if so, which specific processes appear to be present (see also the Supplementary Materials for a detailed simulation study). We fit the standard diffusion model and several time-varying candidate models from our ParAcT-DDM framework to four pre-existing data sets from three studies 
+(Dutilh et al., 2009;
+Evans & Brown, 2017;
+Knowles et al., 2019)
+.
+Importantly, none of the models included across-trial variability parameters, because these parameters often have poor measurement properties 
+(Boehm et al., 2018)
+, add substantial computation time 4 , and have limited theoretical value 
+(Evans et al., 2020b)
+ 5 . Three data sets used a random dot kinematogram task (see Method section and 
+Table 1 for details)
+ and the other used a lexical decision-making task, which are both common tasks within the speeded decision-making literature and for evidence accumulation model assessments 
+(Hawkins et al., 2015;
+Pilly & Seitz, 2009;
+Roitman & Shadlen, 2002)
+. As outlined in the introduction, this empirical analysis served three primary objectives. First, we aimed to broadly identify the extent to which time-varying processes exist in standard decision-making tasks. This included contexts where time-varying processes were explicitly expected in the original study, as well as contexts where they were thought to be controlled for. Second, if time-varying process were present, we sought to determine whether only a single construct varies over time, or multiple constructs (i.e., only threshold/drift rate, or both). Third, we aimed to discern whether these variations predominantly occur at the trial level or at the block level. A simple tutorial demonstrating how to define ParAcT models and fit them to data in R is available on the project's GitHub page (see author note).
+
+
+Method
+
+
+Open Science Statement
+The analyses for Data Set 4 were preregistered after already analysing Data Sets 1-3: osf.io/q8mzc. All data and code used for this project can be found at github.com/ManikyaAlister/ParAcT.
+
+
+Selection of Time-Varying Functions
+Not all of the time-varying functions described earlier are appropriate for fitting to our empirical data. First, while a linear time-varying function is a useful and simple starting point for demonstrating our framework, as we mention earlier, it is psychologically implausible for the current empirical study because it assumes cognitive parameters change at a constant rate without any asymptote. For this reason, we did not include any models that assumed a linear change in parameters across time. Second, we did not include any power functions in our models, as a simulation study reported in the Supplementary Materials showed that our framework was not sensitive enough to distinguish between power and exponential functions using our estimation methods. Additionally, the parameters of the power models had poorer measurement properties compared to exponential models. Therefore, to summarise, our empirical study implemented trial-varying and block-varying versions of the exponential and delayed-exponential functions, as well as the exponential trial change with block bump function (the model assuming both block and trial changes across time). ParAcT models that integrated these time-varying functions were then compared against the standard diffusion decision model that assumed no change in parameters across time.
+Specifically, of the ParAcT-DDM models, there were 10 "single time-varying models", where either threshold or drift rate was allowed to change over time, and the other diffusion model parameters remained constant. We were also interested in models where both drift rate and threshold varied over time, though including all combinations of drift rate/threshold functions would have resulted in 144 models. Therefore, to reduce computational cost, we attempted to only focus on combinations that we believed would have the best chances of performing better than the "single time-varying models".
+Specifically, we determined the "dual time-varying models" (where both a and v vary over time) by pairing the best performing single time-varying functions for threshold and drift rate respectively into a single model. For example, for a given participant, if the exponential trial-varying model was best for v, and the delayed-exponential trial-varying model was best for a, then the dual time-varying model would contain exponential v and delayed-exponential a. Given the large number of participants in Experiment 3, to form the dual time varying models we only combined single time-varying models that performed best for more than 10% of participants.
+
+
+Model Fitting Implementation
+The models were fit using Bayesian differential evolution Markov chain Monte Carlo 
+(Braak, 2006;
+Turner et al., 2013)
+ with 3p chains, where p is the number of free parameters in each model. Each chain had 4,000 iterations, with the first 2,000 iterations discarded as burn-in. We used reasonably uninformed prior distributions to ensure that the maximum likelihood would be contained within the posterior (see exact priors in the Supplementary Materials), with the maximum likelihood simply being the posterior sample that provided the highest likelihood (i.e., independent of the priors). We chose this Bayesian approach because Bayesian methods can provide a better ability to traverse complex likelihood spaces and avoid local maxima through moving both up and down the likelihood surface (as found in 
+Evans et al., 2020a)
+, and as some of our analyses based on parameter estimates utilise the posterior distributions. We used the R package "rtdists" 
+(Singmann et al., 2020)
+ as the likelihood function of the diffusion model, and the R package "msm" 
+(Jackson, 2021)
+ to calculate the likelihood function of the truncated normal distribution for some of the priors in the models.
+Note that while we used a Bayesian approach for estimation, our inferences comparing models mostly relied on the Bayesian Information Criterion (BIC) and Aikake Information Criterion (AIC), as previous research has shown that BIC and AIC closely match the performance of the substantially more complex and computationally difficult Bayes factors and Watanabe-Akaike Information Criterion (WAIC), respectively 
+(Evans, 2019)
+. Importantly, our simulation study showed that in situations where there is no time-varying processes present, model comparison using BIC was very unlikely to false alarm and suggest that a time-varying process is present (AIC was less conservative, so was more likely to false alarm, but was less likely to favor a simpler model when the true model was actually a more complex one). Because BIC and AIC rely on the likelihood evaluated at a single parameter estimate, we used the maximum likelihood estimate (the posterior sample that provided the highest likelihood) rather than the posterior mean or maximum a posteriori (MAP) estimate. The rationale for this choice is that BIC and AIC are designed to compare models based on their maximum likelihood fit, making the maximum likelihood the most appropriate point estimate for these comparisons.
+We used BIC and AIC to determine which model best accounted for the data of each participant, both by comparing the raw criterion values and the relative probabilities that a given model was best accounting for the data according to BIC and AIC weights 
+(Wagenmakers & Farrell, 2004)
+ using the "modelProb" package 
+(Alister, 2022)
+. Note that in some cases we only assess a subset of models within the BIC/AIC weights, in order to answer each of our research questions as concisely as possible. For example, in 
+Figure 4
+, our weights only include four models for each participant: the standard DDM, the best fitting threshold-varying model, the best fitting drift-rate-varying model, and the best fitting dual time-varying model (i.e., that assumes both threshold and drift-rate vary over time), in order to concisely assess whether any systematic changes appear to be mainly driven by threshold, drift rate, or both.
+
+
+Datasets
+Datasets 1 and 2 were two different groups from a between subjects manipulation in 
+(Evans & Brown, 2017)
+. Although these data sets did not have many participants, they had a large number of trials per participant (see 
+Table 1
+) that were all collected within a single, one hour experimental session, making them ideally suited for looking at changes across time. In Data Set 1, participants received correct/incorrect feedback after each trial, though from the end of the fourth block, and at the end of each subsequent block, they also received detailed feedback telling them how they could adjust their behaviour to more optimally trade off between speed and accuracy. Importantly, as participants are almost always sub-optimally cautious 
+(Evans & Brown, 2017;
+Starns & Ratcliff, 2010
+, this feedback was specifically designed to encourage participants to lower their caution (i.e., the threshold parameter). For example, "In recent blocks you've attained 120 points in 4.057 minutes, meaning you achieved 29.582 points per minute. However, you could potentially improve your performance. The average time you spent on each trial was 1.283 ms; if you were to go 12.942 % faster on each trial, you would only lose 5.522 % accuracy, resulting in 0.483 more points per minute". Therefore, we included this data set to assess (1) whether we could detect changes in threshold with our ParAcT-DDM framework where they are likely to occur, and were found in the original study, (2) how participants' thresholds changed over time, and (3) whether these instructions also affected drift rate (task efficiency), in addition to threshold, even though the instructions were not specifically targeting that parameter. Because of the sudden change from no block-level feedback to detailed block-level feedback after the first 4 blocks, we added a simple "step" model into the analyses for this data set, which assumed a constant parameter value for the first 4 blocks, then a different constant parameter value for the remaining blocks that had feedback:
+Feedback Blocks = 1, 2, 3, 4 a =          a initial if block ∈ Feedback Blocks a initial − a step otherwise (15) v =          v initial if block ∈ Feedback Blocks v initial + v step otherwise (16)
+where initial is the initial value of the parameter when there is no feedback, and step is the difference in the parameter value after receiving feedback.
+Dataset 2 was the control, no block-level feedback condition from the same study as Data Set 1. In this study, participants only received correct/incorrect feedback after each trial, and after each block were told "End of block. Please take a short break". We included this data set to see whether time-varying processes would emerge in contexts where the original study was not explicitly trying to manipulate any cognitive parameters across time.
+Although we expected that the detailed feedback would induce stronger, or more prominent changes across time, we predicted that we would still see time-varying processes as people learn the task constraints, adjust their strategy, and generally improve at the task.
+Dataset 3, while using the same underlying experimental task as data sets 1 and 2 (random dot kinematogram), had fewer trials per participant, but substantially more participants (see 
+Table 1
+). Importantly, we believe that these types of data sets (i.e., moderate numbers of trials and participants) are the ones that researchers are most likely to collect and encounter in cognitive psychology, and therefore, provide an important test case for the general applicability and utility of our ParAcT-DDM framework. Similar to Data Set 2, participants received feedback after each trial as to whether their response was correct or not. An important feature of Data Set 3 is that it included an experimental control intended to control for practice effects: a practice block of 40 trials that was completed before data began recording. Therefore, we believe that this data set provides an important test of whether the use of a practice block is sufficient to eliminate learning effects from a standard RDK data set.
+Dataset 4 used a different experimental task that is widely used in decision-making research: a lexical decision-making paradigm where participants needed to determine whether a string of letters was a word or non-word 
+(Dutilh et al., 2009)
+. Similar to Data Sets 1 and 2, this data set had a small number of participants (4), but had by far the most amount of trials per participant compared to the other data sets (see 
+Table 1
+). In the original experiment, data was collected over 5 sessions/days (total of 10,000 trials per participant), but in order to avoid potential time-varying affects across days that are beyond the scope of the current paper (but that could still be modelled using the ParAcT-DDM framework; see , we only analysed the first session of data. Two of the participants were asked to emphasise both speed and accuracy, and were only given feedback about speed (e.g., "too slow"). The other two participants were only asked to emphasise accuracy and were given correct/incorrect feedback.
+
+
+Results and Discussion
+In this section we compared the performance of models using both AIC and BIC to answer the key research questions about the presence of time-varying processes in four empirical data sets. First, how do the time-varying models in our ParAcT-DDM framework compare to the standard diffusion model? Second, how well do time-varying models that assume both threshold and drift rate change across time (i.e., the dual time-varying models) perform against models that assume that only one of threshold or drift rate varies over time (i.e., the single time-varying models)?
+
+
+Dataset 1
+In general, the ParAcT-DDM variants appeared to provide a good account of how response times changed over the experiment, whereas the standard diffusion model could not account for the tendency for response times to decrease across trials, particularly in the earlier part of the experiment (see 
+Figure 2
+). The performance of each model balancing model fit and model flexibility is shown in 
+Table 2
+. 
+Figure 3
+ shows the best three time-varying functions for each parameter plotted against block-level estimates for specific participants, revealing large, systematic changes in parameters that appeared to be consistent with the block-level estimates.
+Are time-varying processes present in the data? In Data Set 1, the standard diffusion model, which did not contain any time-varying properties, did not perform best for any participant according to BIC or AIC (see 
+Table 2
+). In other words, the model comparisons suggested that allowing at least one diffusion model parameter to vary across time improved model performance over and above the standard diffusion model, even when accounting for the increased flexibility. Indeed, collapsing across participants, the standard diffusion model had practically zero probability of being the best model for this data set.
+However, as discussed earlier, the poor performance of the standard diffusion model was expected in this data set, as the experiment deliberately attempted to reduce participants' thresholds to an optimal level over time (the high feedback condition of 
+Evans & Brown, 2017)
+. Importantly though, the success of the time-varying models in this data set
+
+
+Figure 2
+Model fits for the four best performing models in Data Set 1. reaffirms the potential utility of our ParAcT-DDM framework, as the framework was able to detect changes in threshold where they were likely to have occurred and were found in the original study (though with the original study using a more coarse assessment process).
+Are time-varying processes mainly driven by threshold, drift rate, or both? The top panel of 
+Figure 4
+ shows the relative probability of the best a-varying model (that only assumed threshold changes across time), the best v-varying model (that only assumed drift-rate changes across time), and the dual time-varying models (that assumed both varied across time) that combined these two models into a single model, for each participant in Data Set 1. BICs suggested that most time-varying processes were exclusively driven by threshold, whereas AIC (which generally favours more flexible models than BIC) suggested a-varying models and dual-varying models performed similarly well.
+According to BIC (AIC), a-varying models performed best for 7 (6) participants, whereas dual-varying models performed best for 3 (5) participants. No participants were best fit by a v-varying model, and both the v-varying and standard diffusion models had almost 0 probability for every participant. Again, based on the experimental manipulation in this data set where participants received block-level feedback that was designed to reduce threshold (a) over time, it seems intuitively reasonable that the a-varying processes tended to perform best. However, it is interesting that some people exhibited systematic changes in both threshold and drift rate, suggesting that some participants also showed substantial improvement in the task over time in addition to a reduction in caution.
+
+
+Figure 4
+Relative probability according to 
+BIC
+ 
+Figure 5
+ shows the relative probability of the best block-varying and trial-varying models for each participant. Models that assumed parameters only had block-varying changes performed slightly better overall than models that assumed parameters only had trial-varying changes, though more generally, models that assumed only a single type of change (i.e., block or trial) performed much better than those that assumed a mix (i.e., one parameter varied over trials, and the other varied over blocks) or no change. According to BIC (AIC), 6 (6) participants were best fit by models that only assumed block-varying time-varying processes, 4 (4) by models that only assumed trial-varying processes, and 0 (0) that assumed a mix. The models that assumed both block and trial-varying changes within the same parameter did very poorly (see models 8 and 15 in 
+Table 2
+; Exp Trial with Block Bump). Again, given that detailed feedback was provided after each block (see Method), it seems intuitively sensible that block-varying models performed well for this data set. Indeed, the best performing block model according to BIC was the a step model (see 
+Table 2
+), which assumed a constant value of threshold in the first four blocks (where participants did not receive detailed feedback), and then another constant value for the subsequent duration of the experiment after they receive the first set of block level feedback, suggesting that participants rapidly changed their threshold immediately after learning about the better strategy.
+
+
+Dataset 2
+Similar to Data Set 1, the ParAcT-DDM variants appeared to provide a good account of the changes in response times in Data Set 2. Although changes in response times across trials tend to be less extreme, most participants exhibited systematic, time-varying changes in response time that could not be qualitatively accounted for by the standard diffusion model. The relative performance of each model, balancing fit and complexity, is in 
+Table 3
+, and 
+Figure 7
+ shows the best three time-varying functions for each parameter.
+
+
+Figure 5
+Relative probability according to 
+BIC
+   Model fits for the four best performing models in Data Set 2 (see 
+Figure 2
+ for detail on interpretation. The plot shows that the reductions in response times across trials were not as extreme as in Data Set 1, but were still present for most participants and were fit well by the ParAcT models.
+Are time-varying processes present in the data? Although the performance of the standard diffusion model improved in Data Set 2, time-varying models still vastly outperformed the standard diffusion model for the majority of participants according to both BIC and AIC. According to BIC (AIC), 4 (3) participants were best fit by the standard diffusion model whereas the rest were best fit by a time-varying ParAcT-DDM variant. Interestingly, unlike Data Set 1, Data Set 2 was not designed to induce changes in threshold (or drift rate) across time, with participants receiving no feedback about their performance after each block (only correct/incorrect feedback after each trial). The general superiority of the ParAcT-DDM variants is somewhat surprising, and suggests that there
+are learning processes present in most typical experimental psychology paradigms (see also 
+Abrahamse et al., 2016;
+) that are not accounted for by the standard diffusion model, again showcasing the potential utility of our ParAcT-DDM framework.
+Are time-varying processes mainly driven by threshold, drift rate, or both? In Data Set 2, both BIC and AIC suggested that for participants who were not best fit by the standard diffusion model, dual time-varying models that assumed both a and v varied across time tended to perform similarly as well as models that assumed only a varied over time (taking into account the added flexibility of the dual varying models; see second panel of 
+Figure 4
+). According to BIC (AIC), a-varying models performed best for 3
+(4) participants out of 11, v-varying models performed best for 0 (0) participants, and dual time-varying models performed best for 4 (4) participants. The reduced performance of a-varying only models in Data Set 2 relative to Data Set 1 is consistent with Data Set 2
+
+
+Figure 7
+Best three time-varying functions for each parameter according to BIC 
+(only two shown
+  not containing any feedback designed to reduce thresholds over time, as was the case in Data Set 1. Are the time-varying processes trial-varying changes or block-varying changes? Compared to Data Set 1, block models performed worse relative to trial models, which seems intuitively reasonable given the lack of block level feedback in Data Set 2 (see the second panel of 
+Figure 5
+). According to BIC (AIC), 3 (3) participants were best described by models that only assumed block-varying changes, 5 (4) by models that only assumed trial-varying changes, and 0 (0) by models that assumed a mix of both, where one parameter was trial-varying and the other was block-varying.
+
+
+Dataset 3
+Similar to data sets 1 and 2, the time-varying ParAcT-DDM variants appeared to provide a good account of the reductions in response times across trials displayed by most participants (see 
+Figure 8
+). The relative performance of each model with respect to fit and complexity is in 
+Table 4
+, and 
+Figure 9
+ shows the best three functions for each parameter.
+It should also be noted that the recoveries in our simulation study (reported in the Supplementary Materials) were performed assuming 1000 trials in the experiment, which closely matched the number of trials in data sets 1 and 2. However, as Data Set 3 had substantially fewer trials per person (160), the distinction between models and the identifiability of the parameters may be weaker in Data Set 3 than suggested in our simulations, meaning that the results of this data set should be interpreted with more caution than those of the previous data sets.
+Are time-varying processes present in the data? Similar to Data Set 2, the time-varying models outperformed the standard diffusion model for the vast majority of participants. According to BIC (AIC), the standard diffusion model was the best performing model for 44 (22) out of 147 participants. Collapsing across participants, the standard diffusion model had a 0.27 (0.08) probability of being the best performing model when compared to the best time-varying model for each participant. The relatively high mismatch between BIC and AIC for this study was likely due to there being substantially fewer trials per participant compared to data sets 1 and 2, with BIC tending to penalise flexibility more when there are fewer observations (see 
+Table 1
+). Interestingly, unlike data sets 1 and 2 where participants did not practice the task beforehand, Data Set 3 involved a
+
+
+Figure 8
+Model fits for the four best performing models in Data Set 2 (see 
+Figure 2
+ for detail on interpretation. The plot shows that most participants exhibited quite large changes in response times across trials that were well fit by the time-varying ParAcT models.
+40 trial practice block that was not recorded, meaning that much of the early learning processes were likely already completed before data began recording. However, the strong performance of ParAcT-DDM variants in Data Set 3 suggests that including a practice block before the task may be insufficient to control for these time-varying processes, meaning that an even greater range of typical experimental paradigms in cognitive psychology may induce systematic time-varying effects on diffusion model parameters that cannot be accounted for by the standard diffusion model.
+Are time-varying processes mainly driven by threshold, drift rate, or both? According to BIC (AIC), 65 (62) participants were best fit by an a-varying model, 10 (14) by a v-varying model, and 28 (49) by a dual time-varying models that assumed both processes varied across time (see the middle panel of 
+Figure 5
+). As touched on earlier, the dual time-varying models likely did worse according to BIC in Data Set 3 due to the
+
+
+Figure 9
+Best three time-varying functions for each parameter 
+(according to BIC)
+ limited number of trials per participant, meaning that the added flexibility in these models was penalised more harshly than in the previous data sets.
+Are the time-varying processes trial-varying changes or block-varying changes? In Data Set 3, the performance of trial-varying models improved compared to data sets 1 and 2. The bottom panel of 
+Figure 5
+ shows the relative probability of the best block-varying and trial-varying models for each participant. According to BIC (AIC) 25
+(30) participants were best described by models that only assumed block-level changes, 73
+(86) by models that only assumed trial-level changes, and 5 (9) that assumed both trial and block level changes.
+
+
+Data Set 4
+Are time-varying processes present in the data? Although changes in response times across trials were small, 
+Figure 10
+ shows that the ParAcT models could qualitatively fit the data better than the standard DDM. The relative performance of each model with respect to fit and complexity is in 
+Table 5
+, which shows that the standard DDM did not perform best for any participant, and on the aggregate level, had a near zero probability of being the best performing model. 
+Figure 11
+ shows the most common time-varying functions for a and v respectively.
+Are time-varying processes mainly driven by threshold, drift rate, or both? As shown in the last panel of 
+Figure 4
+, a-varying changes were slightly more common than v-varying changes when aggregating across participants. Interestingly,
+
+
+Figure 10
+Data Set 4: Model fits for the three best performing models (see 
+Figure 2
+ for detail on interpretation. We only included three models here instead of the four that were included for the previous data sets because there were only 3 models that were the best fit for at least one participant. The plot shows that changes in response times were a bit more subtle than the other data sets, but that the ParAcT models still were a better fit for most participants.
+participants who were instructed to emphasise (and were given feedback about) speed rather than accuracy (participants 1 & 2) were more likely to exhibit changes in a where as those asked to emphasise accuracy were more likely to exhibit changes in v. According to BIC (AIC) 2 (1) participants were best fit by a model that only assumed a varied across time, 1 (1) by a model that assumed only v varied across time, and 1 (2) by a model assuming both and v vary across time.
+Are the time-varying processes trial-varying changes or block-varying changes? As shown in the last panel of 
+Figure 5
+, trial-varying processes were slightly more common than block-varying processes. However, block-varying processes were more common for participants who were asked to emphasise accuracy rather than speed
+
+
+Figure 11
+Data set 4: Best time-varying functions for each parameter 
+(according to BIC)
+ (participants 3 and 4). According to BIC (AIC), only 1 (1) participant was best fit by a model assuming only block-level changes, 2 (1) by a model assuming only trial-level changes, and 1 (2) by a model assuming both block and trial changes.
+How much is the standard diffusion model biased by time-varying processes?
+Our results have shown that time-varying processes are likely to emerge in the types of tasks typically modelled by the standard diffusion model, even when researchers are actively trying to control for these processes (i.e., by including a practice block that is not analysed, such as in Data Set 3). Therefore, it is important to determine how biased the parameter estimates of the standard diffusion model could be by these time-varying processes. For instance, if a participant has an initially high level of caution (threshold; a), but eventually asymptotes to a much lower level of caution, the initial high value would result in a standard, non time-varying diffusion model estimate that is systematically higher than what is most indicative of their "true" level of caution after learning has plateaued. Indeed, in the previous section we found that one of the most common time-varying functions for both drift rate and threshold was the exponential trial-varying function. In the case of the exponential function, the ideal estimate of a participant's parameter value after task learning and strategy adjustment has finished -what researchers are often interested in measuring -would be the asymptote (α), which in the Supplementary Materials we show is a parameter that can be reliably estimated. However, when the standard diffusion model is estimated on data with time-varying processes, it is unclear whether the single estimates of the model reflect the final asymptote value, or are contaminated by how much participants change over the experiments, and/or the rate at which they change. In this section, we investigated whether there is a mismatch between the single estimate of the standard diffusion model, and the asymptote of the exponential trial-varying model, and discuss the potential implications this has for estimating the standard diffusion model on data that may contain time-varying processes.
+We chose to compare the estimates of the standard diffusion model to the asymptote (α) parameter of the exponential trial-varying function as (1) the exponential function has strong motivation from the practice literature (e.g., 
+Heathcote et al., 2000)
+ and was the best performing function across the empirical data sets that we assessed,
+our simulation study suggested that the asymptote parameter can be reliably estimated (see 
+Supplementary Materials)
+, and (3) the asymptote parameter appears to correspond to what researchers are often interested in measuring in studies using the diffusion model, which is the parameter value after time-varying processes have finished. 
+Figure 12
+ shows that for the majority of participants across all data sets, the estimates of both v and a were systematically biased compared to the equivalent asymptote parameter, such that the standard DDM tended to under-estimate v and over-estimate a. Note that because in the ParAcT models, a was constrained to reduce over time, whereas v was constrained to increase over time, the biases shown in 
+Figure 12
+ reflect standard DDM estimates that are biased towards the starting point of the time-varying process.
+For Data Set 1, the group-level median difference in estimates between the standard diffusion model and the exponential trial-varying model (standard − α) was 0.35 for a (range: 0.07, 0.75), and -0.26 for v (range: -1.13, 0). For Data Set 2, the median difference for a was 0.1 (range: 0, 1.47) and for v was -0.08 (range: -1.4, 0.01). For Data Set 3, the median difference for a was 0.1 (range: -0.02, 2.94) and for v was -0.05 (range: -4.61, 0.05).
+For Data Set 4, the median difference for a was 0.17 (range: 0, 0.45) and for v was -0.33 (range: -1.62,0). 
+Figure 12
+ suggests that the standard diffusion model was baised for a large proportion of participants in all of the data sets examined in the current study, with the absolute difference in estimates for a substantial minority of participants being around 0.5 or greater. This includes Data Set 3, which is particularly interesting given that this data set included the fewest trials per participant and contained a practice block that was not analysed.
+While these results suggest that the standard diffusion model is prone to being biased by time-varying processes, it is important to understand what leads to the model being biased, and under what circumstances it is most likely to be biased. One possibility is that contexts where learning occurs more slowly are more likely to result in larger differences between the asymptote parameter and the standard diffusion model. In contexts where learning happens quickly, a participants' parameter will be at a constant rate for a larger proportion of the experiment, as they reach the asymptote faster, meaning the estimates of the standard diffusion model are more likely to match that of the asymptote of the trial-varying model. Indeed, 
+Figure 12
+ suggests that participants with lower rates of change tended to have a greater mismatch between the estimates of the standard diffusion model and the exponential function asymptote. However, it is important to note that a decent portion of these participants were best described by the standard diffusion model, meaning that we should not expect there to be much difference between the asymptote and standard diffusion model estimates. Indeed, the exponential function model typically estimated a very fast rate for participants who were best accounted for by the standard diffusion model, which is likely part of the reason for the high agreement between the asymptote and standard diffusion model parameters when the learning rate was high. A
+final -though perhaps more minor -point worth noting is that the credible intervals in
+
+
+Figure 12
+Difference between the standard diffusion model and the asymptote 
+(α)
+ 
+Figure 12
+ are wider for the v differences than the a differences, which is consistent with the greater uncertainty in the v-varying recoveries shown in the simulation study.
+
+
+Discussion
+Our study aimed to propose, develop, and assess the utility of the ParAcT-DDM framework, a diffusion-based modelling approach for capturing dynamic cognitive processes through constraining diffusion model parameters to follow time-varying mathematical functions. We first fit a range of both trial-varying and block-varying functions to four preexisting data sets from two of the most common-decision making paradigms in the literature, with these data sets varying from explicitly trying to force changes to occur through feedback (Data Set 1), to explicitly trying to control for learning by including a practice block (Data Set 3). Our results showed that the ParAcT-DDM variants vastly outperformed the standard diffusion model in all four data sets. In the following section we discuss these findings in more detail, relate these findings to existing literature, discuss potential caveats and limitations, and provide directions for future research.
+Takeaway 1: The ParAcT-DDM uncovered time-varying processes for the majority of participants in all of our empirical data sets.
+In our empirical study, we assessed whether there appeared to be time-varying task efficiency (v) and/or caution (a) in empirical data by applying our ParAcT-DDM framework to four preexisting data sets. We observed clear evidence for time-varying processes in all four of the data sets that we assessed, with the standard diffusion model performing poorly relative to the ParAcT-DDM variants. In Data Set 1, we found evidence for systematic changes in threshold for all participants, which we were confident should be present given (1) the specific block-level feedback that participants received, which was designed to induce changes in threshold, and (2) the findings of the block-level analysis in the original study. Interestingly though, some participants also showed changes in drift rate, even though the feedback was not designed to produce those changes.
+In Data Sets 2, our ParAcT-DDM framework identified systematic changes in both threshold and drift rate even though the experimental task was not explicitly designed to induce changes in either of those parameters across time. However, given that the task was also not designed to control for practice effects, and trial-level feedback on performance was given to participants, it is perhaps not surprising that there were systematic changes in both parameters over time. Interestingly, the practice effects here corresponded with changes in both drift rate and threshold, suggesting that over time, participants not only became less cautious, but also became more efficient on average. We found similar variability in Data Set 4, however participants who were told to emphasise, and were given feedback about, their accuracy (rather than their speed) showed the most reliable changes in drift rate.
+Our findings from Data Sets 2 & 4 that many participants exhibited changes in both drift rate and threshold across time contrasts with work using RL-DDM approaches, which found that only allowing threshold to vary across time, rather than both, resulted in the best performing model 
+(Pedersen et al., 2017)
+. While there are many differences between both the modelling frameworks and the data sets that could cause these contrasting findings, the results of our simulation study (see 
+Supplementary Materials)
+ suggest that the use of a power function in previous studies may have lead to the poor performance of drift rate. Specifically, our simulations suggested that power functions showed poor identifiability, particularly for drift rate, meaning that the lack of drift rate varying over time in previous RL-DDM studies may have reflected an inability to detect changes in drift rate, rather than changes in drift rate not being present. While this potential explanation could be ruled out through a model recovery study using the power functions in the RL-DDM framework, we are not aware of any published simulations studies assessing this for the RL-DDM. Furthermore, it should be noted that only Data Sets 2 and 4 appeared to show clear evidence for both threshold and drift rate varying over time, with data sets 1 and 3 favouring threshold-only models, which is more consistent with the previous RL-DDM findings.
+In Data Set 3, we found evidence for time-varying processes for the majority of participants, even though the experimental design explicitly attempted to prevent practice effects by having participants complete a practice block that was not analysed (or even recorded). As in Data Set 1, threshold-only ParAcT-DDM variants performed better than models assuming both threshold and drift rate varied across time, though the poorer performance of the models with both parameters varying may have been the result of Data Set 3 having substantially fewer trials per person, meaning that changes may have been more difficult to detect. This is particularly true for changes in drift rate, which our recoevery simulations suggested were harder to identify than changes in threshold.
+Interestingly, we found that block-varying models performed better in Data Set 1, whereas trial-varying models performed better in data sets 2, 3, and 4. As Data Set 1 included block-level feedback that was intended to induce changes in threshold, these results seem to indicate that trial-varying changes are generally more common, though in cases of specific block-level manipulations people will make block-varying changes.
+However, due to the computational intensity of our model recoveries presented in the supplementary materials, we did not assess how identifiable block-level and trial-level changes are from one another, meaning that these findings should be interpreted with caution. While our study aimed to assess a broad range of ParAcT-DDM variants, resulting in our model recoveries focusing on contexts that we deemed as more important than block-level vs trial-level changes, future studies focusing more directly on whether changes are block-level or trial-level should perform appropriate model recoveries to ensure that the specific variants implemented are separable. Similar caution should be exhibited towards interpreting the difference between the exponential and delayed-exponential functions, as our recoveries suggested that the delayed-exponential processes were often estimated as standard exponential functions (particularly when evaluating using BIC), meaning that delayed-exponential time-varying functions may be more common than our results suggest.
+One final consideration we wish to note is that while our study attempted to focus on a large number of potential ParAcT-DDM variants, the framework can be extended to an even broader range of functions that we have not discussed here. For instance, our study mostly focused on assessing whether changes occurred from the beginning of the study, such as practice effects, which appeared to capture the data well. However, practice effects are only one reason for changes over time to occur, and changes can also occur later in experiments due to reasons such as boredom or fatigue. Therefore, we believe that future research could extend our ParAcT-DDM framework to include more functions that can also account for these later changes in drift rate and/or threshold, and assess whether these can also be detected.
+Takeaway 2: Time-varying processes resulted in systematic biases for the estimates of the standard diffusion model, which the ParAcT-DDM can control for
+We found that the time-varying processes uncovered in the current systematically biased the estimates of the standard DDM. To elaborate, in cases where researchers apply the standard diffusion model to empirical data to estimate parameter values, the general desire is to obtain estimates that correspond to how people perform at the task once their performance has already stabilised. While the estimates of the standard diffusion model may naturally reflect stabilised performance, regardless of whether learning processes are present, the ParAcT-DDM framework allows one to directly compare the estimates of the standard diffusion model to the estimates of the parameter values after performance has stabilised. Specifically, as many of the best performing time-varying functions we investigated in the current study assume an increase/decrease in a parameter across time until it reaches an asymptote, we are able to assess the extent to which this asymptote of performance differs from the estimates of the standard diffusion model.
+Indeed, our study found that there was often a mismatch between the estimates of the standard diffusion model and the estimates of the asymptote of the exponential trial-varying function, with the discrepancy often being quite large. Our findings also indicated that the degree of mismatch was related to the rate at which a parameter was changing over time, such that slower change was associated with greater mismatch. This association makes sense intuitively, since in contexts where the time-varying change occurs very quickly, there are few trials before the participant reaches their asymptote, meaning that the standard diffusion model is primarily estimated based on trials where participants are at asymptote performance. However, when the change occurs more slowly, the standard diffusion model can be biased by substantial margins since there are fewer trials where the participant has reached the asymptote. Additionally, the learning rate could be so slow that the asymptote is not reached within the experiment, meaning that the estimated asymptote is outside of the measured data (e.g., extrapolation, see 
+Kattner et al., 2017)
+.
+We believe that the ParAcT-DDM's ability to estimate asymptotic performance showcases its utility, since even in cases where researchers are not interested in time-varying processes, our framework provides a safeguard against stationary estimates being biased by time-varying processes, therefore providing a more accurate measure of constant performance across time.
+In many contexts a learning-based bias in the parameter estimates may not influence the overall conclusions of the study, provided that any time-varying processes are equivalent across all experimental conditions/groups. Specifically, if the parameters influenced, type of time-varying function (e.g., linear, exponential, etc.), and rate of change all are consistent, then the degree of bias should be equivalent, meaning that any inferences about the differences between parameters across conditions/groups should hold. However, in cases where the time-varying processes may differ -for instance, where two groups have the same asymptope, but different rates of change -then inferences from the standard diffusion model may be misleading, misattributing differences in learning rates to differences in the general constructs. For example, previous research in cognitive ageing has suggested that older adults tend to exhibit more caution (higher thresholds) compared to younger adults in cognitive tasks (for a review, see 
+Theisen et al., 2021)
+; however, it is possible that both younger and older adults exhibit the same asymptote of caution, but simply take longer to reach it. Therefore, we believe that future research could benefit from using our ParAcT-DDM framework to revisit previous findings in the literature where differences have been found between conditions and/or groups, such as in the case of cognitive ageing, and assess whether these differences appear to be the result of difference between the groups after performance has stabilised, or just differences between the groups in learning rates.
+
+
+Conclusion
+Our study described and demonstrated the ParAcT-DDM, a framework for modelling time-varying changes in diffusion model parameters using theoretically informed mathematical functions. By focusing on drift rate (task efficiency) and threshold (caution), we demonstrated that time-varying processes are often present in data with ParAcT-DDM variants outperforming the standard DDM for most participants in all data sets, even when the original experiments were not designed to induce time-varying changes.
+Our study has shown that the ParAcT-DDM provides at least two key advantages over existing methods. First, it serves as a powerful theoretical tool, allowing researchers the ability to pre-specify and empirically test functional forms of parameter changes across time. This theoretical approach is also highly flexible, without the rigid task requirements of other similar methods such as reinforcement learning + DDM hybrids, since our framework applies broadly to any paradigm that can be used for evidence accumulation modelling.
+Second, the ParAcT-DDM offers a novel way to control for practice effects. Even when researchers are not explicitly interested in time-varying processes, we have shown in our study that these effects can bias standard diffusion model estimates. By modelling parameters with asymptotic functions, our framework can provide an unbiased single estimate across time for after any learning or practice effects have terminated. This approach is more efficient than discarding practice trials (which we have shown is not particularly effective anyway) and can control for individual differences in learning rates.
+By outperforming the standard diffusion model across datasets, our study highlights the pervasiveness of time-varying cognitive processes and their impact on parameter estimation. Beyond improving model fit, our framework offers a practical tool for researchers seeking to understand and control for these effects in experimental psychology.
+The bottom panel of
+
+
+Figure 6
+
+
+Table 1
+1
+Empirical data sets.
+Dataset
+n Trials* Blocks Task
+1. Evans and Brown, 2017 10
+960
+24
+RDK
+2. Evans and Brown, 2017 11
+960
+24
+RDK
+3. Knowles et al., 2019
+147
+160
+4
+RDK
+4. Dutilh et al., 2009
+4
+2,000
+5
+Lexical Decision-Making
+Note. *Trials per subject before exclusions. RDK stands for random dot
+kinematogram. Data sets 1-3 contained correct/incorrect feedback after each trial,
+but Dat Set 1 also had detailed feedback designed to reduce threshold after blocks
+4-24
+(see Method section). Two participnts in Data Set 4 received correct/incorrect feedback on accuracy and 2 only received feedback on speed (e.g., "too slow"). Data Set 4 actually had 10,000 trials per participant measured across multiple sessions, however we only analysed the first session.
+
+
+Table 2
+2
+Dataset 1: Number of participants best fit to each model, and the relative weighted probability of each model when collapsing across participants.
+Models
+n Best Fit (out of 10) Weighted Probability
+BIC
+AIC
+BIC
+AIC
+1 Standard DDM
+0
+0
+< .001
+< .001
+2 a Exponential
+2
+2
+.163
+.082
+3 a Delayed Exp
+0
+0
+.003
+.019
+4 a Exp Blocked
+2
+2
+.197
+.108
+5 a Delayed Exp Blocked
+0
+0
+.006
+.036
+6 a Exp Trial with Block Bump
+0
+0
+.005
+.028
+7 a Step
+3
+2
+.274
+.201
+8 v Exponential
+0
+0
+< .001
+< .001
+9 v Delayed Exp
+0
+0
+< .001
+< .001
+10 v Exp Blocked
+0
+0
+< .001
+< .001
+11 v Exp Trial with Block Bump
+0
+0
+< .001
+< .001
+12 v Delayed Exp Blocked
+0
+0
+< .001
+< .001
+13 v Step
+0
+0
+< .001
+< .001
+14 a Step + v Step
+0
+0
+< .001
+< .001
+15 a Exp + v Exp
+1
+0
+.049
+.039
+16 a Exp + v Exp Blocked
+0
+0
+.029
+.022
+17 a Exp + v Step
+0
+0
+.007
+.034
+18 a Delayed Exp Blocked + v Exp Blocked
+1
+2
+.108
+.189
+19 a Exp Blocked + v Exp Blocked
+0
+0
+.021
+.021
+20 a Exp Blocked + v Step
+0
+0
+.035
+.039
+21 a Delayed Exp + v Delayed Exp
+1
+2
+.102
+.182
+
+
+Dots represent the true empirical response times for participants best fit by the respective model, with the yellow line indicating the "true" best fit, plotted using the geom_smooth function in R with method Loess. The best fits for the predicted models was calculated using the same method, but were fit to the response times for the predicted data sets of each respective model. The plot shows systematic reductions in response times across trials that were fit well by the ParAcT models, but that the the Standrd DDM could not account for.
+
+
+Data set 1: Best three time-varying functions for each parameter (according to BIC), plotted with the median parameter estimates of the participants best fit by models with those change functions. Dots represent the standard diffusion model estimate for each block. Red lines indicate the point at which participants started receiving feedback. Note that these plots do not represent model fits, but block level estimates are included to provide a comparison with an alternative way of looking at parameter changes across time.
+Figure 3
+
+
+and AIC comparing the best fitting threshold-varying model (that only assumes a varies across time), drift-rate-varying model (that only assumes v varies across time) and dual time-varying model (that assumes both a and v vary over time), and the standard diffusion model for each participant in each data set. The numbers above each plot indicate the relative probability of each model type aggregated across participants. The plot shows that a varying processes were much more common than v varying processes, with very few participants being best fit by models that assumed only v varied across time, although a large proportion of participants were best fit by models that assumed both a and v varied across time.
+BIC
+AIC
+a: 0.65
+v: 0.00
+a+v: 0.35
+DDM: 0.00
+a: 0.49
+v: 0.00
+a+v: 0.51
+DDM: 0.00
+1
+1
+a Only
+v Only
+Both a + v
+Standard DDM
+Data Set 1
+Probability
+0.5
+Probability
+0.5
+0
+0
+0
+Participant
+10
+0
+Participant
+10
+a: 0.29
+v: 0.00
+a+v: 0.35 DDM: 0.36
+a: 0.31
+v: 0.05
+a+v: 0.44 DDM: 0.20
+1
+1
+Data Set 2
+Probability
+0.5
+Probability
+0.5
+Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM
+Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM
+0
+0
+0
+Participant
+11
+0
+Participant
+11
+a: 0.43
+v: 0.09
+a+v: 0.20 DDM: 0.29
+a: 0.41
+v: 0.11
+a+v: 0.36 DDM: 0.12
+1
+1
+Data Set 3
+Probability
+0.5
+Probability
+0.5
+Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM
+Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM
+0
+0
+0
+Participant
+147
+0
+Participant
+147
+a: 0.48 v: 0.25 a+v: 0.27
+DDM: 0.00
+1
+Data Set 4
+Probability
+0.5
+Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM
+Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM Standard DDM
+0
+0
+Participant
+4
+Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM
+Best a model Best a model Best a model Best a model
+Best v model Best v model Best v model Best v model
+Best a + v model Best a + v model Best a + v model Best a + v model
+Standard DDM Standard DDM Standard DDM Standard DDM
+
+
+Table 3
+3
+Dataset 2: Number of participants best fit to each model, and the relative weighted
+probability of each model when collapsing across participants.
+Models
+n Best Fit (out of 11) Weighted Probability
+BIC
+AIC
+BIC
+AIC
+1 Standard DDM
+4
+3
+.36
+.122
+2 a Exponential
+1
+2
+.094
+.09
+3 a Delayed Exp
+0
+0
+.018
+.064
+4 a Exp Blocked
+1
+1
+.12
+.048
+5 a Delayed Exp Blocked
+1
+1
+.042
+.062
+6 a Exp Trial with Block Bump
+0
+0
+.017
+.062
+7 v Exponential
+0
+0
+< .001
+.017
+8 v Delayed Exp
+0
+0
+< .001
+.014
+9 v Exp Blocked
+0
+0
+.001
+.027
+10 v Exp Trial with Block Bump
+0
+0
+< .001
+.017
+11 v Delayed Exp Blocked
+0
+0
+< .001
+.022
+12 a Exp Blocked + v Exp Blocked
+1
+0
+.057
+.048
+13 a Exp + v Exp
+1
+1
+.092
+.083
+14 a Delayed Exp Blocked + v Exp
+1
+1
+.09
+.123
+15 a Exp + v Exp Blocked
+0
+0
+.001
+.018
+16 a Exp Trial with Block Bump + v Exp
+1
+1
+.094
+.116
+17 a Delayed Exp Blocked + v Exp Blocked
+0
+1
+.014
+.067
+
+
+Table 4
+4
+Dataset 3: Number of participants best fit to each model, and the relative weighted probability of each model when collapsing across participants.
+Models
+n Best Fit (out of 147) Weighted Probability
+BIC
+AIC
+BIC
+AIC
+1 Standard DDM
+44
+22
+.271
+.08
+2 a Exponential
+33
+25
+.201
+.129
+3 a Delayed Exp
+8
+13
+.08
+.123
+4 a Exp Blocked
+15
+8
+.083
+.057
+5 a Delayed Exp Blocked
+2
+7
+.026
+.055
+6 a Exp Trial with Block Bump
+7
+9
+.059
+.101
+7 v Exponential
+7
+3
+.044
+.034
+8 v Delayed Exp
+2
+5
+.02
+.036
+9 v Exp Blocked
+1
+2
+.016
+.022
+10 v Exp Trial with Block Bump
+0
+3
+.01
+.027
+11 v Delayed Exp Blocked
+0
+1
+.005
+.016
+12 a Exp Blocked + v Exp
+5
+9
+.032
+.07
+13 a Exp + v Exp
+23
+40
+.154
+.251
+
+
+Table 5
+5
+Dataset 4: Number of participants best fit to each model, and the relative weighted probability of each model when collapsing across participants.
+Models
+n Best Fit (out of 147) Weighted Probability
+BIC
+AIC
+BIC
+AIC
+1 Standard DDM
+0
+0
+< .001
+< .001
+2 a Exponential
+0
+0
+.063
+.004
+3 a Delayed Exp
+2
+1
+.339
+.206
+4 a Exp Blocked
+0
+0
+.068
+< .001
+5 a Delayed Exp Blocked
+0
+0
+.004
+< .001
+6 a Exp Trial with Block Bump
+0
+0
+.002
+.001
+7 v Exponential
+0
+0
+.006
+.003
+8 v Delayed Exp
+0
+0
+.007
+.052
+9 v Exp Blocked
+1
+1
+.229
+.102
+10 v Exp Trial with Block Bump
+0
+0
+.001
+.009
+11 v Delayed Exp Blocked
+0
+0
+.006
+.045
+12 a Delayed Exp + v Exp
+0
+0
+.006
+.087
+13 a Delayed Exp + v Exp Blocked
+1
+2
+.198
+.449
+14 a Exp Blocked + v Exp Blocked
+0
+0
+.071
+.023
+15 a Exp + v Exp Blocked
+0
+0
+< .001
+.017
+
+
+However, it should be noted that mixtures of conjugate priors are still conjugate, making the applicability of this method a little broader than it may initially seem.
+
+
+Note that we always estimate separate parameter values (in the case of this linear function, β and α) for the v and a functions, so that the changes in the two parameters do not need to be equivalent to one another.
+
+
+Note that for the ParAcT-DDM, the computational burden of the across-trial variability parameters would be substantially greater than in the standard DDM. Specifically, the numerical integration, required to calculate the likelihood for the model with the across-trial variability parameters, would be required for every trial being assessed, as each trial technically utilises a different set of parameters based on the trial-varying functions.5  In the supplementary materials we present a simulation study which suggests that the systematic variation captured by the ParAcT-DDM cannot be accounted for by across-trial variability parameters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Grounding cognitive control in associative learning
+
+
+
+
+E
+Abrahamse
+
+
+
+
+
+
+S
+Braem
+
+
+
+
+
+
+W
+Notebaert
+
+
+
+
+
+
+T
+Verguts
+
+
+
+
+10.1037/bul0000047
+
+
+
+
+
+
+
+
+Psychological Bulletin
+
+
+
+
+142
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ModelProb: An R package to convert raw model comparsion information criteria into relative probabilities
+
+
+
+
+M
+Alister
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Uncovering the cognitive mechanisms underlying the gaze cueing effect
+
+
+
+
+M
+Alister
+
+
+
+
+
+
+K
+T
+Mckay
+
+
+
+
+
+
+D
+K
+Sewell
+
+
+
+
+
+
+N
+J
+Evans
+
+
+
+
+10.1177/17470218231181238
+
+
+
+
+
+
+
+
+Quarterly Journal of Experimental Psychology
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mechanisms of Skill Acquisition and the Law of Practice: Allen Newell and Paul S. Rosenbloom
+
+
+
+
+J
+R
+Anderson
+
+
+
+
+
+
+
+
+Cognitive Skills and Their Acquisition
+
+
+
+
+Psychology Press
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Artifactual power curves in forgetting
+
+
+
+
+R
+B
+Anderson
+
+
+
+
+
+
+R
+D
+Tweney
+
+
+
+
+
+
+
+
+Memory & Cognition
+
+
+
+
+25
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The form of the forgetting curve and the fate of memories
+
+
+
+
+L
+Averell
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+
+
+Journal of mathematical psychology
+
+
+
+
+55
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Estimating across-trial variability parameters of the Diffusion Decision Model: Expert advice and recommendations
+
+
+
+
+U
+Boehm
+
+
+
+
+
+
+J
+Annis
+
+
+
+
+
+
+M
+J
+Frank
+
+
+
+
+
+
+G
+E
+Hawkins
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+D
+Kellen
+
+
+
+
+
+
+A.-M
+Krypotos
+
+
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+G
+D
+Logan
+
+
+
+
+
+
+T
+J
+Palmeri
+
+
+
+
+
+
+D
+Van Ravenzwaaij
+
+
+
+
+
+
+M
+Servant
+
+
+
+
+
+
+H
+Singmann
+
+
+
+
+
+
+J
+J
+Starns
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+T
+V
+Wiecki
+
+
+
+
+
+
+D
+Matzke
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+10.1016/j.jmp.2018.09.004
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+87
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution: Easy Bayesian computing for real parameter spaces
+
+
+
+
+C
+J
+Braak
+
+
+
+
+10.1007/s11222-006-8769-1
+
+
+
+
+
+
+
+
+Statistics and Computing
+
+
+
+
+16
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The simplest complete model of choice response time: Linear ballistic accumulation
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+
+
+Cognitive Psychology
+
+
+
+
+57
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.cogpsych.2007.12.002
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Working memory is supported by learning to represent items as actions. Attention, Perception, & Psychophysics
+
+
+
+
+A
+Cochrane
+
+
+
+
+
+
+C
+S
+Green
+
+
+
+
+10.3758/s13414-023-02654-z
+
+
+
+
+
+
+
+
+85
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Multiple timescales of learning indicated by changes in evidence-accumulation processes during perceptual decision-making. npj Science of Learning
+
+
+
+
+A
+Cochrane
+
+
+
+
+
+
+C
+R
+Sims
+
+
+
+
+
+
+V
+R
+Bejjanki
+
+
+
+
+
+
+C
+S
+Green
+
+
+
+
+
+
+D
+Bavelier
+
+
+
+
+
+
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1038/s41539-023-00168-9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The transition from algorithm to retrieval in memory-based theories of automaticity
+
+
+
+
+B
+J
+Compton
+
+
+
+
+
+
+G
+D
+Logan
+
+
+
+
+
+
+
+
+Memory & cognition
+
+
+
+
+19
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Robust standards in cognitive science
+
+
+
+
+S
+Crüwell
+
+
+
+
+
+
+A
+M
+Stefan
+
+
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+
+
+Computational Brain & Behavior
+
+
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Functional Form of Performance Improvements in Perceptual Learning: Learning Rates and Transfer
+
+
+
+
+B
+A
+Dosher
+
+
+
+
+
+
+Z.-L
+Lu
+
+
+
+
+10.1111/j.1467-9280.2007.01934.x
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+18
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A diffusion model decomposition of the practice effect
+
+
+
+
+G
+Dutilh
+
+
+
+
+
+
+J
+Vandekerckhove
+
+
+
+
+
+
+F
+Tuerlinckx
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+10.3758/16.6.1026
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+16
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Memory: A contribution to experimental psychology
+
+
+
+
+H
+Ebbinghaus
+
+
+
+
+
+
+
+
+Trans.). Annals of neurosciences
+
+
+H. A. Ruger & C. E. Bussenius
+
+
+
+
+20
+
+
+4
+
+
+155
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The problem of inference from curves based on group data
+
+
+
+
+W
+K
+Estes
+
+
+
+
+
+
+
+
+Psychological bulletin
+
+
+
+
+53
+
+
+2
+
+
+134
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Assessing the practical differences between model selection methods in inferences about choice response time tasks
+
+
+
+
+N
+J
+Evans
+
+
+
+
+10.3758/s13423-018-01563-9
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+26
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimal or not; depends on the task
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+A
+J
+Bennett
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+26
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13423-018-1536-4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+People adopt optimal policies in simple decision-making, after practice and guidance
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+10.3758/s13423-016-1135-1
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+24
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Refining the law of practice
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+D
+J K
+Mewhort
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+125
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/rev0000105
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Double responding: A new constraint for models of speeded decision making
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+G
+Dutilh
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+
+
+Van Der
+
+
+
+
+
+
+H
+L J
+Maas
+
+
+
+
+10.1016/j.cogpsych.2020.101292
+
+
+
+
+
+
+
+
+Cognitive Psychology
+
+
+
+
+121
+
+
+101292
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+When humans behave like monkeys: Feedback delays and extensive practice increase the efficiency of speeded decisions
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+G
+E
+Hawkins
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+184
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Systematic and random sources of variability in perceptual decision-making: Comment on Ratcliff, Voskuilen, and McKoon
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+G
+Tillman
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+127
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/rev0000192
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evidence Accumulation Models: Current Limitations and Future Directions
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+10.31234/osf.io/74df9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A reinforcement learning diffusion decision model for value-based decisions
+
+
+
+
+L
+Fontanesi
+
+
+
+
+
+
+S
+Gluth
+
+
+
+
+
+
+M
+S
+Spektor
+
+
+
+
+
+
+J
+Rieskamp
+
+
+
+
+10.3758/s13423-018-1554-2
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+26
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D
+Gunawan
+
+
+
+
+
+
+G
+E
+Hawkins
+
+
+
+
+
+
+R
+Kohn
+
+
+
+
+
+
+M.-N
+Tran
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Time-evolving psychological processes over repeated decisions
+
+
+
+
+
+
+Psychological review
+
+
+
+
+
+
+
+
+
+
+
+
+Revisiting the evidence for collapsing boundaries and urgency signals in perceptual decision-making
+
+
+
+
+G
+E
+Hawkins
+
+
+
+
+
+
+B
+U
+Forstmann
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+
+
+Journal of Neuroscience
+
+
+
+
+35
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling distracted performance
+
+
+
+
+G
+E
+Hawkins
+
+
+
+
+
+
+M
+Mittner
+
+
+
+
+
+
+B
+U
+Forstmann
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+
+
+Cognitive Psychology
+
+
+
+
+112
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.cogpsych.2019.05.002
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The power law repealed: The case for an exponential law of practice
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+S
+Brown
+
+
+
+
+
+
+D
+J K
+Mewhort
+
+
+
+
+10.3758/BF03212979
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+7
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An extension of the shifted wald model of human response times: Capturing the time dynamic properties of human cognition: Trial-varying wald model
+
+
+
+
+Z
+L
+Howard
+
+
+
+
+
+
+E
+L
+Fox
+
+
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+S
+Loft
+
+
+
+
+
+
+J
+Houpt
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Msm: Multi-State Markov and Hidden Markov Models in Continuous Time
+
+
+
+
+C
+Jackson
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sequential effects in response time reveal learning mechanisms and event representations
+
+
+
+
+M
+Jones
+
+
+
+
+
+
+T
+Curran
+
+
+
+
+
+
+M
+C
+Mozer
+
+
+
+
+
+
+M
+H
+Wilder
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+120
+
+
+3
+
+
+628
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Trial-dependent psychometric functions accounting for perceptual learning in 2-afc discrimination tasks
+
+
+
+
+F
+Kattner
+
+
+
+
+
+
+A
+Cochrane
+
+
+
+
+
+
+C
+S
+Green
+
+
+
+
+
+
+
+
+Journal of vision
+
+
+
+
+17
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Some Evidence for an Association Between Early Life Adversity and Decision Urgency
+
+
+
+
+J
+P
+Knowles
+
+
+
+
+
+
+N
+J
+Evans
+
+
+
+
+
+
+D
+Burke
+
+
+
+
+https://www.frontiersin.org/articles/10.3389/fpsyg.2019.00243
+
+
+
+
+
+
+
+
+Frontiers in Psychology
+
+
+
+
+10
+
+
+
+
+
+
+
+
+Retrieved
+
+
+
+
+
+
+
+
+Doing Bayesian Data Analysis: A Tutorial with R, JAGS, and Stan
+
+
+
+
+J
+Kruschke
+
+
+
+
+
+
+
+
+Academic Press
+
+
+
+
+
+
+
+
+
+
+
+
+Processing emotional expressions under fear of rejection: Findings from diffusion model analyses
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+A
+Bucher
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+10.1037/emo0000691
+
+
+
+
+
+
+
+
+Emotion
+
+
+
+
+21
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Diffusion modeling and intelligence: Drift rates show both domain-general and domain-specific relations with intelligence
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+M
+Von Krause
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+G
+T
+Frischkorn
+
+
+
+
+
+
+A.-L
+Schubert
+
+
+
+
+
+
+D
+Hagemann
+
+
+
+
+10.1037/xge0000774
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology. General
+
+
+
+
+149
+
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+How many trials are required for parameter estimation in diffusion modeling? A comparison of different optimization criteria
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+M
+Nagler
+
+
+
+
+
+
+
+
+Behavior Research Methods
+
+
+
+
+49
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13428-016-0740-2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shapes of reaction-time distributions and shapes of learning curves: A test of the instance theory of automaticity
+
+
+
+
+G
+D
+Logan
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology. Learning, Memory, and Cognition
+
+
+
+
+18
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037//0278-7393.18.5.883
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Toward an instance theory of automatization
+
+
+
+
+G
+D
+Logan
+
+
+
+
+10.1037/0033-295X.95.4.492
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+95
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A new model of decision processing in instrumental learning tasks
+
+
+
+
+S
+Miletić
+
+
+
+
+
+
+R
+J
+Boag
+
+
+
+
+
+
+A
+C
+Trutti
+
+
+
+
+
+
+N
+Stevenson
+
+
+
+
+
+
+B
+U
+Forstmann
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+10.7554/eLife.63055
+
+
+
+
+
+
+
+
+eLife, 10, e63055
+
+
+V. Wyart, J. I. Gold, & J. W. de Gee
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Time scales in motor learning and development
+
+
+
+
+K
+M
+Newell
+
+
+
+
+
+
+Y
+T
+Liu
+
+
+
+
+
+
+G
+Mayer-Kress
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+108
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/0033-295x.108.1.57
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Adaptation and learning: Characteristic time scales of performance dynamics
+
+
+
+
+K
+M
+Newell
+
+
+
+
+
+
+G
+Mayer-Kress
+
+
+
+
+
+
+S
+L
+Hong
+
+
+
+
+
+
+Y.-T
+Liu
+
+
+
+
+
+
+
+
+Human movement science
+
+
+
+
+28
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Simultaneous Hierarchical Bayesian Parameter Estimation for Reinforcement Learning and Drift Diffusion Models: A Tutorial and Links to Neural Data
+
+
+
+
+M
+L
+Pedersen
+
+
+
+
+
+
+M
+J
+Frank
+
+
+
+
+
+
+
+
+Computational Brain & Behavior
+
+
+
+
+3
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1007/s42113-020-00084-w
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The drift diffusion model as the choice rule in reinforcement learning
+
+
+
+
+M
+L
+Pedersen
+
+
+
+
+
+
+M
+J
+Frank
+
+
+
+
+
+
+G
+Biele
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+24
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13423-016-1199-y
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+What a difference a parameter makes: A psychophysical comparison of random dot motion algorithms
+
+
+
+
+P
+K
+Pilly
+
+
+
+
+
+
+A
+R
+Seitz
+
+
+
+
+
+
+
+
+Vision research
+
+
+
+
+49
+
+
+13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A theory of memory retrieval
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+85
+
+
+2
+
+
+59
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The Diffusion Decision Model: Theory and Data for Two-Choice Decision Tasks
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+
+
+
+
+Neural Computation
+
+
+
+
+20
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1162/neco.2008.12-06-420
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling Response Times for Two-Choice Decisions
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+J
+N
+Rouder
+
+
+
+
+10.1111/1467-9280.00067
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+9
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Diffusion Decision Model: Current Issues and History
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+P
+L
+Smith
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+
+
+
+
+Trends in Cognitive Sciences
+
+
+
+
+20
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.tics.2016.01.007
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A diffusion model analysis of the effects of aging on recognition memory
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+A
+Thapar
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+
+
+
+
+Journal of Memory and Language
+
+
+
+
+50
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.jml.2003.11.002
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Internal and external sources of variability in perceptual decision-making
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+C
+Voskuilen
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+10.1037/rev0000080
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+125
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bending the power law: A cmpl theory of strategy shifts and the automatization of cognitive skills
+
+
+
+
+T
+C
+Rickard
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology: General
+
+
+
+
+126
+
+
+3
+
+
+288
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Strategy execution in cognitive skill learning: An item-level test of candidate models
+
+
+
+
+T
+C
+Rickard
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology: Learning, Memory, and Cognition
+
+
+
+
+30
+
+
+1
+
+
+65
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Response of neurons in the lateral intraparietal area during a combined visual discrimination reaction time task
+
+
+
+
+J
+D
+Roitman
+
+
+
+
+
+
+M
+N
+Shadlen
+
+
+
+
+
+
+
+
+Journal of neuroscience
+
+
+
+
+22
+
+
+21
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural superstatistics for Bayesian estimation of dynamic cognitive models
+
+
+
+
+L
+Schumacher
+
+
+
+
+
+
+P.-C
+Bürkner
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+U
+Köthe
+
+
+
+
+
+
+S
+T
+Radev
+
+
+
+
+10.1038/s41598-023-40278-3
+
+
+
+
+
+
+
+
+Scientific Reports
+
+
+
+
+13
+
+
+1
+
+
+13778
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Discrimination reaction time for a 1,023-alternative task
+
+
+
+
+R
+Seibel
+
+
+
+
+10.1037/h0048914
+
+
+
+
+
+
+
+
+Journal of Experimental Psychology
+
+
+
+
+66
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Rtdists: Response Time Distributions
+
+
+
+
+H
+Singmann
+
+
+
+
+
+
+S
+Brown
+
+
+
+
+
+
+M
+Gretton
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+J
+Voss
+
+
+
+
+
+
+A
+Terry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Small is beautiful: In defense of the small-N design
+
+
+
+
+P
+L
+Smith
+
+
+
+
+
+
+D
+R
+Little
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+25
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13423-018-1451-8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The effects of aging on the speed-accuracy compromise: Boundary optimality in the diffusion model
+
+
+
+
+J
+J
+Starns
+
+
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+
+
+Psychology and aging
+
+
+
+
+25
+
+
+2
+
+
+377
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Age-related differences in diffusion model boundary optimality with both trial-limited and time-limited tasks
+
+
+
+
+J
+J
+Starns
+
+
+
+
+
+
+R
+Ratcliff
+
+
+
+
+10.3758/s13423-011-0189-3
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+19
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Age differences in diffusion model parameters: A meta-analysis
+
+
+
+
+M
+Theisen
+
+
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+M
+Von Krause
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+
+
+Psychological Research
+
+
+
+
+85
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1007/s00426-020-01371-8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A method for efficiently sampling from distributions with correlated dimensions
+
+
+
+
+B
+M
+Turner
+
+
+
+
+
+
+P
+B
+Sederberg
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+M
+Steyvers
+
+
+
+
+
+
+
+
+Psychological methods
+
+
+
+
+18
+
+
+3
+
+
+368
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The time course of perceptual choice: The leaky, competing accumulator model
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+J
+L
+Mcclelland
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+108
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/0033-295x.108.3.550
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An integrated perspective on the relation between response speed and intelligence
+
+
+
+
+D
+Van Ravenzwaaij
+
+
+
+
+
+
+S
+Brown
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+10.1016/j.cognition.2011.02.002
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+119
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A diffusion model decomposition of the effects of alcohol on perceptual decision making
+
+
+
+
+D
+Van Ravenzwaaij
+
+
+
+
+
+
+G
+Dutilh
+
+
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Psychopharmacology
+
+
+
+
+219
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1007/s00213-011-2435-9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AIC model selection using Akaike weights
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+
+
+S
+Farrell
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+11
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/BF03206482
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Identifying long-and short-term processes in perceptual learning
+
+
+
+
+J
+Yang
+
+
+
+
+
+
+F.-F
+Yan
+
+
+
+
+
+
+L
+Chen
+
+
+
+
+
+
+S
+Fan
+
+
+
+
+
+
+Y
+Wu
+
+
+
+
+
+
+L
+Jiang
+
+
+
+
+
+
+J
+Xi
+
+
+
+
+
+
+J
+Zhao
+
+
+
+
+
+
+Y
+Zhang
+
+
+
+
+
+
+Z.-L
+Lu
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+33
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A circular diffusion model of continuous-outcome source memory retrieval: Contrasting continuous and threshold accounts
+
+
+
+
+J
+Zhou
+
+
+
+
+
+
+A
+F
+Osth
+
+
+
+
+
+
+S
+D
+Lilburn
+
+
+
+
+
+
+P
+L
+Smith
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+28
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13423-020-01862-0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

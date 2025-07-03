@@ -1,0 +1,5140 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Sequential sampling confidence models Introduction
+Recently, confidence has gained increasing research interest in the field of cognitive computational modeling (e.g., 
+Adler & Ma, 2018;
+Aitchison et al., 2015;
+Desender et al., 2021;
+Hellmann et al., 2023a
+Hellmann et al., , 2023b
+; 
+Kiani et al., 2014;
+Moran et al., 2015;
+Pleskac & Busemeyer, 2010;
+Ratcliff & Starns, 2009
+, 2013
+Rausch et al., 2018;
+Zawadzka et al., 2017)
+. Many experimental tasks and everyday decisions include uncertainty, so the decision-maker can not be entirely sure whether their decision was correct. The resulting degree of belief in the correctness of one's decision is referred to as confidence 
+(Pouget et al., 2016)
+. Because confidence is also relevant in everyday behavior and communication, for example when driving in a foggy environment or making difficult medical diagnoses, it is essential to understand how confidence arises from the decision process.
+Many models of confidence are based on signal detection theory (SDT, 
+Green & Swets, 1966)
+. We refer to these models as static models as they do not explain the single trial dynamics of a decision but assume that the decision is made by comparing a single random variable against a criterion. Traditional SDT models have been extended to account for confidence judgments, for example by introducing more criteria, additional information gain, or noise in the confidence judgment 
+(Adler & Ma, 2018;
+Mamassian & de Gardelle, 2021;
+Rausch et al., 2018
+Rausch et al., , 2023
+Shekhar & Rahnev, 2021
+. Static confidence models have proven successful in accounting for the relationship between task difficulty and confidence and have been useful for explaining discrepancies between confidence judgments and actual accuracy. However, as static models ignore the dynamics of the decision process, they do not apply to response time data. This is problematic because confidence is closely related to decision time in many decision tasks 
+(Hellmann et al., 2023a;
+Kiani et al., 2014;
+Rahnev et al., 2020;
+Vickers et al., 1985)
+. In contrast to static models, dynamical models can explain response time distributions and may thus provide insight into the causal relationship between task difficulty, decision time, and confidence. Dynamical models of decision-making assume a sequential sampling process, that is, evidence is sampled from a noisy distribution repeatedly over time, and an internal decision variable is updated until a particular stopping rule is met and the decision is triggered 
+(Ratcliff & Smith, 2004)
+.
+A prominent example of a computational model in the field of decision-making research is the drift diffusion model (DDM) which was originally used to explain response time distributions in memory retrieval tasks 
+(Ratcliff, 1978)
+. Since it was initially formulated, it was extended by including additional parameters and applied in various experimental tasks 
+(Ratcliff & Smith, 2004)
+. However, the DDM, in its original conception, does not account for confidence judgments. In two previous studies, we compared different confidence models based on two important prototypes of dynamical models of decision-making, the DDM and the race of accumulators 
+(Hellmann et al., 2023a
+(Hellmann et al., , 2023b
+. We demonstrated that fitting the DYNCONFIR PACKAGE 6 joint distribution of choice, response time, and confidence is useful for testing computational models of decision making and is more desirable than fitting summary statistics of the data.
+The presented package includes functions to fit response times and confidence judgments in binary choice tasks based on the following models: the drift diffusion confidence model 
+(DDConf, Hellmann et al., 2023b)
+, the two-stage dynamical signal detection model (2DSD, 
+Pleskac & Busemeyer, 2010)
+, the dynamical weighted evidence and visibility model 
+(dynWEV, Hellmann et al., 2023b)
+, the dynamical visibility, time, and evidence model 
+(dynaViTE, Hellmann et al., 2023a)
+, and various versions of race models. The models are explained in more detail in the next section.
+Due to their mathematical complexity, dynamical models of decision-making and confidence are challenging to implement. By providing the dynConfiR package, we aim to remove the hurdle of implementing likelihood functions and fitting procedures to facilitate the application of confidence models for research questions in psychology and cognitive neuroscience.
+
+
+Alternative software
+Software already exists to analyze response time data for decision models, mainly in the context of the DDM. Some examples are the R packages RWiener 
+(Wabersich & Vandekerckhove, 2014b)
+, which provides an implementation of the four-parameter DDM with functions for parameter fitting, and rtdists 
+(Singmann et al., 2020)
+, which offers probability distribution and simulation functions for the seven-parameter DDM and the linear ballistic accumulator model 
+(Brown & Heathcote, 2008)
+. Fast-dm (A. 
+Voss & Voss, 2008
+) is a stand-alone command line tool for fitting the seven-parameter DDM to empirical data. The python toolbox HDDM allows for hierarchical parameter estimation of DDM parameters 
+(Wiecki et al., 2013)
+. In addition, the wiener module for JAGS 
+(Wabersich & Vandekerckhove, 2014a)
+ and Stan allow researchers to easily incorporate the DDM in more complex scenarios, for instance, in reinforcement learning situations 
+(Fontanesi et al., 2019)
+. For fitting confidence data, the statConfR package 
+(Rausch & Hellmann, 2024)
+ allows for parameter fitting in the context of static confidence models and the computation of popular measures of metacognitive performance like meta-d ′ 
+(Maniscalco & Lau, 2012)
+. However, to our knowledge, no such software for sequential sampling models of confidence is available. dynConfiR provides implementations of the joint distribution of choice, response time, and confidence judgment for several sequential sampling models of decision confidence together with wrapper functions to compute the likelihood for a whole data set and a given set of parameters. In addition, functions for fitting parameters with a maximum likelihood procedure and predicting or simulating the distributions for specific parameters are included. Functions are written to provide an intuitive and straightforward way to implement the whole workflow of model fitting and comparison with only a few lines of code while still providing possibilities for customization, for example, fixing parameters that should not be fitted.
+
+
+Structure of the present paper
+In the present paper, we will first present the confidence models that are included in the package, explaining all parameters and giving mathematical definitions. The second section provides details about the functionalities of the package. Based on the implemented functionalities, we propose workflows for different use cases and show possibilities for individual settings in the analyses. In addition, we showcase the suggested workflow for model comparison using an empirical data set. The sections Recovery analysis and Precision analysis contain results from simulation studies examining the performance of the package.
+
+
+Sequential sampling confidence models
+In this section, we describe the sequential sampling models included in dynConfiR in detail. All dynamic models of decision-making share the idea that a decision is not based on a single sample, as in SDT. In contrast, sequential sampling models describe decisions as processes in which evidence is repeatedly sampled and accumulated over time 
+(Ratcliff & Smith, 2004)
+. Starting from a discrete-time perspective and normally distributed samples, reducing the time step size leads to a continuous Wiener process describing the accumulation of evidence. The use of Wiener processes is also in accordance with the idea that the internal evidence signal is represented by a sufficiently large set of neurons. The Wiener process may be interpreted as the stochastic process equivalent to the Gaussian distribution. This is because the functional invariance principle states that accordingly scaled partial sum processes, which formalize the idea of sequentially sampling and integrating evidence mathematically, converge to a Wiener process in the limit of small time steps 
+(Klenke, 2013)
+. However, there are dynamical models of decision-making that explicitly use other processes, like the Poisson counter model 
+(LaBerge, 1994)
+ or the leaky competing accumulator model 
+(Usher & McClelland, 2001
+). The accumulation of evidence continues until enough information in favor of one alternative is available, formalized by a stopping criterion. When the stopping criterion is met, a choice is triggered for the alternative favored by the accumulated evidence.
+Sequential sampling models of decision-making provide explanations for the correlation between discriminability and reaction time and the speed-accuracy trade-off 
+(Lerche & Voss, 2019;
+Ratcliff & Rouder, 1998)
+. The dynConfiR package features two classes of dynamical confidence models. The first class of models is based on the DDM, which assumes a single accumulation process representing evidence in favor of one choice alternative over the other. The second class of models is race models, which assumes multiple accumulation processes, each representing one choice alternative. In the sections that follow, we first describe the most general model of the first class, the dynamical visibility, time, and evidence model (dynaViTE), and how the other models of this class, DDConf, 2DSD, and dynWEV, are special cases of DYNCONFIR PACKAGE 8 dynaViTE. We will then describe the second class of models.
+
+
+Drift diffusion-based confidence models
+We first present the decision mechanism that is the basis for the first class of models. In the DDM, the decision process is described as a Wiener process, which is bounded by two time-constant thresholds 0 and a. The process X starts at the starting point X(0). The relative starting position between the two thresholds, i.e. X(0)/a, follows a uniform distribution around the parameter z with range s z , formally
+X(0)/a ∼ Unif[z − s z /2, z + s z /2].
+The process then evolves with a drift of µ, which is normally distributed around ν with standard deviation s ν . The diffusion constant is denoted as s. When the process first hits either the lower or the upper threshold, a decision is triggered. Decision time is thus defined as
+T Dec = min{t|X(t) ∈ {0, a}}.
+The choice response R is -1 if the lower threshold was hit, i.e., if X(T Dec ) = 0, and it is +1, otherwise.
+Correspondingly, in discrimination tasks, the sign of the mean drift rate reflects the true stimulus identity, S = sig(ν), while its magnitude is determined by experimental manipulations in task difficulty (see section
+Fitting confidence models to experimental data).
+
+
+Dynamical visibility, time, end evidence model (dynaViTE)
+The dynaViTE model assumes that the decision process X continues after it reaches one of the two thresholds. This accumulation continues for a fixed period of time, which is represented by the parameter τ . In addition, dynaViTE postulates a second process evolving in parallel to the decision process. The second process is denoted as visibility process V and is again a Wiener process, which always starts as 0. Its drift rate is subject to noise similar to the drift rate in the decision process. More precisely, the visibility drift is normally distributed with mean visibility drift µ V and standard deviation σ V . The diffusion constant of the visibility process is represented by the parameter s V . Importantly, only one parameter in dynaViTE can be fixed to scale the other parameters without affecting model predictions.
+That is, if the diffusion constant of the decision process s is fixed, then s V cannot be fixed as well without restricting the model. The psychological interpretation of the two processes is as follows: While the decision process accumulates evidence about the identity of the stimulus, i.e., whether it belongs to the class representing the upper or lower threshold, respectively, the visibility process accrues evidence about stimulus features that are indicative of task difficulty but not informative for the stimulus identity. In visual discrimination tasks -for which dynaViTE was originally proposed -visibility may be task-irrelevant stimulus features like brightness, shape, presentation time, or contour.
+Confidence is then a function of the accumulated decision evidence (X(T Dec + τ ) − az), visibility evidence (V (T Dec + τ )), and accumulation time (T Dec + τ ). After the post-decisional accumulation period, DYNCONFIR PACKAGE 9 accumulated evidence in the two processes is combined in a weighted sum and divided by a power of accumulation time to form an internal confidence variable
+c dynaV iT E = wR(X(T Dec + τ ) − az) + (1 − w)V (T Dec + τ ) (T Dec + τ ) λ ,
+(1)
+in which the parameter w controls the weight on decision evidence compared to visibility evidence, and λ controls the penalty of accumulation time on confidence. The factor R in the numerator of eqn (1) leads to a positive scaling of choice congruent evidence in the case when the choice is R = −1 (i.e., the lower threshold was hit first) because more negative values of X(T Dec − τ ) − az support a 'lower' decision and thus should lead to higher confidence. For perceptual decision tasks without independent manipulation of discriminability and visibility, the mean drift rate of the visibility process was previously set to the absolute mean drift of the decision process, µ V = |ν| 
+(Hellmann et al., 2023a
+(Hellmann et al., , 2023b
+. Setting the visibility drift rate to the absolute value of the decision drift rate follows the assumption that stimuli, which are easier to discriminate, are also perceived as more reliable, independent of their category. For example, when manipulating the stimulus-onset-asynchrony in a masked discrimination task, the time the stimulus was present on the screen may be perceived independently of the evidence about the stimulus category.
+Because stimuli that are presented longer are easier to discriminate, a longer stimulus duration increases confidence irrespective of the choice. DynaViTE includes simpler confidence models that were previously studied in the literature. The following special cases are implemented with their own name in dynConfiR.
+
+
+Dynamical weighted evidence and visibility model (dynWEV)
+The dynWEV model is a dynamical version of a previously proposed static model of confidence, the weighted evidence and visibility model 
+(Rausch et al., 2018)
+. DynWEV is equivalent to the dynaViTE model without considering the accumulation time penalization in the confidence measure, i.e., λ = 0, such that
+c dynW EV = wR(X(T Dec + τ ) − az) + (1 − w)V (T Dec + τ ).
+
+
+Two-stage dynamic signal detection theory (2DSD)
+The 2DSD model does not assume parallel accumulation of visibility evidence and also has no penalization for accumulation time. In 2DSD, confidence only depends on whether the evidence accumulated in the post-decisional accumulation period supports or contradicts the choice 
+(Pleskac & Busemeyer, 2010)
+. 2DSD is a special case of dynaViTE for λ = 0 and w = 1. Setting w = 1 leads to a zero weight on the visibility process, which is thus completely ignored in the likelihood. In addition, λ = 0 implies that the denominator in eqn (1) is always 1, and accumulation time has no direct influence on confidence. The confidence variable has the form
+c 2DSD = R(X(T Dec + τ ) − az).
+
+
+Drift diffusion confidence model (DDConf)
+The drift diffusion confidence model is based on the the formula for optimal confidence in the DDM when drift rates are uniformly distributed (Moreno-Bote, 2010), which indicates that confidence is a monotonically decreasing function of decision time. More precisely, the confidence variable is defined as
+c DDM = 1 √ T Dec .
+DDConf is mathematically equivalent to the dynaViTE model with w = 1, τ = 0, and λ = 0.5.
+
+
+Race Models
+The drift diffusion model that serves as the basis for the previously described models assumes only one accumulation process representing relative evidence for competing decision alternatives. In contrast, race models include one accumulation process for each decision alternative. Each of the processes accrues information in favor of the corresponding decision alternative. These models are theoretically applicable to decision tasks with an arbitrary number of alternatives. In the binary setting, the two accumulators may be described as a two-dimensional Gaussian process (X 1 , X 2 ) starting at (0, 0), with constant drift (µ 1 , µ 2 ) and covariance matrix Σ =
+σ 2 1 σ1σ2ρ σ1σ2ρ σ 2 2
+. Similar to the diffusion constant, σ 1 and σ 2 may be set to 1 as scaling factors. Each component of the process is bound from above by a time constant threshold A and B, respectively. A decision is triggered as soon as one of the accumulators hits its threshold. Decision time is thus defined by T Dec = min {t | X 1 (t) > A ∨ X 2 (t) > B} and the response R is 1, if X 1 (T Dec ) > A and 2, if
+X 2 (T Dec ) > B.
+In dynConfiR, the correlation parameter ρ is restricted to either ρ = 0, which results in the model denoted as the independent race model (IRM), or ρ = −.5, for which the respective model is denoted as the partially correlated race model (PCRM). The reason for restricting ρ to either 0 or -.5 is that for these values, there are closed-form solutions for the first passage time densities (Moreno-Bote, 2010).
+Closed-form solutions allow fast and precise computations of the first-passage time distribution compared to the usage of approximation methods, which are necessary if the first-passage time density can only be represented by an infinite sum. However, these two choices of ρ capture essential theoretical concepts 
+(Teodorescu & Usher, 2013;
+Zylberberg et al., 2012)
+. A value of ρ = 0 leads to an independent race of accumulators, which represents the assumption of evidence accumulation in the absence of interaction 
+(Teodorescu & Usher, 2013;
+Zylberberg et al., 2012)
+. A negative correlation of the noise in the accumulation processes represents the assumption of feed-forward inhibition, which means that higher input values in one accumulator partially reduce the input in the other accumulator 
+(Teodorescu & Usher, 2013;
+Zylberberg et al., 2012)
+. Note that for ρ = −1, the race model is equivalent to a drift diffusion model. One possibility to compute confidence in the context of race models is the Balance of Evidence 
+(BoE, Vickers et al., 1985)
+, i.e., the difference in the amount of evidence in favor of the two alternatives at the time of decision. Because the winning accumulator is always at its threshold at decision time, BoE is entirely determined by the distance of the losing accumulator to its upper threshold. For instance, if R = 1, the confidence variable may thus be defined as
+c BoE = B − X 2 (T Dec ).
+The logic behind the BoE is intuitive: the less evidence there was for the non-chosen alternative, the clearer and less ambiguous the decision resulting in a higher degree of confidence associated with the decision. However, empirical studies have shown that confidence is also affected by decision time 
+(Hellmann et al., 2023b;
+Kiani et al., 2014)
+. In addition, it has been shown that if confidence in a race model was computed optimally, it would be a function of both BoE and decision time (Moreno-Bote, 2010). For this reason, dynConfiR includes race models with a more general confidence variable in the form of a linear combination of Balance of Evidence and the inverse of decision time. Assuming again that R = 1, confidence is computed as
+c RM t = w X (B − X 2 (T Dec )) + w RT 1 √ T Dec + w Int B − X 2 (T Dec ) √ T Dec ,
+where the weights w X , w RT , w Int are greater than 0 and sum to 1 to form a trade-off between the possible predictor variables. Note that the fixed sum of weight parameters is not a restriction of the model because the confidence and confidence thresholds may be rescaled by the sum of weights to produce the same distribution of response time and confidence. dynConfiR implements race models with all combinations of assumptions about independent or correlated accumulators and a confidence variable that does or does not depend on decision time. The acronyms for the models used in the package are summarized in 
+Table 1
+.
+Note that the first confidence measure c BoE is a special case of the more general c RM t , if the weight parameters are set accordingly (w X = 1, w RT = w Int = 0). 
+C = K−1 i=1 1 (c>θ R,i ) + 1,
+where 1 denotes the indicator function, which is one if the condition is true and zero, otherwise. This means that observers are assumed to report a confidence level of 2 on a three-point scale if the confidence variable c falls between θ R,1 and θ R,2 .
+
+
+Non-decision time component
+Similarly, all models share the assumption of a non-decision time component, which includes time for stimulus encoding and the formation of a motor response. The non-decision time component is not related to the decision mechanics itself but contributes to the observed response times. It is modeled as a 
+(Ratcliff & Tuerlinckx, 2002)
+. The formula for the response time depends on the timing of the confidence report in the experiment at hand. For experiments in which the choice and confidence judgment were reported sequentially, the models currently implemented in the package can only account for the choice response time and do not include the confidence response time. The choice response time is assumed to be
+uniformly distributed component T N D ∼ Unif[t 0 , t 0 + s t0 ]
+RT = T Dec + T N D .
+(2)
+If choice and confidence are reported simultaneously, then the response time is still defined as in eqn (2) for models that do not assume post-decisional accumulation of evidence. For models that assume a post-decisional accumulation period, all processes are assumed to have finished at the time of the response.
+Thus, the observed response time is the sum of decision time, post-decisional accumulation time, and non-decision time,
+RT = T Dec + τ + T N D .
+(3)
+However, the models with post-decisional accumulation time could also be fitted in experiments with simultaneous responses using the first definition of response time as in eqn (2) using the same fitting functions with specific arguments (see section Fitting confidence models to experimental data).
+
+
+DYNCONFIR PACKAGE 13
+All parameters of the different models are summarized in table 2.
+
+
+Other sequential sampling models of confidence
+The confidence models presented here are only a subset of previously proposed dynamical confidence models. Other models include the RTCON model 
+(Ratcliff & Starns, 2009;
+Starns et al., 2012)
+ or the bounded accumulation model proposed by 
+Kiani et al. (2014)
+. The dynConfiR package is restricted to models for which closed-form solutions are available for the joint distribution of response times and confidence, or the approximations of response time distributions are well-studied concerning their precision. 
+
+
+Race Models
+A, B thresholds for the two accumulation processes µ 1 , µ 2 drift rates for the two accumulators s 1 , s 2 diffusion constants for the two accumulators ρ correlation of process noise between the two accumulators (either 0 for IRM and IRMt or -.5 for PCRM and PCRMt) w X , w RT , weights on loosing accumulator, decision time and and w Int interaction for the confidence variable 
+
+
+Functionalities of the package
+In the following, we will first describe a prototypical workflow illustrating how the package may be used for model comparison studies. Afterward, the most essential functions implemented in dynConfiR are explained in detail.
+
+
+Installation
+The package is available on CRAN and may be installed with the command:
+install.packages("dynConfiR")
+A development version of the package is available on GitHub and may be downloaded and installed using the devtools package and the command:
+devtools::install_github("SeHellmann/dynConfiR")
+
+
+Workflow
+The dynConfiR package provides functions for model fitting, i.e., estimation of model parameters.
+The functions of dynConfiR are optimized for within-subjects manipulations of discriminability. Models can be fitted independently for each participant, facilitating quantitative model comparison using information criteria like AIC and BIC 
+(Akaike, 1974;
+Schwarz, 1978)
+. The function fitRTConfModels implements the full model fitting procedure and allows for parallelization over participants. Cognitive modeling studies should check whether the fitted models could reproduce the main qualitative patterns of empirical data 
+(Palminteri et al., 2017)
+. For this purpose, the functions predictConfModels and predictRTModels compute the predicted data distributions for given parameter sets. While predictConfModels computes the discrete decision and confidence outcomes, predictRTModels provides the density for the joint distribution of decision, response time, and confidence rating. When used with previously fitted parameters, these functions can be used to visually compare the model predictions to empirical data or to check for the reproduction of qualitative data patterns. One example of a qualitative pattern that confidence models need to explain is the relationship of mean confidence in discrimination tasks with increasing stimulus discriminability for correct and incorrect decisions, which have been referred to as a so-called folded-X or a double increase pattern 
+(Rausch & Zehetleitner, 2019)
+. The workflow for parameter fitting, model comparison, and prediction is summarized in 
+Figure 1
+. In addition to classical model comparison studies, the fitted parameters for the individual subjects can be used for group comparisons and correlational analyses, for example, to study the relationship of specific parameters with measures of metacognitive sensitivity or neurological data.
+
+
+Figure 1
+Basic workflow and functions for model comparison studies. 
+
+
+Parameter fitting
+
+
+Fitting confidence models to experimental data
+In this section, we describe the fitting function in more detail, starting with which experimental data can be used, how parameters are mapped to the manipulations, and finally, the fitting procedure.
+
+
+Experimental paradigm
+The fitting functions in the package are tailored to perceptual, binary discrimination tasks with a single difficulty manipulation. This is a standard paradigm in the study of computational models of confidence 
+(Kiani et al., 2014;
+Rahnev et al., 2020;
+Rausch et al., 2018)
+. For other manipulations that are assumed to vary specific parameters only, the user can write their own likelihood and fitting functions using the density functions described later. For instance, manipulations of the speed-accuracy trade-off 
+(Desender et al., 2021)
+ and post-decisional accumulation period 
+(Desender et al., 2022;
+Moran et al., 2015)
+ may also be interesting when studying the formation of confidence. Still, when all model parameters are allowed to vary across conditions, the fitRTConfModels function remains applicable. In such instances, the user can specify a data column as the subject identifier, which differentiates between combinations of subjects and manipulation levels such that the fitting function fits separate sets of parameters per subject and condition. Fitting independent parameter sets for each condition can be useful for critically testing the assumption that an experimental manipulation selectively influences specific parameters 
+(Lerche & Voss, 2019;
+A. Voss et al., 2004)
+.
+
+
+Data format
+The fitting function expects the data to come in a tidy data frame, with each row representing one trial. The data frame should include the following columns (expected column names in parentheses): true stimulus identity (stimulus), binary decision response (response), categorical confidence judgment (rating), and response time (rt). As an alternative to the stimulus or response column, a column for accuracy (correct) may be provided. In addition, a column for the experimental manipulation of discriminability of the stimulus (condition) may be included but is not necessary. Instead of renaming columns in the data frame, alternative column names may be added as arguments of the form rating = "confidence", if, for example, the column indicating the confidence rating is called confidence. A column named sbj or participant may be included to fit the models independently to individual participants.
+
+
+Fitted parameters
+The stimulus and response categories are denoted by S, R ∈ {−1, 1}, and task difficulty is assumed to be manipulated in L steps.
+A discrimination parameter, d l , l = 1, . . . , L,
+is fitted independently for each difficulty level. Thus, the condition column will be transformed into a factor, even when numeric values are supplied. In the confidence models, the drift rates of the different processes depend on the stimulus identity and the discriminability parameter of the difficulty level of the trial: For dynaViTE, the mean drift rate of the decision process is set to ν = Sd l , and the mean drift rate of the visibility process is set to
+µ V = d l .
+For the race models, the drift rates are set to (µ 1 , µ 2 ) = (Sd l , −Sd l ). This means that the first accumulator accumulates evidence for the first category, while the second one accumulates evidence for the category S = −1.
+All other parameters are assumed to be independent of the task difficulty manipulation and fitted for each participant. However, the diffusion constant of the decision process in dynaViTE s and the diffusion constants of the two processes in the race models, σ 1 and σ 2 , are fixed to 1 because other parameters may be scaled accordingly to produce the same likelihoods. This is a common approach in response time modeling 
+(Lerche & Voss, 2016;
+Ratcliff & Rouder, 1998)
+.
+Whether choice and confidence were reported simultaneously or sequentially is determined by the simult_conf argument, which should be set to TRUE if the reports were given simultaneously and FALSE otherwise.
+The number of confidence thresholds θ R,k , k = 1, . . . , K − 1 separating the internal confidence variable into discrete steps depends on the number of possible levels for the discrete confidence rating K.
+The confidence thresholds can vary between choice responses by default, leading to 2(K − 1) fitted confidence threshold parameters. We recommend specifying the nRatings argument to provide the number of confidence levels because not every participant might have used the full range of the scale. Alternatively, the ratings column can be provided as a factor with factor levels representing the possible rating outcomes.
+If not all confidence levels were used, the number of fitted parameters is reduced internally because the maximum likelihood is attained by some thresholds being identical in this case. If the lowest (or highest) confidence level was not used, then the likelihood is maximized by setting the lowest confidence threshold to minus infinity (or the highest threshold to infinity). If an intermediate confidence category was not used, then the likelihood is maximized by two confidence thresholds being identical. Therefore, the concerned confidence thresholds do not need to be optimized numerically by the optimization procedure but may be set afterward to speed up the optimization. The nRatings argument is required to correctly format the output parameters and report the right number of fitted parameters.
+To sum up, the total number of parameters depends on the number of steps in the manipulation L and the number of levels for the discrete confidence rating, K. This means that for dynaViTE, there are 11 + L + 2(K − 1) parameters. In the race models with a time-dependent confidence variable, there are 6 + L + 2(K − 1) parameters. Two of three weight parameters have to be fitted, while the third weight is determined by the sum of the weights being 1. In addition, the correlation parameter ρ is not estimated but fixed at -0.5 for PCRMt and 0 for IRMt. For special cases like 2DSD or race models with a time-independent confidence variable, the number of parameters is reduced by the number of fixed parameters.
+Which models should be fitted is specified by the models argument. The function fitRTConfModels allows for all models presented in the section Sequential sampling confidence models: dynaViTE, dynWEV, 2DSD, DDConf, IRMt, PCRMt, IRM, and PCRM. In addition, the user may fix individual parameters by providing the argument fixed in the form of a list. For instance, researcher may want to assume an unbiased observer by setting z = 0.5 for the drift diffusion-based models and A = B for the race models. Moreover, specifying sym_thetas=TRUE in the list leads to symmetric confidence thresholds for the two choice possibilities, i.e., θ 1,k = θ −1,k ∀k = 1, . . . , K − 1.
+
+
+Fitting procedure
+The function fitRTConfModels fits the models specified in the models argument to each individual participant in the data set using maximum likelihood estimation, i.e., by minimizing the negative log-likelihood of model parameters. The likelihood is computed under the assumption of independent observations, which means that for trials i = 1, ..., N ; the vectors for presented stimulus identity S and task difficulty D; and the vectors for observed outcomes response time RT , confidence rating C, and response R, the negative log-likelihood of a set of parameters ϑ is computed as
+L(RT, C, R|ϑ, S, D) = − N i=1 log P(RT i , C i , R i |ϑ, S i , D i ).
+The optimization procedure starts with a grid search, in which the likelihood is computed for a broad On the one hand, the maximum-likelihood fitting procedure implemented in fitRTConfModels is an efficient way for estimating parameters using all the available information in the data without aggregating to quantiles 
+A. Voss et al., 2013)
+. On the other hand, the maximum likelihood method is known to be influenced by contaminant response times, which are not generated by a DDM 
+Ratcliff & Tuerlinckx, 2002)
+. Therefore, it is recommended to apply a filter on trials at the level of the individual participant, e.g., by removing trials with response times that are either below a certain threshold (e.g., 300 ms) or which deviate significantly from the mean or median of the response time distribution (e.g., response times, which exceed the mean plus two standard deviations;
+Hellmann et al., 2023b; Pleskac & Busemeyer, 2010). There are different strategies for removing contaminants in the data. Some studies use hard cut-offs  den Berg et al., 2016), others use exclusion criteria based on the interquartile range 
+(Lerche & Voss, 2019;
+ A. 
+Voss et al., 2013)
+ or alternatively, a mixture of hard cut-off for the fast responses and a distribution-dependent cut-off for slow responses 
+(Hellmann et al., 2023a
+(Hellmann et al., , 2023b
+Moran et al., 2015;
+Pleskac & Busemeyer, 2010)
+. However, it is hard to suggest general guidelines for exclusion criteria that suit all experiments. For new experiments, we recommend using pilot data to infer suitable exclusion criteria because different experimental paradigms produce different response time distributions.
+In light of ongoing replication issues in psychology 
+(Röseler et al., 2024)
+, we recommend to pre-register exclusion criteria and check whether results are robust concerning the specific choice of exclusion criteria 
+(Wagenmakers et al., 2012)
+.
+
+
+Predicting confidence and response time distributions
+The empirical data is often compared visually to model predictions to check for qualitative mismatches. For this purpose, dynConfiR includes the functions predictConfModels (for the discrete decision and confidence distribution) and predictRTModels (for the joint distribution of response time, decision and confidence). These take data frames with parameters as input. Notably, the output of the fitting procedure may be inserted directly into the prediction functions. predictConfModels returns a data frame with columns for stimulus identity, response, and confidence judgments and a column indicating the probability of an outcome. predictRTModels has an additional column for the response time, spanned equidistantly for a user-provided interval. If the input has more than one row, columns for subject ID and model are required, and the output will be accordingly structured by binding the data frame outputs for each participant and model combination one below the other.
+
+
+Other functions
+Probability density functions
+ddynaViTE(response, rt, th1, th2, a, v, t0, ...) dPCRM(response, rt, th1, th2, mu1, mu2, a, b,...)
+The implemented confidence and response time distributions form the basis for model fitting and predictions. The distributions are implemented as probability densities in C++ and accessed in R using
+Rcpp. The usage of the different density functions is very similar. The first arguments represent the outcome variables: response time (RT ), the binary choice (R), and the interval for the confidence variable (θ 1 and θ 2 ). The density functions return the probability
+P model (RT, R, c model ∈ [θ 1 , θ 2 ]|ϑ).
+The model parameters are passed as additional, individual parameters. Note that θ 1 and θ 2 are also parameters usually estimated during model fitting. The densities for drift diffusion-based models are approximated using the truncated series for the density of the drift diffusion model (see 
+Navarro & Fuss, 2009;
+A. Voss et al., 2004)
+. The densities for the race models are implemented according to the formulas in Moreno-Bote (2010), which are derived using the methods of images for the stochastic differential equation. The integration over the distribution of starting points and non-decision time components is conducted numerically using a rectangular approximation with equidistant steps (see Precision analysis section). The density functions may be used for theoretical calculations and to implement other model fitting algorithms instead of the maximum likelihood estimation procedure included in dynConfiR.
+
+
+Log-likelihood functions
+LogLikWEV(data, paramDf, model = "dynaViTE", simult_conf = FALSE,...) LogLikRM(data, paramDf, model = "IRM", time_scaled = FALSE,...)
+There are also functions for calculating the log-likelihood of a data set given some parameters for each model. The two main arguments are data, a data frame of the empirical data with the stimulus, response, response time and confidence, and paramDf, a data frame with one row and columns for the required parameters of the chosen model. The log-likelihood function is included in dynConfiR mainly to allow for the investigation of the impact of experimental manipulations on specific parameters or other relationships between stimulus discriminability and mean drift rate. For example, previous studies assumed a power function for the relationship between physical stimulus intensity and internal signal strength 
+(Ratcliff et al., 2018;
+Teodorescu et al., 2016)
+  A high-level function for simulating data with fitted parameters is also available. The function simulateRTConf takes a data frame with one row and columns for the required parameters. The high-level function simulates n trials per stimulus identity (which stimulus identity is used for the simulation may be changed with the stimulus argument) and difficulty condition. The number of difficulty levels is determined by the number of drift rates in the paramDf argument. To simplify the application to several parameter sets and models, the model argument can be given as a column in the paramDf argument. In addition, simulateRTConf offers the possibility to aggregate the output over response times, i.e., reporting only the discrete outcomes of choice and confidence. Finally, when gamma=TRUE, the function computes Kruskal's Gamma 
+(Nelson, 1984)
+ between confidence and several other relevant variables, e.g., between confidence and accuracy for different levels of stimulus discriminability. If gamma=TRUE is used, the output is a list with two components: simus for the data frame with the actual simulated data and gamma with several data frames for different Gamma correlations.
+
+
+Example of Application in Model Comparison
+Now, we present a complete example of an analysis including a model comparison. The data set for this demonstration was generously published by Law & Lee 
+(Ng et al., 2021)
+ and was downloaded from the confidence database 
+(Rahnev et al., 2020)
+. The data set is available at https://osf.io/vgr27.
+
+
+Experimental method
+The study was initially conducted to investigate serial dependence in confidence judgments using random-dot kinematograms. 16 participants reported their perceived motion direction, which was either leftwards or rightwards, simultaneously with their confidence using the keyboard. Confidence was reported on a 4-point scale.
+Task difficulty was manipulated by varying motion coherence. In a 240-trial calibration phase, coherence values for target accuracy levels of .52, .65, and .78 were determined using a staircase technique.
+The resulting coherence values were then used in the experimental phase for coherence levels 1, 3, and 5, respectively, while the coherence values for the second and fourth levels of the manipulation were determined by averaging the values for the first and third level and the third and fifth level, respectively.
+The experimental trials consisted of 20 blocks with 60 trials each. Because of the primary aim of the study, trials with medium difficulty, i.e., a coherence level of 3, were always preceded by either one or two trials with either high (level 1) or low (level 5) difficulty. This trial-by-trial dependency will be ignored in the following analysis.
+Participants did not receive trial-by-trial feedback but instead received feedback at the end of each block about both their overall accuracy and their accuracy in the previous block.
+
+
+Data
+After downloading the data from the confidence database, we selected the relevant columns, converted their names to lowercase, and removed the calibration trials from the data set. We then renamed the columns for the subject ID to participant and response times to rt. As confidence was measured on a 4-point scale, we did not have to bin the rating response. The resulting data set has the following form. 
+
+
+Data preprocessing
+A typical step before fitting sequential sampling models is to remove possible outliers from the empirical response time distribution. Filtering individual data by response times is recommended because the maximum likelihood method, which is used by dynConfiR, is known to be specifically influenced by outliers, and there is no implementation of lapses in the current version of the package.
+We removed responses that were faster than the median minus one standard deviation and slower than the mean plus 4 standard deviations for each participant, resulting in the removal of 1.7% of all trials.
+In the second step, we removed one participant because they did not perform above chance (0.53 compared against 0.5), which delivered no evidence of being above chance in a Bayesian proportion test against chance level accuracy with a prior scale conducted via the proportionsBF function from the BayesFactor package 
+(Morey et al., 2024
+) with a prior scale parameter of 0.5.
+
+
+Analyses
+
+
+Model fitting
+We wanted to conduct a model comparison on the data, comparing a broad range of possible models. We considered models previously compared on similar datasets from visual discrimination experiments: dynaViTE, dynWEV, 2DSD, PCRMt, and IRMt 
+(Hellmann et al., 2023a
+(Hellmann et al., , 2023b
+. Note that although we did not explicitly fit all models, simpler models are special cases of the models fitted in this section. For instance, race models with time-independent confidence variables, IRM and PCRM, are special cases of IRMt and PCRMt, respectively. The first step was to fit the model parameters for each participant, which was achieved with the following command:
+parfits <-fitRTConfModels(Data, models=c("dynaViTE", "dynWEV", "2DSD", "PCRMt", "IRMt"), nRatings=4, restr_tau = "simult_conf", opts=list(nAttempts=4, nRestarts=4), parallel="both", n.cores = c(5, 4), condition = "coh_level", rating="confidence")
+The function fitRTConfModels splits the data for the subject column and fits each of the models given in the respective models argument. Providing nRatings=4 ensured that three confidence thresholds are fitted for participants that did not used the full range of the confidence scale. The argument restr_tau="simult_conf" indicates that choice and confidence responses were reported simultaneously.
+The argument opts is optional and allows for adaptations of the fitting procedure. We used only the four best parameter sets (default: 5) from the initial grid search as starting values for the optimization routine and started the optimization algorithm with a broad trust region four times (default: 5).
+With the combination of parallel=TRUE and n.cores=c(5,4), we distributed the fitting procedure across different CPUs, fitting five participants in parallel with four cores per participant.
+Therefore, for each participant, the four optimization routines with the different initial parameter settings were run in parallel.
+Finally, it was necessary to include column names that deviate from the default ones, which was achieved with the last two arguments.
+
+
+Quantitative model comparison
+With few lines of code, the first central part of the analysis was achieved. With the outputs, a quantitative model comparison may be conducted using the information criteria available in parfits. In the present example, we see that the race models achieved the lowest average BIC 
+(Figure 2
+, upper panel).
+However, there is no visible difference between the independent and the anti-correlated race model. Among the DDM-based models, dynaViTE performed best. The dynConfiR package also includes AIC and AICc in the output, which are not visualized here because the results are indistinguishable. When computing BIC weights for each participant, the dynaViTE model provided the best account for 9 out of 16 participants, while the race models provided the best account for only 3 participants (Figure2, lower panel). Appendix 
+Figure A1
+ demonstrates that the average differences are dominated by these three participants who showed an extreme difference in BICs between race models and DDM-based models. The smaller differences for the other participants, however, still lead to posterior model weights of nearly 1. 
+-3.2 -3.5 -3.8 -4.1 -4.4 P C R M t I R M t d y n a V i T E d y n W E V 2 D S D Model
+
+
+Prediction and visual model fit
+The output of the fitting function may be passed directly to the prediction functions, which also use parallelization over participants. The prediction functions automatically split the first data frame argument by the participant and model columns and select the respective prediction function for the model of each row. Furthermore, visualizations may be generated with the predictions to compare model fits with empirical distributions. The output of the function predictConfModels has the following form (note that only the first digits are printed for readability): In the above data frame, p represents the probability of a confidence rating and response given the stimulus identity and discriminability condition in the respective row. The columns info and err reproduce the output of the call to integrate used to compute the probabilities. We can compare the predicted distribution to the observed data distribution (see 
+Figure 3)
+, which can be used to assess the overall precision of the model fit. It seems that all models fitted the overall data pattern well. The strongest deviations are the overestimation of low confidence for correct leftward responses in easy conditions, particularly in the race models (IRMt and PCRMt). In addition, for difficult stimuli, the probability of very low confidence was underestimated, while it was overestimated for high confidence.
+> print(head(prediction_ConfDist),
+Interestingly, for all other conditions, there was a tendency to underestimate confidence in the leftward motion choices (second and third column) but an overestimation of confidence for rightward motion choices (first and fourth column). Participants seem to have shown a motion-dependent confidence bias leading to higher confidence ratings for correct leftwards motion responses compared to rightwards motion responses, which all the models, but particularly the race models, were not able to capture very accurately (Appendix 
+Figure A2
+).
+Using the full response distribution, it is possible to aggregate on different levels to examine specific data patterns. One possibility is to visualize the increase in accuracy with easier decisions ( 
+Figure   4
+, top row). Researchers might also be interested in the relationship between confidence and stimulus discriminability for correct and incorrect decisions 
+(Figure 4, bottom row)
+. In the present example, we see increasing mean confidence with higher stimulus discriminability for both correct and incorrect decisions, which is referred to as a double-increase pattern 
+(Rausch & Zehetleitner, 2019)
+. Many computational models of confidence are not able to produce such a pattern but can only account for a negative relationship between confidence and discriminability in incorrect decisions, resulting in the folded-X pattern 
+(Hellmann et al., 2023b;
+Rausch et al., 2018
+Rausch et al., , 2020
+. One example of a model that only accounts for a folded-X pattern is the 2DSD model, which also showed this pattern in the present example. Although the race models fitted here are able to account for a double-increase pattern, they showed a flat curve for incorrect responses, indicating constant confidence across difficulty levels for incorrect choices. The dynWEV model underestimated the steepness of the increase in confidence for incorrect decisions. The dynaViTE model showed the most pronounced double-increase pattern but overall overestimated confidence in incorrect decisions.
+To compute the predicted response time distributions for the fitted parameters, dynConfiR offers the predictRTModels function, which, similarly to the predictConfModels, computes the joint distribution of choice, confidence rating, and response time for each level of stimulus identity and discriminability. The dens column represents the defective distribution of response times, i.e., the integral of the density for each confidence rating and response is not 1 but equals the probability of the respective choice and confidence report. With the argument scaled=TRUE, the correctly scaled densities (densscaled) are computed by dividing the defective density values by the probability of the respective discrete response. For this purpose, an additional argument (DistConf) may be provided by passing the output of predictConfModels to prevent the repeated computations of the discrete distributions. Note that the DistConf argument must have the same participants, models, and response and stimulus coding used for the models as the first argument. The resulting data frame has the following form:
+> print(head(prediction_RTConfDist), row.names=FALSE) condition stimulus response correct rating rt dens densscaled model participant 1 1
+In the decision-making literature, response time distributions are commonly visualized using quantiles (Figures 6 and 5 
+Ratcliff & Smith, 2004)
+. For convenience, the package includes the function PDFtoQuantiles, which computes quantiles from a vector of probability density values. It also allows for data frame inputs with several columns that may be used as groups (like computing quantiles for different experimental conditions or participants). The relationship between task difficulty and response times was rather weak in the present example, illustrated by the flat quantile curves in 
+Figure 5
+. Response times slightly decreased for easier stimuli, which was captured by all models. Concerning the relationship of confidence with response times, there was a weak negative relationship, which was more pronounced in incorrect choices ( 
+Figure 6
+). This pattern was again well captured by all models. The most pronounced deviations are visible in incorrect choices, for which the race models slightly overestimated the decrease in response times in the upper quantiles, and the 2DSD model did not reproduce the speed up for the lowest quantile in high confidence.
+
+
+Exploratory analysis: Fixing model parameters
+The drift diffusion-based models, i.e., DDConf, 2DSD, dynWEV, and dynaViTE, include all between-trial variability parameters. It is easy to fit these models additionally without allowing for between-trial variability in the starting point and non-decisional time by setting the respective parameters to 0 in the fitting routine. The following code demonstrates the fixed argument. We additionally fixed the diffusion constant in the visibility process for dynWEV and dynaViTE to 1, equal to the diffusion constant in the decision process. Note fixing any parameter only affects the models, which include those parameters.
+After the model fitting procedure, we renamed the models for the more restricted versions and combined all parameter fits in one data frame.
+parfits_fixed <-fitRTConfModels(Data, models=c("dynaViTE", "dynWEV", "2DSD"), nRatings=4, restr_tau = "simult_conf", fixed = list(sz=0, st0=0, svis=1), opts=list(nAttempts=4, nRestarts=4), parallel="both", n.cores = c(5, 4), condition = "coh_level", rating="confidence")
+parfits_fixed 
+[, setdiff(names(parfits)
+, names(parfits_fixed))] <-NA allfits <-rbind(parfits, mutate(parfits_fixed, model = paste0(model, " (fixed)")))
+The quantitative comparisons show that the restricted dynaViTE model performed best on an average level as well as for five individual participants, while the full dynaViTE model still fitted best for seven participants. Although the race models still had the second (PCRMt) and third (IRMt) best average BIC, only one participant was best fit by the IRMt and none by the PCRMt. This illustrates again that quantitative model comparisons can lead to different results when performed on a group level compared to the individual participant level 
+(Figure 7)
+. Concerning the visual model fit, the restricted models did not deviate strongly from the more complex models besides the underestimation of the lowest response time quantiles for medium confidence in incorrect responses, which was present in all models with reduced between-trial variability parameters (Appendix 
+Figures A3-A5)
+.    Response time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and confidence ratings (x-axis). Probabilities for quantiles: .1, .5, .9.
+-3  
+-4 -5 -6 -7 -8 d y n a V i T E ( f i x e d ) P C R M t I R M t d y n W E V ( f i x e d ) d y n a V i T E d y n W E V 2 D S D 2 D S D ( f i x e d )
+
+
+Recovery analysis
+In order to compare fitted model parameters between groups or within subjects across different experimental conditions, it is necessary that the estimation of model parameters is robust. To assess the robustness of the model fitting procedure, we conducted a parameter recovery analysis using artificial data sets for the three most general models: dynaViTE, IRMt, and PCRMt, which include the other models implemented in dynConfiR as special cases.
+
+
+Method
+For measuring parameter recovery, we generated artificial data sets from a known set of model parameters, fitted the model to the synthetic data, and compared the recovered parameters to the generating parameters.
+We assumed that there were five levels of confidence (i.e., K = 5), and there were five levels of stimulus discriminability (i.e., L = 5). This means that for dynaViTE, there were 11 + 5 + 2 • 5 = 26 fitted parameters, and for IRMt and PCRMt, there were 6 + 5 + 10 = 21 parameters.
+The generating parameter sets (except for the confidence thresholds) were sampled from parameters derived from previously conducted model fits to empirical data. We gathered parameter sets from 
+Hellmann and Rausch (2023)
+ and 
+Hellmann et al. (2023b)
+, and the example in this paper. All three models were fitted to the data from 
+Hellmann et al. (2023b)
+ and Law and Lee 
+(Ng et al., 2021)
+, and dynaViTE and PCRMt were additionally fitted to the data from 
+Shekhar and Rahnev (2021)
+. In total, this resulted in 93 parameter sets for dynaViTE and PCRMt and 73 parameter sets for IRMt. For the 20 parameter sets fitted to the data of 
+Shekhar and Rahnev (2021)
+, which had only three experimental conditions, the means of the estimated drift rates from two consecutive conditions were used as additional experimental conditions (i.e. the fitted drift rates (ν 1 , ν 2 , ν 3 ) were mapped to
+(ν 1 , (ν 1 + ν 2 )/2, ν 2 , (ν 2 + ν 3 )/2ν 3 )).
+Concerning the confidence thresholds, we opted not to utilize the thresholds from the previous model fits. The reason for not using the fitted confidence thresholds was that some participants did not use all confidence categories, resulting in some thresholds being either fitted to plus or minus infinity or coinciding with one another. In contrast, we used the fact that when simulating artificial data, we can simulate the continuous confidence variable in the model and compute the confidence thresholds as quantiles of the confidence variable, given the proportions of confidence ratings. We fitted a Dirichlet distribution to the observed proportions of confidence ratings from the empirical data of all participants.
+We then drew random probability vectors from the Dirichlet distribution as proportions of confidence reports, resampling if any proportion was less than 2%. The confidence thresholds were then computed as quantiles of the confidence variable in the simulated data set. This procedure ensured that each confidence level contained a non-zero proportion of responses.
+To assess the number of trials necessary to recover the parameters, we sampled either 50, 100, 200, or 500 trials per condition and stimulus identity. For two stimulus identities and five levels of discriminability, this leads to 500, 1,000, 2,000, and 5,000 trials per simulated data set for five discriminability conditions.
+For each number of artificial trials, we sampled 100 parameter sets and generated one data set per parameter set.
+To measure parameter recovery performance, we computed the concordance correlation coefficient (CCC; 
+Lin, 1989)
+, which, in contrast to Pearson correlation, is reduced by non-zero intercepts and non-unit slopes. Therefore, in contrast to Pearson's correlation coefficient, it is sensitive to deviations from the identity line. 
+Figure 8
+ illustrates the parameter recovery performance as measured by the concordance correlation coefficients across model parameters (also see Appendix 
+Figures 4-15)
+. The results indicate that the decision-related parameters are generally more robust to recovery. The only choice-specific parameter that is hard to recover is the between trial variability in starting point (sz) for the dynaViTE model. Concerning the confidence-related parameters in dynaViTE, only the diffusion constant in the visibility accumulation (s V is ) has a relatively low CCC, which requires at least 500 trials per condition and stimulus identity (5,000 trials in total) to achieve a CCC of .48. The drift rate variability in the visibility process (σ V is ) also shows a relatively low recovery for lower trials. Because σ V is and s V is are closely linked in the distribution of the confidence variable, the low recovery rate could indicate that the two parameters are hard to differentiate. A possible solution to improve the robustness of parameter fitting might be to fix s V is to 1, similar to the diffusion constant in the decision process. For race models, the confidence thresholds show a slightly lower recovery rate, although the general recovery is relatively good, even with fewer trials.
+
+
+Results
+The recovery of the confidence thresholds may also be increased by assuming a parametric relationship between them instead of fitting each threshold independently and only restricting them to be monotonic.
+
+
+Precision analysis
+Two numerical approximations are involved in the computation of the probability densities. First, in the drift diffusion-based models (dynaViTE, dynWEV, 2DSD, and DDConf), the infinite series in the formula for the first-passage time density is approximated using a truncated summation for which an upper bound for the error is available 
+(Navarro & Fuss, 2009)
+. However, the integration over the variation in   Concordance correlation coefficients 
+(Lin, 1989)
+ between the true and recovered parameters from the parameter recovery across the number of trials per condition and stimulus identity (columns) and generative model (rows).
+q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q q 1 3 q 1 4 w int w rt w x a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n n 4 n 5 s t0 t 0 q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w int w rt w x q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q q 1 3 q 1 4 w int w rt w x a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n 3 n 4 n 5 s t0 t 0 a b n 1 n 2 n n 4 n 5 s t0 t 0 l s Vis s Vis t q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w l s Vis s Vis t q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w l s Vis s Vis t q -1 1 q -1 2 q -1 3 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w l s Vis s Vis t q -1 1 q -1 2 q -1 q -1 4 q 1 1 q 1 2 q 1 3 q 1 4 w a n 1 n 2 n 3 n 4 n 5 s n s
+starting point and the variation in the non-decision time component are not analytically solvable and thus is computed numerically. This second approximation also leads to uncertainty in the precision of the density computations. The numerical computation of the integral uses a rectangular approximation of the density with an equidistant grid of support points. The step size for this approximation is controlled by the precision argument. The value of the precision argument is transformed into step sizes using similar computations as in the rtdists package 
+(Singmann et al., 2020)
+. Because there are no mathematical guarantees in the form of upper error bounds, we conducted a simulation study to assess the expected error for different values of the precision arguments.
+
+
+Method
+We estimated the expected error by computing the densities to simulated observations from different parameter sets several times with different values for the precision argument. Afterward, we computed the mean difference between the calculated density values as a measure of the error in the computation. Parameter sets were simulated in the following way.
+Confidence judgments were assumed to be measured live on a three-point scale (i.e., K = 3), and there were three levels of stimulus discriminability (i.e., L = 3). This means that for dynaViTE, there were 11 + 3 + 2 • 2 = 18 parameters, and for IRMt and PCRMt, there were 6 + 3 + 4 = 13 parameters.
+Parameters were sampled independently and uniformly, with some exceptions. First, the discriminability parameters were uniformly distributed for the first level, and the differences between discriminability levels were uniformly distributed. This ensured increasing levels of discriminability.
+Second, starting point variability in dynaViTE was uniformly distributed across the admissible range dependent on the mean starting point parameter z. Similarly, the three weight parameters w X , w RT , and w Int are sampled sequentially. In addition, for the upper decision boundaries of the two processes in race models, their sum and relative height were independently uniformly distributed to more closely resemble how boundary separation and relative starting point in dynaViTE were sampled. Finally, the confidence thresholds were computed based on a simulated proportion of ratings, which ensured a minimum number of observations in each category.
+We derived parameter ranges from previously conducted model fits to empirical data from 
+Hellmann and Rausch (2023)
+ and 
+Hellmann et al. (2023b)
+, and the example in this paper.
+We sampled 50 random parameter sets per model for dynaViTE, IRMt, and PCRMt. A data set with 50 trials for each combination of discriminability condition and stimulus category was generated for each parameter set (600 trials per data set in total). Finally, we computed the trial-wise likelihood for the simulated data with different precision arguments. For dynaViTE, we used the following values: 4, 4.5, 5, 5.5, 6 (default), 6.5, 7, 7.5, and 8.5. For the race models, we used 4, 4.5, 5, 5.5, 6 (default), 6.5, 7, 7.5, 8, and 9. The probabilities attained with the highest precision, i.e., 8.5 for dynaViTE and 9 for the race models, were used as references for the other precision values. To estimate the absolute error, we computed the mean absolute distance between the probabilities for each precision to the reference. In addition, we computed the mean absolute difference between two consecutive precision values to estimate the expected improvement of the density calculation. For full details, we refer the reader to the analysis code.
+
+
+Results
+The mean absolute differences for the computed probability densities between different values of precision arguments are depicted for dynaViTE in 
+Figure 9
+ and for race models in 
+Figure 10
+.
+For dynaViTE, the estimated error and the difference between subsequent values of the precision argument both decrease exponentially as functions of the precision argument. Assuming that the exponential decrease of subsequent differences continues, we can infer that the magnitude of the error in the computed densities is proportional to the estimated error in our simulation. This means that with the default value of 6 for the precision argument in dynaViTE, the expected absolute error is about 10 −6 of magnitude, while for a value of 7.5, it is 10 −7.5 . Similarly, the expected error decreases exponentially with the precision argument for race models, leading to an estimated mean error of 10 −6 for the default value of 6. In general, the transformation between the precision argument and the step size used for the numerical integration is chosen such that the provided precision represents the number of digits correctly calculated on average. Notably, the computation time for the probability densities also increases exponentially with the precision argument ( 
+Figures 9 and 10, lower rows)
+, which clarifies the trade-off between precision and computation time. Because only one numerical integration is necessary for race models -IRMt and PCRMt do not include between-trial variability in starting points -the computation time intercept and slope are much lower than for dynaViTE.
+Fitting the parameters to experimental data using the default arguments may require up to 300,000 evaluations of the negative log-likelihood of the data (155,520 parameter sets in the initial grid search for dynaViTE; 26,244 parameter sets for race models) plus 125,000 evaluations from the optimization (5 starting parameter sets each with five calls of the optimization routine each with a maximum of 5,000 function evaluations per optimization call). Therefore, keeping the computation time low is essential for the applicability of these models. For the default values of precision=6, evaluating the likelihood for 600 trials takes about ten seconds, which may be necessary for providing reasonable precision. Using the default values, the precision of parameter estimates and likelihoods is often limited by other factors like the timing of stimulus presentation and the measurement precision of reaction times. For experimental response time data, the precision of reaction time measurements is often limited to milliseconds, and the precision depends on the hardware and the software used to conduct the experiment 
+(Bridges et al., 2020;
+Plant & Turner, 2009)
+. For the increasing number of online studies, the precision is often lower 
+(Anwyl-Irvine et al., 2021;
+Semmelmann & Weigelt, 2017)
+.
+10 -4
+10 -5
+10 -6
+10 -7
+10 -8 Mean absolute difference between precision and (precision+0.5)
+10 -4
+10 -5
+10 -6
+10 -7
+10 -8 Mean absolute difference between precision and (precision=8.5)
+10  10 -6
+10 -4
+
+
+-2
+Mean absolute difference between precision and (precision+0.5)
+10 -8
+10 -6
+10 -4
+
+
+-2
+Mean absolute difference between precision and (precision=9) 4 4.5 5 5.5 6 6.5 7 7.5 8 9 4 4.5 5 5.5 6 6.5 7 7.5 8 9
+10  Third Row: Distribution of computation time of the densities for a vector of 600 observations (log scaled).
+Each observation is based on 600 simulated trials for a random parameter set (50 trials for each combination of discriminability condition and stimulus category).
+
+
+Summary
+The dynConfiR package implements state-of-the-art computational models of choice, response time, and decision confidence based on the drift diffusion model and race models of choice. The R package may prove to be an attractive tool for psychology and cognitive neuroscience researchers because it offers a user-friendly implementation of the probability distributions of observed data and functions for parameter fitting, prediction, and simulation. The package is freely available via the CRAN repository, which provides sustainable access and facilitates its installation for the user. 
+
+
+Declarations
+
+
+Mean Accuracy
+Observed Predicted 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5   
+
+
+Figure A5
+Response time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and confidence ratings (x-axis). Probabilities for quantiles: .1, .5, .9.
+0.09
+q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n 2
+1 2 3 4 1 2 3 4 5 0.00 0.25 0.50 0.75 1.00 0.4 0.5 0.6 0.7 0.8 1 2 3 1 2 3 4 5 -2 -1 0 1 2 1 2 0.0 0.5 1.0 1.5 0.0 0.5 1.0 1.5 -1 0 1 2 1 2 0.00 0.25 0.50 0.75 1.00 1.25 0 1 2 3 4 5 0.00 0.05 0.10 0.15 0.20 0.25 0 2 4 6 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 1 2 3 4 5 0.0 0.5 1.0 0.0 0.5 1.0 1.5 2.0 2.5 0.0 0.5 1.0 1.5  0.24  
+q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n
+q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n 2
+1 2 3 4 1 2 3 4 5 0.00 0.25 0.50 0.75 1.00 0.4 0.5 0.6 0.7 0.8 1 2 3 4 1 2 3 4 5 -1 0 1 2 0 1 2 3 0.0 0.5 1.0 1.5 0.0 0.5 1.0 1.5 0 1 2 0 1 2 3 0.00 0.25 0.50 0.75 1.00 1.25 0 1 2 0.00 0.05 0.10 0.15 0.20 0.25 0 1 2 3 4 5 0.5 1.0 1.5 2.0 1 2 3 4 2 4 6 0 1 2 1 2 3 4 5 0.0 0.5 1.0 1.5 0.0 0.3 0.6 0.9 0.0 0.5 1.0 1.5  
+q 1 3 q 1 4 w z q -1 3 q -1 4 q 1 1 q 1 2 t 0 t q -1 1 q -1 2 s t0 s Vis s z s Vis n 3 n 4 n 5 s n a l n 1 n 2
+0 1 2 3 4 5 0 2 4 6 0.00 0.25 0.50 0.75 1.00 0.4 0.5 0.6 0.7 0.8 0 1 2 3 4 5 0 2 4 6 -0.5 0.0 0.5 1.0 1.5 2.0 0 1 2 3 4 0.0 0.5 1.0 1.5 0.0 0.5 1.0 1.5 0 1 2 0 1 2 3 4 0.0 0.3 0.6 0.9 0 1 2 0.00 0.05 0.10 0.15 0.20 0.25 0 1 2 3 4 5 0.5 1.0 1.5 2.0 1 2 3 4 1 2 3 4 5 6 0 1 2 1 2 3 4 5 0.0 0.5 1.0 0.0 0.5 1.0 1.5 2.0 2.5 0.0 0.5 1.0 1.5      
+2  3  4  5  1  2  3  1  2  3  4  1  2  3  4  5
+ 0.0 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 0.00 0.25 0.50 0.75 1.00 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.0 0.2 0.4 0.6 0.8 2 3 4 5 6 0.5 1.0 1.5 2.0 2.5 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 2.5 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 0.00 0.25 0.50 0.75 1.00 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.0 0.2 0.4 0.6 0.8 2 3 4 5 6 1 2 3 1 2 3 4 1 2 3 4 0.0 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 0.0 0.5 1.0 1.5 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.0 0.5 1.0 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.0 0.2 0.4 0.6 0.8 0.00 0.25 0.50 0.75 1.00 1 2 3 4 5 6 1 2 3 4 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 1 2 3 4 1 2 3 4 5 2 3 4 5 0.4 0.8 1.2 1.6 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 0.0 0.3 0.6 0.9 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 1.00 2 3 4 5 6 7 1 2 3 1 2 3 4 1 2 3 4 5 6 0.0 0.5 1.0 1.5 2.0 1 2 3 1 2 3 4 5 2 4 6 0.5 1.0 1.5 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 0.0 0.5 1.0 1.5 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 1 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 1.00 2 3 4 5 6 1 2 3 1 2 3 4 5 1 2 3 4 5 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 5 2 3 4 5 6 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1.5 2.0 0.0 0.5 1.0 1.5 0.0 0.5 q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s t0 a b n 1 n 2 2 3 4 5 6 0.00 0.25 0.50 0.75 1.00 0.00 0.25 0.50 0.75 0.00 0.25 0.50 0.75 1.00 2 3 4 5 6 1 2 3 1 2 3 4 1 2 3 4 5 0.0 0.5 1.0 1.5 2.0 1 2 3 4 1 2 3 4 1 2 3 4 5 6 0.0 0.5 1.0 1.5 1 2 3 1 2 3 4 5 0.0 0.5 1.0 1.5 0.5 1.0 1.5 2.0 0.5 1.0 1. 
+q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s
+q 1 4 w int w rt w x q -1 4 q 1 1 q 1 2 q 1 3 t 0 q -1 1 q -1 2 q -1 3 n 3 n 4 n 5 s
+distribution for non-decision time component θ R,k set of confidence criteria, R = −1, 1, k = 1, ..., K − 1 for discretization into K steps
+
+
+range of possible parameter combinations. The best-performing parameter sets identified in the initial grid search are used as starting values for the optimization algorithm. The optimization algorithm is restarted several times with the previous run's output as the next run's starting point to allow the optimization to avoid local minima. The number of initial values and restarts for the optimization procedure can be set by the user using the opts argument. The functions offer the possibility of parallelization over both participant-model combinations and within one fitting procedure over the starting values for the optimization. The output is a data frame with one row for each combination of participant and fitted model. The columns of the output data frame are the fitted model parameters together with additional information, like the number of trials (N), fixed parameters (fixed) and the following performance measures: the final negative log-likelihood and model selection criteria AIC, AICc, and BIC.
+
+
+instead of fitting discriminability parameters for each level of the experimental manipulation. The likelihood functions are wrappers of the density functions that can be used easily in custom built cost-functions for optimization.Simulation functionsrdynaViTE(n, a, v, t0 = 0, z = 0.5, d = 0, sz = 0, sv = 0, st0 = 0, tau = 1, w = 0.5, ...) simulateRTConf(paramDf, n = 10000, model = NULL, gamma = FALSE, agg_simus = FALSE ,...)The package includes low-level and high-level simulation functions. Because simulation is based on a discretization of the stochastic differential equation, there is an argument delta determining the step-size of the discretization and an argument maxrt, which determines the maximal simulated decision time. The simulation of a single trial is stopped when the stopping criterion has not been met and the maximum decision time has been exceeded. When the simulation is stopped without a choice, a response of 0 is returned. First, the low-level simulation functions are similar to the simulation functions of other probability distributions in R , e.g., rdynaViTE and rPCRMt, with arguments for each parameter, most of them having default values.
+
+
+Figure 2
+2
+Upper panel: Negative mean BIC values for the fitted models. Error bars represent within-subject standard errors. Lower panel: BIC weights across participants (reordered).
+
+
+selected_models <-c("dynaViTE (fixed)", "IRMt", "PCRMt", "dynWEV (fixed)") selected_fits <-subset(allfits, model %in% selected_models) prediction_ConfDist <-predictConfModels(selected_fits, simult_conf=TRUE,
+
+
+Observed(bars)  and predicted (points) response distribution for the different models (shape and color of points) across stimulus identity(columns, high level)  and levels of stimulus discriminability (rows).Probabilities within each row and stimulus identity column add to 1 for each group of data shown, i.e., height represents the conditional probability of a given accuracy and confidence rating given the stimulus discriminability and identity. row) and mean confidence rating (bottom row) for empirical data (points and triangles) and model predictions (lines). Error bars represent within-subject standard errors.
+
+
+Figure 5
+5
+Response time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and levels of stimulus discriminability(x-axis)
+
+
+Figure 7
+
+
+Upper panel :
+panel
+Negative mean BIC values for all fitted models. Error bars represent within-subject standard errors. Lower panel: BIC weights across participants computed on all fitted models (reordered).
+
+
+Figure 8
+8
+Figure 8
+
+
+Figure 9
+
+
+First
+Row: Distribution of mean absolute differences in computed densities between different choices of the precision argument and the argument +0.5. Second Row: Distribution of mean absolute differences in computed densities between different choices of the precision argument and the computed densities for precision = 8.5. Third Row: Distribution of computation time of the densities for a vector of 600 observations (log scaled). Each observation is based on 600 simulated trials for a random parameter set (50 trials for each combination of discriminability condition and stimulus category).
+
+
+Figure 10
+
+
+First
+Row: Distribution of mean absolute differences in computed densities between consecutive increases in the exponent of the precision argument. Second Row: Distribution of mean absolute differences in computed densities between different choices of the precision argument and the computed densities for precision = 9.
+
+
+row) and mean confidence rating (bottom row) for empirical data (points and triangles) and model predictions from the full and restricted DDM-based models (lines). Error bars represent within-subject standard errors.
+
+
+Figure A4 Response
+A4
+time quantiles for observed (points) and predicted (lines) response time distributions across correct and incorrect decisions (columns) and levels of stimulus discriminability(x-axis)
+
+
+Figure B1
+
+
+Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+Figure B2
+
+
+Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+Figure B3
+
+
+Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+Figure B4
+
+
+Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+Figure B5
+
+
+Recovered vs. true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+true generative parameters across parameters. Each point represents one simulated parameter and data set. The blue line and shaded area show a linear regression line with 95% confidence band. The grey line shows the identity line. Numbers in the panels show the concordance correlation coefficient for the parameter.
+
+
+Introduction 5
+Alternative software . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6 Structure of the present paper . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+
+
+Table 1 Common mechanism in forming confidence judgments Although
+1
+Acronyms for the different variations of race models used in dynConfiR. models may differ in their decision architecture and the specific computation for the confidence variable, the mechanism for the formation of a confidence report, as implemented in the package, is the same for all models. All models are built to produce discrete confidence outcomes C with
+Confidence variable
+c BoE
+c RM t
+Correlation 0
+IRM
+IRMt
+of noise (ρ) -.5 PCRM PCRMt
+
+
+Table 2
+2
+List and short description of all parameters for the different models.
+Parameter Description
+dynaViTE
+a
+distance between upper and lower decision boundary for decision process
+z
+relative mean starting point of decision process
+s z
+range of uniform distribution for the relative starting point in the decision process
+ν
+mean drift rate for decision process
+s
+diffusion constant of the decision process
+s ν
+variation in drift rate of the decision process
+τ
+length of inter-rating period
+µ V
+mean drift rate for the visibility process
+s V
+diffusion constant of the visibility process
+σ V
+variation in drift rate of visibility process
+w
+weight on decision evidence for confidence variable
+λ
+exponent of accumulation time in the denominator of the confidence variable
+
+
+
+
+
+
+
+
+Funding
+This work was partly funded by the Deutsche Forschungsgemeinschaft (grants ZE887/8-1, ZE887/9-1 to MZ and RA2988/3-1, RA2988/4-1 to MR).
+
+
+Competing interests
+The authors have no relevant financial or non-financial interests to disclose.
+
+
+Ethics approval
+Not applicable.
+
+
+Consent to participate
+Not applicable.
+
+
+Consent for publication
+Not applicable.
+
+
+Availability of data and materials
+Data sets are available for download at https://github.com/SeHellmann/dynConfiR_Paper.
+
+
+Code availability
+Code for theoretical analysis, data analysis, and production of figures is available for download at https://github.com/SeHellmann/dynConfiR_Paper. 
+
+
+Authors' contributions
+
+
+Appendix B Parameter Recovery
+ 
+
+
+
+
+
+
+
+
+
+
+Comparing bayesian and non-bayesian accounts of human confidence reports
+
+
+
+
+W
+T
+Adler
+
+
+
+
+
+
+W
+J
+Ma
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+14
+
+
+11
+
+
+
+
+
+
+
+
+Article e1006572
+
+
+
+
+
+
+
+
+
+
+10.1371/journal.pcbi.1006572
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Doubly bayesian analysis of confidence in perceptual decision-making
+
+
+
+
+L
+Aitchison
+
+
+
+
+
+
+D
+Bang
+
+
+
+
+
+
+B
+Bahrami
+
+
+
+
+
+
+P
+E
+Latham
+
+
+
+
+10.1371/journal.pcbi.1004519
+
+
+
+
+
+
+
+
+Article e1004519
+
+
+
+
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+A new look at the statistical model identification
+
+
+
+
+H
+Akaike
+
+
+
+
+10.1109/TAC.1974.1100705
+
+
+
+
+
+
+
+
+IEEE Transactions on Automatic Control
+
+
+
+
+19
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Realistic precision and accuracy of online experiment platforms, web browsers, and devices
+
+
+
+
+A
+Anwyl-Irvine
+
+
+
+
+
+
+E
+S
+Dalmaijer
+
+
+
+
+
+
+N
+Hodges
+
+
+
+
+
+
+J
+K
+Evershed
+
+
+
+
+10.3758/s13428-020-01501-5
+
+
+
+
+
+
+
+
+Behavior Research Methods
+
+
+
+
+53
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The timing mega-study: Comparing a range of experiment generators, both lab-based and online
+
+
+
+
+D
+Bridges
+
+
+
+
+
+
+A
+Pitiot
+
+
+
+
+
+
+M
+R
+Macaskill
+
+
+
+
+
+
+J
+W
+Peirce
+
+
+
+
+10.7717/peerj.9414
+
+
+
+
+
+
+
+
+PeerJ
+
+
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The simplest complete model of choice response time: Linear ballistic accumulation
+
+
+
+
+S
+Brown
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+10.1016/j.cogpsych.2007.12.002
+
+
+
+
+
+
+
+
+Cognitive psychology
+
+
+
+
+3
+
+
+57
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dynamic expressions of confidence within an evidence accumulation framework
+
+
+
+
+K
+Desender
+
+
+
+
+
+
+T
+H
+Donner
+
+
+
+
+
+
+T
+Verguts
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+207
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.cognition.2020.104522
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dynamic influences on static measures of metacognition
+
+
+
+
+K
+Desender
+
+
+
+
+
+
+L
+Vermeylen
+
+
+
+
+
+
+T
+Verguts
+
+
+
+
+10.1038/s41467-022-31727-0
+
+
+
+
+
+
+
+
+Nature Communications
+
+
+
+
+13
+
+
+1
+
+
+4208
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A reinforcement learning diffusion decision model for value-based decisions
+
+
+
+
+L
+Fontanesi
+
+
+
+
+
+
+S
+Gluth
+
+
+
+
+
+
+M
+S
+Spektor
+
+
+
+
+
+
+J
+Rieskamp
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+26
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13423-018-1554-2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Signal detection theory and psychophysics
+
+
+
+
+D
+M
+Green
+
+
+
+
+
+
+J
+A
+Swets
+
+
+
+
+
+
+
+
+
+
+Wiley
+
+
+
+
+
+
+
+
+
+
+
+
+Dynconfir: Dynamic models for confidence and response time distributions
+
+
+
+
+S
+Hellmann
+
+
+
+
+
+
+M
+Rausch
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confidence is influenced by evidence accumulation time in dynamical decision models
+
+
+
+
+S
+Hellmann
+
+
+
+
+
+
+M
+Zehetleitner
+
+
+
+
+
+
+M
+Rausch
+
+
+
+
+10.31234/osf.io/5ze8t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Simultaneous modeling of choice, confidence, and response time in visual perception
+
+
+
+
+S
+Hellmann
+
+
+
+
+
+
+M
+Zehetleitner
+
+
+
+
+
+
+M
+Rausch
+
+
+
+
+10.1037/rev0000411
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Choice certainty is informed by both evidence and decision time
+
+
+
+
+R
+Kiani
+
+
+
+
+
+
+L
+Corthell
+
+
+
+
+
+
+M
+N
+Shadlen
+
+
+
+
+10.1016/j.neuron.2014.12.015
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+84
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wahrscheinlichkeitstheorie
+
+
+
+
+A
+Klenke
+
+
+
+
+10.1007/978-3-642-36018-3
+
+
+
+
+
+
+
+
+Springer
+
+
+Berlin Heidelberg
+
+
+
+
+
+
+
+
+
+
+
+
+Quantitative models of attention and response processes in shape identification tasks
+
+
+
+
+D
+Laberge
+
+
+
+
+10.1006/jmps.1994.1015
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+38
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Model complexity in diffusion modeling: Benefits of making the model more parsimonious
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+10.3389/fpsyg.2016.01324
+
+
+
+
+
+
+
+
+Frontiers in Psychology
+
+
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Retest reliability of the parameters of the ratcliff diffusion model
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+10.1007/s00426-016-0770-5
+
+
+
+
+
+
+
+
+Psychological Research
+
+
+
+
+81
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Experimental validation of the diffusion model based on a slow response time paradigm
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+10.1007/s00426-017-0945-8
+
+
+
+
+
+
+
+
+Psychological Research
+
+
+
+
+83
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+How many trials are required for parameter estimation in diffusion modeling? a comparison of different optimization criteria
+
+
+
+
+V
+Lerche
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+M
+Nagler
+
+
+
+
+10.3758/s13428-016-0740-2
+
+
+
+
+
+
+
+
+Behavior Research Methods
+
+
+
+
+49
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A concordance correlation coefficient to evaluate reproducibility
+
+
+
+
+L
+I
+Lin
+
+
+
+
+
+
+
+
+Biometrics
+
+
+
+
+45
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling perceptual confidence and the confidence forced-choice paradigm. Psychological review, Advance online publication
+
+
+
+
+P
+Mamassian
+
+
+
+
+
+
+V
+De Gardelle
+
+
+
+
+10.1037/rev0000312
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A signal detection theoretic approach for estimating metacognitive sensitivity from confidence ratings
+
+
+
+
+B
+Maniscalco
+
+
+
+
+
+
+H
+Lau
+
+
+
+
+
+
+
+
+Consciousness and cognition
+
+
+
+
+21
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.concog.2011.09.021
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The signal processing architecture underlying subjective reports of sensory awareness
+
+
+
+
+B
+Maniscalco
+
+
+
+
+
+
+H
+Lau
+
+
+
+
+10.1093/nc/niw002
+
+
+
+
+
+
+
+
+Neuroscience of consciousness
+
+
+
+
+1
+
+
+2016
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Heuristic use of perceptual evidence leads to dissociation between performance and metacognitive sensitivity
+
+
+
+
+B
+Maniscalco
+
+
+
+
+
+
+M
+A K
+Peters
+
+
+
+
+
+
+H
+Lau
+
+
+
+
+
+
+
+
+Perception
+
+
+
+
+
+
+
+
+
+
+Attention
+
+
+
+
+
+
+
+
+
+
+10.3758/s13414-016-1059-x
+
+
+
+
+
+
+
+
+Psychophysics
+
+
+
+
+78
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Post choice information integration as a causal determinant of confidence: Novel data and a computational account
+
+
+
+
+R
+Moran
+
+
+
+
+
+
+A
+R
+Teodorescu
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+10.1016/j.cogpsych.2015.01.002
+
+
+
+
+
+
+
+
+Cognitive psychology
+
+
+
+
+78
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decision confidence and uncertainty in diffusion models with partially correlated neuronal integrators
+
+
+
+
+R
+Moreno-Bote
+
+
+
+
+10.1162/neco.2010.12-08-930
+
+
+
+
+
+
+
+
+Neural computation
+
+
+
+
+7
+
+
+22
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bayesfactor: Computation of bayes factors for common designs
+
+
+
+
+R
+D
+Morey
+
+
+
+
+
+
+J
+N
+Rouder
+
+
+
+
+
+
+T
+Jamil
+
+
+
+
+
+
+S
+Urbanek
+
+
+
+
+
+
+K
+Forner
+
+
+
+
+
+
+A
+Ly
+
+
+
+
+
+
+
+
+
+
+
+
+version 0.9.12-4.7
+
+
+
+
+
+
+
+
+Fast and accurate calculations for first-passage times in wiener diffusion models
+
+
+
+
+D
+J
+Navarro
+
+
+
+
+
+
+I
+G
+Fuss
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+53
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.jmp.2009.02.003
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A comparison of current measures of the accuracy of feeling-of-knowing predictions
+
+
+
+
+T
+O
+Nelson
+
+
+
+
+
+
+
+
+Psychological bulletin
+
+
+
+
+95
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Metacognitive adaptation revealed in serial dependence of visual confidence judgments
+
+
+
+
+L
+C H
+Ng
+
+
+
+
+
+
+F
+H F
+Law
+
+
+
+
+
+
+A
+M W
+Lam
+
+
+
+
+
+
+C. C.-F
+Or
+
+
+
+
+
+
+A
+L F
+Lee
+
+
+
+
+10.1167/jov.21.9.2487
+
+
+
+
+
+
+
+
+Journal of Vision
+
+
+
+
+21
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The importance of falsification in computational cognitive modeling
+
+
+
+
+S
+Palminteri
+
+
+
+
+
+
+V
+Wyart
+
+
+
+
+
+
+E
+Koechlin
+
+
+
+
+10.1016/j.tics.2017.03.011
+
+
+
+
+
+
+
+
+Trends in cognitive sciences
+
+
+
+
+21
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+R
+R
+Plant
+
+
+
+
+
+
+G
+Turner
+
+
+
+
+Millisecond precision psychological research in a world of commodity computers: New hardware, new problems? Behavior Research Methods
+
+
+
+
+
+
+41
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/BRM.41.3.598
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Two-stage dynamic signal detection: A theory of choice, decision time, and confidence
+
+
+
+
+T
+J
+Pleskac
+
+
+
+
+
+
+J
+Busemeyer
+
+
+
+
+10.1037/a0019737
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+3
+
+
+117
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confidence and certainty: Distinct probabilistic quantities for different goals
+
+
+
+
+A
+Pouget
+
+
+
+
+
+
+J
+Drugowitsch
+
+
+
+
+
+
+A
+Kepecs
+
+
+
+
+10.1038/nn.4240
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+19
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The confidence database
+
+
+
+
+D
+Rahnev
+
+
+
+
+
+
+K
+Desender
+
+
+
+
+
+
+A
+L F
+Lee
+
+
+
+
+
+
+W
+T
+Adler
+
+
+
+
+
+
+D
+Aguilar-Lleyda
+
+
+
+
+
+
+B
+Akdoğan
+
+
+
+
+
+
+P
+Arbuzova
+
+
+
+
+
+
+L
+Y
+Atlas
+
+
+
+
+
+
+F
+Balcı
+
+
+
+
+
+
+J
+W
+Bang
+
+
+
+
+
+
+I
+Bègue
+
+
+
+
+
+
+D
+P
+Birney
+
+
+
+
+
+
+T
+F
+Brady
+
+
+
+
+
+
+J
+Calder-Travis
+
+
+
+
+
+
+A
+Chetverikov
+
+
+
+
+
+
+T
+K
+Clark
+
+
+
+
+
+
+K
+Davranche
+
+
+
+
+
+
+R
+N
+Denison
+
+
+
+
+
+
+T
+C
+Dildine
+
+
+
+
+
+
+.
+.
+Zylberberg
+
+
+
+
+
+
+A
+
+
+
+
+
+
+
+
+Nature human behaviour
+
+
+
+
+4
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1038/s41562-019-0813-1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A theory of memory retrieval
+
+
+
+
+R
+Ratcliff
+
+
+
+
+10.1037/0033-295X.85.2.59
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+85
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A diffusion model account of the lexical decision task
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+P
+Gomez
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+10.1037/0033-295X.111.1.159
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+111
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling response times for two-choice decisions
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+J
+N
+Rouder
+
+
+
+
+10.1111/1467-9280.00067
+
+
+
+
+
+
+
+
+Psychological Science
+
+
+
+
+9
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A comparison of sequential sampling models for two-choice reaction time
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+P
+L
+Smith
+
+
+
+
+10.1037/0033-295X.111.2.333
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+111
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling confidence and response time in recognition memory
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+J
+J
+Starns
+
+
+
+
+10.1037/a0014086
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+116
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling confidence judgments, response times, and multiple choices in decision making: Recognition memory and motion discrimination
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+J
+J
+Starns
+
+
+
+
+10.1037/a0033152
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+120
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Estimating parameters of the diffusion model: Approaches to dealing with contaminant reaction times and parameter variability
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+F
+Tuerlinckx
+
+
+
+
+10.3758/bf03196302
+
+
+
+
+
+
+
+
+Psychonomic bulletin & review
+
+
+
+
+9
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Modeling 2-alternative forced-choice tasks: Accounting for both magnitude and difference effects
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+C
+Voskuilen
+
+
+
+
+
+
+A
+Teodorescu
+
+
+
+
+
+
+
+
+Cognitive psychology
+
+
+
+
+103
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/j.cogpsych.2018.02.002
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Statconfr: An r package for static models of decision confidence and metacognition
+
+
+
+
+M
+Rausch
+
+
+
+
+
+
+S
+Hellmann
+
+
+
+
+10.31234/osf.io/dk6mr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Confidence in masked orientation judgments is informed by both evidence and visibility. Attention, Perception, & Psychophysics
+
+
+
+
+M
+Rausch
+
+
+
+
+
+
+S
+Hellmann
+
+
+
+
+
+
+M
+Zehetleitner
+
+
+
+
+10.3758/s13414-017-1431-5
+
+
+
+
+
+
+
+
+80
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Measures of metacognitive efficiency across cognitive models of decision confidence
+
+
+
+
+M
+Rausch
+
+
+
+
+
+
+S
+Hellmann
+
+
+
+
+
+
+M
+Zehetleitner
+
+
+
+
+10.1037/met0000634
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The folded x-pattern is not necessarily a statistical signature of decision confidence
+
+
+
+
+M
+Rausch
+
+
+
+
+
+
+M
+Zehetleitner
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+15
+
+
+10
+
+
+
+
+
+
+
+
+Article e1007456
+
+
+
+
+
+
+
+
+
+
+10.1371/journal.pcbi.1007456
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cognitive modelling reveals distinct electrophysiological markers of decision confidence and error monitoring. NeuroImage, 218, Article 116963
+
+
+
+
+M
+Rausch
+
+
+
+
+
+
+M
+Zehetleitner
+
+
+
+
+
+
+M
+Steinhauser
+
+
+
+
+
+
+M
+E
+Maier
+
+
+
+
+10.1016/j.neuroimage.2020.116963
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The replication database: Documenting the replicability of psychological science
+
+
+
+
+L
+Röseler
+
+
+
+
+
+
+L
+Kaiser
+
+
+
+
+
+
+C
+A
+Doetsch
+
+
+
+
+
+
+N
+Klett
+
+
+
+
+
+
+C
+Seida
+
+
+
+
+
+
+A
+Schütz
+
+
+
+
+
+
+B
+Aczel
+
+
+
+
+
+
+N
+Adelina
+
+
+
+
+
+
+V
+Agostini
+
+
+
+
+
+
+S
+Alarie
+
+
+
+
+
+
+N
+Albayarak-Aydemir
+
+
+
+
+
+
+A
+Aldoh
+
+
+
+
+
+
+A
+H
+Al-Hoorie
+
+
+
+
+
+
+F
+Azevedo
+
+
+
+
+
+
+B
+J
+Baker
+
+
+
+
+
+
+C
+L
+Barth
+
+
+
+
+
+
+J
+Beitner
+
+
+
+
+
+
+C
+Brick
+
+
+
+
+
+
+H
+Brohmer
+
+
+
+
+
+
+.
+.
+Zhang
+
+
+
+
+
+
+Y
+
+
+
+
+10.31222/osf.io/me2ub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Estimating the dimension of a model
+
+
+
+
+G
+Schwarz
+
+
+
+
+10.1214/aos/1176344136
+
+
+
+
+
+
+
+
+The Annals of Statistics
+
+
+
+
+6
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Online psychophysics: Reaction time effects in cognitive experiments
+
+
+
+
+K
+Semmelmann
+
+
+
+
+
+
+S
+Weigelt
+
+
+
+
+
+
+
+
+Behavior Research Methods
+
+
+
+
+49
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13428-016-0783-4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The nature of metacognitive inefficiency in perceptual decision making
+
+
+
+
+M
+Shekhar
+
+
+
+
+
+
+D
+Rahnev
+
+
+
+
+10.1037/rev0000249
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+128
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+How do humans give confidence? a comprehensive comparison of process models of perceptual metacognition
+
+
+
+
+M
+Shekhar
+
+
+
+
+
+
+D
+Rahnev
+
+
+
+
+10.1037/xge0001524
+
+
+
+
+
+
+
+
+Journal of experimental psychology. General
+
+
+
+
+153
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Rtdists: Response time distributions
+
+
+
+
+H
+Singmann
+
+
+
+
+
+
+S
+D
+Brown
+
+
+
+
+
+
+M
+Gretton
+
+
+
+
+
+
+A
+Heathcote
+
+
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+J
+Voss
+
+
+
+
+
+
+A
+Terry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evaluating the unequal-variance and dual-process explanations of zroc slopes with response time data and the diffusion model
+
+
+
+
+J
+J
+Starns
+
+
+
+
+
+
+R
+Ratcliff
+
+
+
+
+
+
+G
+Mckoon
+
+
+
+
+10.1016/j.cogpsych.2011.10.002
+
+
+
+
+
+
+
+
+Cognitive psychology
+
+
+
+
+64
+
+
+1-2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Absolutely relative or relatively absolute: Violations of value invariance in human decision making
+
+
+
+
+A
+R
+Teodorescu
+
+
+
+
+
+
+R
+Moran
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+23
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13423-015-0858-8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Disentangling decision models: From independence to competition
+
+
+
+
+A
+R
+Teodorescu
+
+
+
+
+
+
+M
+Usher
+
+
+
+
+10.1037/a0030776
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+120
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The time course of perceptual choice: The leaky, competing accumulator model
+
+
+
+
+M
+Usher
+
+
+
+
+
+
+J
+L
+Mcclelland
+
+
+
+
+
+
+
+
+Psychological review
+
+
+
+
+108
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1037/0033-295x.108.3.550
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+R
+Van Den Berg
+
+
+
+
+
+
+K
+Anandalingam
+
+
+
+
+
+
+A
+Zylberberg
+
+
+
+
+
+
+R
+Kiani
+
+
+
+
+
+
+M
+N
+Shadlen
+
+
+
+
+
+
+D
+M
+Wolpert
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A common mechanism underlies changes of mind about decisions and confidence. eLife, 5, Article e12192
+
+
+10.7554/eLife.12192
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Experimental paradigms emphasising state or process limitations: Ii effects on confidence
+
+
+
+
+D
+Vickers
+
+
+
+
+
+
+P
+Smith
+
+
+
+
+
+
+J
+Burt
+
+
+
+
+
+
+M
+Brown
+
+
+
+
+
+
+
+
+Acta Psychologica
+
+
+
+
+59
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.1016/0001-6918(85)90018-6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Diffusion models in experimental psychology: A practical introduction
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+M
+Nagler
+
+
+
+
+
+
+V
+Lerche
+
+
+
+
+10.1027/1618-3169/a000218
+
+
+
+
+
+
+
+
+Experimental psychology
+
+
+
+
+6
+
+
+60
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Interpreting the parameters of the diffusion model: An empirical validation
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+K
+Rothermund
+
+
+
+
+
+
+J
+Voss
+
+
+
+
+10.3758/BF03196893
+
+
+
+
+
+
+
+
+Memory & Cognition
+
+
+
+
+32
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A fast numerical algorithm for the estimation of diffusion model parameters
+
+
+
+
+A
+Voss
+
+
+
+
+
+
+J
+Voss
+
+
+
+
+10.1016/j.jmp.2007.09.005
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+52
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Extending jags: A tutorial on adding custom distributions to jags (with a diffusion model example)
+
+
+
+
+D
+Wabersich
+
+
+
+
+
+
+J
+Vandekerckhove
+
+
+
+
+
+
+
+
+Behavior Research Methods
+
+
+
+
+46
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.3758/s13428-013-0369-3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The rwiener package: An r package providing distribution functions for the wiener diffusion model
+
+
+
+
+D
+Wabersich
+
+
+
+
+
+
+J
+Vandekerckhove
+
+
+
+
+10.32614/RJ-2014-005
+
+
+
+
+
+
+
+
+The R Journal
+
+
+
+
+6
+
+
+1
+
+
+49
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+An agenda for purely confirmatory research
+
+
+
+
+E.-J
+Wagenmakers
+
+
+
+
+
+
+R
+Wetzels
+
+
+
+
+
+
+D
+Borsboom
+
+
+
+
+
+
+H
+L J
+Van Der Maas
+
+
+
+
+
+
+R
+A
+Kievit
+
+
+
+
+10.1177/1745691612463078
+
+
+
+
+
+
+
+
+Perspectives on psychological science : a journal of the Association for Psychological Science
+
+
+
+
+7
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hddm: Hierarchical bayesian estimation of the drift-diffusion model in python
+
+
+
+
+T
+V
+Wiecki
+
+
+
+
+
+
+I
+Sofer
+
+
+
+
+
+
+M
+J
+Frank
+
+
+
+
+10.3389/fninf.2013.00014
+
+
+
+
+
+
+
+
+Frontiers in neuroinformatics
+
+
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+K
+Zawadzka
+
+
+
+
+
+
+P
+A
+Higham
+
+
+
+
+
+
+M
+Hanczakowski
+
+
+
+
+10.1037/xlm0000321
+
+
+
+
+Confidence in forced-choice recognition: What underlies the ratings? Journal of experimental psychology. Learning, memory, and cognition
+
+
+
+
+
+
+43
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The construction of confidence in a perceptual decision. Frontiers in integrative neuroscience, 6, Article 79
+
+
+
+
+A
+Zylberberg
+
+
+
+
+
+
+P
+Barttfeld
+
+
+
+
+
+
+M
+Sigman
+
+
+
+
+10.3389/fnint.2012.00079
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

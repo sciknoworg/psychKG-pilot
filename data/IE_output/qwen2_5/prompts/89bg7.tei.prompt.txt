@@ -1,0 +1,335 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction
+In daily life, we constantly select and integrate relevant information to guide decisions. Such process is facilitated by working memory (WM), a cognitive facility that temporarily holds and manipulates information planning future action and decision-making 
+(Baddeley & Wilson, 2002)
+. Information held in WM is encoded as a probabilistic distribution, representing both the memorized content and uncertainty 
+(Li et al., 2021;
+Ma et al., 2006)
+.
+Despite these insights into WM's mnemonic mechanisms, how WM integrates multiple WM representations and its uncertainty is not well understood. Specifically, it is unclear how uncertainty in WM representations shape decision-making, particularly when facing multifaceted noisy inputs. Our hypothesis is that WM integrates information probabilistically, considering the uncertainty of taskrelevant features to construct a posterior probabilistic task representation to guide decisions. Alternatively, WM may operate with a deterministic strategy that establishes rigid decision boundaries to dismiss lowprobability information 
+(Figure 1a
+). Our study employed computational models to test these two competing accounts. 
+
+
+Method
+Twenty-one human subjects (12 females; age range: 18-35) participated in our experiment. The study protocol was approved by our IRB (#201808855).
+
+
+Behavioral Paradigm
+A game was designed as the behavioral paradigm. In the game, participants took on the role of zookeepers, tasked with ensuring the well-being of four artificial animals by catering to their dietary preferences. Participants first observed two cues on the appearance (color) and location (orientation) of food, using this information to judge the correct animal to feed based on provided feedback 
+(Figure 1b)
+. Notably, understanding either color or orientation alone is insufficient for making accurate feeding decisions. In the initial training phase, participants were acquainted with each animal's appetites, aiming to develop two task representations of lookup tables 
+(Figure 1c
+). As the study progressed to the testing phase, the core task remains, but participants encountered varying levels of ambiguity in both color and orientation cues. This setup aims to explore whether working memory integrates ambiguous sensory information in a probabilistic or deterministic manner to make decisions. To achieve this, we introduced four levels of ambiguity for both color and orientation by adjusting the proximity of the presented color to the preferred food color on the HSV-space color wheel, and by altering the presented orientation to the preferred food orientation on the circle. We employed a full cross-factorial method to systematically evaluate the effect of these combined ambiguities on the decision-making process.
+
+
+Computational Models
+We first applied a reinforcement learning model to estimate each subject's learning outcome of task 
+P(a i | PC i , PO i ) Decision C i O i PCi POi d a c d b e
+representations, specifically the likelihood of correctly choosing an animal given specific color and orientation cues. Starting with a uniform prior distribution to represent initial beliefs, the model iteratively updated its predictions by incorporating feedback from each trial via the learning rate parameter :
+!"# ( | ! , ! ) = + ! ( | ! , ! ) + .1 − ! ( , ! , ! )1, = ! # ! ( | ! , ! ) + .0 − ! ( , ! , ! )1, = ! $
+where ! " and ! # are the correct and paired animal on trial , respectively. ! and ! refer to the color and orientation presented on trial .
+The participant's decision modeled using a softmax function:
+∆ = ! . ! # | ! , ! 1 − ! . ! $ | ! , ! 1 $%&!$' = ( ( ∆ + " " + # # )
+We then used a probabilistic model to capture human decisions with the premise that WM probabilistically integrates dual inputs 
+(Figure 1d
+). For each trial, the probabilistic model maintains probabilistic distribution conditioned on the presented color/orientation:
+( ! | ! ) ~ ( ! | ! , κ $ ) ( ! | ! ) ~ ( ! | ! , κ & ) ( ! , ! | ! , ! ) = ( ! | ! ) × ( ! | ! )
+Where ! and ! are presented color and orientation on trial , respectively. Crucially, the belief of choosing each of the two animals based on the presented stimuli was calculated by integrating all color-orientation combinations from the training phase:
+( 1 | ! , ! ) = = ( 1 | ! , ! ) $,& ( ! , ! | ! , ! ) ( 2 | ! , ! ) = = ( 2 | ! , ! ) $,& ( ! , ! | ! , ! )
+The decision making and updating of !*" ( | ! , ! ) are identical to the learning phase. Free parameters κ $ , κ & , ( , " , # were estimated using maximum likelihood estimation.
+We developed three types of deterministic models to explore whether working memory process information probabilistically or deterministically. This includes one fully deterministic model, wherein both probabilistic distributions ( ! | ! ) and ( ! | ! ) became deterministic using a winner-take-all procedure. We also added two partially deterministic models with only the color or the orientation was deterministic. 
+
+
+Results
+
+
+Task Representation Learning
+The log loss analysis of the learning model revealed an improvement in model prediction across trials, suggesting that participants learned the task representations 
+(Figure 2a&b
+).
+
+
+Integrated Ambiguity Modulates Behavioral Performance
+A two-way rmANOVA with color and orientation ambiguity (4 levels each) revealed significant interaction effects on both accuracy (F(9,180)=2.35, p=0.02) and response time (F(9,180)=1.17, p=0.02), suggesting the significant effect of WM integration on performance. Additionally, significant variations in accuracy (F(6,120)=50.85, p < 0.0001) and response time (F(6,120)=9.20, p<0.0001) were observed as a function of the integrated ambiguity 
+(Figure 2c
+).
+
+
+Probabilistic Model Outperforms Deterministic Models
+The probability model best predicted the subject's response and demonstrated the lowest AIC values among the four competing models 
+(Figure 2c&d
+). Protected exceedance probability analysis strongly favored the probabilistic model (protected exceedance probability=0.9996, Bayes Omnibus risk= 1.9853e-05).
+
+
+Conclusion
+Working memory constructs task representations for decision making by incorporating the uncertainty of task-relevant working memory representations. 
+Figure 1 .
+1
+(a) Probabilistic task representation vs. deterministic task representation; (b) Feeding procedure; (c) Two lookup tables; (d) Computational modeling for testing phase.
+
+
+Figure 2 .
+2
+(a) Trial-wise log loss averaged across 21 subjects in the training phase; (b) One example of learning model performance; (c) Integrated ambiguity modulates behavioral performance; (d) AICs among four computation models for testing phase; (e) One example of probabilistic model performance. (b)(d) Red color: model predicted response; blue color: actual response.
+
+
+
+
+
+
+
+
+Acknowledgments
+Research reported in this publication was supported by the Iowa 
+Neuroscience Institute and the National  Institute  of  Mental  Health  Award  Number  R01MH122613.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+Prose recall and amnesia: Implications for the structure of working memory
+
+
+
+
+A
+Baddeley
+
+
+
+
+
+
+B
+A
+Wilson
+
+
+
+
+10.1016/S0028-3932(01)00146-4
+
+
+
+
+
+
+
+
+Neuropsychologia
+
+
+
+
+40
+
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Joint representation of working memory and uncertainty in human cortex
+
+
+
+
+H.-H
+Li
+
+
+
+
+
+
+T
+C
+Sprague
+
+
+
+
+
+
+A
+H
+Yoo
+
+
+
+
+
+
+W
+J
+Ma
+
+
+
+
+
+
+C
+E
+Curtis
+
+
+
+
+10.1016/j.neuron.2021.08.022
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+109
+
+
+22
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bayesian inference with probabilistic population codes
+
+
+
+
+W
+J
+Ma
+
+
+
+
+
+
+J
+M
+Beck
+
+
+
+
+
+
+P
+E
+Latham
+
+
+
+
+
+
+A
+Pouget
+
+
+
+
+10.1038/nn1790
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+9
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

@@ -1,0 +1,2719 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction
+What is memory for? Although laboratory studies often focus on memory performance in isolation, as if recall accuracy is the participants' only goal, an important real-world use of past experience is to guide adaptive choices. This observation has driven increasing interest in the interplay between memory and decision making, and delivered promising insights. Understanding this interplay promises both to unpack the mechanisms by which experience guides choice, and to illuminate the potential adaptive function of various seemingly arbitrary aspects of memory.
+The relationship between memory and decisions is perhaps most apparent for procedural memory, where a putative neurocomputational mechanism involving dopamine, prediction errors, and stimulusresponse habits has long been the shared, orthodox model in both areas 
+(Dolan & Dayan, 2013)
+. Building on this relationship, there has been increasing interest in how different memory systems might relate to different decision systems, including a potential correspondence between declarative memory and the cognitive maps or models thought to guide goal-directed systems for deliberative evaluation of candidate actions 
+(Doll, Shohamy, & Daw, 2015;
+Eichenbaum, 2001
+). In particular, sequential decision tasks like spatial navigation or chess offer much evidence that the brain engages in constructive, deliberate evaluation, akin to mental simulation informed by map-or model-like information about the task 
+(Pfeiffer & Foster, 2013;
+van Opheusden et al., 2021)
+. However, we still understand relatively little about the mechanisms by which deliberative sequential decisions are achieved, or how they might draw on specific memory processes long-established in memory laboratories.
+In this paper, we propose a new mechanistic theory of decision making that grounds model-based evaluation in the recall of episodic memories, or memories for individual autobiographical events 
+(Tulving, 1972)
+. Many decisions could benefit from recall of one-off autobiographical events. For example, to navigate through a large, unfamiliar venue, we may recall having examined the sculpture in the corridor on the right earlier that night, and use that memory to orient ourselves. Episodic memory has also been suggested to guide decisions by scaffolding the construction of hypothetical future scenarios 
+(Schacter, Benoit, Brigard, & Szpunar, 2015)
+. Indeed, patients with episodic memory deficits are less effective at certain decision making tasks 
+(Gutbrod et al., 2006;
+Gupta et al., 2009;
+Bakkour et al., 2019)
+. Relatedly, researchers in decision neuroscience have become interested in a class of decisionby-sampling algorithms. These algorithms bear a loose analogy to episodic memory, in that decisions are achieved by considering a small number of individual past experiences with similar actions and their outcomes 
+(Plonsky, Teodorescu, & Erev, 2015;
+Bornstein, Khaw, Shohamy, & Daw, 2017;
+Lieder, Griffiths, & Hsu, 2018
+). Yet, despite the suggestive links, these previous theories are not especially informed by research on memory, and have also only been applied to a restricted class of single-step decision tasks.
+Our approach instead begins with a standard model of episodic encoding and recall -the temporal context model (TCM; 
+Howard & Kahana, 2002;
+Sederberg, Howard, & Kahana, 2008;
+Polyn, Norman, & Kahana, 2009;
+Talmi, Lohnas, & Daw, 2019)
+. TCM is a descriptive (rather than normative) model originally conceived to capture patterns of episodic retrieval in tasks like word-list learning. Here, we present a series of simulations in which TCM is applied in the setting of sequential decision making. We show that, when the problem of action-outcome prediction is framed as the problem of recalling relevant past experiences (which we formalize with off-the-shelf TCM recall), the resulting algorithm provides a novel, parameterized family of decision-by-sampling estimators that are provably appropriate for sequential decision tasks. Our study builds on previous research showing that the encoding stage in TCM closely relates to model learning, enabling gradual construction of a type of world model known as successor representation (SR) 
+(Gershman, Moore, Todd, Norman, & Sederberg, 2012)
+. We extend the prior work by studying the predictions of TCM with respect to memory retrieval, which we show to correspond to queries of the learned model that can be used for planning or evaluation at decision time. The result is a theoretical proposal that we call TCM-SR.
+Despite its root in memory literature, TCM-SR has a quantitative mapping to reinforcement learning (RL) models in decision neuroscience that expands the connection between the two fields. We show that two special cases of our model correspond to two influential mechanisms for model-based choice: a constructive "rollout"-based simulation of future trajectories, and the use of temporal abstraction 
+(SR)
+ to compress such iterative serial reasoning. We then show that the full model extends and interpolates between these two extremes using intermediate parameterizations, providing a family of Monte Carlo estimators based on a generalized notion of rollouts. We also show that several other known properties of episodic memory can be viewed as rational from a decision-making standpoint. For instance, people sometimes recall events in the opposite temporal sequence to that experienced during encoding, and recall is often biased toward emotionally arousing events. Viewed in the context of our theory, these and other features of episodic memory have unanticipated advantages for choice. More broadly, the direct mapping we hypothesize between research in episodic memory and decision making sheds light on both areas, and suggests many new research directions and future experiments.
+The remainder of this paper is structured as follows: We begin with a description of the normative problem of interest and the properties of the episodic memory system. We then propose a simplified TCM-inspired model of episodic memory for sample-based action evaluation; this model illustrates the key ideas behind our theory and serves as the basis for the more realistic variants that are presented subsequently. Then, in each subsequent section, we show that progressive addition of known episodic memory properties (formalized in different variants of TCM) confers unexpected decision making advantages. As we will show, our model makes a series of empirical predictions regarding the content of retrieval during decision making, how speed and accuracy are traded off during episodic-based evaluation, and how a number of known memory retrieval biases give rise to novel choice biases that are amenable to empirical testing.
+
+
+Results
+
+
+Decisions via model-based evaluation
+We explore how episodic memory retrieval can be used to guide decisions using a stylized decision making task in which an action is followed by a sequence of states, each associated with a (potentially nonzero) reward 
+(Fig. 1a)
+. This task resembles a game of Plinko where a player drops the ball in one of the holes in the top row of the board. The initial ball placement (action) determines the first state of the sequence. Each subsequent state (and reward) follows from the previous through a stochastic transition, analogous to a ball falling through the Plinko board. The agent's goal is to choose the starting state that maximizes the cumulative reward. We selected this stylized task to depict graphically the process of sequential retrieval. Despite its simplicity, this problem captures a number of key aspects of more general sequential decision tasks -in particular, rewards accumulate sequentially over a series of steps, and cannot be predicted with certainty from each action. The problem of optimal decision Here we focus on the second class of strategies, often called planning or model-based RL. Suppose at any point of the Plinko game, the agent is capable of predicting the probability of the ball's board position at the next time step -i.e., the agent understands the step-by-step transition structure of the game, a form of world model 
+(Fig. 1b
+, boards labeled as T 1 , T 2 , T 3 ). By recursively predicting the position of the ball one step into the future, the agent can simulate one of many possible trajectories following a given action, along with the corresponding rewards. A complete trajectory simulated in this way is called a rollout, and its associated total reward provides a noisy estimate of the value of the given action. Taking the total reward across for each considered action, averaged across multiple rollouts, the agent can choose the action with maximal estimated value. Action evaluation by stochastic, iterative simulation is at the heart of numerous model-based approaches to RL, such as Monte Carlo Tree Search 
+(Coulom, 2006)
+. Its power -for instance, in competitive play of challenging games like Go 
+(Silver et al., 2016)
+ -arises from its ability to compositionally (albeit laboriously) analyze novel situations, such as never-experienced board positions 
+(Daw & Dayan, 2014;
+Mattar & Lengyel, 2022
+).
+An alternative and often more efficient RL approach is to first learn, for each action, the expected number of visits to each state in the future (formally, M = T 1 + γ 1 T 2 + γ 2 T 3 + • • • , where each element M ij of matrix M represents the discounted number of visits to state j from state i). M is known as Successor Representation (SR; 
+Dayan, 1993)
+, and is thought to account for various features of human and animal behavior and neural responses 
+(Momennejad et al., 2017;
+Stachenfeld, Botvinick, & Gershman, 2017
+; E. M. 
+Piray & Daw, 2021)
+. Like T, the SR matrix M summarizes the transition structure of the world, but aggregated over multiple steps; thus it can also be understood as another form of world model 
+(Fig. 1b,
+board labeled M)
+. If the SR is known, action values can be estimated straightforwardly by multiplying the expected number of visits to each state by the rewards present in those states (i.e., q(a) = x T a Mr, where x a is a one-hot column vector denoting the top-row state resulting from action a, and r is a column vector whose k th element r k indicates the reward present in state k). Thus, while still relying on the basic "world model" approach, the SR simplifies evaluation and avoids the iterative construction of trajectories by using a stored model of aggregated transition dynamics over multiple time steps. The cost of this simplification (called temporal abstraction) is that it limits the flexibility of the model to work out value in novel or changed situations, because information about future events is "baked in" to M (E. M. 
+Russek et al., 2017;
+Piray & Daw, 2021)
+. Overall, then, these two model-based strategies for prospective evaluation have different costs and benefits.
+In this paper, we show that the properties of episodic memory imply an additional approach for estimating action values, which both generalizes and interpolates between the rollout-based and SR-based approaches, balancing two different strategies for long-term prospection. Our proposal builds on the observation that episodic memory encoding has the effect of learning an SR-like model 
+(Gershman et al., 2012)
+. We leverage this observation to show that the sequential retrieval of remembered events in the same memory model implements a rollout-like (iterative) state simulation process that differs from standard (non-iterative) uses of the SR described previously. Accordingly, we next describe the processes of memory encoding and retrieval that support value estimation.
+
+
+Episodic retrieval via the Temporal Context Model
+Our starting point is a standard model of memory encoding and retrieval, the Temporal Context Model (TCM; 
+Howard & Kahana, 2002)
+, which we simplify in the first instance and progressively augment to expose the contribution of different model components. TCM aims to explain experiments where memory is the dependent variable: which stimuli tend to be recalled and in which order, as a function of factors such as their serial position during encoding 
+(Fig. 1c
+). To explain these results, TCM centrally posits that such episodic retrieval is affected by a drifting temporal context, a continuously evolving representation composed of a recency-weighted running average of previously observed and retrieved stimuli:
+c t = ρc t−1 + βx t .
+(1)
+During encoding, associations are formed between the representation of the observed stimulus x t and the temporal context c t present at that moment ( 
+Fig. 1d-f
+). During retrieval, items are sampled from memory in proportion to how well the current temporal context matches the context associated with each item during encoding . Retrieval is thus determined by the current context and the agent's memory ( 
+Fig. 1h,i
+), formalized as a set of associations developed during encoding ( 
+Fig. 1f
+) that represent the contexts associated with each previously-seen item. Finally, retrieval also updates the temporal context, biasing the subsequent retrieval of new items from memory ( 
+Fig. 1g-i
+). The updating of the temporal context when an item is recalled allows TCM to explain ubiquitous patterns of sequential retrieval in list learning tasks (see Methods for a formal description of TCM).
+TCM recapitulates two recall biases often observed in list learning paradigms: the recency effect and the contiguity effect 
+(Fig. 1c)
+. The recency effect is the observed heightened probability of recalling the most recently-studied information; as the temporal context drifts continuously in TCM, the context at recall better matches contexts associated with the stimuli studied last. The contiguity effect refers to a tendency for subsequent recalls to contain stimuli studied in close temporal proximity; because temporal contexts tend to be similar for temporally close-by stimuli, the retrieval of one promotes retrieval of others studied close in time. Note that TCM is a descriptive model, as it aims to match rather than rationalize or justify these empirically observed patterns. Our Plinko game has 10 × 9 states, each represented by a small square. The agent may take any of 9 possible actions, corresponding to the 9 locations on the top row where the Plinko ball (orange circle) may be dropped. The dropped ball follows a stochastic trajectory down the board, collecting scattered rewards (purple stars) along the way (see Methods for task details). The goal of the agent is to select the action leading to a trajectory containing as many rewards as possible. (b) The first three Plinko boards labeled T 1 , T 2 , and T 3 represent the probability distribution of the ball location 1, 2, and 3 time steps after the moment depicted in (a) respectively. The Plinko board labeled M represents the fully-learned Successor Representation (SR), given by M =
+γ 0 T 1 + γ 1 T 2 + γ 2 T 3 + • • •
+. SR values correspond to the expected number of (discounted) visitations to each state on the board, starting from the action depicted in (a). (c) After each full trajectory is experienced and stored in memory, the recency effect (left) predicts that stimuli from the bottom rows, which have been experienced more recently, are more likely to be retrieved. The contiguity effect (right) predicts that, following each stimulus retrieved on a given row, stimuli from adjacent rows are more likely to be subsequently retrieved. (d-f) Encoding phase of TCM-SR. (d) Presentation of stimulus s t at time t by the external world updates the temporal context c t . Memory encoding amounts to storing each temporal context present when a stimulus is seen. The first time each stimulus is presented, a new memory is stored (circle with dashed outline). Each subsequent time the same stimulus is presented, the associated memory is modified (not shown). (e) The temporal context c i defines a distribution p(s) over memories. It depends on the previous temporal context c t and the current state s t+1 , corresponding to a recency-weighted representation of the stimuli (depicted in f). (f) Schematic of encoding two consecutive stimuli in the Plinko task. Stored memory of each stimulus (right box) includes a composite representation of temporal contexts present during each of the encoding situations. (g-i) Retrieval phase of TCM-SR. (g) The agent freely samples one or more stimuli during retrieval. The retrieved stimulus s i is a sample from the recall distribution p(s). Higher retrieval probability is assigned to stimuli whose stored context is more similar to the current context. The context associated with the sample influences the temporal context to affect subsequent retrievals. (h) The temporal context c i+1 depends on the previous temporal context c i and the retrieved stimulus s i+1 , which itself depends on the previous context c i . The red arrow illustrates how the temporal context is affected by each retrieved stimulus. (i) Schematic of retrieving a stimulus in the Plinko task. The temporal context is updated by a retrieved context. See the online article for the color version of this figure.
+
+
+TCM predictions for decision tasks
+In the present article, we study the predictions of TCM for an agent performing a sequential decision task. While we study these predictions for a general task, we illustrate them in the context of a stylized problem, the Plinko game. Here, experienced states (s t , ball locations in Plinko) take the place of list items (e.g., words in TCM). In the encoding phase (corresponding to learning a task) a sequence of states is experienced (a trajectory followed by the ball in Plinko, viewed as a word list in TCM) and stored in memory. In the retrieval phase states previously stored in memory can be retrieved, corresponding to locations in the Plinko board that have been previously visited by the ball. We propose that such recall of states can be used at some later decision time to evaluate actions, akin to an agent querying an episodic memory for choice-relevant information.
+To understand this process, we first note that the problem of learning associations between a stimulus and its temporal context during encoding, as formalized in TCM, is equivalent to the problem of learning the SR (see 
+Gershman et al., 2012
+ or the Methods section). Intuitively, learning what context precedes each stimulus is equivalent to learning that the stimulus is a likely successor of the context components (notice how the episodic memory representations in 
+Fig. 1f
+ share characteristics with M in 
+Fig. 1b
+). Leveraging this observation about memory encoding, the rest of this paper shows that the properties of episodic retrieval, as envisioned in TCM, are sufficient to compute estimates of action values q(a) by a rollout-like state sampling process. We further show that this hypothetical process reflects knowledge of the cognitive map or model of the task, and specifically the SR (E. M. 
+Russek et al., 2017;
+Momennejad et al., 2017;
+Gershman, 2018;
+Piray & Daw, 2021)
+), suggesting that episodic retrieval is a candidate mechanism for model-based or goal-directed decisions in the brain.
+In the following sections, we examine in increasing levels of detail how value estimation can be achieved via episodic retrieval. We begin by stripping down episodic memory of many of its defining properties by removing a number of algorithmic details from the original TCM formulation, each of which corresponds to one such property. While this approach may seem overly abstracted at first, it leads to the cleanest baseline instantiation of recursive retrieval as a sampling algorithm that estimates action values in sequential decision problems. We then gradually reintroduce properties of episodic memory, which allows us to systematically analyze how each of them confers a different advantage for action evaluation and ultimately choice. These advantages include temporal horizon extension, oneand few-shot learning, bias-variance trade-off, and sample efficiency improvement.
+
+
+Independent samples from memory yield unbiased value estimates
+To study how the episodic retrieval can be used for action evaluation, we start by making two simplifying assumptions which will be relaxed in subsequent sections. The first assumption is that each stimulus (state) is experienced many times during encoding: this is analogous to studying the same word in multiple lists in a free recall task, or to the Plinko ball visiting a particular state multiple times across many trajectories. We make this assumption at this moment for didactic purposes, acknowledging that episodic memory is more commonly associated with low-sample regimes in which learned stimuli are experienced once or at most a few times. The repeated exposure associates each stimulus with a single context representation, obtained by combining the contexts across every presentation of the same stimulus (see 
+Fig. 1f
+ for an example of composite representation in episodic memory). As shown by 
+Gershman et al. (2012)
+, this composite context is equivalent to the stimulus' steady-state (i.e., fully converged) SR.
+The second simplifying assumption is that the retrieval of a stimulus does not affect the temporal context. That is, during retrieval we set β = 0 and ρ = 1 in Eq. (1), leading to c i = c i−1 (this is equivalent to removing the red arrows in 
+Fig. 1g-i
+). Note that this simplification eliminates the model's ability to explain the contiguity effect. Additionally, we do not impose the constraint often present in free-recall tasks that the same item cannot be retrieved multiple times. In this setting, retrieved stimuli can be viewed as "samples" that are independent and identically distributed (i.i.d.).
+With the two assumptions above in place, the predictions of this stripped-down TCM formulation are that the set of retrieved stimuli are i.i.d. samples (second assumption) from the steady-state normalized SR (first assumption) of the queried action ( 
+Fig. 2a
+). This observation suggests a potential use for these samples in decision making. Specifically, an action can be evaluated by averaging the rewards associated with the episodically retrieved samples from the SR:
+q(a) ∝ 1 N N i=1 r T x(S i ),
+(2)
+where
+S 1 , S 2 , . . . , S N ∼ p(s) are samples from the normalized SR, i.e., p(s) = x T a M |x T a M| x(s), x(S i )
+is the one-hot feature vector for state S i (for which we some times use the shorthand x i ), and
+r i = r T x(S i )
+is the reward present in state S i . Thus,q(a) is obtained by averaging samples of r i .
+Intuitively, the agent first resets the temporal context to the action to be evaluated (note that this eliminates any residual effect of recent history). The agent then retrieves a sequence of successor states and their respective rewards ( 
+Fig. 2a
+). Eq. (2) shows that the average reward across all sampled states is a proxy for the action value, as we originally defined it. Repeating such retrieval-based evaluation for each candidate action can thus inform the agent to select the highest-valued action. Note this procedure is not derived from normative considerations (i.e., what memories an agent ought to retrieve); rather, it is a direct prediction of TCM: given the assumptions in place, TCM predicts i.i.d. sampling from the SR, retrieving states whose average reward is the normative action value. Our contribution here is to highlight and express this prediction formally and to show that these samples can be used straightforwardly to compute action values.
+The action values estimated by this process depend directly on the associations learned during encoding (i.e., the SR). In particular, the temporal context drift rate determines the similarity between the contexts associated with two consecutive stimuli. During retrieval, this rate modulates the sharpness by which retrieval is biased toward states occuring soon after the starting context. In RL terms, this amounts to the temporal horizon of the SR, parameterized by the discount factor γ. This ultimately affects the overall value estimated; depending on the discount factor, the computed value ranges between (i) rewards sampled exclusively from imminent states (γ = 0, 
+Fig. 2a,b)
+, and (ii) rewards sampled from all future states, with a preference for earlier states (γ > 0, 
+Fig. 2d,e
+). Notably, the former case (γ = 0) implements the evaluation required for bandit problems, in which action values depend only on instantaneous rewards. Indeed, a special case of the current model corresponds to a class of decision-by-sampling models that have been previously described and empirically tested in single-step problems like bandits (e.g. 
+Plonsky et al., 2015;
+Bornstein et al., 2017;
+Lieder et al., 2018)
+. The latter case (γ > 0) extends the i.i.d. decision-by-sampling approach to sequential problems. Unlike rolloutbased algorithms like MCTS, which sample states serially conditional on their predecessors to produce trajectories, this approach estimates action values by i.i.d. Monte Carlo sampling. Such sampling is possible because the SR effectively "flattens" the tree-like set of future situations in a sequential task to a set of individual future states weighted by their prevalence in the tree. Consequently, it transforms sequential decision tasks into bandit problems studied previously, extending the findings from sampling models to the sequential case. As more sampled rewards are averaged, the action value estimate approaches the truth, enabling better decisions. However, more samples typically require more time and resources. This leads to the question: how many samples should one draw for a decision? The answer depends on one's goal. Accurate action value estimation in our task entails dozens or hundreds of samples, as each sample provides reward information about only one of various successor states. However, many fewer samples are usually needed for action selection, as illustrated in the following two scenarios. First, if the value of one action dominates the others (i.e. one action leads to much larger rewards than the others), it can be identified with many fewer samples than needed to estimate all action values accurately. Second, if no action value dominates the others, identifying the optimal action requires a large number of samples, but the extra computation will not lead to a substantially larger payoff. Either way, a large fraction of the available payoff can be achieved with relatively few samples 
+(Fig. 2c,f
+): in Plinko, over 80% of maximum available reward can be obtained with fewer than 10 samples, unless the available rewards are extremely sparse (e.g., a single reward placed in the Plinko board). This prediction aligns with previous work demonstrating that surprisingly few samples are needed for effective decisions in bandit problems 
+(Vul, Goodman, Griffiths, & Tenenbaum, 2014)
+; here, by extending the decision-by-sampling approach we show that a similar observation applies to sequential problems as well.
+In sum, if retrieval does not update the temporal context, action values can be estimated straightforwardly by sampling stimuli i.i.d. from episodic memory and averaging the corresponding rewards. That is, in this parameter regime, TCM-SR embodies the SR's strategy for forecasting future events by temporal abstraction: it records long-run sequential contingencies experienced at encoding time, so as to easily recapituate them by retrieval at choice time. However, unlike previous invocations of SR in decision neuroscience and RL, this retrieval is accomplished by sampling individual future states rather than by exhaustive summation. This brings temporally abstract prospection into contact with episodic retrieval and decision-by-sampling models. The next section shows that episodic retrieval can also lead to rollout-based prospective simulation.
+
+
+The contiguity effect enables value estimation via rollouts
+The previous section considered a simplified setting in which the retrieval of a stimulus does not affect subsequent retrievals, giving rise to i.i.d. samples that the agent could average to obtain action values estimates. However, a prominent feature of episodic memory is that consecutive retrievals are not independent. Indeed, the simplifying assumptions from the previous section eliminate the model's ability to explain the contiguity effect, ubiquitous in list learning experiments. Thus, we now consider a different parameter regime of TCM, in which stimulus retrieval does affect subsequent retrievals. We focus initially on the extreme case where retrieval depends only on the immediately preceding retrieved stimulus (i.e., we set β = 1 and ρ = 0 in Eq. 
+1
+to yield c i = x i ), while assuming that this update is driven by a static, task-independent representation of each stimulus -another simplifying assumption that we also relax in the last section. TCM operationalizes this setting by fully updating the temporal context with the last retrieval, retaining no information retrieved before that. Thus, in contrast to the i.i.d. setting, this setting produces correlated samples (forming a Markov chain), which can also be used to estimate action values.
+As previously, the temporal context drift rate has a direct impact on sharpness of the distribution over retrieved states. In particular, a quickly evolving temporal context during encoding leads to the learning of an SR with a low discount factor γ. In the extreme of γ = 0, the first retrieved memory is an immediate successor of the considered action (because
+M = T 1 +γ 1 T 2 +• • • = T 1 when γ = 0, Fig. 1b).
+Upon retrieving the first memory and updating the temporal context, the second retrieved memory is an immediate successor of the first sample ( 
+Fig. 3a)
+. Repeating this sampling process recursively leads to a rollout (in Plinko, this process amounts to a simulation of a trajectory through which the ball might plausibly fall; 
+Fig. 3a,b
+).
+How can these samples used to estimate action values? As described in the RL literature 
+(Tesauro & Galperin, 1996;
+Coulom, 2006)
+, the sampled rewards in a traditional rollout can be added to produce an estimate of the action value:qγ
+=1 (a) ∝ N i=1 r T x(S i ),
+(3)
+where S 1 , S 2 , . . . , S N are samples from the normalized SR with γ = 0, each represented by a one-hot feature vector
+x i = x(S i ), with p(S 1 = s) = x T a M |x T a M|
+x(s) representing the SR of the queried action,
+p(S 2 = s) = x T 1 M |x T 1 M|
+x(s) representing the SR of the first sample, and so on. Note that each stimulus of
+the trajectory S 1 , S 2 , . . . , S N is drawn from a different distribution.
+Intuitively, for each action being evaluated, the agent retrieves a plausible sequence of states and the rewards associated with them. The total reward across all sampled states is an estimator for the action value. This is equivalent to an agent recalling a previous study list, and evaluating its worth based on the number of rewarded items it recalled. Again, this is a descriptive observation about TCM rather than a normative prescription about memory: a specific parameter regime of TCM implies that stimuli will be retrieved in sequences that correspond to a rollout in RL. Our contribution is to make this observation explicit and note that such rollouts can be used to estimate action values. Note that each rollout incorporates all future rewards with equal weight. This leads to an action value estimate for a unit discount factor (which we denoteqγ =1 (a)), even though the sampling distributions specified by the normalized SR are encoded with γ = 0. This happens because, by retrieving n consecutive memories and summing the rewards according to Eq. (3), one is concatenating n one-step predictions (i.e., γ = 0), which is equivalent to performing one n-step prediction (i.e.,γ = 1). However, weighing all future rewards equally is not always desirable or even possible, as it would require each rollout to continue forever. We circumvent this issue by positing a fixed probability of interrupting the retrieval process at any moment, denoted p stop . The larger the interruption probability, the less likely is the rollout to continue far into the future. This probability, in turn, allows the agent to control the effective discount factor of the constructed values during retrieval:
+qγ(a) ∝ N i=1 r T x(S i ),
+(4)
+where S 1 , S 2 , . . . , S N are samples from the normalized SR with γ = 0. The effective discount factor is given byγ = 1 − p stop , where p stop is the interruption probability (see Methods for details). Using this sampling scheme, we can measure the empirical distribution that each sample is drawn from each row for different values of p stop 
+(Fig. 3b
+). This confirms the relationship between p stop and the effective discount factors during retrieval,γ.
+The reliability of a value estimate is again proportional to the number of samples and rollouts performed. As before, over 80% of maximum available reward can be obtained with fewer than 10 samples (i.e., one full rollout), unless the available rewards are extremely sparse (e.g., a single reward placed in the Plinko board; 
+Fig. 3c
+). Note that since each retrieved item promotes the retrieval of successor states, this regime explains part of the contiguity effect: it predicts the recall of items encoded after, but not before, the just-recalled item ( 
+Fig. 3d
+).
+All this raises a potentially confusing notational and conceptual point. The current model now involves two discount factors, because it uses serial retrieval to extend the temporal range of the encoded associations. The parameter γ refers to the timescale of associations formed when building an SR at encoding time. Sampling directly from this encoded SR i.i.d. (as in the previous section) estimates action values q reflecting that discount factor (i.e., in which future rewards lose value exponentially with rate γ; this happens in TCM-SR because the corresponding states are less likely to be retrieved). However, by performing iterative sequential retrieval from the same model, it is possible to extend this timescale at retrieval time to give more weight to later rewards, i.e. to estimate values reflecting a larger discount factor than the encoding γ. We denote the effective discount factor achieved at retrieval byγ. Using rollouts from a one-step model (γ = 0) to compute long-run action values is a familiar case of this construction; we develop further examples next.
+Going beyond the extreme case of γ = 0 studied above, we now study the case of a general encoding timescale γ > 0. Here, the first retrieved item is a sample from the normalized SR at the candidate action, and each subsequent recall is a sample from the SR of the previous sample ( 
+Fig. 3e-h
+). Sequential retrieval again resembles a rollout, but due to the longer timescale of the SR, two consecutive samples can be separated by multiple rows. We call such a jumpy, state-skipping rollout a generalized rollout.
+To estimate action values using generalized rollouts, the sampled rewards can again be added to produce a sample of the cumulative return, exactly as in Eq. (4). Moreover, by specifying an interruption probability, the effective discount factor produced during retrieval can be controlled and corresponds
+toγ = γp stop + (1 − p stop ) (see Methods for details).
+Why is this useful? Just as rollouts construct long-run predictions from a one-step model, generalized rollouts construct longer-run predictions from an SR. The timescale of the encoded world model may not be under the control of the agent. For example, it may be constrained by biological factors such as those governing neural plasticity (e.g., the temporal decay of intracellular concentrations that maintain eligibility traces) and/or by the statistics of experience, such as the timescales of the trajectories that they encounter. By contrast, we posit that p stop is likely under the control of the agent. A chess player, for example, can decide how much time to spend simulating a particular sequence of moves (E. 
+Russek, Acosta-Kane, van Opheusden, Mattar, & Griffiths, 2022)
+. This highlights a remarkable feature of episodic memory: even if the learned associations at encoding have a short timescale (in the extreme, a myopic SR with γ = 0, equivalent to a one-step transition model of the world), the retrieval phase can extend this timescale to implement any desired discount factor simply by continuously sampling successor memories. The effective discount factor thus increases as the simulated trajectories lengthen. This allows the agent to decouple the discount factor from timescale of the world model.
+In sum, we have shown that when each retrieval completely resets the temporal context, action values can be estimated by accumulating sampled rewards drawn sequentially from episodic memory. This procedure implements a generalized rollout algorithm whose "skippiness" γ is specified by the drift rate at encoding, and whose effective discount factorγ can be controlled by the probability of interrupting the retrieval process. Overall, the case of rollouts studied here, as well as the i.i.d. case studied previously, represent two distinct modes of operation of episodic memory, which TCM formalized as extreme settings of the parameter space. Next, we consider intermediate, more general -and likely more realistic -settings.
+
+
+Data from free recall experiments suggest an intermediate regime
+The previous sections examined two different strategies for predicting future events, corresponding to extreme settings in parameter space of TCM. The first section established that when retrieval does not modulate the temporal context, action values can be estimated via i.i.d. sampling from a model whose learned associations span future states over some temporal horizon. The second section showed that if retrieval completely resets the temporal context, sequential retrieval chains together predictions to extend this horizon, and action values can be estimated via generalized rollouts. Yet behavioral data from memory tasks suggest that human memory operates in neither of these two extreme modes, but rather displays signatures of both 
+(Howard & Kahana, 2002)
+. Indeed, the best fitting parameters describing context update in free recall experiments usually fall between the two extremes (i.e., 0 < β < 1 in Eq. (1)), suggesting that each retrieval updates the temporal context but only partially. We now consider this intermediate regime and show that here, too, episodic memory can help compute action values.
+The partially-updated temporal context at retrieval can be understood as a mixture of the current test context and the encoding context. For instance, immediately after the first retrieval, the context mixture enables sampling from either the SR of the queried action (the original context), or from the SR of the first sample (the retrieved context). Thus, the second sample either starts a new rollout with probability 1 − β, or continues an existing rollout with probability β. Hence, β interpolates between the two distinct settings discussed above. Each action can be evaluated according to:
+qγ(a) ∝ β N i=1 r T x(S i ),
+(5)
+where β > 0 and S 1 , S 2 , . . . , S N ∼ p(s) are samples from the normalized SR p(s) corresponding to some effective discount factorγ. Note that this estimator is only unbiased given an infinite number of samples and otherwise an underestimate (see Methods for details); however, a relatively large number of samples is sufficient for an estimate that's close to the truth 
+(Fig. 4c,f)
+.
+The same insights gained in the previous sections apply here, including extension of the effective discount factor with a larger β ( 
+Fig. 4b,e
+) and the sample efficiency during decision making 
+(Fig. 4c,f)
+. Notably, due to the partial updating, implemented by setting ρ = β = 0.5, the effective discount fac-tors as computed in the generalized rollout case (i.e., fully updating the temporal context with the last retrieval with ρ = 0, β = 1; lines in 
+Fig. 4b,e
+) no longer capture the empirical sampling distributions under the same p stop unless p stop = 1 (dots in 
+Fig. 4b,e
+). Recall that the larger the β, the further into the future later samples reach: i.e., β controls the degree to which the timescale at retrieval is extended ( 
+Fig. 4a,d
+). Thus both increasing β and decreasing the interruption probability extend the agent's effective temporal horizon for action evaluation, with the exception that the resultant sampling distribution may not correspond to any specificγ as it is not necessarily an exponential distribution (e.g. red dots in 
+Fig. 4b
+).
+Hence in the more realistic setting of partial context updates, action values can still be estimated from retrieved episodic samples. This suggests that by modulating β (i.e. how drastically context is shifted to reflect each new sample), the agent can modulate its reliance on temporal abstraction vs constructive, rollout-based simulation, allowing it to balance the costs and benefits of these evaluation regimes depending on circumstances. This is similar to other examples in which, it has been argued, the brain adjusts its decision computations due to similar cost-benefit tradeoffs 
+(Daw, Niv, & Dayan, 2005;
+Keramati, Dezfouli, & Piray, 2011;
+Nicholas, Daw, & Shohamy, 2022
+).
+All simulations so far only consider the case of unlimited experience (i.e., multiple rounds of encoding; sampling from a converged SR). The next section extends our predictions to settings when only limited experience is available. With limited experience, retrieval is based on trajectories
+Our simulations thus far assumed that the retrieval simulations we describe are preceded by an extensive encoding phase in which each state (location on the Plinko board) is encoded a large number of times. With repeated exposure, the associations formed between stimuli and contexts converge to the true steady-state SR 
+(Gershman et al., 2012
+). Yet episodic memory is generally believed to be most useful, and perhaps most frequently used, when our experience with stimuli is limited. Indeed, this belief underlies most previous models of decision making informed by episodic memory 
+(Lengyel & Dayan, 2007;
+Ritter et al., 2018)
+. We investigate this low-sample setting below, showing how unbiased value estimates are possible from states sampled along few experienced trajectories. In this case, the encoded model approximates the true task dynamics using this sparse set of encoded trajectories. Apart from that, the flexible prospection properties of the model remain the same.
+Consider first that the agent has encountered only a single trajectory. TCM's account of encoding this trajectory into episodic memory is equivalent to the RL account for learning an SR from this same experience (e.g., via temporal difference learning; 
+Gershman et al., 2012)
+. This forms associations corresponding to the sequential contingencies experienced by the agent. If this encoding is followed by TCM retrieval, only states along the experienced trajectory will be retrieved ( 
+Fig. 5a
+, "Trial 1"), with states early in the trajectory having higher retrieval probability due to the temporal discount factor γ. Each subsequent stimulus is drawn from a distribution that depends on the degree of context update β. As before, this leads to a sampling scheme resembling i.i.d. sampling, rollouts, or both: but over a sparsely populated transition model consisting of only the encoded trajectory.
+The extension to multiple experienced trajectories is straightforward. For instance, if an action has been executed twice, both trajectories should be encoded in the learned SR. Here, states belonging to either trajectory can be retrieved, with dynamics again depending on the degree of context updating 
+(Fig. 5a
+, "Trial 2"). The learned SR comes to represent a composite of possible trajectories as experiences expand, eventually converging to the steady-state SR 
+(Fig. 5a, right)
+. Thus, TCM-SR predicts that retrieval is based on experienced trajectories when experience is limited; as the agent acquires more experience, our model predicts the limit cases studied in previous sections.
+Note that the TCM predictions above share commonalities with previous proposals for how episodic memory might be used for decision making 
+(Lengyel & Dayan, 2007;
+. In particular, 
+Gershman and Daw (2017)
+ proposed that agents store individual trajectories in memory, such that when a familiar state is encountered, action values can be computed by summing the rewards along a trajectory and averaging across trajectories: the very prediction given by β = 1 and γ = 0 in TCM-SR. However, our model also predicts sampling along novel trajectories. e.g. given trajectories ABDE and ACDF, our model predicts that rollouts along ABDF or ACDE are possible. For more general parameter settings, our model predicts state-skipping (if γ > 0) or backward jumping (if β < 1). Furthermore, states in the beginning of an experienced trajectory (predictions of the near-future vs. distant-future) are prioritized for retrieval due to discount factor. These differences result from the critical assumption of our model that agents retrieve individual states, rather than trajectories.
+In sum, when limited experience is available, action values can be estimated by sampling states along (a composite of) previously experienced trajectories, facilitating few-shot estimation of action values as formalized in previous models. The next section considers additionally how preferentially retrieving emotionally salient stimuli, as observed empirically, can lead to faster evaluation.
+
+
+Emotional modulation of memory yields bias-variance trade-off
+The sections thus far formalize how temporal contingencies at encoding affect retrieval at a later time, and why retrieval dynamics in the TCM-SR are suited well for action evaluation. Yet, so far we have ignored another prominent feature of episodic memory that ought to affect retrieval-based evaluation during decision making: the psychological impact of states that are rewarded, compared to those that are not.
+Episodic retrieval is strongly affected by signs that some stimuli are more important than others. For example, in the phenomenon of value-directed remembering, memory for high-reward stimuli is better than memory for low-reward stimuli 
+(Stefanidi, Ellis, & Brewer, 2018)
+. Even when reward is not signalled overtly, signals that some stimuli should be prioritized promotes their retrieval 
+(Mather, Clewett, Sakaki, & Harley, 2015)
+. In fact, stimuli that attract processing resources are remembered better even when retaining them in memory is not obviously goal-congruent. One well-known example is that emotionally salient stimuli are retrieved preferentially even when participants have no external incentive 
+(Yonelinas & Ritchey, 2015)
+. Formal models of emotionally enhanced memory have attributed the effect either to a differential learning rate 
+(Talmi et al., 2019;
+Cohen & Kahana, 2019)
+ or differential information decay 
+(Zhou, Guo, & Yu, 2020)
+ during encoding. Given that emotional salience modulates episodic memory, it follows that it should also modulate action evaluation in TCM-SR. We examine this issue below. For present purposes, we gloss over the many differences between emotional stimuli, prioritized stimuli, and rewards and punishments with varied magnitude, referring to all of them as 'emotionally salient' or 'important' states, and speak generally about 'emotional modulation' to refer to their effect on memory 
+(Talmi, Kavaliauskaite, & Daw, 2018)
+.
+To study the effect of emotional modulation in the Plinko game, we first note that when there is a single state with nonzero reward, the optimal actions are the ones capable of reaching that state. But if samples are prioritized based purely on temporal contingencies, that key state will be sampled very rarely among the many background states, and the agent might need a large number of samples to discover which actions are most likely to obtain it. Indeed, this sort of "needle in the haystack" effect accounts for the relatively poor performance for TCM-SR with few samples in our simulations thus far (Figs 2c,f; 3c,g; 4c,f). While performance can be improved by drawing more samples, this longer deliberation can be costly in terms of time and effort.
+A potentially more effective way to find the best action might be to bias sampling toward the most relevant states (here, the goal), even if biasing the sampling procedure might lead to biases of the estimated payoff q 
+(Lieder et al., 2018
+). Here we suggest that such favorable biasing can be accomplished by (and, conversely, helps to justify) emotionally modulated retrieval, where we operationalize emotionally salient states as those with unusually large (or small) rewards.
+Computationally, an emotionally modulated retrieval results in a bias-variance trade-off : preferential retrieval of emotionally-salient stimuli disproportionally influences the final evaluation, resulting in an estimation bias, that is, either an over-or an under-estimation of true action values. When most samples come from the smaller set of "important" states, samples are less varied, resulting in lower estimation variance. Consequently, fewer samples are required to be reasonably precise and fewer retrievals are needed to arbitrate between competing actions. Nevertheless, the eventual decision can be suboptimal, in the sense that the action selected may not be the one associated with most reward. The larger the retrieval preference towards emotionally-salient stimuli, the larger the estimation bias and smaller the variance -thus, a bias-variance trade-off. A similar observation has been previously made in bandit settings 
+(Lieder et al., 2018)
+. Here, we extend this class of Monte Carlo models to sequential tasks, and show that the same observation applies. The main contribution of this section is that TCM-SR allows us to expose how action evaluation in sequential tasks relates to episodic memory, helping to rationalize emotional memory effects.
+To illustrate this effect in our Plinko environment, we follow previous modeling work and employ a higher learning rate to encode emotionally salient stimuli into memory 
+(Talmi et al., 2019)
+. This means that the learned SR will be skewed towards the rewarded states 
+(Fig. 5b)
+. Consequently, in the Plinko game, states associated with rewards are sampled more frequently during retrieval 
+(Fig. 5d, right)
+. Without emotional modulation, rewarded states would have been sampled only rarely 
+(Fig. 5d, left)
+. The consequences of operationalizing emotional modulation in TCM-SR such that rewarded states are encoded with a larger learning rate are threefold. First, the action value estimates no longer converges to the correct action values. Second, convergence will be faster, resulting in a bias-variance trade-off 
+(Fig. 5f
+, compare with 
+Fig. 5e
+). Third, if the agent selects actions according to this regime, a higher fraction of rewards can be obtained for a given number of samples ( 
+Fig. 5c
+), suggesting that biased retrieval can be more favorable, in terms of ultimately guiding choice, than unbiased retrieval.
+
+
+Retrieving a learned context allows backward sampling
+Starting from a simplified model of episodic memory, the previous sections examined the effect of various known properties of episodic memory on action evaluation and choice. A key insight of the model is that forward contiguity gives rise to predictive state rollouts. However, in list learning data, contiguity also runs in reverse: stimuli are also more likely to be recalled if they were experienced before as well as after the just-recalled stimulus 
+(Fig. 1c)
+. From the perspective of mental simulation, this property seems counterintuitive: in our example, it corresponds to rollouts in which the Plinko ball, impossibly, runs uphill. Here we suggest that this type of reversible simulation is actually adaptive for many tasks other than Plinko.
+The reason our simulations thus far reproduced only the forward contiguity 
+(Fig. 3d,h
+) is because of one final simplification that have not yet been re-examined. We have assumed that when a memory is retrieved, it updates the temporal context with a static, task-independent representation of the retrieved stimulus (x t in Eq. (1); 
+Fig. 1h
+). In contrast, the original TCM model explains the two-sided contiguity effect by positing that context update caused by retrieving a stimulus is not static and taskindependent; rather, memory retrieval updates the temporal context with a dynamic, task-dependent representation, a representation that changes each time that stimulus is experienced. In particular, TCM assumes that the temporal context is updated by a retrieved context associated with a given stimulus, instead of being updated by the stimulus representation x t itself. Formally, the temporal context is updated during retrieval according to
+c i = ρc i−1 + βc IN i , where c IN i = Mx i , i.e.,
+
+
+c IN
+i is the column of the SR indexed by the stimulus. Importantly, this modification only concerns retrieval; it does not affect encoding, where the context still evolves according to Eq. (1) with c IN i = x t . Thus, whenever stimulus S is retrieved, the temporal context is updated by the context associated with S, which is similar to the contexts associated with both subsequent stimuli and preceding stimuli. This results in the classic, bidirectional contiguity effect, often reported in list learning experiments 
+(Fig. 6a,b
+).
+What might be the adaptive purpose of a bidirectional pattern of retrieval? This pattern might appear counterintuitive since an action value is determined by the expectation of future rewards. Indeed, in our previous simulations, action values were estimated via strictly forward-looking rollouts, i.e., in terms of future rewards alone. With a bidirectional pattern of retrieval, sampling no longer respects the temporal order of events experienced during encoding. We argue that, in most realistic tasks, the experienced temporal ordering of events is only one of all possible orderings; most state transitions experienced in one order can also be traversed in the reverse order. Although this is never the case in Plinko (since gravity strictly pulls the ball downward), it is often the case in tasks like spatial navigation.
+In other tasks (like chess), many actions are reversible while some others (e.g. capturing a piece) are not. An agent operating in the low-data regime can leverage this reversibility to infer, after experiencing state A followed by B (A → B), that transitioning from B to A (B → A) is likely also possible. Similarly, given only a few experiences in an environment, the agent can infer an exponentially larger number of unexperienced but likely possible trajectories (e.g., extrapolating A → B → C to not only C → B → A, but also A → B → A, C → B → C, etc), which in turn generalizes action evaluation. Ideally, the relative strength of forward vs. reverse continguity (biased forward in classic list learning data) would reflect the chance that a newly encountered action is reversible; this might, in turn depend on context.
+As an example, consider an experience where an action is followed by A → B → C, and that the agent retrieves stimulus B. The generalized rollout studied previously permits a subsequent sample of C but not A due to its strictly forward-looking nature. By assuming that the retrieved stimulus updates the temporal context with a retrieved context, the next retrieval can be either C or A, consistent with the assumption of reversibility. This can improve sample efficiency, as multiple (plausible) sequences of events can be simulated despite having encoded only a single experience.
+To simulate this scenario, we modified our Plinko task to eliminate gravity so that the agent can move diagonally in any direction, and it may start from any board position. The agent's goal is to select an adjacent state to move into, after which each subsequent states is selected at random from between the neighbors of the previous state. In this "reversible Plinko", the value of each state is affected by all rewards on the board, with nearby rewards contributing a higher weight to the value. If an agent only experiences top-to-bottom trajectories in the reversible Plinko task, and uses a strictly forwardlooking rollout to evaluate actions, the resulting values will correspond to values under the gravitybound Plinko rules. While they are in line with the agent's experiences, they do not match the true values under the reversible Plinko rules 
+(Fig. 6d)
+. A retrieved context aids the agent to go beyond unidirectional experience and correctly estimate the values for the reversible Plinko 
+(Fig. 6c
+). Hence we suggest that the ubiquitous human tendency to recall stimuli in the opposite order than experienced may allow a more efficient use of one's limited experience.
+
+
+Discussion
+
+
+Summary of Findings
+We proposed TCM-SR, a process-level model of how episodic memory informs decision making. What is extraordinary about this model is that it applies -essentially unmodified -a standard theory of episodic memory function to an entirely different setting: that of sequential decision tasks. The resulting hybrid implements and extends a prominent class of theories of how the brain makes sequential decisions. The proposed grounding of decision variables and choices in specific episodic retrieval dynamics brings to bear much of our knowledge of episodic memory, including a richly developed behavioral and neural framework. It also suggests many testable predictions for choice manipulation via manipulations known to affect memory encoding or retrieval. Conversely, the theory rationalizes seemingly arbitrary features of episodic memory -such as emotional memory effects and the bidirectionality of temporal contiguity -which appear counterintuitive from the traditional RL perspective, but turn out to be adaptive for choice.
+Our model inherits from TCM a drifting temporal context that integrates the agent's recent experience during memory encoding and guides retrieval. The agent evaluates actions by retrieving memories that correspond to task's states and the rewards associated with them, according to the prediction of TCM. As we have shown, such recursive retrieval implements a parameterized family of sampling algorithms that, when applied to sequential decision problems, gives rise to action value estimates. Our model thus provides a novel mechanistic account of model-based evaluation, incorporating aspects of both SR theories and iterative rollout-based planning, the hallmarks of both of which have been previously seen in neural and behavioral data 
+(Momennejad et al., 2017;
+Stachenfeld et al., 2017
+; E. M. 
+Momennejad, Otto, Daw, & Norman, 2018;
+Mattar & Daw, 2018
+; E. M. 
+Russek et al., 2021;
+Liu, Mattar, Behrens, Daw, & Dolan, 2021)
+. Crucially, many previous ideas (both theoretically justified or empirically observed) about the role of episodic memory on decision making arise naturally as subcases of our model.
+The theoretical derivations and simulation results we presented established that TCM can compute decision variables in stylized tasks, but we have not focused on applying these insights to specific experiments. This is because the two classes of theories our account merges -TCM and SR -are already supported well in each domain, with large bodies of experiments and simulations, which we do not repeat. In particular, our model inherits TCM's account of a panoply of list learning phenomena (e.g., primacy, recency, and contiguity effects; 
+Howard & Kahana, 2002;
+Sederberg et al., 2008;
+Polyn et al., 2009;
+Talmi et al., 2019)
+. Meanwhile, since its strategy encompasses model-based and SR-based choice, it can explain the full range of behavioral phenomena that suggest that the brain recruits cognitive maps or world models in decisions (e.g., nimble replanning, revaluation and transfer, and credit assignment in multi-step MDPs; 
+Daw et al., 2005;
+Keramati et al., 2011;
+. It also explains occasional slips of action consistent with the use of an SR 
+(Momennejad et al., 2017;
+Piray & Daw, 2021)
+. Furthermore, the decision-time sampling process is broadly consistent with neural results showing that these types of model-based choices are at least sometimes accompanied by replay or reinstatement reminiscent of rollouts 
+(Pfeiffer & Foster, 2013;
+Momennejad et al., 2018;
+Mattar & Daw, 2018)
+.
+TCM-SR produces a number of new and untested predictions in both the decision and memory domains. We have argued that recall biases like contiguity and emotional memory enhancement have corresponding effects on choices. If deliberative evaluation is indeed grounded in free recall, these decision effects should be quantitatively comparable to their counterparts measured in list learning, that is, model fits should reveal they reflect the same within-and between-individual best-fitting parameters. Additionally, other manipulations that affect memory, like proactive and retroactive interference, should also have concomitant effects on decisions via enhancement or suppression of particular states and/or outcomes. Conversely, the rationalization of these parameterized memory effects as enabling more efficient choice in various settings suggests that the parameters governing them are potentially malleable, adapting to the statistics of the study material to optimize choice 
+(Nicholas et al., 2022)
+. For instance, when states or study items reflect non-reversible environmental dynamics, a rational RL agent would be expected to dial back the reversibility assumption when learning an SR. In turn, this may also attenuate the backward contiguity effect as measured via memory recall. In another example, the usefulness of emotional memory enhancement ( 
+Fig 5)
+ at improving choices strongly depends on the statistics of the emotionally salient rewards, such as their sparsity. If the degree of emotional enhancement is normatively adjusted to reflect its circumstantial suitability, this may also impact memory. This line of reasoning may suggest an explanation for findings in the memory domain showing that these effects are modulated by how emotional and neutral items are clustered during study 
+(Talmi et al., 2019)
+.
+
+
+Successor Representation and Generalization to Sequential Decision Problems
+Our account is consistent with a class of models that use a handful of selective samples to construct decision variables 
+(Plonsky et al., 2015;
+Bornstein et al., 2017;
+Lieder et al., 2018)
+. While these models address a number of empirical phenomena in choice, and suggest a broad analogy with episodic recall, they consider only the special case of one-step decision problems and incorporate few insights about known episodic memory mechanisms. We argue that incorporating the effects of contiguity, established in episodic memory research, is key to extending sampling models beyond bandit problems into the sequential realm -a broader, more realistic, and more challenging classes of decision making problems. Bandit-like evaluation then arises as a special case in our model, allowing it to both incorporate the results from previous models while extending many of these ideas (like bias-variance tradeoffs in the small-sample domain) to the sequential domain.
+Another crucial ingredient for generalizing from one-step bandits to sequential decision problems is the successor representation (SR). Prior work suggests the SR is biologically plausible to learn, given its ability to explain patterns in human behavior 
+(Momennejad et al., 2017;
+ and in the activity of hippocampal neurons 
+(Brea, Gaál, Urbanczik, & Senn, 2016;
+Stachenfeld et al., 2017;
+Garvert, Dolan, & Behrens, 2017)
+. Building on the previously established equivalence between TCM encoding and SR learning 
+(Gershman et al., 2012)
+, our model extends the insight to formalize, for the first time, how TCM retrieval amounts to sample-based action evaluation in sequential settings. This temporally extended sampling process marks a departure from the canonical view in SR models from both neuroscience and AI, where state values are instead computed instantaneously via a dot product v = M γ r 
+(Dayan, 1993;
+Momennejad et al., 2017;
+. Apart from drawing a connection with episodic retrieval, our sampling variant places it in the context of rollout-based models, allows the model iteratively to construct forecasts beyond its innate temporal scope.
+
+
+Relation to Existing Models
+
+
+Episodic Control
+Previous episodic control models in RL have often been stylized in design, treating "episodic" memory chiefly as a store of individual instances. Our model improves on them by incorporating known mechanistic details of episodic memory. For example, a recent model of this class assumes that action values are computed by considering all relevant trajectories the agent has experienced . In contrast, TCM-SR assumes that trajectories are only encoded indirectly via state-context associations, while maintaining the ability to simulate rollouts during retrieval. The two achieve similar action values, except in cases where our model retrieves rollout samples by merging different trajectories. Importantly, our model explicates the process of retrieval, predicting that (1) individual states rather than trajectories are retrieved, and (2) retrieved samples may skip over intermediate states. Future work should investigate whether these predictions better describe how humans evaluate actions.
+
+
+Episodic vs. Model-Based Evaluation
+Previous work has often distinguished between at least two types of decisions, model-based (goaldirected, deliberative) and model-free (habitual, automatic) 
+(Daw et al., 2005)
+. It remains unclear, though, both what is the exact neural and computational basis for the planning-like behaviors associated with model-based control, and whether any contributions of episodic memory to choice are distinct from this. The recruitment of constructive rollouts in our model suggests an intriguing possibility that what has been attributed to model-based evaluation might be wholly or partially explained by episodic retrieval. Several lines of empirical results support this hypothesis: patients with hippocampal damage tend to exhibit a lower degree of model-based control 
+(Gutbrod et al., 2006;
+Vikbladh et al., 2019)
+; the hippocampus is often active in tasks requiring model-based control 
+(Bornstein & Daw, 2013)
+; and finally, inactivating the hippocampus in rats causes their behavior to shift from model-based to model-free 
+(Miller, Botvinick, & Brody, 2017)
+.
+All this casts doubt on the influential hypothesis that episodic control represents a distinct "third way" that departs from the model-based vs. model-free dichotomy 
+(Lengyel & Dayan, 2007)
+. Instead, TCM-SR predicts that episodic retrieval can give rise to evaluations resembling either episodic or semantic model-based control, depending on the amount of experience the agent has been able to accumulate, which determines the sparsity of its memory representation. Given ample experience, like a world model, SR only retains statistical commonalities across experience, and thereby facilitates model-based rollouts for action evaluation. This is consistent with the complementary learning systems account whereby semantic representations are obtained by extracting regularities across individual experiences via a process of consolidation 
+(O'Reilly, Bhattacharyya, Howard, & Ketz, 2014;
+Kumaran, Hassabis, & McClelland, 2016)
+. When experience is limited, SR represents individual trajectories, and recall largely follows them as experienced. Therefore, despite different formalizations, TCM-SR in fact agrees in spirit with a prediction of the earlier model 
+(Lengyel & Dayan, 2007)
+ that agents might rely more on evaluations grounded in distinct episodic records when experience is limited, giving way to control based on a more statistical model as more experience is gathered. Together, the empirical and modeling evidence suggest a close link between episodic and model-based evaluation as a function of experience. Importantly, these considerations point to the importance of future investigation in a memory regime that has not seen much study in list learning: how episodic recall is affected by repeated exposure to lists with overlapping items 
+(Gershman et al., 2012)
+, analogous to the hypothetical transition from individual trajectories to an SR in our model.
+
+
+Additional computational considerations
+TCM has been extended in a series of successor models, such as TCM-A 
+(Sederberg et al., 2008)
+ and CMR 
+(Polyn et al., 2009)
+. These extensions are all compatible with our approach. Indeed, the additional features of memory addressed there -particularly clustering of recall not just by temporal context but also semantic and source-memory similarity -may have unappreciated consequences in the decision domain that TCM-SR does not yet address.
+A major computational simplification of our model is that we treat candidate decisions as only a single choice made at the first step, after which the model predicts further states as though the task played out passively, like a falling Plinko ball. For most sequential decision tasks, such as mazes, actions must additionally be chosen at each subsequent step, and these choices impact the value of the action at the first step 
+(Sutton & Barto, 2018)
+. Like other SR-based models, our present model does not fully solve this broader class of tasks. That said, the RL literature typically considers the action evaluation problem our model does solve (termed "policy evaluation" in the RL literature) to be the key subproblem for addressing the more general policy optimization problem. Critically, even in a task where every step involves a decision, an SR or other model can learn the world's dynamics under a particular assumption about which actions are chosen, called a policy. This turns a problem with decisions at every step to one, like Plinko, in which the state evolves passively (because subsequent decisions are assumed known). In this way, the agent can evaluate the consequences of any candidate action choice at any particular step, temporarily assuming the others are fixed. This local "policy improvement" process can iterate, with the SR continually relearned, recomputed, or adjusted, to reflect improved policies as learning proceeds. Future work could address a number of alternative approaches to this problem, including nonlinear SR variants that approximate maximization at intermediate steps 
+(Piray & Daw, 2021)
+, or rollout/retrieval dynamics that include some degree of maximization biasing the choice at each rollout step (E. M. 
+Russek et al., 2017)
+, similar to traditional value iteration algorithms.
+To conclude, the contribution of TCM-SR is in bridging two distinct families of theory and cognition, each explaining, but hitherto separately, a large body of empirical data. We have suggested how to address decision problems using the tools of memory research, and how to apply normative insights from decision problems back to emory mechanisms. By doing so, and pointing to a number of possible new avenues rife for exploration, we hope to bring research literatures that have evolved separately closer to each other.
+
+
+Methods Task Details
+We wish to formalize how action values in sequential decision problems can be estimated via episodic memory samples, taking into account several known properties about retrieval dynamics in free-recall. We illustrate this process with a temporally extended game called Plinko 
+(Fig. 1a)
+. This game is an analogy to a generic sequential decision task where each action leads to a stochastic sequence of states, and where each state can be reached by potentially multiple actions. We selected the game of Plinko because it allows the visual depiction of the sequential retrieval process in a didactic manner (as rows represent both time and space). The game should therefore not be interpreted literally as choices in a real game of Plinko are unlikely to be guided by episodic memory.
+In Plinko, the agent chooses a place on the top row of the board to drop a ball. At each step, the ball falls diagonally either to the left or to the right by one row, with equal probability. If the ball is at the left edge of the board, it falls diagonally to the right with probability 1. Similarly, if the ball is at the right edge, it falls diagonally to the left with probability 1. A trial starts when the ball is dropped on the top row and ends when the ball reaches the bottom of the board. Rewards, which are scattered across the board, can be collected whenever they are hit by the falling ball. An experiment is composed of multiple trials having a single reward placement.
+The agent must decide where to drop the ball in order to collect as much reward as possible. To decide, we assume that the agent estimates the goodness of each candidate location along the top row so as to support effective decision making. The goodness of each action is the total expected reward resulting from that action. We further assume that the agent has had prior experience with this task stored in episodic memory. Whenever the agent needs to select an action, it evaluates each candidate action by retrieving episodic memories. No other source of information is available to the agent.
+
+
+Formal setting
+We formalize this problem as Markov Reward Process (MRP) -a discrete-time stochastic process which extends a Markov Chain by adding a reward to each state. Unlike in a Markov Decision Process (MDP), the state dynamics in an MRP are not under control of the agent (note that an MRP is obtained by fixing the agent's policy in an MDP). Thus, in an MRP we are typically concerned with the problem of reward prediction (e.g., how much reward will follow from each state on the top row of Plinko) and not control (e.g., which actions to select at each Plinko state). Nonetheless, we use the notation of MDPs in this paper to remain consistent with the decision making literature.
+The task is formalized by a 5-tuple ⟨S, A, P, R, γ⟩. S = {s 1 , s 2 , . . . , s |S| } denotes the set of states, and A denotes the set of actions corresponding to each state in the top row, i.e., A = {s a=1 , s a=2 , . . . , s a=|A| }. P : S → S is the Markov transition function that defines the probability distribution P(s ′ |s) of transitioning from state s to state s ′ . R : S → R is the reward function R(s) specifying the reward magnitude received upon visiting state s, and γ ∈ [0, 1) is the discount factor that controls the temporal horizon of computations by reducing the importance of rewards in distant future.
+The goal of the agent is to choose the action that maximizes the cumulative discounted return G =
+∞ t=1 γ t R(S t ),
+where S t is a random variable denoting the state at time t. As a shorthand, R t is a random variable denoting the reward obtained at time t. Upon selecting an action, the agent experiences a sequence of states, each drawn with probability P S t+1 = s ′ | S t = s = P(s ′ |s). This gives rise to a "trajectory" given by
+S 1 , R 1 , S 2 , R 2 , S 3 , R 3 , . . . , S H , R H , where H = |S|
+|A| is the number of rows in the Plinko board. After reaching the bottom of the Plinko board, we assume that the ball is transferred to an unrewarded, absorbing state outside the board.
+The value of state s, denoted v(s), is defined as the expected return when starting in s:
+v(s) = E ∞ k=1 γ k R t+k | S t = s .
+The value of taking action a, denoted q(a), is defined as the expected return when taking action a in the beginning of a trial:
+q(a) = E[ ∞ t=1 γ t R t | A = a]
+, and can also be defined strictly in terms of states:
+q(a) = E[ ∞ t=1 γ t R(S t ) | S 1 = s a ].
+We refer to q(a) as "action value".
+In order to select an action, the agent estimates q(a) for each candidate action. The field of RL describes various methods for estimating q(a), broadly divided into model-free and model-based methods. Model-free methods are those where the agent learns to estimate q(a) directly from experience. The classic temporal difference (TD) algorithm, for example, iteratively updates the agent's estimate Q(a) as Q(a) ← Q(a) + α γR 1 + γ 2 v(S 2 ) − Q(a) whenever action a is performed. In modelbased methods, in contrast, the agent uses a model of the world (i.e., an estimate of P and R) to estimate q(a). If both P and R are perfectly known, the agent can generate a plausible trajectory
+S 1 , R 1 , S 2 , R 2 , S 3 , R 3 , . . . , S T , R T resulting from a, where S 1 = s a , S i+1 ∼ P(.|S i )
+, and
+R i = R(S i ).
+Each such trajectory is called "rollout", alluding to the fact that states (and rewards) are sampled recursively 
+(Tesauro & Galperin, 1996)
+. The total discounted reward along a rollout trajectory is a Monte Carlo estimate of the action value, i.e., Q(a)
+= H i=1 γ i R i .
+
+
+Successor Representation
+Consider the one-step state-transition matrix T ∈ R S×S whose (i, j)-th entry T ij corresponds to the probability of transitioning from state i to state j: T ij = P S t+1 = s j | S t = s i . Consider also the one-step reward vector r ∈ R |S| whose k-th entry r k corresponds to the reward present in state k. The value function can be expressed in vector form as:
+v = T 1 r + γ 1 T 2 r + γ 2 T 3 r + • • • = ∞ k=0 γ k T k Tr = (I − γT) −1 Tr.
+(6)
+The matrix (I − γT) −1 T is the successor representation (SR), denoted by M γ 
+(Dayan, 1993)
+. The (i, j)-th entry M ij corresponds to the expected sum of future visits to state j from state i, discounted according to γ. The SR can be learned directly from experience using TD learning. If the "true" SR is available to the agent, all state values can be estimated simultaneously
+by v = M γ r.
+We note that our definition differs from the more traditional (I − γT) −1 . The inclusion of an additional T in the definition simply indicates that the value of some state does not depend on rewards present in that same state, but only on rewards present in future states. This is a matter of definition, and is equivalent to stating that, in Plinko, rewards are collected upon entering, but not exiting a state.
+
+
+Temporal Context Model
+
+
+Overview
+TCM is a computational model of episodic memory designed to explain human behavior in free recall experiments. In a free recall experiment, subjects first study a list of items (often words or word-pairs) presented one at a time for a brief period. Then, subjects are asked to recall the items in any order they wish. TCM models memory encoding through associative learning between recently studied stimuli and the temporal context at presentation time. The learned associations then guide retrievalspecifically, the stimulus most similar to the current context is retrieved 
+(Howard & Kahana, 2002)
+.
+TCM posits that each stimulus is represented by a feature vector, while the abstract temporal context is formalized as the combination of recently experienced stimuli. The temporal context in TCM is updated during both the encoding and retrieval of memories, while specifying the recall probability of each individual stimulus.
+TCM predicts a recency effect, as observed in human free recall: since the temporal context at the beginning of recall is most similar to the one maintained near the end of the list during encoding, the last few stimuli are more likely to be recalled by association 
+(Fig. 1c, left)
+. Indeed, when a distractor task is introduced to delay recall, the recency effect is significantly attenuated 
+(Greene, 1986)
+, likely because the context when retrieval started has evolved away from the end-of-list context.
+TCM also predicts a temporal contiguity effect observed in human free recall. 
+Kahana (1996)
+ used the lag conditional response probability (lag-CRP) to quantify such effect. The lag-CRP is computed as the conditional probability that, given the most recently recalled stimulus and its serial position i during encoding, the subsequently recalled stimulus comes from serial position i + j, where j is a signed integer representing the lag. Crucially, TCM captures the temporal contiguity effect using its evolving temporal context. At an arbitrary point in time, the context is composed of two components -one that encodes the associations formed during the experiment thus far, encompassing both encoding and retrieval, and one that's primarily associated with the most recently experienced stimulus. The former, called experimental context, is part of the temporal context both before and after the recent stimulus presentation; but the latter, called pre-experimental context, is only introduced at the moment of stimulus presentation (or recall). Thus while the former shares similarity to other stimuli as a symmetrical function around the stimulus, the latter is likely dissimilar to all preceding stimuli and is only incorporated in ensuing contexts. As a result, TCM predicts lag-CRP to be asymmetrical, with higher probability to recall subsequent stimuli than preceding ones 
+(Fig. 1c, right)
+ Notably, temporal contiguity effect is approximately scale-invariant -it has been observed both within individual lists and across lists spanning extended amount of time (e.g. 
+Howard & Kahana, 1999
+, Howard, Youker, & Venkatadass, 2008
+, suggesting maintenance of temporal contexts over multiple timescales and entities.
+In summary, the temporal context and its evolution dynamics in TCM provides an algorithmic hypothesis of how human episodic memory, especially aspects that are captured in free recall paradigms, manifests specific retrieval dynamics contingent on the relative temporal order.
+
+
+Formal Model Description
+Let c t denote the experimental context at time t and c IN t denote the pre-experimental context at t, both as column vectors. Additionally, let x(S t ) be the feature representation of the stimulus encoded at time t, e.g., a one-hot |S|-dimensional vector. As a shorthand, we write x t in place of x(S t ). Likewise, we denote the stimulus retrieved at time i as x i . i.e., we use t ∈ {1, 2, . . . , T } to index encoding time and i ∈ {1, 2, . . . , N } to index retrieval steps. Additionally, TCM achieves associative learning via a context-to-stimulus matrix M CS and a stimulus-to-context matrix M SC . The learning and update rules are summarized in 
+Table 1
+. 
+M CS = t x t c T t
+(7)
+Input Context
+c IN t = M SC x t (8) Context Update c t = ρc t−1 + βc IN t (9) Feature Retrieval x i = M CS c i
+(10)
+TCM posits that when a stimulus s t is experienced either in encoding or retrieval, the following sequence of events take place in order: first, presenting x t evokes its associated context c IN t via the stimulus-to-context matrix according to Eq. (8). If the stimulus is unique, c IN t is equivalent to the stimulus' pre-experimental context; if the stimulus is repeated, c IN t also contains the (weighted) experimental context where it was previously experienced. Next, the retrieved context updates the current context c t according to Eq. (9). Note that ρ and β are chosen so that c t remains a unit vector. Finally, M CS and M SC are updated as needed and the above sequence ensues. If Hebbian learning is assumed, for instance, M CS at time t during encoding is updated by the outer product of the recently encoded stimulus x t and its temporal context c t as shown in Eq. 
+7
+.
+At the beginning of each new experiment, M CS may be reset for simplicity. 
+Howard and Kahana (2002)
+ derived a learning rule for the stimulus-to-context matrix M SC such that it behaves in a desirable manner when a stimulus is repeated after a long delay. Since we are interested in sequential decision making scenarios with distinct stimuli, we will not discuss the details in this paper.
+
+
+The Successor Representation in the Temporal Context Model
+Consider the special case where M SC is the identity matrix. It follows that c IN t = x t . i.e. the associated context of a stimulus is exactly its corresponding features. Thus Eq. (9) is reduced to Eq. (1).
+Assuming one-hot encoding, we can use the delta function to map each retrieved x t to an abstract state vector indexed by time. Thus the j-th entry of c t satisfies
+c t+1 (s j ) = ρc t if S t ̸ = s j ρc t + 1 if S t = s j ,
+which is analogous to the eligibility trace over X, the set of all possible feature vectors. In particular, 
+Gershman et al. (2012)
+ showed that if stimuli are unique and ρ = λγβ, learning of the context-tostimulus associations according to Eq. (7) and the transpose of the SR matrix are equivalent under the TD(λ) learning algorithm. Specifically, each TD update can be then written as
+M CS t+1 ← M CS t + αc t+1 (x ′ t+1 + γx ′ t+1 M CS t − x ′ t M CS t ).
+(11)
+If each experience with a certain stimulus is treated as a visitation to a unique state in some abstract memory state space, the context-to-stimulus matrix M CS is exactly equivalent to the transpose of the SR. i.e. M CS = M ′ . Additionally, because of the uniqueness, the prediction error is always zero, so Eq. (11) is reduced to M CS t+1 ← M CS t + αc t+1 x ′ t+1 ; this is exactly Hebbian learning rule for M CS in Eq. (7).
+On the other hand, if the visited state are not unique, Eq. (7) predicts that context-to-stimulus association will grow without bound, whereas Eq. (11) avoids this issue while maintaining the same functional form in the case of unique stimuli 
+(Gershman et al., 2012)
+.
+
+
+Value Computation in TCM-SR
+Setting M CS to the transpose of SR gives rise to a family of sample-based action value computation techniques, which we call TCM-SR. As a special case, consider the problem of estimating the state value of some S 0 . Let m π S 0 , * ;γ denote the row in M π γ corresponding to S 0 and m π S 0 ,S ′ ;γ the entry corresponding to a future state S ′ of the current state S 0 (i.e., expected number of future visits to S ′ from S 0 ). Further define r(S) as the one-step expected reward by visiting state S. By expressing values in terms of the SR and one-step rewards, the state value of S 0 can consequently be rewritten as
+v π (S 0 ) = m π S 0 , * ;γ r = S ′ m π S 0 ,S ′ ;γ r(S ′ ).
+(12)
+Note that each row of M π γ sums to 1/(1 − γ). Thus we may treat the normalized vector 1 1/(1−γ) m π S 0 , * ;γ as a probability distribution over successor states of S 0 , which in turn supports standard Monte Carlo sampling techniques to obtain an estimate of v π (S 0 ) corresponding to a specific discount factor. As a straightforward example, we can draw N i.i.d. successor states (samples) S 1 , S 2 , . . . , S N according to the normalized row m π S 0 , * ;γ . i.e., S i ∼ (m π S 0 , * ;γ /∥m π S 0 , * ;γ ∥). The Monte Carlo estimator
+of v π (S 0 ) is v π (S 0 ) = 1 N (1 − γ) N i=1 r(S i ).
+(13)
+Setting ρ = 1, β = 0, M CS = M ′ , M SC = I |S| in TCM gives rise to this exact sampling scheme, as the temporal context is never updated with contexts of the sampled states and stays at m S 0 , * ;γ .
+However, in general, TCM draws are not i.i.d., because a non-zero β would cause the temporal context to drift towards the most recently experienced stimulus. Subsequent recalls are therefore dependent on preceding memory samples, as manifested by the contiguity effect where subsequent recalls are biased towards successors of the previous sample. In particular, x i may be obtained via
+x i ∼ 1 Z M CS c i ,
+where Z is the normalization constant and c i =
+ρc i−1 + βM SC x i−1 .
+Importantly, by leveraging the temporal correlation of samples in TCM, value computation can be performed in a flexible manner despite various learning constraints. For example, the discount factor restricts the timescale over which future rewards are considered in the successor representation. The decay of eligibility traces also limits the extent to which reward information is propagated during encoding. Nonetheless, samples drawn, during retrieval, using the drifting temporal context could effectively extend the horizon such that an TCM-SR agent with a small discount factor appears farsighted. When γ = 0 and β = 1, TCM-SR produces a standard rollout such that successive samples form a full trajectory, even though the SR at each time step is completely myopic. With a larger γ, the agent could skip multiple steps at a time and compute expected return by searching over an extended temporal scope. With a smaller but non-zero β, the agent interpolates between i.i.d. sampling from the normalized SR (the flattened distribution over successors) and rollouts iteratively over successors' successors.
+TCM-SR generates samples analogous to stochastically and recursively constructing a tree over states. At each time step, a state is retrieved from the current temporal context and added to the tree. Because contexts are linear combinations of individual state contexts, suppose S ′ is drawn from the context of some state S with probability p. An edge between S and a realization S ′ = s is then added with probability equal to p(1 − γ)m π
+
+
+S,S
+′ ;γ . i.i.d. sampling (β = 0) results in a random tree with one root node equal to the starting state and all children as leaf nodes (i.e., a star tree). In contrast, the generalized rollout scheme (β = 1) produces a linear graph -a single chain of state following the starting state. In expectation, an intermediate β gives rise to an interpolated tree structure of these two types. Simulations 1-3 demonstrate the behavior of each of these cases, and we prove the exact state value computation in the next section.
+Furthermore, emotion is known to influence memory. Emotional salience tends to modulate memory retrieval. This effect may be explained by differential rates of stimulus encoding 
+(Talmi et al., 2019)
+ or faster decay of less salient outcomes 
+(Zhou et al., 2020)
+. From the reinforcement learning perspective, both accounts effectively lead to over-representation of particularly rewarding (or detrimental) states, or a utility-weighted memory encoding 
+(Lieder et al., 2018)
+. While enhanced availability of certain samples may bias decisions, when data are sparse and deliberation time is limited, such bias provides a practical advantage to consider rare but critical future possibilities. Noting this link between emotional salience and memory encoding, TCM-SR predicts over-representation of certain events in memory translates to those events having an enhanced impact on decision variables. Similar to 
+Lieder et al. (2018)
+, we simulate emotional modulation with importance sampling, implying a bias-variance tradeoff; namely, although over-representation creates a bias in estimation, fewer samples are required for a confident estimate. We give a formal derivation in the next section.
+Finally, because SR is dependent on the behavioral policy under which it is learned, a large change in the transition structure or reward function may render the previously obtained SR fruitless. For instance, if a behavioral policy poorly represents certain state transitions around the reward location, an agent using its corresponding SR will be inflexible and perform suboptimally in transfer learning (e.g. 
+Momennejad et al., 2017;
+Lehnert, Tellex, & Littman, 2017)
+. On the other hand, humans can solve a wide range of transfer learning problems, and perform tasks such as counterfactual reasoning that require simulations of strictly never-seen scenarios. As our main objective is to understand how memory can facilitate effective decision making with limited experience, it is important for the TCM-SR agent to learn values in a flexible manner beyond what the SR prescribes.
+Up until now, for simplicity's sake, we have assumed M SC to be the identity matrix -that is, the context associated with a state is exactly its feature vector. Alternatively, M SC could encode some backward transitions such as the transpose of M CS , so memory search proceeds in never-experienced directions. Crucially, retrieval of memory samples and subsequent value computation would depend less on the behavioral policy during study. This amounts to regularizing a directional policy to include the possibility of backtracking. We argue that restoring this key feature of the encoding model produces a representation that diverges from the SR, but in so doing corrects one of its key deficiencies.
+
+
+Theory Details
+We now formally prove the relevant properties of the TCM-SR model instantiated as in the Results section. In each of the following cases, the main goal is to prove that the model can be used to compute an unbiased estimate of some queried action a (i.e.,q(a)) in the limit of sample size. For simplicity, we assume that a leads to a deterministic transition to some state S 0 . e.g. in the Plinko game, the agent chooses to place the ball in one of the states on the top row of the board. Thus the problem is equivalent to solving v(S 0 ), or the value of the state corresponding to action a.
+In addition, derivations and proofs in this section assume all feature vectors are one-hot coded, and that the starting context is the same as the feature vector associated with the starting state. i.e. c 0 = x 0 . We use x(s n ) to indicate the location of one at s n in feature vector x. For clarity, the policy π and discount factor γ during the encoding phase are implicit in the following proofs. e.g. using M as a shorthand for M π γ .
+
+
+Independent samples from memory yield unbiased value estimates
+We first consider the case where ρ = 1, β = 0, M CS = M ′ , M SC = I |S| , which is the i.i.d. sampling regime.
+Lemma 1. Recall the feature vector associated with the i-th sampled state S i is x i . Given ρ = 1, β = 0, the sampling distribution of
+S i is P(S i ) = (1 − γ)x ′ 0 Mx i .
+Proof. (proof by induction) Base case: i = 1. Since each row of M sums to 1/(1 − γ),
+P(S 1 ) = 1 1/(1 − γ) M CS ρc 0 + βM SC x 0 ′ x 1 Eq. (10) = (1 − γ) M CS x 0 ′ x 1 = (1 − γ)x ′ 0 Mx 1
+Now consider arbitrary time step i > 1. By Eq. 
+9
+,
+c i = c i−1 = • • • = c 0 = x 0 . Thus P(S i ) = (1 − γ)x ′ 0 Mx i . Theorem 2. Given ρ = 1, β = 0, and N samples S 1 , S 2 , . . . , S N , the value of state S 0 , v(S 0 ), satisfies v(S 0 ) = 1 N (1 − γ) E N i=1 r(S i ) .
+Proof. Denote the feature representation of state s k ∈ S as x(s k ). Consider the expected reward of the i-th sample:
+E [r(S i )] = |S| k=1 P(S i = s k )r(s k ) = |S| k=1 (1 − γ)x ′ 0 Mx(s k )r(s k ) Lemma 1 = (1 − γ)x ′ 0 M |S| k=1 x(s k )r(s k ) = (1 − γ)x ′ 0 Mr = (1 − γ)x ′ 0 v. By linearity of expectation, E N i=1 r(S i ) = N i=1 E [r(S i )] = N (1 − γ)x ′ 0 v = N (1 − γ)v(S 0 ).
+Rearranging the terms, we have
+v(S 0 ) = 1 N (1 − γ) E N i=1 r(S i ) .
+In summary, in an i.i.d. sampling regime, an action can be evaluated in an unbiased manner by taking the mean across rewards retrieved from episodically sampling the encoded SR.
+The contiguity effect suggests value estimation via rollouts
+We now consider the case where ρ = 0, β = 1, M CS = M ′ , M SC = I |S| , corresponding to the generalized rollout sampling regime.
+Lemma 3. Given ρ = 0, β = 1, the sampling distribution of the i-th sampled state S i is
+P(S i ) = (1 − γ) i x ′ 0 M i x i .
+Proof. (proof by induction) Base case: i = 1. This is equivalent to the i.i.d. sampling case. By Lemma 1, the base case holds. Induction hypothesis: for arbitrary i > 0, P
+(S i ) = (1 − γ) i x ′ 0 M i x i . P(S i+1 |S i ) = 1 Z M CS ρc i + βM SC x i ′ x i+1 = 1 Z M CS M SC x i ′ x i+1 = 1 Z x ′ i Mx i+1 , where Z = x ′ i M1 = 1/(1 − γ)
+is the normalizing factor. Therefore,
+P(S i+1 ) = s k P(S i = s k )P(S i+1 |S i = s k ) = s k (1 − γ) i x ′ 0 M i x(s k ) • (1 − γ)x(s k ) ′ Mx i+1 = (1 − γ) i+1 x ′ 0 M i s k x(s k )x(s k ) ′ Mx i+1 = (1 − γ) i+1 x ′ 0 M i+1 x i+1 .
+Theorem 4. Given ρ = 0, β = 1, and arbitrary encoding γ, the value of S 0 forγ = 1, vγ =1 (S 0 ), satisfies
+vγ =1 (S 0 ) = 1 (1 − γ) E N i=1 r(S i ) .
+Proof. Consider the expected reward of the i-th sample:
+E [r(S i )] = |S| k=1 P (S i = s k )r(s k ) = |S| k=1 (1 − γ) i x ′ 0 M i x(s k )r(s k ) Lemma 3 = (1 − γ) i x ′ 0 M i |S| k=1 x(s k )r(s k ) = (1 − γ) i x ′ 0 M i r.
+By linearity of expectation,
+E N i=1 r(S i ) = N i=1 E [r(S i )] = N i=1 (1 − γ) i x ′ 0 M i r = (1 − γ)x ′ 0 T + γT 2 + γ 2 T 3 + . . . r + (1 − γ) 2 x ′ 0 T 2 + 2γT 3 + 3γ 2 T 4 + . . . r + . . . = (1 − γ)x ′ 0 Tr + (γ(1 − γ) + (1 − γ) 2 )x ′ 0 T 2 r + (γ 2 (1 − γ) + 2γ(1 − γ) 2 + (1 − γ) 3 )x ′ 0 T 3 r + . = (1 − γ)x ′ 0 Tr + (1 − γ)x ′ 0 T 2 r + (1 − γ)x ′ 0 T 3 r + . . . = (1 − γ)x ′ 0 Tr + T 2 r + T 3 r + . . . = (1 − γ)x ′ 0 v γ=1 .
+Rearranging the terms, we have
+vγ =1 (S 0 ) = 1 (1 − γ) E N i=1 r(S i ) .
+Now consider a fixed probability p stop that interrupts the sampling process of the generalized rollout regime at any moment. i.e., there is a p stop probability that the trial terminates immediately after the current retrieval, regardless whether the trial has reached the end or not (e.g., reaching the bottom row of the Plinko game). The temporal context that guides retrieval is reset following termination. Hence if p stop = 1, the agent always resets the context after sampling one stimulus -equivalent to the i.i.d. sampling regime. If p stop = 0, the agent carries on with the generalized rollout until some pre-defined end state(s) is reached so each trial results in a full trajectory with possible skips over time steps. The latter corresponds to the case proved in Theorem 4.
+Proposition 5. Given ρ = 0, β = 1, p stop ∈ [0, 1], and arbitrary encoding γ, the effective discount factor γof the estimated value satisfiesγ = γp stop − p stop + 1.
+Proof. Consider retrieval at some time i. Let A i denote the event that the sampling process is yet terminated at time i. Thus by the above definition of p stop , P(A i ) = (1 − p stop ) i−1 for all i ≥ 1. Further assume that upon termination, all remaining samples have reward zero (even though technically no more samples are drawn). By Theorem 4, we know
+E [r(S i )] = P(A i )(1 − γ) i x ′ 0 M i r + P(A c i ) • 0 = (1 − p stop ) i−1 (1 − γ) i x ′ 0 M i r. By linearity of expectation, E N i=1 r(S i ) = N i=1 E [r(S i )] = N i=1 (1 − p stop ) i−1 (1 − γ) i x ′ 0 M i r = (1 − γ)x ′ 0 T + γT 2 + γ 2 T 3 + . . . r + (1 − p stop )(1 − γ) 2 x ′ 0 T 2 + 2γT 3 + 3γ 2 T 4 + . . . r + = (1 − γ)x ′ 0 Tr + (γ(1 − γ) + (1 − p stop )(1 − γ) 2 )x ′ 0 T 2 r + (γ 2 (1 − γ) + 2(1 − p stop )γ(1 − γ) 2 + (1 − p stop ) 2 (1 − γ) 3 )x ′ 0 T 3 r + . . . = (1 − γ)x ′ 0 Tr + (1 − γ)(γp stop − p stop + 1)x ′ 0 T 2 r + (1 − γ)(γp stop − p stop + 1) 2 x ′ 0 T 3 r + . . . = (1 − γ)x ′ 0 Tr + (γp stop − p stop + 1)T 2 r + (γp stop − p stop + 1) 2 T 3 r + . . . .
+Interpreting γp stop − p stop + 1 as the discount factor, we get
+E N i=1 r(S i ) = (1 − γ)x ′ 0 vγ =γp stop −p stop +1 .
+Therefore, in effect, the additional interruption probability permits modification of the temporal horizon during retrieval (and consequently, evaluation) beyond the intrinsic encoding discount factor γ. In particular, assuming the agent has control over this interruption probability, by varying p stop between 0 and 1, it can interpolateγ between the encoding γ and 1. Noteγ = 1 corresponds to the rollout sampling regime proven by Theorem 4.
+In summary, in a generalized rollout sampling regime, an action can be evaluated in an unbiased manner by adding up rewards retrieved from episodically sampling the encoded SR. Specifically, the estimated action value corresponds to a discount factor of 1, or an undiscounted estimate. This implication may be problematic for tasks with an infinite horizon, as termination is undefined and the sum of rewards may be infinite. Thus we introduce an additional interruption probability p stop at any given moment during retrieval/evaluation, which the agent is assumed to have control over. The result is an effective discount factorγ that can be flexibly interpolated between the encoding discount factor γ and 1. For clarity, in the main text, we refer to the effective discount factorγ whenever applicable, making p stop implicit in our arguments.
+
+
+Data from free recall experiments suggests an intermediate regime
+Observe that the sequentially obtained samples can be conceptualized as a random tree with root at S 0 . At each retrieval step i where i > 0, a node S i is inserted into the existing tree T i−1 such that an edge is drawn between the current node S i and some existing node S j (i > j ≥ 0) if S i is drawn from the SR-defined distribution at S j . Because each context is a linear combination of successor distributions of experienced stimuli, in theory, we can identify a sample as the successor of some previously retrieved state given the context it is drawn from. Let pa(i) = j denote the event that S j is the parent of S i . For instance, P(pa(1) = 0) = 1 since S 1 is always drawn from the distribution (1 − γ)x ′ 0 M regardless of the value of ρ and β. P(pa(2) = 0) = ρ and P(pa(2) = 1) = β according to Eq. (9). In general, for any i > j ≥ 0 we have
+P(pa(i) = j) = ρ i−1 if j = 0 ρ i−j−1 β if j > 0,
+Note that the construction necessarily results in a tree because of the sequential nature of the sampling process, namely a newly inserted node has an index strictly larger than that of any existing node. The resultant tree with all N nodes plus the root node is T N . Observe that if ρ + β = 1, then ∀j. j−1 i=0 P(pa(i) = j) = 1, so the distribution is a proper probability distribution. Lemma 6. Assume ρ + β = 1, ρ, β > 0. As N → ∞, T N is expected to be a tree with 1/(1 − ρ) degrees at the root and linear graphs thereafter.
+Proof. Consider d N (i), the number of children nodes S i has in tree T N . It suffices to show that
+lim N →∞ E[d N (i)] = 1/(1 − ρ) if i = 0 1 if i > 0. For arbitrary N ∈ N, E[d N (0)] = N i=1 P(pa(i) = 0) = N i=1 ρ i−1 = 1−ρ N 1−ρ , and ∀j > 0. E[d N (j)] = N i=j+1 P(pa(i) = j) = N i=j+1 ρ i−j−1 β = β(1−ρ N −j ) 1−ρ = 1−ρ N −j . Thus, lim N →∞ E[d N (0)] = 1/(1−ρ), lim N →∞ E[d N (j)] = 1 for all positive j. Corollary 7. Given ρ + β = 1, ρ, β > 0, if N is large but finite, T N is expected to have (1 − ρ N )/(1 − ρ)
+children, while the number of children of early samples are subcritical.
+Proof. The proof follows directly from Lemma 6 with finite N , noting that when j is small, N − j is close to
+N so E[d N (0)] ≈ 1 − ρ N < 1. Theorem 8. Given ρ + β = 1, ρ, β > 0, v γ=1 (S 0 ) = β (1 − γ) E ∞ i=1 r(S i ) .
+Proof. Here we provide a sketch of the formal proof: note that the extreme cases where one of ρ, β is 1 can be realized as a random recursive tree describe above. Specifically, as N → ∞, ρ = 1 corresponds to a tree with height 1 and infinitely many branches at the root; ρ = 0 corresponds to a path graph with infinite height. Importantly, given such a tree, we know v γ=1 (S 0 ) may be computed as the expected total return of an arbitrary path from the root node to a leaf node in a random tree T ∞ . i.e., sum along paths and average across paths from Theorem 2 and 4 respectively. The result then directly follows from Lemma 6 noting 1 − ρ = β.
+Lemma 9. Given ρ + β = 1, ρ, β > 0, there is a non-zero probability that the shortest path from the root node to a leaf has length 2.
+Proof. Without loss of generality, consider the event l 2 that no vertex is attached to node 2 (equivalently, no future sample is drawn from the successor distribution of S 2 ). Then
+P(l 2 ) = N i=3
+(1 − P(pa(i) = 2))
+=⇒ log P(l 2 ) = N i=3 log(1 − ρ i−3 β) = N −3 i=0 log(1 − ρ i β) ≈ − N −3 i=0 ρ i β < ∞ =⇒ P(l 2 ) > 0
+Proposition 10. Given ρ + β = 1, ρ, β > 0, N < ∞, the value estimator in Theorem 8 is biased.
+Proof. Lemma 9 implies any random tree resulted from the constructive process likely has a short path (a "stub"), thus applying Theorem 8 tends to underestimate v(S 0 ).
+Therefore, in the intermediate sampling regime that interpolates between the i.i.d. and generalized rollout regimes, an action can be evaluated in an unbiased manner by first adding up the rewards retrieved from episodically sampling the encoded SR and then scaling the sum by β, which acts like the branching factor in the limit of sample size. We have explicitly shown that such estimator may be biased downwards in the case of relatively small number of samples, but like previous cases, given a sufficiently large number of samples, the estimate approaches the true value.
+
+
+Emotional Modulation of memory yields bias-variance trade-off
+We implement emotional modulated learning similar to 
+Talmi et al. (2019)
+ by employing a fixed learning rate that is higher for emotionally salient than non-salient stimuli to learn M CS . For clarity, a state s either contains nothing (i.e. R(s) = 0) or a small reward (R(s) = 1). All else being equal, the resultant, emotionally modulated TC-SR agent is thus more likely to obtain a rewarding sample than an unmodulated agent. Denote the unbiased context-to-stimulus associative matrix M ′ and the biased M ′ ̸ = M ′ . To compute an estimation of expectation, it needs importance sampling to translate distributions of M to M.
+For simplicity, consider ρ = 1, β = 0 (i.i.d. sampling). By Lemma 1, the unbiased sampling distribution of the i-th sample
+S i is P (S i ) = (1 − γ)x ′ 0 Mx i , while the biased sampling distribution of S i is Q(S i ) = (1 − γ)x ′ 0 Mx i .
+To correct for the difference between P and Q, each sample S i is reweighed by
+w S i = P (S i ) Q(S i ) = m S 0 ,S i m S 0 ,S i .
+Using M ′ , the expected total reward for the i-th sample may be estimated as
+E [r(S i )] = |S| k=1 P (S i = s k )r(s k ) = |S| k=1 Q(S i = s k ) P (S i = s k ) Q(S i = s k ) r(s k ) = |S| k=1 w S i Q(S i = s k )r(s k ).
+Theorem 2 can be then applied to estimate a specific state value. In general, v is biased if N is finite. Specifically, v demonstrates a bias-variance trade-off, such that extreme events are over-represented in the samples due to the biased associative matrix, but value estimates also tend to be less varied.
+Similarly, if ρ = 0, β = 1 (generalized rollout), by Lemma 3, the unbiased distribution of the i-th sampled state
+S i is P (S i ) = (1 − γ) i x ′ 0 M i x i , while the biased sampling distribbution of S i is Q(S i ) = (1 − γ) i x ′ 0 M i x i . Denote the (S 0 , S i )-th entry of M i as M i S 0 ,S i and that of M i as M i S 0 ,S i .
+To correct for the difference between P and Q, each sample S i should be reweighed by
+w S i = P (S i ) Q(S i ) = M i S 0 ,S i M i S 0 ,S i .
+The expected total reward proceeds similarly as stated in Theorem 4 with reweighing. For demonstration purposes, we use the i.i.d. regime to illustrate the effect of emotional modulation in simulations.
+
+
+Simulation Details
+All simulations used a Plinko game of size 10x9 (i.e. H = 10, |S| = 90, excluding the absorbing state which is outside the main board). Binary rewards were randomly placed in locations between row 1 and row 6 (inclusive; top row is row 0) such that all of them were reachable from the starting state. Each experiment was characterized by its reward placement. Details of each simulation are specified below.
+Details of Simulation 1: Independent samples from memory yield unbiased value estimates
+We set ρ = 1, β = 0 to simulate the effect of a stationary context, which gave rise to independent draws of memory samples in TCM-SR. Simulations were repeated using two different discount factors γ = 0 ( 
+Fig. 2a-c)
+ and γ = 0.5 
+(Fig. 2d-f
+) during encoding, with the latter corresponding to a slower rate of temporal drift (i.e., longer timescale). The stimulus-to-context associative matrix M SC was equal to the identity matrix I |S| .
+A total of 100 experiments (games) were conducted for each different discount factor, with 50 trials per experiment and 1000 (independent) samples per trial (i.e., N = 1000). At least one reward was placed within the agent's temporal horizon. e.g., given γ = 0, row 2 contained at least one reward. The sampling distributions over rows ( 
+Fig. 2b,e
+) reflect trial averages if starting from the top-center state (marked with a orange circle in 
+Fig. 2a,d
+).
+Given a game, the agent needed to decide where to drop the ball along the top row to maximize expected total return. For clarity, there were two options -either the top-center state or the location directly to its right. A deterministic policy was assumed based on their respective state value estimate, which was computed as the average across samples and trials. Simulations were repeated for games with 1, 5, 10, 20 binary rewards accessible from either dropping location 
+(Fig. 2c,f)
+. The number of rewards were chosen to reflect a spectrum of reward abundance ranging from a single reward to about 50%. The percentage of maximum rewards obtained of a particular game pmr was computed as
+pmr = v(S chosen ) v(S * ) ,
+where S chosen is the state selected by the deterministic policy, S * is the state with higher expected total return, and v(•) : S → R is the state value function. Note an optimal choice implies pmr = 1. 
+Fig. 2c,f
+ show the average pmr across 100 experiments.
+
+
+Details of Simulation 2: Recall-dependent context updates lead to rollouts
+We set ρ = 0, β = 1 to simulate the effect of a context fully determined by the most recent retrieval, which gave rise to generalized rollouts in TCM-SR. Simulations were repeated using two different discount factors γ = 0 ( 
+Fig. 3a-d
+) and γ = 0.5 
+(Fig. 3e-h)
+ during encoding. For each γ, simulation were repeated using three different probabilities of interruption p = 0.05, 0.5, 1, resulting in three different effective discount factorsγ's for each underlying true γ at retrieval 
+(Fig. 3b,f)
+. Thus as long as the ball had not reached the bottom of the Plinko board, at each time step, there was a p probability that the trial will terminate, regardless of the ball's location. Consequently, each trial started from the top-center state (marked with a orange circle in 
+Fig. 3a,e
+) and ended if either the ball hit the bottom of the board or the sampling process terminated due to the non-zero interruption probability. The stimulus-to-context associative matrix M SC was equal to the identity matrix I |S| .
+A total of 100 experiments were conducted for each combination of discount factor and interruption probability. The sampling distributions over rows 
+(Fig. 3b,f)
+ reflect averages across 1000 trials per experiment if starting from the top-center state. The implied contiguity curves 
+(Fig. 3d,h
+) were computed similarly using the same starting state.
+Given a game, the agent needed to decide where to drop the ball along the top row to maximize expected total return. For clarity, there were two options -either the top-center state or the location directly to its right. A deterministic policy was assumed based on their respective state value estimate, which was obtained by summing samples within each of 5000 trials and averaging across trials. 100 games were simulated and each trial consists of a variable number of correlated samples (at most nine, or H − 1). The interruption probability is fixed at 0.05. Simulations were repeated for games with 1, 5, 10, 20 binary rewards accessible from either dropping location 
+(Fig. 3c,g
+). The percentage of maximum rewards obtained follows the same computation as in Simulation 1. 
+Fig. 3c,g
+ show the average pmr across 100 experiments.
+
+
+Details of Simulation 3: An intermediate regime between i.i.d. sampling and rollouts
+We set ρ = β = 0.5 to simulate the effect of an intermediate context updating regime in TCM-SR that better explains human behavioral data on free recall tasks. Simulations were repeated using two different discount factors γ = 0 ( 
+Fig. 4a-c
+) and γ = 0.5 ( 
+Fig. 4d-f
+) during encoding. For each γ, simulations were repeated using three different probabilities of interruption p = 0.05, 0.5, 1, resulting in three different effective discount factorsγ's for each underlying true γ at retrieval ( 
+Fig. 4b,e
+). Thus as long as the ball had not reached the bottom of the Plinko board, at each time step, there was a p probability that the trial will terminate, regardless of the ball's location. Consequently, each trial started from the top-center state (marked with a orange circle in 
+Fig. 4a,d
+) and ended when the ball hit the bottom of the board or the sampling process terminated due to the non-zero interruption probability.
+The stimulus-to-context associative matrix M SC was equal to the identity matrix I |S| .
+A total of 100 experiments were conducted for each combination of discount factor and interruption probability. The sampling distributions over rows ( 
+Fig. 4b,e
+) reflect averages across 100 trials per experiment if starting from the top-center state.
+Given a game, the agent needed to decide where to drop the ball along the top row to maximize expected total return. For clarity, there were two options -either the top-center state or the location directly to its right. A deterministic policy was assumed based on their respective state value estimate, which was obtained by summing samples within each of 5000 trials and averaging across trials. 100 games were simulated and each trial consists of a variable number of correlated samples. The interruption probability is fixed at 0.05. Simulations were repeated for games with 1, 5, 10, 20 binary rewards accessible from either dropping location 
+(Fig. 4c,f)
+. The percentage of maximum rewards obtained follows the same computation as in Simulation 1. 
+Fig. 4c
+,f show the average pmr across 100 experiments.
+
+
+Details of Simulation 4: Retrieval with limited experience and with emotional modulation
+We chose the i.i.d. sampling regime (i.e., ρ = 1, β = 0) to illustrate the effect of limited experiences and emotional modulation. The stimulus-to-context associative matrix M SC was equal to the identity matrix I |S| .
+The intermediate and converged SR matrices of the top-center state (4 panels to the left in 
+Fig. 5a,b)
+ were learned via TD(λ), where λ = 0.7, γ = 0.9. A ball was dropped four times from the top-center position of a board with predetermined reward locations and reached the bottom following a sequence of transitions, resulting in 4 complete trajectories. An intermediate SR was computed after observation of each complete trajectory. The unmodulated and modulated learning rates were initialized to 0.01 and 0.5 respectively. i.e., α 0 = 0.01, α mod,0 = 0.5. Both the unmodulated agent ( 
+Fig. 5a
+) and the modulated agent 
+(Fig. 5b)
+ were trained using the same exponential decay schedule such that the learning rates upon observing trajectory t was defined as α t = α 0 * e −kt α mod,t = α mod,0 * e −kt ,
+where decay rate k = 0.001. In both cases, the SR converged after observing 10000 trajectories.
+We used 100 random experiments (games) and drew 1000 samples from the TD-learned SR after one observation (trajectory) in each experiment to compute the average fraction of samples that contained a reward 
+(Fig. 5d
+). The same set of samples (i.e., after observing a single trajectory) were used to compute the bias and variance in the value estimate of the top-center state, with a random number of binary rewards between 20 (inclusive) and 40 (exclusive) placed on the board 
+(Fig. 5e,f)
+.
+Given a game, the agent needed to decide where to drop the ball along the top row to maximize expected total return. For clarity, there were two options -either the top-center state or the location directly to its right. A deterministic policy was assumed based on their respective state value estimate, which was computed as the average across 1000 i.i.d. samples and 50 trials. Simulations were repeated for games with 1, 5, 10, 20 binary rewards accessible from either dropping location 
+(Fig. 5c
+). The percentage of maximum rewards obtained follows the same computation as in Simulation 1. 
+Fig. 5c
+ shows the average pmr across 100 experiments.
+
+
+Details of Simulation 5: Retrieving a learned context allows backward sampling
+We chose the generalized rollout regime (i.e., ρ = 0, β = 1) to illustrate the effect of retrieving a learned context associated with a stimulus as opposed to a task-independent feature representation.
+The stimulus-to-context associative matrix M SC was equal to the SR matrix M. Simulations used γ = 0.5 during encoding and three different interruption probabilities p = 0.2, 0.5, 1, resulting in three different effective discount factorsγ's at retrieval 
+(Fig. 6c,d
+). Each simulation consisted of 500 experiments and 1000 trials (rollouts) per experiment from the top-center state.
+The true state value of the top-center state was computed by assuming full reversibility (i.e., symmetry of conditional transition probabilities), while the estimates are computed similar to Simulation 2 (i.e., as generalized rollouts; 
+Fig. 6c,d
+).
+The simulation code will be made available at https://github.com/corxyz/tcm-sr upon publication.
+Fig. 1 .
+1
+Overview of the TCM-SR model. (a)
+
+
+Fig. 2 .
+2
+Independent samples from memory yield unbiased value estimates. (a-c) Sampling from a distribution with a short temporal horizon. Parameters: ρ = 1, β = 0, γ = 0. (a) An example of querying an action (orange circle) through memory recall (cyan stars). s i shows the i th stimulus sampled, where the same state can be sampled multiple times. Greyscale colors indicate the sampling probabilities. (b) Probability that a sample is drawn from each row of the Plinko board. (c) We simulate an agent who evaluates two actions (at top-center state and the state immediately adjacent to the right) using the procedure from Eq. (2), and then selects the action with the larger estimated value. The image shows the fraction of maximum rewards (y-axis) expected as more samples are drawn (x-axis, shown in log-scale) as a function of different numbers of rewards placed on the Plinko board. (d-f) As in a-c, but using parameters: ρ = 1, β = 0, γ = 0.5. See the online article for the color version of this figure.
+
+
+Fig. 3 .
+3
+Recall-dependent context updates lead to rollouts. (a-d) Sampling from a distribution with a short temporal horizon. Parameters: ρ = 0, β = 1, γ = 0. (a) An example sequence of memory retrieved when initiating the temporal context as the top-center state (orange circle) through memory recall (cyan stars). s i shows the i th stimulus sampled. Greyscale colors indicate the sampling probabilities. (b) Probability that a sample is drawn from each row of the Plinko board. We illustrate these distributions for three values of p stop (0.05, 0.5, and 1), each leading to an effective temporal discount factorγ = 1 − p stop . (c) We simulate an agent that evaluates two actions (at top-center state and the state immediately adjacent to the right) using the procedure from Eq. (4), and then selects the action with the larger estimated value. The image shows the fraction of maximum rewards (y-axis) expected as more samples are drawn (x-axis, shown in log-scale), setting p stop = 0.05 as a function of different numbers of rewards placed on the Plinko board. (d) Probability that a sample is drawn from each row of the Plinko board, as a function of the distance to the previously sampled row. (e-h) As in a-d, but using parameters: ρ = 0, β = 1, γ = 0.5. See the online article for the color version of this figure.
+
+
+Fig. 4 .
+4
+An intermediate regime between i.i.d. sampling and rollouts. (a-c) Parameters: ρ = 0.5, β = 0.5, γ = 0. (a) An example sequence of memory retrieved when initiating the temporal context as the top-center state (orange circle) of a Plinko board. s i shows the i th stimulus sampled. Greyscale colors indicate the sampling probabilities. (b) Probability that a sample is drawn from each row of the Plinko board, in this intermediate sampling regime (dots) versus generalized rollout (lines, same asFig. 3b) given the same discount factors. We illustrate these distributions for three values of p stop (0.05, 0.5, and 1), each leading to an effective temporal discount factorγ = 1 − p stop . (c) We simulate an agent that evaluates two actions (at top-center state and the state immediately adjacent to the right), and then selects the action with the larger estimated value. The image shows the fraction of maximum rewards (y-axis) expected as more samples are drawn (x-axis, shown in log-scale), setting p stop = 0.05 as a function of different numbers of rewards placed on the Plinko board. (d-f) As in a-c, but using parameters: ρ = 0.5, β = 0.5, γ = 0.5. See the online article for the color version of this figure.
+
+
+Fig. 5 .
+5
+Retrieval with limited experience and with emotional modulation. (a) Each pair of panels represent a 'trial' where the agent observes the trajectory that follows a single action (left, each visited state denoted in x's, and each rewarded state in *) and the ensuing learned SR after convergence (γ = 0.9) (right). The impact of accumulated experience is shown by comparing Trials 1, 2, 3, 4, and Trial → ∞, presented in the five pairs of panels going from left to right, all without emotional modulation (α = 0.01). (b) The same as (a) but now with emotional modulation (α = 0.01 for unrewarded states and α = 0.5 for rewarded states). (c) We simulate an agent that evaluates two actions (at top-center state and the state immediately adjacent to the right) using the procedure from Eq. (2), with (dashed lines) and without emotional modulation (solid lines). The agent selects the action whose estimated value is larger. The image shows the fraction of maximum rewards (y-axis) expected as more samples are drawn (x-axis, shown in log-scale), setting p stop = 0.05 as a function of different numbers of rewards placed on the Plinko board. (d) Average fraction of sampled states with (r.) and without a reward (n.r.). Error bars indicate s.e.m. across experiments. Left: no emotional modulation. Right: with emotional modulation. (e-f) Bias and variance convergence based on a single observation for γ = 0.9 without emotional modulation (e) and with modulation (f). Top: mean bias of estimates based on 10, 100, 1000 samples. Bottom: mean discrepancy between the true value and the estimated value as a function of number of samples on a log scale. See the online article for the color version of this figure.
+
+
+Fig. 6 .
+6
+Retrieving a learned context allows backward sampling. (a) An example sequence of memory retrieved when initiating the temporal context with the state shown as an orange circle, and using γ = 0.5. s i shows the i th stimulus sampled. Greyscale colors indicate the sampling probabilities. (b) Contiguity curve implied by the sampled states with respect to their corresponding row number given γ = 0.5 (zero omitted). Note that both forward and backward sampling are predicted. (c) Distribution of estimation error using the SR as the feature-to-context association matrix. Errors are computed as the difference between the sampling-based value estimation and the ground-truth value in a reversible MDP (i.e., a grid world rather than a Plinko game). (d) As in (c), but using the identity matrix as the feature-to-context association matrix (as in the previous simulations). See the online article for the color version of this figure.
+
+
+Table 1 :
+1
+Summary of the Temporal Context Model
+Name
+Expression
+Context-to-Feature Matrix
+
+
+
+
+
+
+
+
+Acknowledgments
+This work was supported in part by the U.S. National Science Foundation, grant IIS-1822571 (ND), part of the Collaborative Research in Computational Neuroscience program.
+
+
+
+
+
+
+
+
+
+
+
+
+The hippocampus supports deliberation during value-based decisions. eLife, 8, e46080
+
+
+
+
+A
+Bakkour
+
+
+
+
+
+
+D
+J
+Palombo
+
+
+
+
+
+
+A
+Zylberberg
+
+
+
+
+
+
+Y
+H
+Kang
+
+
+
+
+
+
+A
+Reid
+
+
+
+
+
+
+M
+Verfaellie
+
+
+
+
+
+
+.
+.
+Shohamy
+
+
+
+
+
+
+D
+
+
+
+
+10.7554/eLife.46080
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cortical and hippocampal correlates of deliberation during model-based decisions for rewards in humans
+
+
+
+
+A
+M
+Bornstein
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+PLoS Computational Biology
+
+
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Reminders of past choices bias decisions for reward in humans
+
+
+
+
+A
+M
+Bornstein
+
+
+
+
+
+
+M
+W
+Khaw
+
+
+
+
+
+
+D
+Shohamy
+
+
+
+
+
+
+N
+Daw
+
+
+
+
+10.1038/ncomms15958
+
+
+
+
+
+
+Nature Communications
+
+
+
+
+8
+
+
+15958
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Prospective coding by spiking neurons
+
+
+
+
+J
+Brea
+
+
+
+
+
+
+A
+T
+Gaál
+
+
+
+
+
+
+R
+Urbanczik
+
+
+
+
+
+
+W
+Senn
+
+
+
+
+
+
+
+
+PLoS Computational Biology
+
+
+
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Retrieved-context theory of memory in emotional disorders
+
+
+
+
+R
+T
+Cohen
+
+
+
+
+
+
+M
+J
+Kahana
+
+
+
+
+
+
+
+
+817486
+
+
+
+
+
+
+
+
+
+
+
+
+Efficient selectivity and backup operators in monte-carlo tree search
+
+
+
+
+R
+Coulom
+
+
+
+
+
+
+
+
+Computers and games
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The algorithmic anatomy of model-based evaluation
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+P
+Dayan
+
+
+
+
+
+
+
+
+Philosophical Transactions of the Royal Society B: Biological Sciences
+
+
+
+
+369
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Uncertainty-based competition between prefrontal and dorsolateral striatal systems for behavioral control
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+Y
+Niv
+
+
+
+
+
+
+P
+Dayan
+
+
+
+
+
+
+
+
+Nature Neuroscience
+
+
+
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Improving generalization for temporal difference learning: The successor representation
+
+
+
+
+P
+Dayan
+
+
+
+
+10.1162/neco.1993.5.4.613
+
+
+
+
+
+
+Neural Computation
+
+
+
+
+5
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Goals and habits in the brain
+
+
+
+
+R
+J
+Dolan
+
+
+
+
+
+
+P
+Dayan
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+80
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Multiple memory systems as substrates for multiple decision systems
+
+
+
+
+B
+B
+Doll
+
+
+
+
+
+
+D
+Shohamy
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+Neurobiology of Learning and Memory
+
+
+
+
+117
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The hippocampus and declarative memory: cognitive mechanisms and neural codes
+
+
+
+
+H
+Eichenbaum
+
+
+
+
+
+
+
+
+Behavioural Brain Research
+
+
+
+
+127
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A map of abstract relational knowledge in the human hippocampal-entorhinal cortex
+
+
+
+
+M
+M
+Garvert
+
+
+
+
+
+
+R
+J
+Dolan
+
+
+
+
+
+
+T
+E J
+Behrens
+
+
+
+
+
+
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+The successor representation: Its computational logic and neural substrates
+
+
+
+
+S
+J
+Gershman
+
+
+
+
+
+
+
+
+The Journal of Neuroscience
+
+
+
+
+38
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Reinforcement learning and episodic memory in humans and animals: An integrative framework
+
+
+
+
+S
+J
+Gershman
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+Annual Review of Psychology
+
+
+
+
+68
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The successor representation and temporal context
+
+
+
+
+S
+J
+Gershman
+
+
+
+
+
+
+C
+D
+Moore
+
+
+
+
+
+
+M
+T
+Todd
+
+
+
+
+
+
+K
+A
+Norman
+
+
+
+
+
+
+P
+B
+Sederberg
+
+
+
+
+
+
+
+
+Neural Computation
+
+
+
+
+24
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A common basis for recency effects in immediate and delayed recall
+
+
+
+
+R
+L
+Greene
+
+
+
+
+10.1037/0278-7393.12.3.413
+
+
+
+
+
+
+Journal of Experimental Psychology: Learning, Memory, and Cognition
+
+
+
+
+12
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Declarative memory is critical for sustained advantageous complex decision-making
+
+
+
+
+R
+Gupta
+
+
+
+
+
+
+M
+C
+Duff
+
+
+
+
+
+
+N
+L
+Denburg
+
+
+
+
+
+
+N
+J
+Cohen
+
+
+
+
+
+
+A
+Bechara
+
+
+
+
+
+
+D
+Tranel
+
+
+
+
+
+
+
+
+Neuropsychologia
+
+
+
+
+47
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Decision-making in amnesia: Do advantageous decisions require conscious knowledge of previous behavioural choices?
+
+
+
+
+K
+Gutbrod
+
+
+
+
+
+
+C
+Krouel
+
+
+
+
+
+
+H
+Hofer
+
+
+
+
+
+
+R
+M
+Müri
+
+
+
+
+
+
+W
+J
+Perrig
+
+
+
+
+
+
+R
+Ptak
+
+
+
+
+
+
+
+
+Neuropsychologia
+
+
+
+
+44
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Contextual variability and serial position effects in free recall
+
+
+
+
+M
+W
+Howard
+
+
+
+
+
+
+M
+J
+Kahana
+
+
+
+
+
+
+
+
+Journal of experimental psychology. Learning, memory, and cognition
+
+
+
+
+25
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A distributed representation of temporal context
+
+
+
+
+M
+W
+Howard
+
+
+
+
+
+
+M
+J
+Kahana
+
+
+
+
+10.1006/jmps.2001.1388
+
+
+
+
+
+
+
+
+Journal of Mathematical Psychology
+
+
+
+
+46
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The persistence of memory: Contiguity effects across hundreds of seconds
+
+
+
+
+M
+W
+Howard
+
+
+
+
+
+
+T
+E
+Youker
+
+
+
+
+
+
+V
+S
+Venkatadass
+
+
+
+
+
+
+
+
+Psychonomic Bulletin & Review
+
+
+
+
+15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Associative retrieval processes in free recall
+
+
+
+
+M
+J
+Kahana
+
+
+
+
+
+
+
+
+Memory & Cognition
+
+
+
+
+24
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Speed/accuracy trade-off between the habitual and the goal-directed processes
+
+
+
+
+M
+Keramati
+
+
+
+
+
+
+A
+Dezfouli
+
+
+
+
+
+
+P
+Piray
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+7
+
+
+5
+
+
+1002055
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+What learning systems do intelligent agents need? complementary learning systems theory updated
+
+
+
+
+D
+Kumaran
+
+
+
+
+
+
+D
+Hassabis
+
+
+
+
+
+
+J
+L
+Mcclelland
+
+
+
+
+
+
+
+
+Trends in cognitive sciences
+
+
+
+
+20
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Advantages and limitations of using successor features for transfer in reinforcement learning
+
+
+
+
+L
+Lehnert
+
+
+
+
+
+
+S
+Tellex
+
+
+
+
+
+
+M
+L
+Littman
+
+
+
+
+abs/1708.00102
+
+
+
+
+
+
+ArXiv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hippocampal contributions to control: The third way
+
+
+
+
+M
+Lengyel
+
+
+
+
+
+
+P
+Dayan
+
+
+
+
+
+
+
+
+
+
+
+
+In Nips
+
+
+
+
+
+
+
+
+Overrepresentation of extreme events in decision making reflects rational use of cognitive resources
+
+
+
+
+F
+Lieder
+
+
+
+
+
+
+T
+L
+Griffiths
+
+
+
+
+
+
+M
+Hsu
+
+
+
+
+
+
+
+
+Psychological Review
+
+
+
+
+125
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Experience replay is associated with efficient nonlocal learning
+
+
+
+
+Y
+Liu
+
+
+
+
+
+
+M
+G
+Mattar
+
+
+
+
+
+
+T
+E
+Behrens
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+R
+J
+Dolan
+
+
+
+
+
+
+
+
+Science
+
+
+
+
+372
+
+
+6544
+
+
+1357
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Norepinephrine ignites local hotspots of neuronal excitation: How arousal amplifies selectivity in perception and memory
+
+
+
+
+M
+Mather
+
+
+
+
+
+
+D
+V
+Clewett
+
+
+
+
+
+
+M
+Sakaki
+
+
+
+
+
+
+C
+W
+Harley
+
+
+
+
+
+
+
+
+Behavioral and Brain Sciences
+
+
+
+
+39
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Prioritized memory access explains planning and hippocampal replay
+
+
+
+
+M
+G
+Mattar
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+21
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Planning in the brain
+
+
+
+
+M
+G
+Mattar
+
+
+
+
+
+
+M
+Lengyel
+
+
+
+
+
+
+
+
+Neuron
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dorsal hippocampus contributes to model-based planning
+
+
+
+
+K
+J
+Miller
+
+
+
+
+
+
+M
+M
+Botvinick
+
+
+
+
+
+
+C
+D
+Brody
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+20
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Offline replay supports planning in human reinforcement learning
+
+
+
+
+I
+Momennejad
+
+
+
+
+
+
+A
+R
+Otto
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+K
+A
+Norman
+
+
+
+
+
+
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+The successor representation in human reinforcement learning
+
+
+
+
+I
+Momennejad
+
+
+
+
+
+
+E
+Russek
+
+
+
+
+
+
+J
+Cheong
+
+
+
+
+
+
+M
+Botvinick
+
+
+
+
+
+
+N
+Daw
+
+
+
+
+
+
+S
+Gershman
+
+
+
+
+10.1038/s41562-017-0180-8
+
+
+
+
+
+
+Nature Human Behavior
+
+
+
+
+1
+
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Uncertainty alters the balance between incremental learning and episo"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

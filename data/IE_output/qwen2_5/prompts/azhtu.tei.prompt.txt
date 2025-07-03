@@ -1,0 +1,1135 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction
+Imagine a young child trying to open a box, their small fingers fumbling with the latches as they press, pull, and twist. As the caregiver, you watch from the sidelines, uncertain whether they can succeed on their own or how long it might take. You grapple with whether you should let the child keep trying, or take over and open the box for them. On one hand, you want to allow the child to navigate challenges and develop new skills. On the other hand, you don't want them to get overly frustrated or waste time on a task that is simply too hard.
+This fundamental parenting dilemma -whether to take over or allow independence -has captured academic and public interest for decades (e.g., 
+Barber, 1996;
+Grolnick & Pomerantz, 2009;
+Baumrind, 1966;
+Gopnik, 2023;
+Leonard, Martinez, Dashineau, Park, & Mackey, 2021;
+Miller & Bromwich, 2019;
+Lythcott-Haims, 2015;
+Stogdill, 1936)
+. Importantly, how parents navigate this dilemma is closely linked to a variety of child outcomes. While taking over can be beneficial when a task exceeds a child's abilities or poses safety concerns, frequent takeovers on age-appropriate challenges -a behavior known as "overparenting" -reduces children's persistence, executive functioning, and emotion regulation skills as early as age four 
+(Leonard et al., 2021;
+Obradivic, Sulik, & Shaffer, 2021;
+Joussemet, Koestner, Lekes, & Landry, 2005)
+.
+Understanding parents' decision to intervene is thus not only important for theories of parenting and decision-making, but also an essential first step to increasing children's autonomy, motivation, and resilience from an early age. However, to date, little research has examined how parents navigate this decision-making process. In this study, we aim to fill this gap by formalizing and empirically testing the cognitive computations that guide parents' decisions to take over.
+Past studies have often conceptualized parents' tendency to intervene as a stable, trait-level factor shaped by individual dispositions, economic forces, and cultural norms. For instance, parents who are more anxious 
+(Segrin, Woszidlo, Givertz, & Montgomery, 2013)
+ and those who view the world as a threatening place 
+(Gurland & Grolnick, 2005)
+ tend to intervene more. Furthermore, parents intervene more in environments with high income inequality and strong emphasis on academic attainment 
+(Doepke, Sorrenti, & Zilibotti, 2019)
+, as well as in cultures where children are viewed as vulnerable and in constant need of protection 
+(Lancy, 2014)
+.
+However, here, we propose that parental intervention is not merely a fixed parenting style dictated by stable dispositions or cultural norms 
+(Smetana, 2017)
+. Instead, we argue that parental intervention is a dynamic, state-level decisionmaking process in which parents flexibly weigh the costs, rewards, and uncertainties of stepping in. That is, rather than a stable individual difference or culturally idiosyncratic practice, parental intervention is an algorithmic-like decisionmaking process aimed at achieving a computational goal: stepping in (or stepping back) in a manner that maximizes utilities in the face of uncertainty. We argue that the observable variation in parenting practices between individuals, therefore, reflects differences in the "inputs" to this process rather than differences in the process itself. For example, parental anxieties or high-pressure environments may increase the perceived cost of failure -making intervention more likely -while environments where children are expected to shoulder real-world responsibilities may increase the perceived reward of independent problem solving. Yet, despite these differences, parents across contexts are solving the same problem: deciding whether to intervene or step back based on an assessment of costs, rewards, and uncertainties.
+Here, we formalize the challenge of deciding whether to take over as a Partially Observable Markov Decision Process (POMDP). We then compare the predictions from a proba-bilistic model of this POMDP against parents' behaviors during real-time interactions with their children.
+Broadly, we propose that two calculations drive parents' decisions about whether or not to intervene: (1) the child's probability of success and (2) the utility of the child's efforts. Central to the calculation of children's probability of success is parents' beliefs about their child's skill. Intuitively, if a parent believes that their child is not very skilled at a certain task (e.g., opening a box, putting on their shoes), they may be more likely to take over because they estimate that their child's probability of success is low. In contrast, if the parent believes that the child is highly skilled, they may be more likely to step back because they estimate that the child's probability of success is high. However, a child's true skill level is often not directly observable to the parent, especially given the frequency with which children encounter new tasks and acquire new skills. Instead, the parent must rely on their prior beliefs about the child's skill and continuously update these beliefs based on their observations of the child's successes and failures as the task unfolds.
+In addition to skill, parents also likely weigh the utility of their child's efforts. In other words, parents may consider how costly or rewarding it would be (for themselves or for their child) if their child attempts the task independently. This means that even when parents perceive their child's skill level similarly, their responses may vary across situations based on their perceived utility of the child's independent actions. For example, even if a parent knows their child is quite skilled at getting dressed independently, being in a rush (and thus perceiving the cost of time as high) may lead them to take over. In a similar situation where parents are focused instead on what their child can learn from getting dressed (and thus perceiving the reward of learning as high), they may choose to step back. In short, parents likely aim to balance competing priorities by choosing an action that minimizes potential costs (e.g., time lost, frustration) while maximizing rewards (e.g., learning, a sense of accomplishment). This account is in line with decades of research in cognitive science showing that human decision-making often involves utility-based trade-offs (e.g., 
+Kahneman & Tversky, 2013;
+Simon, 1955;
+Rangel, Camerer, & Montague, 2008)
+.
+Below, we elaborate on the computational framework that formalizes these principles and then demonstrate how this framework qualitatively predicts real-time decision-making during parent-child interactions. Our experimental work focuses on parents of preschool-aged children, a developmental period in which excessive parental takeovers are common and detrimental to children's cognitive development 
+(Leonard et al., 2021;
+Obradivic et al., 2021;
+Joussemet et al., 2005;
+Shachnai, Asaba, Hu, & Leonard, 2024)
+.
+
+
+Computational Framework
+The Takeover POMDP
+We model a parent's decision-making process as the solution to a Partially Observable Markov Decision Pro-cess (POMDP). This framework conceptualizes parents as decision-makers navigating uncertainty: Parents continually update their beliefs about their child's skill by observing their child's successes or failures while attempting a task and weigh the trade-offs between allowing their child to keep trying versus taking over. In this framework, parents consider two key factors: their beliefs about their child's probability of success and the utility structure of the game (i.e., the costs and rewards; 
+Figure 1
+). Below, we explain these factors in detail.
+The Takeover POMDP is defined by the tuple ⟨S, A, O, T, R, γ⟩: s ∈ S = p = [0, 1] is the hidden state which represents the child's true skill level and whether or not the task is completed; a ∈ A = {continue, takeover} are the actions available to the parent; o ∈ O = {success, failure} are the observations made by the parent; T (s ′ |s, a) is the transition function; R(s, a) is the reward function; and γ ∈ [0, 1] is the discount factor. During each timestep t, the parent observes o t = {success, failure} with the following probabilities: P(o t = success|s, a) = p and P(o t = failure|s, a) = 1 − p, where p = [0, 1] is a probability that represents the child's hidden skill level.
+Each timestep t, the child succeeds with probability p and fails with probability 1 − p, so a child with a higher skill level is likely to succeed in fewer attempts. Skill level is static throughout the episode. If the child succeeds (o t = success), the episode terminates and the parent receives a reward of r success . This reward might represent achievement of the task as well as the child's learning or sense of accomplishment from having completed it themselves. If the child fails (o t = failure), the parent incurs a waiting cost of r c and the episode continues t = t + 1. This cost could reflect time lost, frustration, or other resources expended.
+At each timestep t (equivalent to a one second in our experimental data), the parent chooses to either wait (a t = continue) and have the child attempt the task again or takeover (a t = takeover). If the parent chooses takeover, the task is completed, the episode is terminated, and the parent receives a reward of r takeover where r takeover < r success because although taking over achieves the goal of the task, it lacks the reward that comes from allowing the child to succeed on their own (e.g., learning, confidence, sense of accomplishment).
+
+
+The Bayesian Parent
+The parent maintains a belief state b t over the child's hidden skill level p. Since p is a Bernoulli random variable, we model this belief using a Beta distribution:
+b t (p) ∼ Beta(α t , β t )
+where α t , β t parameterize the mean and variance of their beliefs about p at time t (mean: α α+β , variance:  , about the child's true probability of success p, the parent decides at each timestep whether to takeover (end the task and receive r takeover ) or continue and let the child try while incurring a time cost r c . The child either succeeds with probability p or fails with probability 1 − p. If the child succeeds, the task ends, and r success is received. Otherwise, the parent updates their beliefs, and the decision is repeated.
+Initially, the parent starts with prior parameters (α 0 , β 0 ), which reflect their initial belief about the child's skill. After each attempt by the child, this belief is updated based on whether the child succeeds or fails. Because the Beta distribution is the conjugate prior of a Bernoulli random variable, Bayesian updating of belief, b t+1 (p) ∝ P(p|o t )b t (p), can be performed analytically:
+b t+1 (p) ∼ Beta(α t + I[o t = success], (1) β t + I[o t = failure])
+
+
+Rational Takeovers
+The parent's goal is to maximize their expected discounted reward given their current beliefs:
+V * (b) = max a∈A E ∞ ∑ t=0 γ t R(s t , a t )P(s t |b t , b 0 = b) (2)
+While solving for optimal actions in POMDPs is generally intractable, we exploit the structure of the Takeover POMDP to derive a scalable algorithmic solution. We assume γ = 1 for convenience and without any loss of generality. Recall that the belief of the parent is a Beta distribution with parameters: b = (α, β ) where β can be thought of as the number of failed attempts 
+(Jeffreys, 1998)
+. Then, the expected reward after a takeover is simply:
+V takeover (α, β ) = r takeover because the game ends after a takeover. The expected reward when the parent lets the child continue is:
+V continue (α, β ) = −r c + (E[b])r success (3) + (1 − E[b])V (α, β + 1)
+where E[b] = α α+β is the expected value of the parent's belief about p, the probability of the child succeeding on their own. Since α remains constant throughout (the process ends if the child succeeds, i.e., α t = α 0 ), we can narrow our focus to computing V (β ).
+Recall from equation 
+1
+that β is incremented after each failure. Further, equation 
+3
+defines the value of the current belief recursively in terms of the value of the belief after seeing an additional failure. Based on these two features, our strategy to solve for the optimal policy is to work backward. We pick a large enough timestep t = max where we assume the parent will take over. Thus at this final timestep, V (β max ) = r takeover . This grounds the recursion and we can compute
+V (β ) for (β = β max − 1, β max − 2, . . . , β 0 ) by go- ing backwards leveraging the following relationship between V (β ) and V (β + 1): V (β ) = max {−r c + E[b] + (1 − E[b])V (β + 1), r takeover }
+At each belief state b = (α, β ), the optimal action a * is:
+a * = a continue if V continue (α, β ) ≥ V takeover (α, β ), a takeover otherwise.
+Finally, to compare to our experimental data we need to compute the average time until a takeover. To compute the probability of a takeover, P(Take over), let t * be the first time step where the parent chooses to take over. Then P(Takeover) = (1 − p) t * i.e., the probability that the child fails for t * timesteps.
+By recursively computing the value function V (β ) and determining the optimal action at each belief state, we can derive the optimal takeover policy for the parent. The policy indicates whether the parent should allow the child to continue attempting the problem or take over as a rational calculus based on their posterior beliefs about the child's success probability and the underlying costs and rewards of the decision making problem.
+The model makes a number of novel quantitative predictions that align with intuitions ( 
+Figure 2
+). When the value of the child succeeding on their own, r success is high, or a parent is more optimistic about their child's ability, E[b 0 ], the likelihood of a takeover is lower. The cost per timestep shows the opposite relationship. When the cost of time, r c , is higher, parents are more likely to take over. Finally, harder tasks,   i.e., those with a lower p will have a higher probability of takeover.
+
+
+Experiment
+We use experimental data to test our model predictions. Specifically, we test the predictions that parents are more likely to take over when they (1) view the task as more difficult, (2) perceive learning rewards as lower, and (3) believe their child is less skilled.
+Our parent-child interaction task involved children getting dressed in hockey clothes. This task is particularly well-suited for capturing parent takeovers because parent takeovers during the preschool years are very common when children get dressed 
+(Shachnai et al., 2024)
+. Furthermore, hockey clothes are novel to most children, allowing us to control for individual differences in prior experience (and we excluded children from our sample who had experience wearing hockey clothes). Putting on the hockey clothes required completing 11 subtasks (see 
+Figure 3
+ caption), and we measured how many of these subtasks parents completed for their child (i.e., took over) as a function of subtask difficulty, learning rewards, and beliefs about child skill.
+To estimate subtask difficulty, we used the average time it takes children to complete each of the 11 subtasks involved in putting on the hockey clothes (see 
+Figure 3)
+. We obtained these averages using a preliminary study in which we asked twenty 4-5-year-old children to complete the task independently and measured the time it took them to complete each subtask. Because there is a cost to each unit of time, the harder the subtask, the higher the expected cost. We hypothesized that parents would be more likely to take over on harder subtasks that take children more time to complete (and thus are more costly).
+To measure perceived learning rewards, we relied on parents' assignment to one of two experimental conditions. Parents were either assigned to a Learning condition, in which the dressing task was framed as a learning opportunity, or a Control condition, in which it was not. We hypothesized that parents would take over less in the Learning condition, where they expect a higher reward for allowing children to complete the task independently.
+Finally, we assessed parents' beliefs about their child's skill using self-reports collected after parents interacted with their child. We hypothesized that parents would take over more when they believe their child is less skilled.
+Note that results from the experimental manipulation (parents' assignment to the Learning vs. Control condition) have been published previously (citation blinded for peer review), but the remaining data and model-based analyses presented here (e.g., beliefs about child skill and perceived time cost in relation to parent takeovers) have not been reported before.
+
+
+Methods
+Participants Participants were 60 parents and their 4-5year-old children (M = 5.03, SD = .57; 50% girls) recruited from an urban children's museum. Parents were randomly assigned to the Learning condition (N = 30; 57% mothers, 43% fathers) or the Control condition (N = 30; 67% mothers, 30% fathers, 3% legal guardians). Parental education ranged from 10 to 20 years (M = 16.61, SD = 2.58; missing data from 1 parent) and parental median income was $175,000 (M = $136,245, SD = $69,395; missing data from 5 parents). The racial makeup of the children in the final sample was as follows: 48% White, 20% Asian, 13% Black, 10% multiracial, 2% American Indian or Alaskan, 3% another race, and 3% preferred not to answer, and the ethnic makeup was 77% not Hispanic/Latino, 17% Hispanic/Latino, 5% another ethnicity, and 2% preferred not to answer. Following pre-registered exclusion criteria, 26 dyads were recruited but excluded for the following reasons: the child stopped midway (N = 10), the parent stopped midway (N = 1), experimenter error (N = 8), the child had a diagnosis of autism or oppositional defiant disorder (N = 5), or the child had prior experience wearing hockey gear (N = 2).
+Procedure Parents and children were introduced to the study using a cover story, explaining that they would play a fun game requiring the child to first put on hockey clothes. This cover story aimed to reduce parents' awareness of being observed during the dressing task, encouraging more naturalistic behavior. After explaining the cover story, the experimenter asked parents and children to sit next to each other. Parents were given a note to read while the experimenter engaged the child with warm-up questions.  
+Figure 4
+: Parental takeover rate compared with model predictions. Human takeovers show increasing takeover rates with higher subtask difficulty and decreasing takeover rates with greater parental confidence in the child's skill and focus on the child's learning. Only the Full Model captures these effects and their interactions. Confidence bands show the standard error.
+The note contained the key manipulation framed as a 'Fun Fact.' In the Learning condition, the note emphasized that putting on clothes helps children develop essential life skills, such as problem-solving and self-confidence. In the Control condition, the note emphasized that putting on clothes enhances children's interaction with the museum, without mentioning learning (for full wording, see https://tinyurl.com/TOexperiment). In both conditions, parents were told that their child could benefit from the activity, but the specific type of benefit varied: knowledge and skills in the Learning condition, and a deeper museum interaction in the Control condition.
+The experimenter then demonstrated how to put on the hockey clothes, provided a full-length mirror, and pointed to pictures above the mirror showing how the clothes should look when worn. After the activity, parents completed a questionnaire with exploratory questions, including one that assessed their belief about their child's skill. Specifically, par-ents were asked how capable they believed their child is at putting on clothes, with responses ranging from 1 ('not at all capable') to 5 ('extremely capable').
+Measures Parent takeovers. Our key dependent variable was the percentage of subtasks (out of 11) that parents completed for their child while their child was getting dressed.
+Subtask difficulty. We used our preliminary study's measure of the average time it takes children to independently complete each subtask as a proxy of that subtask's difficulty.
+Beliefs about child skill. Parents' beliefs about their child's skill were measured by their response to the question asking how capable they think their child is at putting on clothes, on a scale from 1 (not at all capable) to 5 (extremely capable).
+
+
+Results
+We conducted a generalized linear mixed-effects model to predict parent takeovers on each subtask, using parents' be-liefs about their child's skill, subtask difficulty, and the learning rewards (i.e., whether parents were assigned to the Learning or Control condition) as predictors, while including random intercepts for participant.
+We found that all three factors independently predicted parent takeovers. That is, parents took over more when they believed their child was less skilled (β = -1.06, 95% CI 
+[-1.46, -.68]
+, p < .001), when subtask difficulty was greater (β = .47, 95% CI 
+[.27, .68]
+, p < .001) and when perceived learning rewards were lesser (i.e., being in the Control vs. Learning condition; β = -.47, 95% CI 
+[-.87, -.10]
+, p = .013) 
+(Figure 3)
+.
+Additionally, we ran a second model that included all possible interactions between beliefs about child skill, subtask difficulty, and learning rewards. This model provided a significantly better fit for the data than the main-effects-only model, χ 2 (4) = 14.57, p = .006. There was a significant interaction between parents' beliefs about child skill and subtask difficulty (β = -.38, 95% CI 
+[-.66, -.12]
+, p = .005). Specifically, when parents believed their child was not skilled at getting dressed, harder tasks significantly increased their likelihood of taking over 
+(β = .89,
+95% CI [.52,
+1.26]
+, p < .001). However, when parents believed their child was highly skilled, subtask difficulty did not predict likelihood of taking over 
+(β = .12,
+.44]
+, p = .456).
+We also found a marginally significant interaction between parents' beliefs about child skill and the value placed on the child doing it themselves (i.e., being in the Learning vs. Control condition; β = .37, 95% CI 
+[-.66, -.12]
+, p = .064). Specifically, when parents believed their child was not skilled, being in the Learning condition significantly decreased their likelihood of taking over (β = -.83, 95% CI 
+[-.1.36, -.29]
+, p = .003). However, when parents believed their child was highly skilled, being in the Learning condition did not predict the likelihood of taking over (β = -.08, 95% CI 
+[-.63, .48]
+, p = .787). There was no significant interaction between subtask difficulty and learning rewards (β = -.09, 95% CI 
+[-.31, .12]
+, p = .406) or between time costs, learning rewards, and beliefs about child skill (β = -.05, 95% CI 
+[-.31, .23
+], p = .732).
+
+
+Model Comparison
+Our goal is to predict the probability of a takeover across experimental conditions while varying the subtask difficulty and whether or not the child's success is framed as intrinsically rewarding, and accounting for parents' perception of their child's skill. The probability of success in a given subtask, p st , was set to be inversely proportional to the average number of seconds it took for children to complete that subtask (subtask difficulty) p st = 1/sec. The parent's prior over the child's skill varied between their true skill in the case of the most capable parental belief and decreased exponentially from there. Specifically, E[b 0 ] = p 1 st if their belief was a 5 out of 5 (extremely capable), E[b 0 ] = p 2 st if they believed their child's skill was a 4 out of 5 and so on. Finally, when the parent was in the Learning condition, we add r learn to r success to account for the hypothesized increase in value of the child completing the subtask independently.
+The two free parameters, learn = 20 and r c = 0.001 (the cost per timestep), were optimized to fit the data. These two free parameters were found by minimizing mean-square error (MSE) through grid search followed by a downhill simplex optimizer. Finally, we fixed γ = 1, r takeover = 0, and r success = 1 as these features of the model were not experimentally manipulated. 
+Figure 4
+ compares the full model described above to two lesioned models and one baseline. Lesion: Skill Beliefs removes the influence of the parent's belief ratings on E[b 0 ], Lesion: Subtask Difficulty sets p st = 1/sec where sec is the average duration of all subtasks. These two models use the same two free parameters as the full model since they each ablate part of the model structure. Finally, Random Intervention is a single parameter baseline model that assumes that parents take over with a fixed probability p.
+
+
+Lesions and Alternative Models
+The full model captures multiple features of the human data while the lesioned models do not 
+(Figure 4)
+. Like the human data, the full model shows that harder subtasks had a higher probability of takeover. This relationship was modulated (flatter slope) by parental beliefs about their child's skill and assignment to the Learning condition. The probability of takeover was overall lower the more confidence the parent had in their child's skill and when the task was framed as learning. In comparison, when beliefs about skill were lesioned, only the effect of subtask difficulty and learning condition were observed. Likewise, when subtask difficulty was lesioned, there was only the effect of skill belief and condition. Finally, the Random Intervention model only captures the relationship between subtask difficulty, and since it does not require planning with a utility calculus, there is no effect of learning condition.
+
+
+General Discussion
+Parents often face a dilemma: Should they allow their child to struggle to complete a task independently or take over and solve the task for them? How parents navigate this tension significantly impacts children's development, with frequent takeovers linked to poorer persistence, executive functioning, and emotion regulation skills 
+(Leonard et al., 2021;
+Obradivic et al., 2021;
+Joussemet et al., 2005)
+. How do parents decide when to take over and when to step back? We provide both qualitative and quantitative evidence that parental intervention can be modeled as a rational probabilistic planning process. Our model predicts that parents are more likely to take over when they perceive their child as less skilled and when the costs of children's independent effort exceed the expected rewards. Supporting this, empirical data show that parents of 4-to 5-year-old children took over more during a novel dressing task when they believed their child was less capable, the subtask was harder, and the reward for independent action (i.e., learning) was lower. Taken together, this work suggests that parental intervention is a dynamic computational process driven by beliefs about children's abilities, costs, and rewards.
+αβ(α+β ) 2 (α+β +1) ). The Beta distribution is a flexible way to represent beliefs about probabilities and is updated as new evidence (child success or failure) is observed.
+
+
+Figure 1 :
+1
+The Takeover POMDP. Based on their beliefs, b
+
+
+Figure 2 :
+2
+Model predictions for P(Take Over) as a function of the parent's beliefs about the child's probability of success (left), the value of the child succeeding on their own (middle), and the cost per timestep (right). Each line shows the prediction for a different task difficulty.
+
+
+Figure 3 :
+3
+Average time it took children to complete each subtask of the hockey clothes task in a preliminary study.Subtask 1: Hold first shinguard against leg; Subtask 2: Fasten first strap of first shinguard; Action 3: Fasten second strap of first shinguard; Subtask 4: Hold second shinguard against leg; Subtask 5: Fasten first strap of second shinguard; Subtask 6: Fasten second strap of second shinguard; Subtask 7: Pull chestguard over head; Subtask 8: Pull first arm through loop of chestguard; Subtask 9: Pull second arm through loop of chestguard; Subtask 10: Fasten first strap of chestguard; Subtask 11: Fasten the second strap of chestguard.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Parental psychological control: Revisiting a neglected construct
+
+
+
+
+B
+K
+Barber
+
+
+
+
+
+
+
+
+Child Development
+
+
+
+
+67
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Effects of authoritative parental control on child behavior
+
+
+
+
+D
+Baumrind
+
+
+
+
+
+
+
+
+Child Development
+
+
+
+
+37
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The economics of parenting
+
+
+
+
+M
+Doepke
+
+
+
+
+
+
+G
+Sorrenti
+
+
+
+
+
+
+F
+Zilibotti
+
+
+
+
+
+
+
+
+Annual Review of Economics
+
+
+
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Caregiving in philosophy, biology & political economy
+
+
+
+
+A
+Gopnik
+
+
+
+
+
+
+
+
+Daedalus
+
+
+
+
+152
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Issues and challenges in studying parental control: Toward a new conceptualization
+
+
+
+
+W
+S
+Grolnick
+
+
+
+
+
+
+E
+M
+Pomerantz
+
+
+
+
+
+
+
+
+Child Development Perspectives
+
+
+
+
+3
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Perceived threat, controlling parenting, and children's achievement orientations
+
+
+
+
+S
+T
+Gurland
+
+
+
+
+
+
+W
+S
+Grolnick
+
+
+
+
+
+
+
+
+Motivation and Emotion
+
+
+
+
+29
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The theory of probability
+
+
+
+
+H
+Jeffreys
+
+
+
+
+
+
+
+
+OuP
+
+
+Oxford
+
+
+
+
+
+
+
+
+
+
+
+
+A longitudinal study of the relationship of maternal autonomy support to children's adjustment and achievement in school
+
+
+
+
+M
+Joussemet
+
+
+
+
+
+
+R
+Koestner
+
+
+
+
+
+
+N
+Lekes
+
+
+
+
+
+
+R
+Landry
+
+
+
+
+
+
+
+
+Journal of Personality
+
+
+
+
+73
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Prospect theory: An analysis of decision under risk
+
+
+
+
+D
+Kahneman
+
+
+
+
+
+
+A
+Tversky
+
+
+
+
+
+
+
+
+Handbook of the fundamentals of financial decision making: Part i
+
+
+
+
+World Scientific
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The anthropology of childhood: Cherubs, chattel, changelings
+
+
+
+
+D
+F
+Lancy
+
+
+
+
+
+
+
+
+Cambridge University Press
+
+
+
+
+
+
+
+
+
+
+
+
+Children persist less when adults take over
+
+
+
+
+J
+A
+Leonard
+
+
+
+
+
+
+D
+N
+Martinez
+
+
+
+
+
+
+S
+C
+Dashineau
+
+
+
+
+
+
+A
+T
+Park
+
+
+
+
+
+
+A
+P
+Mackey
+
+
+
+
+
+
+
+
+Child Development
+
+
+
+
+92
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+How to raise an adult: Break free of the overparenting trap and prepare your kid for success
+
+
+
+
+J
+Lythcott-Haims
+
+
+
+
+
+
+
+
+Henry Holt and Company
+
+
+
+
+
+
+
+
+
+
+
+
+How parents are robbing their children of adulthood. The New York Times
+
+
+
+
+C
+C
+Miller
+
+
+
+
+
+
+J
+E
+Bromwich
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Learning to let go: parental over-engagement predicts poorer selfregulation in kindergarteners
+
+
+
+
+J
+Obradivic
+
+
+
+
+
+
+M
+J
+Sulik
+
+
+
+
+
+
+A
+Shaffer
+
+
+
+
+
+
+
+
+Journal of Family Psychology
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A framework for studying the neurobiology of value-based decision making
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+C
+Camerer
+
+
+
+
+
+
+P
+R
+Montague
+
+
+
+
+
+
+
+
+Nature reviews neuroscience
+
+
+
+
+9
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Parent and child traits associated with overparenting
+
+
+
+
+C
+Segrin
+
+
+
+
+
+
+A
+Woszidlo
+
+
+
+
+
+
+M
+Givertz
+
+
+
+
+
+
+N
+Montgomery
+
+
+
+
+
+
+
+
+Journal of Social and Clinical Psychology
+
+
+
+
+32
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Pointing out learning opportunities reduces overparenting
+
+
+
+
+R
+Shachnai
+
+
+
+
+
+
+M
+Asaba
+
+
+
+
+
+
+L
+Hu
+
+
+
+
+
+
+J
+A
+Leonard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A behavioral model of rational choice
+
+
+
+
+H
+A
+Simon
+
+
+
+
+
+
+
+
+The Quarterly Journal of Economics
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Current research on parenting styles, dimensions, and beliefs. Current opinion in psychology
+
+
+
+
+J
+G
+Smetana
+
+
+
+
+
+
+
+
+15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The measurement of attitudes toward parental control and the social adjustments of children
+
+
+
+
+R
+M
+Stogdill
+
+
+
+
+
+
+
+
+Journal of Applied Psychology
+
+
+
+
+20
+
+
+3
+
+
+359
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]

@@ -1,0 +1,2398 @@
+You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph.
+
+The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, extract information in the form of triples that capture:
+
+1) The psychological topic or construct being studied
+2) The measurement instrument or scale used to assess it
+3) A brief justification (1–3 sentences) from the article text supporting this measurement link
+
+Guidelines:
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Include a short justification for each extraction that clearly supports the connection.
+- If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
+
+Input Paper:
+"""
+
+
+
+Introduction
+Increasingly, important decisions about an individual are being informed by an assessment of how that individual makes decisions under uncertainty. For example, asset managers measure their clients' risk tolerance when deciding how to allocate their investment portfolios 
+[1]
+, clinicians use the same property to evaluate their substance-using patients' likelihood to relapse 
+[2]
+, and aid workers use measures of intertemporal choice preferences to personalize vaccination incentives 
+[3]
+. The success of these high-stakes interventions depends on identifying stable traits that will be robust across time and setting. For instance, an intervention with long-term consequences should ideally not depend on whether the measurement was taken on Monday morning versus Wednesday afternoon, or if a local sports team has just won a championship. Indeed, temporal and situational variability in these measures has been widely demonstrated 
+[4]
+. Critically, this variability has in some cases been related to directly observable endogenous mechanisms 
+[5]
+, and to predict clinically-significant behavioral outcomes 
+[6]
+, supporting the construct validity of these measures and further emphasizing the need to distinguish relevant from irrelevant sources of variability.
+One approach to isolating meaningful variability has been to incorporate insights from decision neuroscience by modeling the time it takes an individual to make a decision 
+[7,
+8]
+. This approach produces more robust estimates of individual decision characteristics because it reveals aspects of the decision-making process that are obscured when examining choice alone -e.g. long decision times may indicate near-indifference between two options. Indeed, scientists have demonstrated that sequential sampling models of response times (RT) not only make predictions that capture widely observed effects in RTs during economic choice 
+[7]
+, but that these models can also be used to derive descriptive theories of choice such as Random Utility 
+[9]
+. Further, researchers have shown that models that jointly model choice and RT can better describe data across multiple experiments 
+[10]
+ and that subject RTs from one experiment can predict behavior on another 
+[8]
+.
+Most decisions are made under at least some degree of uncertainty and under constraints such as limited time or partial information. Choice behavior under uncertainty has therefore been formalized across multiple disciplines with behavioral economics establishing some of the most widely used theoretical and empirical frameworks. Key behavioral economic and psychological parameters of interest include risk tolerance (α) which captures how people behave when they have complete information about the underlying probability distribution(s) of reward, ambiguity tolerance (β) which captures how people behave when they have partial or no information about probabilities, and discount factor (k ) which captures how people trade off time and reward. Critically, the number inferred when estimating these parameters is tightly linked to a psychological interpretationespecially in the case of risk and ambiguity.
+When making decisions under uncertainty and with limited time, humans and animals must balance efficiency with completeness. One mechanism through which humans may do so is through the efficient coding of valuation information 
+[11]
+. The efficient coding hypothesis, originally formalized in perceptual neuroscience, says that resource-constrained organisms leverage environmental structure to maximize information and minimize redundancy 
+[12]
+. A corollary of this hypothesis is that stimulus information is encoded relatively (i.e. what has changed now compared to the previous moment?). This suggests that individuals should be sensitive to trial order over the course of an experiment: the decision they were presented with (and the choice they made on the previous trial) could impact how individuals perceive the current choice problem and the subsequent choice they make. Such behavior would be incongruent with standard behavioral economic tasks which deploy a randomized structure paired with explicit instructions to participants that they should "treat each trial independently and as if it were the only one that counts." These sorts of task-incongruent temporal dependencies have been widely established in the visual perception literature where such behavior is termed serial dependence 
+[13]
+. These researchers specify that such a dependency is separate from priming and hysteresis, likely not driven by higher-order processes 
+[13]
+, and is adaptive 
+[14]
+.
+Taken together, it becomes plausible that one source of variability in inferring key behavioral economic parameters may come from trial order. Further, observed choice, RTs and sequential sampling parameters may also be meaningfully impacted by trial order: while trial-trial variability is accounted for in such models, rarely are influences of the recent past explicitly modeled (e.g. 
+Figure 1
+). Such sequential dependencies are typically and unsurprisingly observed in "sequential" tasks like multi-armed bandits where 
+Figure 1
+: Example of how trial order may influence decision making (choice and RT modeling parameters) in ITC. The subject participates in the experiment on November 22nd. (A) On trial j − 1, they have to choose between $5 today and $10 in 30 days. They simulate their future 30 days from now, December 22nd, and imagine what they could buy. This is a difficult choice for the subject and deliberation is captured here by a slow rate of evidence accumulation. The subject ultimately decides to take the $10 and wait. (B) On the next trial j, the choice is between $5 today and $13 in 35 days. Standard models assume that the previous trial should have no influence on the current problem. The spillover hypothesis predicts that a subject could perceive and evaluate the current decision relative to the preceding choice, effectively reusing the outcome of their previous simulation instead of starting afresh: here demonstrated by a steeper drift rate and then a repeated choice.
+learning rates over the course of an experiment are modeled (e.g. 
+[15]
+). We emphasize that the phenomenon of interest here is a higher-order serial dependence or informational spillover, something that is usually not explicitly modeled in these higher-order tasks regardless of whether they are "sequential" or not. In this paper, we develop and deploy a framework that allow us to examine temporal dependencies as a function of decision problem properties, such as reward value, probability, and delay.
+In this paper, we demonstrate that trial order, in particular relative differences in successive trial properties, affects decision-making under uncertainty. We show, across three experiments (total n = 636), that sequential effects modulate behavioral economic parameters estimated both by jointly modeling response time (RT) and choice behavior, and choice behavior alone (as is standard practice). Experiments 1 and 2 re-analyze previously collected data (as in 
+[16]
+, but with different model specifications). We further designed and collected data for Experiment 3 to build on these analyses so that we could more closely examine the specific factors that give rise to sequential effects and how they can contribute to changes in parameter estimates. We demonstrate both high degrees of individual differences and high degrees of systematicity in these effects (i.e. consistency of the sign of sequential effects parameters in the task). Critically, in the third experiment, we show that accounting for such sequential effects not only results in different numerical parameter estimates, but also different psychological interpretations. These differences in interpretation go in both directions (i.e. some previously classified "ambiguity averse" subjects are reclassified as "ambiguity seeking" and vice versa). Taken together, these results suggest that widely-used measures of decision-making traits are mischaracterizing a sizable fraction of individuals, and that experiment randomization alone does not correct for this bias. We conclude with a discussion of how this systematic effect should be accounted for before such measures are used to guide meaningful interventions into individual lives.
+
+
+Methods
+
+
+Experiments and Data
+None of the experiments presented involved the use of feedback where choice outcomes were realized over the course of the experiment (i.e. after each trial). In Experiments 2 (ITC) and 3 (AMB), subjects received feedback confirming only their choice selection (i.e. left or right option selected).
+Experiment 1: Risky Choice (RISK). We model n = 56 subjects who made 80 choices between two lotteries in the gain and loss domain conditions (rewards range: Gain: $1 − $100, Loss: −$99 − $0, probability range: 1% −99%, 
+Figure 2A
+). Gain and loss gambles were not intermixed (i.e. participants made their choices in two conditions: 40 in the gain domain, condition 1, and then 40 choices in loss). All data were collected previously on Amazon Mechanical Turk (for details, see 
+[17]
+). The experiment was fully randomized with no experimentally-designed trial-level dependencies. Stimuli were displayed numerically (rewards and probabilities) and graphically (probabilities were also presented as pie charts). Subjects had an unlimited amount of time to make their choices, which they indicated via mouse click. In this experiment, subjects were instructed to maximize rewards in the gain domain, and minimize losses in the loss domain.
+Experiment 2: Intertemporal Choice (ITC). We model n = 482 adult subjects who made a sequence of 102 binary choices between a same-day monetary reward (SS: "smaller sooner", range: $1 − $85) and a larger delayed reward (LL: "larger later", range: $10 − $95; delay range: 4 − 180 days, 
+Figure 2B
+). All data were collected previously in person (for details, see 
+[18]
+). The experiment was fully randomized with no experimentally-designed trial-level dependencies. All stimuli were displayed numerically and counterbalanced so that the SS and LL options occurred equally often on either side of the computer screen. Subjects had 6s after stimulus onset to make a choice. Each choice was followed by 0.5s of feedback confirming the option selected and then a variable inter-trial-interval (ITI) between 3-5s. In this experiment, subjects were instructed to act in accordance with their genuine preference between the two choice options (i.e. there was no "correct"' answer unlike with Experiment 1 (RISK).) The task was also incentive compatible: a single trial was selected at random, realized, and paid out at the end of the experiment as a bonus.
+Experiment 3: Risky and Ambiguous Choice (AMB). We model n = 98 adult subjects who made a sequence of 196 binary choices between a certain reward (range: $3 − $9.5) and a lottery (range: $5 − $24), in 4 blocks ( 
+Figure 2C
+). The amount a subject could win by choosing the lottery was almost always larger than the certain reward, except during 16 catch trials (4 per block). All data were collected on Amazon Mechanical Turk via psiturk 
+[19]
+. Lotteries were either risky (1/7 of trials) where the full probability distribution was presented graphically (win probabilities: 25%, 50%, 75%) or ambiguous (6/7) where partial information was presented (ambiguity levels: 15%, 40%, 60%, 85%). While we maintained a general "non-sequential" structure, we ensured that 50% of successive trials increased in ambiguity, and 50% decreased. A risk trial followed by an ambiguous trial would be considered as an increase in ambiguity, as risky trials are unambiguous with respect to the probability of reward. Likewise, an ambiguous trial followed by a risk trial would be considered a decrease in ambiguity. Further, we controlled for median risk/ambiguity levels, lottery reward, and fixed reward across blocks. As with ITC, the stimulus options occurred equally often on either side of the computer screen. Subjects had up to 3s after stimulus onset to make a choice. Each choice was followed by 0.5s of feedback confirming the option selected and then a variable inter-trial-interval (ITI) between 0.5-2s. The task was also incentive compatible: a single trial was selected at random, realized, and paid out at the end of the experiment as a bonus. Participants on Amazon MTurk were bonused 10% of their winnings to be consistent with pay rates on the platform.  
+[17]
+). (B) E2: Example ITC trial where the subject has up to 6s to chose between $9 today or $30 in 42 days (figure from 
+[18]
+). (C) E3: Example AMB ambiguous trial where the subject has up to 3 seconds to make a choice between a certain reward of $3 and a chance to win $11 by playing the lottery. The Expected Value maximizing (but not necessarily "correct") choice is the certain reward.
+We model both choice behavior and response times (RT) in the ITC and AMB tasks. We only model choice behavior in the RISK task, as RT data was not available. For ITC and AMB, we excluded any responses that were made in less than 300ms. We also excluded any missed trials and the trial immediately after them from the following analyses, in addition to the first trial in each block. This is because our primary analysis focuses on one-trial-back effects. Finally, we excluded any subjects that missed more than 25% of trials.
+
+
+Models: Choice Behavior 2.2.1 Baseline ("Non-Sequential") Models
+For tasks involving immediate uncertainty (RISK and AMB), we pair a logistic choice rule with models consistent with the Subjective Expected Utility Maximization Framework. We implement these models in a hierarchical Bayesian fashion using JAGS 
+[20]
+ to better capture individual differences 
+[21]
+. Unless otherwise stated, all parameters are hierarchical Normals, with hyperprior specifications of mean µ ∼ Normal (0, 1) and standard deviation σ ∼ Uniform(0.01, 4). A parameter X is thus hierarchically distributed:
+X ∼ N ormal(µ X , σ 2 X )
+. To infer risk and ambiguity values for the RISK and AMB tasks, we model Subjective Value as follows:
+Subjective Value Lottery Risk = p • v α (1) Subjective Value Lottery Ambig = [p − β(A/2)] • v α Subjective Value Fixed = v α
+Here, p is the objective probability of a reward (risk level, or p = 0.5 on ambiguous trials per 
+[22]
+). A represents the degree of ambiguity on the trial (ambiguity level, A = 0 on risk trials and for all of the RISK task). Finally, v represents the monetary reward associated with that lottery. The key behavioral economic parameters of interest, then, are α which is risk tolerance, and β which is ambiguity tolerance. In this formulation, both parameters are subject-specific. We use hyperprior µ α ∼ Gamma(2, 1) for risk tolerance, with mode = 1 (risk neutrality) and µ β ∼ N ormal(0, 1) for ambiguity tolerance, with mode = 0 (ambiguity neutral). For the RISK task, we further allow for the curvature of the utility function to differ as a function of domain c (i.e. infer α (i,c) ), where c = 1 for gain domain and c = 2 for loss.
+To infer temporal discounting for the intertemporal choice task, we model Subjective Value using a hyperbolic discounting function:
+Subjective Value Future = v 1 + k • D (2)
+Here, v again represents the monetary reward associated with that lottery and D represents the delay with the future (LL) reward is offered. The key behavioral economic parameter of interest is k which is the individual's discount factor. We use hyperprior µ k ∼ Beta(1, 1) to be "uninformative."
+Our logistic choice rule, which has the same basic parametrization across all three tasks, for subject i on trial j is as follows, where θ A,B(ij) is the probability of choosing Option A:
+θ A,B(ij) = 1 1 + exp (γ i + ϕ i • SVD ij + ϵ ij ) y A,B(ij) ∼ Bernoulli (θ A,B(ij) )
+(3)
+Here, SVD ij represents the difference in the Subjective Value between the two options presented on any given trial. γ i represents the shift, or bias, in a decision. ϕ i represents response variability, and we use hyperprior µ ϕ ∼ Gamma(2, 1), where the mode corresponds to probability matching. Finally, ϵ ij represents effects of simple choice -or motor -perseveration (repeat previous choice made). All parameters allow for variability at the individual and, in the case of the RISK task, domain (gain or loss) level. We pair these prior specifications with a Bernoulli (θ A,B(ij) ) likelihood, as no two stimuli are presented together more than once.
+
+
+Sequential Effects
+Intuitively, we might imagine that there would be more (less) of an effect on a given parameter on sequential trials that present the subject with similar (different) values for the decision problem regardless of task structure or goals: e.g., if on RISK trial j-1, a subject decides between a 81% chance of winning $41 or a 55% chance of winning $39, and the next trial j asks the subject to choose between a 85% chance of winning $45 or a 55% chance of winning $37, there might be little need to re-deliberate, which could thus yield an effect on either choice or response time (refer to 
+Figure 1
+ for example in ITC). This may be the case even if subjects are told to treat decisions independently, as they typically are in these "non-sequential" behavioral economic tasks, and trials themselves are randomized. This task-incongruent transient reliance on recent history (henceforth also referred to as perseveration) can manifest in one of many ways, ranging from "lower-order" (e.g. motor) to "higher-order" (e.g. carrying over frontal cortex dependent computations) 
+[23,
+22]
+. We explicitly test for three qualitatively different types of perseverations (Table 1 Lower ): motor or choice (i.e. repeat the same choice previously made), perceptual (i.e. on logistic bias or variability), and computational (i.e. influencing people's risk/ambiguity/impulsivity preferences). We define these perseverations as driven explicitly by cross-trial differences in the trial properties listed in 
+Table 1
+ Upper, as these are the normative properties involved in choice computations. As we further expect these influences to be transient due to the complex and temporally constrained (ITC, AMB) choice environment, we restrict our analyses to one-trial-back (i.e. differences in current and immediately preceding trial properties). Specifically, we use Indicator Variables to subset increases or decreases in specific sequences of trials, resulting in a 8-fold tiling of trial property space for all three experiments (e.g. for ITC: increase in delay, decrease in delay, increase in value, decrease in value, increase in value and delay etc.) We then augment our baseline models by allowing these trial properties to exert linear additive influences on the parameters of interest. For example, if we consider ITC trials that increase in value from trial j-1 to trial j:
+
+
+Property
+γ ′ 0,ij = γ 0,i + η i • 1([V a,j − V b,j ] > [V a,j−1 − V b,j−1 ])
+(4)
+Thus, in Equation 4, γ 0,i becomes the sequential-effect-adjusted logistic bias for individual i and the indicator variable is 1 if there is an increase in value difference from trial j − 1 to trial j. The posterior value of η i tells us how much an individual is weighting relative changes in trial properties (i.e. increase or decrease). We define η i hierarchically:
+η i ∼ Normal(µ η , σ η ).
+Our fundamental analysis is structured around a hypothesis test on η i : H 0 : η i = 0 vs. H a : η i ̸ = 0. We quantify the strength of evidence in favor of the null and alternative by using the Savage-Dickey ratio to estimate the Bayes Factor (BF ). This ratio compares prior and posterior density at any point in parameter space (i.e. η i = 0). As others have done, we interpret any values of BF > 3 as evidence in favor of our alternative hypothesis 
+[24]
+.
+
+
+Models: Response Times
+Recall that we only have response time data for ITC and AMB.
+
+
+Baseline Models
+We implement a hierarchical Bayesian drift diffusion model (DDM) to model response times using the Wiener module 
+[25]
+ in JAGS 
+[20]
+ for both the ITC and AMB tasks. That is, for subject i and trial j, we model observed response time as Wiener first passage time (wfpt) distributed:
+RT ij ∼ wf pt(α i , τ i , β i , δ ij )
+Here, α i represents the subject-level threshold or boundary separation, τ i is the subjectlevel non-decision time (processes ostensibly unrelated to the value-based decision process), β i is the subject-level bias (β i < 0.5 bias towards immediate option in ITC and towards the fixed option in AMB), and δ ij is the subject-and-trial-level drift rate (the rate of evidence accumulation). We model all these parameters as hierarchical Normals in order to better capture individual differences 
+[21]
+. For α i , τ i , and β i , we use the same prior and hyperprior specifications for both tasks, referencing 
+[25]
+ for mean hyperpriors and using 'noninformative' priors for the standard deviation:
+µ α ∼ Uniform(0.001, 3) µ τ ∼ Uniform(0, 0.6) µ β ∼ Uniform(0.01, 0.99) σ α , σ τ , σ β ∼ Uniform(0.01, 4)
+Similar to previous work 
+[10]
+, we take a cognitive psychometrics approach to modeling the drift rate. Critically, however, we allow the drift rate to be driven by objective trial properties (i.e. not Subjective Value or even differences in SV ) and normative combinations of these trial properties (e.g. Expected Value). This is because explicitly relating untransformed trial properties to elements of the decision process is critical for our question of interest. Incorporating transformed trial properties like Subjective Value might perpetuate the very biases we seek to mitigate as they would be inferred without accounting for potential effects of trial order. We keep the broad functional relationship between trial properties as dictated by behavioral economic models of choice behavior (e.g. allowing an inverse relationship between the drift rate and delay for ITC). We also normalize all stimulus properties such that they fall between 0 and 1. Then, for subject i and trial j:
+δ IT C,ij = β 0,i + β 1,i • (value LL,ij − value SS,ij ) + β 2,i • delay −1 ij (5) δ AM B,ij = β 0,i + β 1,i • (EV Diff ) + β 2,i • A ij
+(6)
+In Equation 6, EV Diff represents the difference in Expected Value (EV Lottery − EV f ixed ) between the two options presented.
+EV Lottery = p • v,
+where p is the objective probability of reward (i.e. risk level) and v retains its interpretation of objective reward. For an ambiguous trial, p = 0.5 as in 
+[22]
+. The Expected Value of a certain reward is simply v. On ambiguous trials, A is the function of the lottery that is occluded by the grey bar as seen in 
+Figure 2C
+. Recall that on risky trials, A=0. Finally, we allow all drift rate decomposition parameters βs to be hierarchical Standard Normals.
+
+
+Sequential Effects
+We allow all sequential effect parameters to be hierarchical Standard Normals. We simultaneously assess the influence of relative trial properties on all drift rate decomposition (i.e. βs) and bias parameters (same properties as in choice, 
+Table 1A
+). For example:
+β ′ 0,ij = β 0,i + η i • 1([V a,j − V b,j ] > [V a,j−1 − V b,j−1 ])
+(7)
+Thus, in Equation 7, β 0,i becomes the sequential-effect-adjusted drift rate "regression" intercept for individual i and the indicator variable is 1 if there is an increase in value difference from trial j − 1 to trial j. Just as in Choice Behavior (section 2.2.2), we test whether the sequential effect parameters (i.e. η i ) is non-zero using the Savage-Dickey ratio to approximate the Bayes Factor (BF). We interpret any BF > 3 as evidence in favor of sequential effects.
+
+
+Results
+We analyze data from two previous experiments (Experiment 1 (RISK): Risky decisionmaking task in gain and loss domains n=56; Experiment 2 (ITC): Intertemporal choice task n=482) and one new experiment (Experiment 3 (AMB): Risky and ambiguous decision-making task in gain domain n=98) ( 
+Figure 2
+). We explicitly incorporate sequences of trial properties into standard choice and response time models using hierarchical Bayesian modeling, considering one "sequence type" at a time. Critically, this approach allowed us to estimate the reliability of sequential effects at an individual-subject level.
+
+
+Sequential Effects in Choice Behavior
+We first assessed whether choices exhibited trial property-dependent sequential effects at a broad, "model-free," level. Our primary assessment of model free signatures of sequential effects in the RISK and AMB tasks involved comparing whether the proportion of times a subject selected a choice differed across trial sequence types. The trial properties of interest include cross-trial differences in Expected Value and entropy (see table S1A for complete list). Specifically, we look at pairs of trials as differences of differences: for example, an increase in Expected Value difference between successive trials means that the choice options on the current trial are more distinct than the choice options on the previous trial. This could correspond to a current trial being relatively easier than the previous. This interpretation is consistent with the experimental data on a whole.
+In RISK, subjects chose the EV maximizing option significantly more often not just when a trial was relatively easy with respect to the rest of the experimental choice set, but also when there was a relative increase in EV from the previous trial to the next (EV increase 71%, vs. EV decrease 64%, Wilcoxon Rank Sum V = 1276.5, p < 0.001), but no significant difference when comparing proportions of EV maximizing choices when trials increase or decrease in gamble entropy (H increase 67%, H decrease 68%, V = 705, p = 0.45, 
+Figure 3A)
+. In AMB, we find a similar pattern: subjects chose the lottery option significantly more often when there was a relative increase in EV from the previous trial to the next vs. when there was a relative decrease (EV increase 50%, EV decrease 47%, Wilcoxon Rank Sum V = 3693, p < 0.001), but not when considering only increases or decreases in gamble ambiguity (Amb increase 48%, Amb decrease 50%, V = 2441, p = 0.43, 
+Figure 3B
+). We find no differences in choice proportions as a function of trial properties (value, delay increase/decrease) in the ITC task. This simple analysis suggests that, in at least two of the three types of choices evaluated, people are not just sensitive to trial order but more specifically to the relative differences in normative calculationsthe relative ease or difficulty of the current choice problem. 
+Figure 3
+: Participants in RISK and AMB tasks make distinct choices depending on trial sequence. (A) In the RISK task, they are more likely to make the EV maximizing choice between two gambles when the previous trial was more difficult (i.e. choices less distinct). (B) In AMB, they are more likely to pick the lottery option as opposed to the fixed when the previous choice was easier (i.e. less difference between options). Conversely, there was no significant difference between EV maximizing choices when considering relative increases or decreases in trial entropy (A) or trial ambiguity (B). Overlaying the violin plots are the median and IQR.
+For our model-based analyses, we augment logistic choice rules to include such relative cross-trial differences on multiple parameters as described in Methods. That is, we allow for trial order to potentially manifest as a variety of qualitatively different types of "perseverations" -from motor, to perceptual, to cognitive. In RISK, we observed reliable sequential effects on logistic slope and risk tolerance for 7% of individuals. Critically, and consistent with these effects being cognitively specific, these individuals only had non-zero sequential effects for specific sequences of trials: when a trial with a high difference in Expected Value between the two options was followed by a trial with a low difference in EV -"easy" then "difficult" in sequence. For example, for a specific subject, an initial risk tolerance of 1.043 updated to 1.205 when adjusted for this sensitivity. Importantly, the magnitude of risk tolerance was not the only changing factor: the interpretation of the individual's risk tolerance changed from risk neutral to risk averse in the loss domain. For the other two experiments, unlike our RISK analysis, our hypothesis test of the posterior values of the sequential effect terms did not result in any evidence in favor of trial-trial sensitivity. However, we note that we also did not find strong enough evidence in favor of the null hypothesis.
+
+
+Choice and Response Time
+
+
+Drift Rate Decompositions
+We find that for the ITC task, subjects tend to accumulate evidence more quickly when the value difference increases (β 1 ), all else held constant. Similarly, subjects tend to accumulate evidence more quickly when the delay decreases (β 2 ) -recall that we parameterize delay as delay 
+−1
+ ij -all held constant. Both make sense intuitively, as larger value differences might push individuals towards selecting the LL option, and delayed rewards offered in the far future may not be worth the wait.  With the AMB task, the average subject's drift rate increases as the Expected Value difference between choice options increases (β 1 ), all else held constant. Subjects seem nominally sensitive to the degree of Ambiguity during evidence accumulation (β 2 ). We also highlight the credible interval ranges to confirm that there are considerable individual differences, as we might expect. We note that we considered many different combinations of trial properties as drivers of drift rate and present these model results (Equation 5, 6) as they best fit the data. .The top four rows can be thought of as "main effects" of specific trial properties and the bottom four "interactions."
+
+
+ITC
+ITC Proportion AMB Proportion value ↑ 1 value ↑ 0.80 value ↓ 0.998 value ↓ 0.93 delay ↑ 1 amb ↑ 0.05 delay ↓ 1 amb ↓ 0.01 v. ↑ d. ↑ 1 v. ↑ a. ↑ 0 v. ↑ d. ↓ 1 v ↑ a. ↓ 0.18 v. ↓ d. ↑ 1 v. ↓ a. ↑ 0 v. ↓ d. ↓ 0.84 v. ↓ a. ↓ 0.57
+We interpret the threshold and non-decision time parameters being greater for ITC to be a reflection of differences in task structure. Recall that subjects have up to 6s to respond in the ITC task, whereas they only have up to 3s in the AMB task. Finally, aggregate posterior means suggests that subjects are generally unbiased in both tasks, which is in contrast with their choice behavior: in ITC subjects chose the smaller sooner reward more frequently and in AMB chose the certain reward more frequently.
+
+
+Sequential Effects
+As described above, response time models provide more reliable estimates of individual-subject decision processes. We therefore analyzed trial-type-specific effects using an augmented drift-diffusion model in place of the logistic choice rule. We performed these analyses for ITC and AMB as RT data was unavailable for RISK. This approach allowed us to identify sequential effects at the level of both bias (pre-choice inclination) and deliberation (evaluative processing of choice properties).
+We observed reliable trial-property-driven sequential effects on the DDM decomposition (Equations 5, 6) and bias terms for both ITC and AMB tasks. For almost every possible combination of stimulus sequences, 100% of subjects showed evidence of sensitivity to previous stimuli in the ITC task ( 
+Table 3, Table 4
+). Effects in the AMB task are more specific to the combination of trial properties considered -in particular, individuals seem to be particularly sensitive to relative cross-trial differences in Expected Value (i.e. the choice becomes easier or harder) (Table 3, 
+Figure 4
+, 
+Table 5
+). Interestingly, while in the ITC data we find effects on both the drift rate and bias terms, in AMB we only find evidence of sequential effects on the drift rate terms which suggests differences in the cognitive process that may not only drive spillover but also relate to the choice problem at hand (evaluating future uncertainty vs. present).  
+Table 4
+: ITC: Widespread sequential effects across drift rate and bias terms. Participants in ITC show sequential effects across all trial sequence types and all four RT parameters (see Equation 5). All results reported in a cell are posterior sequential effect group means (mean (standard deviation)) and have a BF > 3 if they are non-zero. If instead there is a H 0 then we find evidence (BF > 3) in favor of the null. Finally, if a cell contains an asterisk ( * ) then the data does not contain enough evidence to favor either the null or alternative hypothesis.  
+
+
+ITC
+AMB β 0 β 1 β 2 bias value ↑ H 0 −0.38(0.12) H 0 H 0 value ↓ * 0.45(0.11) * H 0 amb ↑ H 0 * −0.29(0.07) H 0 amb ↓ H 0 H 0 0.32(0.09) H 0 v. ↑ a. ↑ H 0 * H 0 H 0 v ↑ a. ↓ H 0 * 0.59(0.13) H 0 v. ↓ a. ↑ H 0 * * H 0 v. ↓ a. ↓ * 0.5(0.16) H 0 H 0
+
+
+Changes in parameter estimates.
+The reader, especially if they are interested in applications of behavioral economics, may wonder why accounting for sequential effects should matter beyond finding varied individual differences. First, magnitude information is valuable especially for researchers interested in temporal fluctuations in ambiguity/risk attitudes. We further argue that adjusting for these effects can meaningfully change inferences on the parameters we care about. We thus examined how accounting for sequential effects can reveal qualitative changes in the characterization of individuals. We fit effect terms capturing spillover across all "main" 
+(Table 3
+) trial sequences at the same time (as opposed to one-at-atime), generate 1000 datasets from these model fits, and redeploy a logistic choice rule to infer risk and ambiguity tolerance as in the standard approach. That is, for the AMB task, Equation 7 is instead written as follows (see 
+Table 1a
+ for properties for all trials):
+β ′ 0,ij = β 0,i +η i,01 •EV Increase+η i,02 •EV Decrease+η i,03 •Amb Increase+η i,04
+•Amb Decrease (8) We refer to these models as "stacked" as they include all potential "main effects" of trial properties. We report the models that contained only the main effects for two reasons: 1) these were the primary drivers of sequential effects in our above analysis for both tasks -especially AMB -and 2) we wanted to avoid "over-parametrization" by including the interaction terms. As this parametrization adds 12 more variables to the model, we define the sequential-effect terms (ηs) as non-hierarchical Standard Normals: Differences between the original parameter estimates and those from the simulated data would strongly suggest that cross-trial temporal dependencies are capturing something fundamental in human decision making under uncertainty. We report ratios between simulated data parameter estimates and the baseline model. If 0 < |Ratio| < 1, then the sequential effect adjusted parameter estimates are numerically smaller than than than the initially inferred, and |Ratio| > 1 the converse. The median ratio change for risk tolerance across all subjects is 0.857 (IQR = 0.716), suggesting that models without sequential effects tend to overestimate an individual's risk tolerance. Likewise, the absolute value of median ratio change for ambiguity across all subjects is 0.574 (IQR = 1.13).
+Critically, we find evidence not just of differences in sequential-effect-adjusted parameter estimates ( 
+Figure 5A
+,C) but also widespread qualitative changes in interpretation ( 
+Figure 5B,D)
+. For ambiguity tolerance, this change moves in both directions (i.e. some subjects are newly classified as ambiguity averse or ambiguity tolerant), but for risk tolerance, all reclassified subjects move from risk seeking to risk averse.
+
+
+Discussion
+Measures of individual decision-making traits are becoming increasingly used in applied settings. However, there are many sources of variability that can bias these measures. In this paper, we present a quantitative behavioral analysis of one of these potential sources of bias: trial-trial dependencies in experiments without feedback. We build off a neuroeconomics literature that demonstrates the importance of trial order in how neurons represent value signals 
+[11]
+, and visual perception studies 
+[13]
+ that establish serial dependence. By explicitly incorporating trial-order information into behavioral models we find: a) differential sensitivity across experiments that involve different types of stimuluslevel uncertainty, b) greater prevalence across subjects when jointly modeling choice and response time, c) evidence accumulation is impacted by trial-order across tasks, and d) individual-level posterior inferences on key parameters of interest can be meaningfully changed by accounting for these effects.
+Our analyses highlight that sequential effects in both choice behavior and reaction time are a function of individual differences, with non-trivial changes in parameter magnitude and interpretation. This work has deep theoretical and empirical implications. Firstly, our analyses suggest that these sequential effects are not noisy artefacts but are instead the consequence of a systematic influence of trial properties on components of the decision process. This suggests a potential need for the theoretical re-conceptualization of experimentally-inferred parameters as explicitly dynamic and sensitive to (highly) local contexts and not solely a static and psychologically interpretable end. Secondly, much work has shown that parameters inferred from experiments tend to correspond poorly with real-world behavior and with other tasks that purportedly measure the same construct (e.g. sequential risk tasks vs non-sequential) 
+[26]
+ and the approach demonstrated here may be one way to more closely reconcile these discrepancies. Thirdly, there is much valuable information that can be gained from the joint modeling of choice and response times, and scientists should aim to collect RTs whenever possible 
+[7,
+8,
+27]
+. Finally, the widespread nature of our results could suggest that susceptibility to sequential effects in complex choice under uncertainty could be a by-product of the rational use of limited resources 
+[28]
+.
+It is tempting to interpret these sequential effects as "corrupting" the choice process and parameter inference, despite possible rational justifications 
+[28,
+29]
+. While we show that our posterior parameter estimates do indeed differ when we account for relative differences in trial properties, we suggest three empirical alternatives to how we can move forward with this information. Firstly, as suggested in the previous paragraph, we do explicitly consider the degree of sequential dependency to be informative and report two parameters with every task: the parameter the experiment was built around (e.g. risk tolerance) and some parameter or summary that reflects sequential sensitivity. Secondly, experimenters could consider interleaving distractor tasks to clear the working memory buffer that may generate sequential effects. Thirdly, in a similar vein, experimenters may consider merging relatively unrelated experiments together so that each subsequent trial may come from any one of n tasks. While some may argue that this strategy is folly to the same idea behind how experiments are currently designed -that randomized structure does more than what we in this paper demonstrate it does -this is why we suggest unrelated but relevant (i.e. non-distractor) tasks. In this paper, we remain agnostic about the circumstances and mechanisms through which sequential dependencies are generated.
+Results from the AMB study suggest that differences in reward magnitudes play an important role in these effects: people seem to be evaluating current rewards relative to what they had immediately seen before. One possibility as to why this could be the case is if humans, as other work suggests, encode magnitudes noisily and logarithmically 
+[30]
+. A logarithmic internal representation of rewards presented in the experiment would have smaller rewards more closely represented on the "number line" (allowing for greater discrimination) and larger rewards to be disproportionately further apart. A natural consequence of using such a number line would mean that relative differences between successive sets of choice options, especially for options on opposing ends of the line, would be perceived to be greater than their absolute magnitudes. This is akin to a transient [numerical] contrast effect. In fact, this line of work by Khaw and colleagues argues that hallmarks of human behavior under uncertainty -like risk aversion in the gain domain -can actually be better explained by these (Bayes optimal) noisy logarithmic coding models relative to standard power utility models 
+[30]
+. This is not to suggest that relative differences in how uncertainty in these experiments is represented internally do not also contribute to the generation of sequential effects. In this paper, we have considered three qualitatively different types of uncertainty: immediate with complete probability information (risk), immediate with incomplete probability information (ambiguity), and temporal with 100% probability of reward (temporal discounting). The cognitive processes invoked in managing these types of uncertainty, especially in sequence, may vary as a function of task -in particular risk/ambiguity vs. temporal discounting. Indeed, popular theories of intertemporal choice involve simulating the future 
+[23]
+. This is a potentially a resource-intensive process that conflates uncertainty and concreteness -simulations further out in the future are also less likely to be concrete 
+[31]
+. This may lead to the reuse or indeed reification of a simulated future that is n or greater days from the present. While such a future may not directly lead to one-trial-back sequential effects as patently as logarithmic representations of numbers may, it may form some sort of reference point that can influence perceptions of relative increases or decreases in delay. It is also worth noting that in this ITC experiment, as is standard, delay is represented only in a numerical form (i.e. the delayed reward will be offered n days in the future, see 
+Figure 2
+). This is in contrast to RISK and AMB experiments, where there are both numerical and graphical representations of uncertainty. Thus it may be reasonable to interpret the ubiquity of sequential effects in ITC relative to AMB as possibly also driven by the purely numerical presentation of uncertainty (suggesting that uncertainty could be coded on a similar noisy logarithmic scale) and/or the re-use of computationally expensive simulated futures. Conversely, we may interpret the relative lack of sequential effects driven by differences in ambiguity in the AMB task as partially a consequence of scale anchoring due to the graphical presentation of risk/ambiguity. Further, unlike with ITC, there are no clear theories as to what cognitive processes are invoked during the decision process, lending further credence to the potentially important role of graphical presentation -which itself can vary over experiments -of uncertainty.
+We are further agnostic about the processes involved in propagating these sequential dependencies. Researchers studying serial dependence in visual perception argue that attention plays a critical role 
+[13]
+ in addition, possibly, to working memory 
+[14]
+. The relationship between attention and value-based decision making has been well studied 
+[32]
+, with some researchers arguing that attention plays a causal role in the formation of value. Further, researchers have also demonstrated evidence for "last fixation bias," where the first fixation on a given trial is shaped by what the individual was last looking at on the previous trial, in value-based decision making 
+[27]
+. In related but distinct work, researchers have used eye tracking (the most commonly used proxy for measuring attention) to demonstrate individual differences in strategies for an ITC task 
+[33]
+. In particular, Khaw and colleagues demonstrate not only that search strategy is a predictor of an individual's discount rates, but also that search strategy can be shaped by tweaks in experimental design 
+[33]
+. Taken together, attentional processes may indeed play a critical role in generating, or propagating, these experiment-design-dependent but taskincongruent spillover effects. Less studied, though equally plausible, is the relationship between working memory and economic decision making under uncertainty. Researchers have suggested that persistent activity in cortex, a typical signature of working memory, also supports value-based decision making 
+[34]
+. As attention and working memory putatively operate on different time scales, it is entirely possible that both processes are involved in the phenomenon studied in this paper. Further research, and perhaps multi-modal data is necessary to be able to tease apart differential contributions of either process.
+Finally, we return to the potential clinical implications of this research. Scientists have established for decades that there are exist meaningful differences between "healthy" controls and clinical populations in working memory and attention (e.g. aging 
+[35,
+36]
+ and schizophrenia 
+[37,
+38]
+). We note that the degradation of working memory in aging appears to be more established, and less selective, than that of attention and aging. This opens up an interesting line of research in both health and disease: how to study the presence of sequential effects, recoverable through the joint modeling of choice and RT, to make more nuanced subject level inferences about health status, especially in disorders that demonstrate degradations in the processes that putatively support sequential effects?
+Overall, in this paper we have demonstrated that the near-ubiquitous assumption in modeling economic choice, that choices made in sequence can be treated as independently made due to experiment randomization, is false. We show that this is the case through the joint modeling of choice and RT and show that our model puts forth meaningfully different parameter estimates than standard choice models. This work takes an important initial step in quantifying the effect of a heretofore underexplored source of variability in the inference of risk tolerance, ambiguity tolerance, and discount factor.
+Figure 2 :
+2
+Example trials for all three tasks. (A) E1: Example RISK trial in the Loss domain where a subject has an unlimited amount of time from stimulus onset to choose between either the gamble on the Left or the Right. The Expected Value maximizing (and correct) choice is the gamble on the Left (figure from
+
+
+Figure 4 :
+4
+Participants in the AMB task show sequential dependencies on the drift rate EV term: "main effects" of value difference but not ambiguity difference. Sorted posterior 95% Credible Intervals of sequential effects on the drift rate Expected Value term β 1 , Equation 8, when successive trials (A) increase in value difference, (B) decrease in value difference, (C) increase in ambiguity difference, and (D) decrease ambiguity difference as summarized in table S4.
+
+
+Figure 5 :
+5
+AMB task: Magnitude and interpretation changes in (A, B) ambiguity and (C, D) risk tolerance. Left: Ratio of (A) ambiguity tolerance and (C) risk tolerance estimates: log(simulated choice set/observed data). We plot median ratios and IQRs from 1000 simulated choice sets. Right: The percentage of simulation-fit parameters that change interpretations in (B) ambiguity and (D) risk attitudes when compared to parameter fits in the original data. Subjects re-sorted by effect size in each plot. η i,xx ∼ Normal(0, 1) to aid model convergence. All models reported converged according to standard metrics.
+
+
+Table 1 :
+1
+Trial properties considered for sequential effects and the choice parameters on which we test for these effects. Upper Differences in trial properties considered as potential drivers of sequential effects. H = −Σp log(p) is the Shannon Entropy of a gamble. Lower Parameters we simultaneously test for sequential effects by allowing them to vary trial-trial as a function of relative differences in properties as described inTable 1a. We test the first three parameters in all three tasks.
+Type RISK
+ITC
+AMB
+Uncertainty
+Gamble Entropy (H) Delay (D) Risk/Amb levels (RA)
+Reward
+value
+Normative
+Expected Value (EV)
+EV
+Interaction
+EV x H
+value x D EV x RA
+Parameter
+Logistic Bias
+ϕ
+Logistic Slope
+γ
+Choice Perseveration ϵ
+Risk Tolerance
+α
+Ambiguity Tolerance β
+Discount Factor
+k
+The final three are task-dependent (RISK: α; ITC: k; AMB: α, β).
+
+
+Table 2 :
+2
+ITC + AMB: Drift rate decompositions capture meaningful variance in both ITC and AMB. Each cell shows aggregate posterior means (95% Credible Intervals) for Drift Rate decompositions and other DDM parameters.
+Bolded parameters are ones we also test for sequential effects.
+
+
+Table 3 :
+3
+ITC + AMB: Most participants are sensitive to trial sequences. The majority of subjects show sensitivity to trial sequences in both ITC and AMB tasks. Each cell shows the proportion of subjects that demonstrated sequential effects (BF > 3) on any one of the drift rate decomposition parameters or bias. Each row represents specific successive trial properties (e.g. value ↑ subsets successive trials that increased in value difference as noted in Equation 4)
+
+
+Table 5 :
+5
+AMB: Sequential effects are restricted to drift rate decomposition parameters. Sequential effects are more selective compared to ITC. Specifically, they are related to online evidence accumulation and are only on the terms that include trial
+property information (see Equation 6). Cell interpretations are as in Table 4.
+
+
+
+
+
+
+
+
+We thank Maime Guan and Michael D. Lee for providing the risky choice data for Experiment 1. Catherine A. Hartley for providing the intertemporal choice data for Experiment 2. We also thank Michael D. Lee, Joachim Vandekerckhove, the Cognitive Computational Lab, and the Cognitive Modeling Lab for helpful discussions. Funding for this project was provided by NIA R21AG072673 (to AMB) and by the Brain and Behavior Research Foundation NARSAD Young Investigator Award (AMB).
+
+
+
+
+
+
+
+
+
+
+
+
+Pure contagion and investors' shifting risk appetite: analytical issues and empirical evidence
+
+
+
+
+M
+S
+Kumar
+
+
+
+
+
+
+A
+Persaud
+
+
+
+
+
+
+
+
+International Finance
+
+
+
+
+5
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Addictions neuroclinical assessment: a neuroscience-based framework for addictive disorders
+
+
+
+
+L
+E
+Kwako
+
+
+
+
+
+
+R
+Momenan
+
+
+
+
+
+
+R
+Z
+Litten
+
+
+
+
+
+
+G
+F
+Koob
+
+
+
+
+
+
+D
+Goldman
+
+
+
+
+
+
+
+
+Biological psychiatry
+
+
+
+
+80
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Using preference estimates to customize incentives: an application to polio vaccination drives in pakistan
+
+
+
+
+J
+Andreoni
+
+
+
+
+
+
+M
+Callen
+
+
+
+
+
+
+K
+Hussain
+
+
+
+
+
+
+M
+Y
+Khan
+
+
+
+
+
+
+C
+Sprenger
+
+
+
+
+
+
+
+
+Journal of the European Economic Association
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The malleability of intertemporal choice
+
+
+
+
+K
+M
+Lempert
+
+
+
+
+
+
+E
+A
+Phelps
+
+
+
+
+
+
+
+
+Trends in cognitive sciences
+
+
+
+
+20
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+S
+C
+Lazzaro
+
+
+
+
+
+
+R
+B
+Rutledge
+
+
+
+
+
+
+D
+R
+Burghart
+
+
+
+
+
+
+P
+W
+Glimcher
+
+
+
+
+The impact of menstrual cycle phase on economic choice and rationality
+
+
+
+
+
+
+
+
+
+
+
+
+Computational markers of risky decision-making for identification of temporal windows of vulnerability to opioid use in a real-world clinical setting
+
+
+
+
+A
+B
+Konova
+
+
+
+
+
+
+S
+Lopez-Guzman
+
+
+
+
+
+
+A
+Urmanche
+
+
+
+
+
+
+S
+Ross
+
+
+
+
+
+
+K
+Louie
+
+
+
+
+
+
+J
+Rotrosen
+
+
+
+
+
+
+P
+W
+Glimcher
+
+
+
+
+
+
+
+
+JAMA psychiatry
+
+
+
+
+77
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Response times in economics: Looking through the lens of sequential sampling models
+
+
+
+
+J
+A
+Clithero
+
+
+
+
+
+
+
+
+Journal of Economic Psychology
+
+
+
+
+69
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Revealed strength of preference: Inference from response times
+
+
+
+
+A
+Konovalov
+
+
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+
+
+Judgment and Decision making
+
+
+
+
+14
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The (neural) dynamics of stochastic choice
+
+
+
+
+R
+Webb
+
+
+
+
+
+
+
+
+Management Science
+
+
+
+
+65
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The drift diffusion model as the choice rule in intertemporal and risky choice: a case study in medial orbitofrontal cortex lesion patients and controls
+
+
+
+
+J
+Peters
+
+
+
+
+
+
+M
+
+
+
+
+
+
+D'
+Esposito
+
+
+
+
+
+
+
+
+PLoS computational biology
+
+
+
+
+16
+
+
+4
+
+
+1007615
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Multiple timescales of normalized value coding underlie adaptive choice behavior
+
+
+
+
+J
+Zimmermann
+
+
+
+
+
+
+P
+W
+Glimcher
+
+
+
+
+
+
+K
+Louie
+
+
+
+
+
+
+
+
+Nature communications
+
+
+
+
+9
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Possible principles underlying the transformation of sensory messages
+
+
+
+
+H
+B
+Barlow
+
+
+
+
+
+
+
+
+
+
+
+
+Sensory communication, 1(01
+
+
+
+
+
+
+
+
+Serial dependence in visual perception
+
+
+
+
+J
+Fischer
+
+
+
+
+
+
+D
+Whitney
+
+
+
+
+
+
+
+
+Nature neuroscience
+
+
+
+
+17
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Serial dependence across perception, attention, and memory
+
+
+
+
+A
+Kiyonaga
+
+
+
+
+
+
+J
+M
+Scimeca
+
+
+
+
+
+
+D
+P
+Bliss
+
+
+
+
+
+
+D
+Whitney
+
+
+
+
+
+
+
+
+Trends in Cognitive Sciences
+
+
+
+
+21
+
+
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Reminders of past choices bias decisions for reward in humans
+
+
+
+
+A
+M
+Bornstein
+
+
+
+
+
+
+M
+W
+Khaw
+
+
+
+
+
+
+D
+Shohamy
+
+
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+
+
+Nature Communications
+
+
+
+
+8
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sequential effects in non-sequential tasks
+
+
+
+
+N
+V
+Banavar
+
+
+
+
+
+
+M
+D
+Lee
+
+
+
+
+
+
+A
+M
+Bornstein
+
+
+
+
+
+
+
+
+Proceedings of the 19th International Conference on Cognitive Modeling
+
+
+the 19th International Conference on Cognitive Modeling
+
+
+
+
+
+
+
+
+
+
+
+
+A cognitive modeling analysis of risk in sequential choice tasks
+
+
+
+
+M
+Guan
+
+
+
+
+
+
+
+
+
+
+
+
+University of California, Irvine
+
+
+
+
+
+
+
+
+
+
+
+
+A common deliberative process underlies model-based planning and patient intertemporal choice. bioRxiv
+
+
+
+
+L
+E
+Hunter
+
+
+
+
+
+
+A
+M
+Bornstein
+
+
+
+
+
+
+C
+A
+Hartley
+
+
+
+
+
+
+
+
+499707
+
+
+
+
+
+
+
+
+
+
+
+
+psiturk: An open-source framework for conducting replicable behavioral experiments online
+
+
+
+
+T
+M
+Gureckis
+
+
+
+
+
+
+J
+Martin
+
+
+
+
+
+
+J
+Mcdonnell
+
+
+
+
+
+
+A
+S
+Rich
+
+
+
+
+
+
+D
+Markant
+
+
+
+
+
+
+A
+Coenen
+
+
+
+
+
+
+D
+Halpern
+
+
+
+
+
+
+J
+B
+Hamrick
+
+
+
+
+
+
+P
+Chan
+
+
+
+
+
+
+
+
+Behavior research methods
+
+
+
+
+48
+
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A program for analysis of bayesian graphical models using gibbs sampling
+
+
+
+
+M
+Plummer
+
+
+
+
+
+
+
+
+Proceedings of the 3rd international workshop on distributed statistical computing
+
+
+the 3rd international workshop on distributed statistical computing
+Vienna, Austria
+
+
+
+
+
+
+124
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bayesian methods in cognitive modeling. The Stevens' handbook of experimental psychology and cognitive neuroscience
+
+
+
+
+M
+D
+Lee
+
+
+
+
+
+
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Neural representation of subjective value under risk and ambiguity
+
+
+
+
+I
+Levy
+
+
+
+
+
+
+J
+Snell
+
+
+
+
+
+
+A
+J
+Nelson
+
+
+
+
+
+
+A
+Rustichini
+
+
+
+
+
+
+P
+W
+Glimcher
+
+
+
+
+
+
+
+
+Journal of neurophysiology
+
+
+
+
+103
+
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The neural mechanisms of inter-temporal decision-making: understanding variability
+
+
+
+
+J
+Peters
+
+
+
+
+
+
+C
+Büchel
+
+
+
+
+
+
+
+
+Trends in cognitive sciences
+
+
+
+
+15
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bayesian cognitive modeling: A practical course
+
+
+
+
+M
+D
+Lee
+
+
+
+
+
+
+E-J
+Wagenmakers
+
+
+
+
+
+
+
+
+Cambridge university press
+
+
+
+
+
+
+
+
+
+
+
+
+Extending jags: A tutorial on adding custom distributions to jags (with a diffusion model example). Behavior research methods
+
+
+
+
+D
+Wabersich
+
+
+
+
+
+
+J
+Vandekerckhove
+
+
+
+
+
+
+
+
+46
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Risk preference shares the psychometric structure of major psychological traits
+
+
+
+
+R
+Frey
+
+
+
+
+
+
+A
+Pedroni
+
+
+
+
+
+
+R
+Mata
+
+
+
+
+
+
+J
+Rieskamp
+
+
+
+
+
+
+R
+Hertwig
+
+
+
+
+
+
+
+
+Science advances
+
+
+
+
+3
+
+
+10
+
+
+1701381
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The attentional drift-diffusion model extends to simple purchasing decisions
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+D
+Lu
+
+
+
+
+
+
+C
+Camerer
+
+
+
+
+
+
+A
+Rangel
+
+
+
+
+
+
+
+
+Frontiers in psychology
+
+
+
+
+3
+
+
+193
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Remembrance of inferences past: Amortization in human hypothesis generation
+
+
+
+
+I
+Dasgupta
+
+
+
+
+
+
+E
+Schulz
+
+
+
+
+
+
+N
+D
+Goodman
+
+
+
+
+
+
+S
+J
+Gershman
+
+
+
+
+
+
+
+
+Cognition
+
+
+
+
+178
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Semi-rational models of conditioning: The case of trial order. The probabilistic mind
+
+
+
+
+N
+D
+Daw
+
+
+
+
+
+
+A
+C
+Courville
+
+
+
+
+
+
+P
+Dayan
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Cognitive imprecision and small-stakes risk aversion. The review of economic studies
+
+
+
+
+M
+W
+Khaw
+
+
+
+
+
+
+Z
+Li
+
+
+
+
+
+
+M
+Woodford
+
+
+
+
+
+
+
+
+88
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Psychological construal of economic behavior
+
+
+
+
+D
+Leiser
+
+
+
+
+
+
+O
+H
+Azar
+
+
+
+
+
+
+L
+Hadar
+
+
+
+
+
+
+
+
+Journal of Economic Psychology
+
+
+
+
+29
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Accounting for attention in sequential sampling models of decision making. Current opinion in psychology
+
+
+
+
+I
+Krajbich
+
+
+
+
+
+
+
+
+29
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Temporal discounting and search habits: evidence for a task-dependent relationship
+
+
+
+
+M
+W
+Khaw
+
+
+
+
+
+
+Z
+Li
+
+
+
+
+
+
+M
+Woodford
+
+
+
+
+
+
+
+
+Frontiers in Psychology
+
+
+
+
+9
+
+
+2102
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Beyond working memory: the role of persistent activity in decision making
+
+
+
+
+C
+E
+Curtis
+
+
+
+
+
+
+D
+Lee
+
+
+
+
+
+
+
+
+Trends in cognitive sciences
+
+
+
+
+14
+
+
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The aging of working memory
+
+
+
+
+T
+A
+Salthouse
+
+
+
+
+
+
+
+
+Neuropsychology
+
+
+
+
+8
+
+
+4
+
+
+535
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Attention and aging. Aging clinical and experimental research
+
+
+
+
+E
+Commodari
+
+
+
+
+
+
+M
+Guarnera
+
+
+
+
+
+
+
+
+20
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Working memory in schizophrenia: a meta-analysis
+
+
+
+
+N
+F
+Forbes
+
+
+
+
+
+
+L
+A
+Carrick
+
+
+
+
+
+
+A
+M
+Mcintosh
+
+
+
+
+
+
+S
+M
+Lawrie
+
+
+
+
+
+
+
+
+Psychological medicine
+
+
+
+
+39
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+The construct of attention in schizophrenia
+
+
+
+
+S
+J
+Luck
+
+
+
+
+
+
+J
+M
+Gold
+
+
+
+
+
+
+
+
+Biological psychiatry
+
+
+
+
+64
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+Output: Provide your response as a JSON list in the following format:
+
+[
+  {
+    "topic_or_construct": "...",
+    "measured_by": "...",
+    "justification": "..."
+  },
+  ...
+]
