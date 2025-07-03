@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from getpass import getpass
 
 from pydantic import BaseModel, ValidationError
-from instructor import Instructor, patch_instructor
+from instructor import Instructor
 from tqdm import tqdm
 from openai import OpenAI
 
@@ -76,18 +76,7 @@ def process_file(file_path: str, prompt_dir: str, json_dir: str, llm: Instructor
     print(f"🔍 Sending prompt for {file_path} to the LLM...")
 
     try:
-        """
         results = llm.create(
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            response_model=List[PsychTriple]
-        )
-        """
-
-        results = llm.chat.completions.create(
-            model=model,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
@@ -146,10 +135,8 @@ def main():
 
     base_url = "https://chat-ai.academiccloud.de/v1"
     client = OpenAI(api_key=api_key, base_url=base_url, timeout=60)
-    #chat = ChatAIWrapper(client, model)
-    patch_instructor(client)
-    #llm = Instructor(client=client, create=chat.create)
-    llm = Instructor(client=client)
+    chat = ChatAIWrapper(client, model)
+    llm = Instructor(client=client, create=chat.create)
 
     all_files = list(Path(input_dir).glob("*.xml"))
     if not all_files:
