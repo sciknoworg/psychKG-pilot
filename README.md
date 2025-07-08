@@ -24,11 +24,7 @@ cd psychKG-pilot
 pip install requests openai beautifulsoup4 pydantic
 ```
 
-After o3 processing
-=== Extraction Summary ===
-Total articles processed: 1618
-Articles with extracted constructs and measures: 1464
-Articles without relevant content: 154
+
 
 Instructions to run on a GPU server
 
@@ -54,3 +50,14 @@ pip install torch
 pip install accelerate
 
 
+After o3 processing
+=== Extraction Summary ===
+Total articles processed: 1618
+Articles with extracted constructs and measures: 1464
+Articles without relevant content: 154
+
+After Qwen 2.5 (72B Instruct) processing
+=== Extraction Summary ===
+Total new articles processed: 1,618
+Articles with extracted constructs and measures: 1,387
+Articles without relevant content: 231 

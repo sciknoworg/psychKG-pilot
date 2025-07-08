@@ -51,7 +51,7 @@ Output: Provide your response as a JSON list in the following format:
 
 [
   {{
-    "topic_or_construct": "...",
+    "construct": "...",
     "measured_by": "...",
     "justification": "..."
   }},
