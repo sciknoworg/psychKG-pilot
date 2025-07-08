@@ -130,7 +130,7 @@ if __name__ == "__main__":
         resource_entries = []
 
         for entry in entries:
-            toc = entry["topic_or_construct"].strip().lower()
+            toc = entry["construct"].strip().lower()
             meas = entry["measured_by"].strip().lower()
             just = entry["justification"].strip()
 
@@ -154,14 +154,14 @@ if __name__ == "__main__":
 
             c = tp.psychology_constructs_and_measurements(
                 label=f"contribution {counter}",
-                topic_or_construct=OID(toc_id),
+                construct=OID(toc_id),
                 measured_by=OID(meas_id),
                 justification=just
             )
             contributions.append(c)
 
             resource_entries.append({
-                "topic_or_construct": toc_id,
+                "construct": toc_id,
                 "measured_by": meas_id,
                 "justification": just
             })

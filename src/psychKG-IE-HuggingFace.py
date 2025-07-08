@@ -13,7 +13,7 @@ import torch
 
 # --------- Schema ---------
 class PsychTriple(BaseModel):
-    topic_or_construct: str
+    construct: str
     measured_by: str
     justification: str
 
@@ -40,7 +40,7 @@ The knowledge graph aims to represent the relationships between psychological **
 3) A brief justification (1–3 sentences) from the article text supporting this measurement link
 
 Guidelines:
-- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `topic_or_construct` and `measured_by`, suitable for inclusion in a knowledge graph.
+- Extract meaningful **phrases** (not full sentences or vague descriptions) for both `construct` and `measured_by`, suitable for inclusion in a knowledge graph.
 - Include a short justification for each extraction that clearly supports the connection.
 - If the article does not discuss psychological constructs and how they are measured (e.g., no mention of constructs, instruments, or scales), return an empty list `[]`.
 
@@ -51,7 +51,7 @@ Output: Provide your response as a JSON list in the following format:
 
 [
   {{
-    "topic_or_construct": "...",
+    "construct": "...",
     "measured_by": "...",
     "justification": "..."
   }},

@@ -9,7 +9,7 @@ from typing import List
 
 # Define structured output classes
 class PsychTriple(BaseModel):
-    topic_or_construct: List[str]
+    construct: List[str]
     measured_by: List[str]
     justification: str
 
@@ -20,16 +20,16 @@ class PsychTripleList(BaseModel):
 SYSTEM_PROMPT = '''
 You are an expert in psychology and computational knowledge representation. Your task is to extract key scientific information from psychology research articles to build a structured knowledge graph. 
 
-The knowledge graph aims to represent the relationships between psychological **topics or constructs** and their associated **measurement instruments or scales**. Specifically, for each article, you will extract information of the form:
+The knowledge graph aims to represent the relationships between psychological **constructs** and their associated **measurement instruments or scales**. Specifically, for each article, you will extract information of the form:
 
-1) "Topic or Construct"
+1) "Construct"
 2) [Property: "measured by"] -> [Value: "Measure"]
 
 Each article may contain multiple such records. These extractions help build a machine-readable semantic network that connects psychological concepts with their empirical operationalizations.
 
 For each extraction, provide a short justification from the text (1-3 sentences) that supports why this construct was measured by the identified measure.
 
-As far as possible, extract meaningful **phrases** (rather than whole sentences or vague descriptions) as **entities** suitable for inclusion in a knowledge graph for both `topic_or_construct` and `measured_by` fields.
+As far as possible, extract meaningful **phrases** (rather than whole sentences or vague descriptions) as **entities** suitable for inclusion in a knowledge graph for both `construct` and `measured_by` fields.
 
 However, not all articles are relevant to this task. If the article does not discuss psychological constructs and how they are measured (e.g., does not mention constructs, measurement techniques, or instruments), return an empty list `[]`.
 '''
