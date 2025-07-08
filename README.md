@@ -1,35 +1,41 @@
 # psychKG‑pilot
 
-Extract structured psychological constructs from TEI‑encoded research papers using large language models.
+Extract structured **construct–measured_by–justification** triples from TEI‑encoded research papers using LLMs.
 
-## 🧩 Scripts (`src/`)
+---
+
+## 🧩 Scripts (in `src/`)
 
 - **`psychKG-IE-HuggingFace.py`**  
-  Uses Hugging Face models (e.g., Qwen 2.5, Instructor + Pydantic) to extract structured triples.
+  Uses a local Hugging Face model via the Instructor + Pydantic pipeline.
 
 - **`psychKG-IE-OpenAI.py`**  
-  Uses OpenAI GPT‑4 (via API) with function‑calling and Pydantic for structured output.
+  Uses OpenAI GPT‑4 API with function‑calling and Pydantic validation. Outputs to `data/IE_output/o3`.
 
 - **`psychKG-IE-ChatAI.py`**  
-  Uses the OpenAI Assistant API (ChatGPT‑style) with structured function calls and validation.
+  Connects to the KISSKI ChatAI API (via the GWDG/KISSKI HPC service) for various open-weights models including from the Qwen model family (e.g., Qwen 2.5‑72B), deepseek and GPT models. Outputs to `data/IE_output/qwen2_5`.
 
-## 📂 Input
+---
 
-Raw TEI‑XML files located in:
+## 📥 Input
+
+Raw TEI‑XML papers located in:
 ```
 data/papers_input_tei_xml/
 ```
 
+---
+
 ## 📤 Output
 
-Extracted JSON output saved to:
+Extracted data saved as JSON to:
 ```
 data/IE_output/
-├── o3/       ← outputs from OpenAI-based scripts
-└── qwen2_5/  ← outputs from ChatAI script
+├── o3/       ← OpenAI‑ and ChatAI-based scripts output
+└── qwen2_5/  ← ChatAI script output
 ```
 
-Each JSON file contains a list of entries with:
+Each JSON file contains a list of entries:
 ```json
 {
   "construct": "...",
@@ -38,38 +44,59 @@ Each JSON file contains a list of entries with:
 }
 ```
 
+---
+
+## ⚙️ Requirements
+
+Packages used:
+- `transformers`, `instructor`, `pydantic`, `beautifulsoup4`, `openai`
+- Access to KISSKI ChatAI endpoint (AcademicCloud / GWDG HPC)
+- GPU recommended for Hugging Face script
+
+---
+
 ## ▶️ Usage
 
-### Hugging Face model:
+### 1. Hugging Face (local)
 ```bash
 python src/psychKG-IE-HuggingFace.py \
   --input_dir data/papers_input_tei_xml \
   --output_dir data/IE_output/qwen2_5
 ```
 
-### OpenAI-based scripts:
+### 2. OpenAI GPT‑4
 ```bash
-export OPENAI_API_KEY="YOUR_KEY"
 python src/psychKG-IE-OpenAI.py \
   --input_dir data/papers_input_tei_xml \
   --output_dir data/IE_output/o3
-
-python src/psychKG-IE-ChatAI.py \
-  --input_dir data/papers_input_tei_xml \
-  --output_dir data/IE_output/o3
 ```
 
-## ✅ Requirements
-
-- Python packages: `transformers`, `instructor`, `pydantic`, `beautifulsoup4`, `openai`
-- GPU recommended for Hugging Face script (Qwen 2.5‑72B)
-- GPT‑4 and Assistants API access for OpenAI-based scripts
+### 3. ChatAI via KISSKI
+Ensure you have API access to KISSKI ChatAI (see GWDG/KISSKI LLM‑Service) and appropriate credentials, then run:
+```bash
+python src/psychKG-IE-ChatAI.py
+```
 
 ---
+
+## ℹ️ Notes
+
+1. **Qwen output also comes via the KISSKI ChatAI** endpoint using Qwen 2.5‑72B weights hosted by the service.
+2. **KISSKI ChatAI API** is a secure, OpenAI-compatible endpoint (supports GPT‑4 and open models) and adheres to data privacy rules ([kisski.gwdg.de](https://kisski.gwdg.de/en/leistungen/2-02-llm-service/?utm_source=chatgpt.com), [dfn.de](https://www.dfn.de/wp-content/uploads/2024/10/BT81_Forum_Cloud_GWDG_Chat_AI.pdf?utm_source=chatgpt.com)).
+
+---
+
+## 🚀 Purpose
 
 Built to extract **construct–measurement–justification** triples from psychology papers using LLMs with strong schema validation([medium.com](https://medium.com/%40jenlindadsouza/psychkg-how-to-build-a-minimal-knowledge-graph-for-psychology-fac0c76800ac?utm_source=chatgpt.com), [medium.com](https://medium.com/%40jenlindadsouza/how-i-get-llms-on-hugging-face-to-speak-structured-data-1fb34bf15792?utm_source=chatgpt.com)).
-```
 
 ---
 
-You can download this and place it as `README.md` at your project root. Let me know if you'd like links, examples, or additional sections!
+## 📬 License & Contact
+
+This project is licensed under the MIT License.
+
+If you have questions, feedback, or ideas to improve the project, feel free to open an issue or get in touch with us — we'd love to hear from you!
+
+
+
