@@ -1,63 +1,75 @@
-# psychKG-pilot
+# psychKG‑pilot
 
-A minimal pipeline to extract structured psychological knowledge (constructs and measures) from PDF research articles using GROBID and OpenAI structured output parsing.
+Extract structured psychological constructs from TEI‑encoded research papers using large language models.
 
-## Directory Structure
+## 🧩 Scripts (`src/`)
 
+- **`psychKG-IE-HuggingFace.py`**  
+  Uses Hugging Face models (e.g., Qwen 2.5, Instructor + Pydantic) to extract structured triples.
+
+- **`psychKG-IE-OpenAI.py`**  
+  Uses OpenAI GPT‑4 (via API) with function‑calling and Pydantic for structured output.
+
+- **`psychKG-IE-ChatAI.py`**  
+  Uses the OpenAI Assistant API (ChatGPT‑style) with structured function calls and validation.
+
+## 📂 Input
+
+Raw TEI‑XML files located in:
 ```
-psychKG-pilot/
-├── grobid_batch_process.py
-├── psychKG-IE.py
-├── input_pdfs/
-│   ├── paper1.pdf
-│   ├── paper2.pdf
-│   ├── ...
-├── output_tei/
+data/papers_input_tei_xml/
 ```
 
+## 📤 Output
 
-## Setup
+Extracted JSON output saved to:
+```
+data/IE_output/
+├── o3/       ← outputs from OpenAI-based scripts
+└── qwen2_5/  ← outputs from ChatAI script
+```
 
+Each JSON file contains a list of entries with:
+```json
+{
+  "construct": "...",
+  "measured_by": "...",
+  "justification": "..."
+}
+```
+
+## ▶️ Usage
+
+### Hugging Face model:
 ```bash
-git clone https://github.com/sciknoworg/psychKG-pilot.git
-cd psychKG-pilot
-pip install requests openai beautifulsoup4 pydantic
+python src/psychKG-IE-HuggingFace.py \
+  --input_dir data/papers_input_tei_xml \
+  --output_dir data/IE_output/qwen2_5
 ```
 
+### OpenAI-based scripts:
+```bash
+export OPENAI_API_KEY="YOUR_KEY"
+python src/psychKG-IE-OpenAI.py \
+  --input_dir data/papers_input_tei_xml \
+  --output_dir data/IE_output/o3
 
-
-Instructions to run on a GPU server
-
-1. Create a Python virtual environment
-
-```
-python3.11 -m venv myenv3_11
-```
-
-Replace myenv_11 with your preferred environment name.
-
-2. Activate the virtual environment
-
-```
-source myenv3_11/bin/activate
+python src/psychKG-IE-ChatAI.py \
+  --input_dir data/papers_input_tei_xml \
+  --output_dir data/IE_output/o3
 ```
 
-pip install --upgrade pip
-pip install beautifulsoup4
-pip install instructor
-pip install transformers
-pip install torch
-pip install accelerate
+## ✅ Requirements
 
+- Python packages: `transformers`, `instructor`, `pydantic`, `beautifulsoup4`, `openai`
+- GPU recommended for Hugging Face script (Qwen 2.5‑72B)
+- GPT‑4 and Assistants API access for OpenAI-based scripts
 
-After o3 processing
-=== Extraction Summary ===
-Total articles processed: 1618
-Articles with extracted constructs and measures: 1464
-Articles without relevant content: 154
+---
 
-After Qwen 2.5 (72B Instruct) processing
-=== Extraction Summary ===
-Total new articles processed: 1,618
-Articles with extracted constructs and measures: 1,387
-Articles without relevant content: 231 
+Built to extract **construct–measurement–justification** triples from psychology papers using LLMs with strong schema validation([medium.com](https://medium.com/%40jenlindadsouza/psychkg-how-to-build-a-minimal-knowledge-graph-for-psychology-fac0c76800ac?utm_source=chatgpt.com), [medium.com](https://medium.com/%40jenlindadsouza/how-i-get-llms-on-hugging-face-to-speak-structured-data-1fb34bf15792?utm_source=chatgpt.com)).
+```
+
+---
+
+You can download this and place it as `README.md` at your project root. Let me know if you'd like links, examples, or additional sections!
