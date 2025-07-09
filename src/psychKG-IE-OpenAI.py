@@ -9,8 +9,8 @@ from typing import List
 
 # Define structured output classes
 class PsychTriple(BaseModel):
-    construct: List[str]
-    measured_by: List[str]
+    construct: str
+    measured_by: str
     justification: str
 
 class PsychTripleList(BaseModel):
