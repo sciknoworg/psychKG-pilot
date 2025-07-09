@@ -4,6 +4,12 @@ Extract structured **construct–measured_by–justification** triples from TEI�
 
 ---
 
+## 🚀 Aim
+
+Built to extract **construct–measurement–justification** triples from psychology papers using LLMs with strong schema validation([medium.com](https://medium.com/%40jenlindadsouza/psychkg-how-to-build-a-minimal-knowledge-graph-for-psychology-fac0c76800ac?utm_source=chatgpt.com), [medium.com](https://medium.com/%40jenlindadsouza/how-i-get-llms-on-hugging-face-to-speak-structured-data-1fb34bf15792?utm_source=chatgpt.com)).
+
+---
+
 ## 🧩 Scripts (in `src/`)
 
 - **`psychKG-IE-HuggingFace.py`**  
@@ -83,12 +89,6 @@ python src/psychKG-IE-ChatAI.py
 
 1. **Qwen output also comes via the KISSKI ChatAI** endpoint using Qwen 2.5‑72B weights hosted by the service.
 2. **KISSKI ChatAI API** is a secure, OpenAI-compatible endpoint (supports GPT‑4 and open models) and adheres to data privacy rules ([kisski.gwdg.de](https://kisski.gwdg.de/en/leistungen/2-02-llm-service/?utm_source=chatgpt.com), [dfn.de](https://www.dfn.de/wp-content/uploads/2024/10/BT81_Forum_Cloud_GWDG_Chat_AI.pdf?utm_source=chatgpt.com)).
-
----
-
-## 🚀 Purpose
-
-Built to extract **construct–measurement–justification** triples from psychology papers using LLMs with strong schema validation([medium.com](https://medium.com/%40jenlindadsouza/psychkg-how-to-build-a-minimal-knowledge-graph-for-psychology-fac0c76800ac?utm_source=chatgpt.com), [medium.com](https://medium.com/%40jenlindadsouza/how-i-get-llms-on-hugging-face-to-speak-structured-data-1fb34bf15792?utm_source=chatgpt.com)).
 
 ---
 
