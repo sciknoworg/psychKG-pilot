@@ -92,6 +92,16 @@ Built to extract **construct–measurement–justification** triples from psycho
 
 ---
 
+## 🔖 Citation
+
+If you use this repository in your work, please cite:
+
+> D'Souza, J., & Wulff, D. (2025). *psychKG-pilot: A Minimal Knowledge Graph for Psychology via LLM-based Structured Extraction* (Version 0.1.0) [Computer software]. TIB & MPIB. https://github.com/sciknoworg/psychKG-pilot
+
+Or use the [`CITATION.cff`](./CITATION.cff) file for automatic citation formats.
+
+---
+
 ## 📬 License & Contact
 
 This project is licensed under the MIT License.
