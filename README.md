@@ -110,6 +110,7 @@ Or use the [`CITATION.cff`](./CITATION.cff) file for automatic citation formats.
   publisher    = {TIB & MPIB},
   url          = {https://github.com/sciknoworg/psychKG-pilot}
 }
+```
 
 ---
 
