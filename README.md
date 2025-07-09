@@ -100,6 +100,17 @@ If you use this repository in your work, please cite:
 
 Or use the [`CITATION.cff`](./CITATION.cff) file for automatic citation formats.
 
+**BibTeX:**
+```bibtex
+@software{dsouza2025psychkg,
+  author       = {D'Souza, Jennifer and Wulff, Dirk},
+  title        = {psychKG-pilot: A Minimal Knowledge Graph for Psychology via LLM-based Structured Extraction},
+  year         = 2025,
+  version      = {0.1.0},
+  publisher    = {TIB & MPIB},
+  url          = {https://github.com/sciknoworg/psychKG-pilot}
+}
+
 ---
 
 ## 📬 License & Contact
